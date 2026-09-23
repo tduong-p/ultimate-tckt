@@ -1,0 +1,67 @@
+services:
+  tckt-db:
+    image: mysql:8
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TCKT_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TCKT_DB_NAME}
+      MYSQL_USER: ${TCKT_DB_USER}
+      MYSQL_PASSWORD: ${TCKT_DB_PASSWORD}
+    volumes:
+      - tckt_mysql_data:/var/lib/mysql
+      - ./seed/tckt-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  tckt-app:
+    image: ghcr.io/tduong-p/tckt-activity-hub:${TCKT_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - tckt-db
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: tckt-db
+      DB_PORT: 3306
+      DB_NAME: ${TCKT_DB_NAME}
+      DB_USER: ${TCKT_DB_USER}
+      DB_PASSWORD: ${TCKT_DB_PASSWORD}
+      SESSION_SECRET: ${TCKT_SESSION_SECRET}
+      APP_BASE_URL: https://tckt-hub.duckdns.org
+      EMAIL_NOTIFICATIONS_ENABLED: "false"
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - tckt_uploads:/app/storage/task-attachments
+
+  ctd-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${CTD_DB_NAME}
+      POSTGRES_USER: ${CTD_DB_USER}
+      POSTGRES_PASSWORD: ${CTD_DB_PASSWORD}
+    volumes:
+      - ctd_postgres_data:/var/lib/postgresql/data
+
+  ctd-app:
+    image: ghcr.io/tduong-p/ctd:${CTD_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - ctd-db
+    environment:
+      DATABASE_URL: postgresql+psycopg://${CTD_DB_USER}:${CTD_DB_PASSWORD}@ctd-db:5432/${CTD_DB_NAME}
+      JWT_SECRET: ${CTD_JWT_SECRET}
+      MAILER_DRIVER: console
+      STORAGE_DRIVER: local
+      LOCAL_STORAGE_DIR: /app/storage/documents
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ctd_documents:/app/storage/documents
+
+volumes:
+  tckt_mysql_data:
+  tckt_uploads:
+  ctd_postgres_data:
+  ctd_documents:

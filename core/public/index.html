@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <meta name="description" content="TCKT Activity Hub - Hệ thống điều hành, quản trị hoạt động và giám sát tiến độ công việc Đoàn - Hội - Ban Tổ chức - Kiểm tra.">
+  <link rel="canonical" href="https://tckt-hub.hust.edu.vn/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tckt-hub.hust.edu.vn/">
+  <meta property="og:title" content="TCKT Activity Hub - Ban Tổ chức - Kiểm tra">
+  <meta property="og:description" content="Hệ thống điều hành, quản trị hoạt động và giám sát tiến độ công việc Đoàn - Hội.">
+  <meta property="og:site_name" content="TCKT Activity Hub">
+  <meta property="og:locale" content="vi_VN">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TCKT Activity Hub - Ban Tổ chức - Kiểm tra">
+  <meta name="twitter:description" content="Hệ thống điều hành, quản trị hoạt động và giám sát tiến độ công việc Đoàn - Hội.">
+
+  <title>TCKT Activity Hub - Ban Tổ chức - Kiểm tra</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+  <link rel="stylesheet" href="/styles.css?v=2.9.0">
+  <link rel="stylesheet" href="/components.css?v=2.9.0">
+</head>
+<body>
+  <!-- Accessible Skip to Content Link (WCAG 2.2 AA) -->
+  <a href="#content" class="skip-link">Chuyển đến nội dung chính</a>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <main id="login" class="login-page hidden">
+    <section class="login-art">
+      <div class="brand brand-light"><span class="brand-mark">T</span><span>TCKT <b>Activity Hub</b></span></div>
+      <div class="login-copy"><span class="eyebrow">WORK TOGETHER · REMEMBER TOGETHER</span><h1>Every contribution.<br><em>One shared story.</em></h1><p>Plan activities, coordinate teams, and preserve the work that moves our student community forward.</p></div>
+      <div class="login-quote"><div class="mini-avatars"><span>MA</span><span>HN</span><span>BC</span></div><p>Built for the Youth Union & Student Association</p></div>
+    </section>
+    <section class="login-panel"><button type="button" class="lang-toggle login-lang" data-language aria-label="Change language"><b>EN</b><span>VN</span></button><form id="login-form" class="login-form"><div class="mobile-brand brand"><span class="brand-mark">T</span><span>TCKT <b>Activity Hub</b></span></div><span class="eyebrow green">WELCOME BACK</span><h2>Sign in to your workspace</h2><p class="muted">Use your school account to continue.</p><a class="btn microsoft wide" href="/auth/microsoft">Sign in with Microsoft HUST</a><div class="or"><span>or use your local account</span></div><div id="login-error" class="notice notice-danger hidden" role="alert" aria-live="assertive"></div><label>Email address<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="btn primary wide" type="submit">Sign in <i class="ph-bold ph-arrow-right" aria-hidden="true"></i></button></form></section>
+  </main>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar" id="sidebar" aria-label="Thanh điều hướng bên" data-open="false">
+      <div class="sidebar-head">
+        <a class="brand" href="#dashboard">
+          <span class="brand-mark">T</span>
+          <div class="brand-info">
+            <strong>TCKT Activity Hub</strong>
+            <small>Ban Tổ chức - Kiểm tra</small>
+          </div>
+        </a>
+      </div>
+      <div class="sidebar-search-box">
+        <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+        <input id="sidebar-search" type="text" placeholder="Tìm kiếm nhanh…" autocomplete="off" aria-label="Tìm kiếm nhanh">
+      </div>
+      <nav id="nav" aria-label="Menu điều hướng chính">
+        <a href="#dashboard" data-page="dashboard" title="Tổng quan"><i class="ph-bold ph-squares-four" aria-hidden="true"></i><span>Tổng quan</span></a>
+        <a href="#my-tasks-today" data-page="my-tasks-today" title="Việc hôm nay"><i class="ph-bold ph-sun" aria-hidden="true"></i><span>Việc hôm nay</span></a>
+        <a href="#calendar" data-page="calendar" title="Lịch hoạt động"><i class="ph-bold ph-calendar-blank" aria-hidden="true"></i><span>Lịch hoạt động</span></a>
+        <a href="#activities" data-page="activities" title="Hoạt động & Dự án"><i class="ph-bold ph-kanban" aria-hidden="true"></i><span>Hoạt động & Dự án</span></a>
+        <a href="#my-tasks" data-page="my-tasks" title="Công việc của tôi"><i class="ph-bold ph-check-circle" aria-hidden="true"></i><span>Công việc của tôi</span></a>
+        <a href="#teams" data-page="teams" title="Các Tổ"><i class="ph-bold ph-users-three" aria-hidden="true"></i><span>Các Tổ</span></a>
+        <a href="#people" data-page="people" title="Thành viên"><i class="ph-bold ph-user-circle" aria-hidden="true"></i><span>Thành viên</span></a>
+        <a href="#documents" data-page="documents" title="Tài liệu"><i class="ph-bold ph-file-text" aria-hidden="true"></i><span>Tài liệu</span></a>
+        <a href="#reports" data-page="reports" data-manager-only title="Báo cáo"><i class="ph-bold ph-chart-pie-slice" aria-hidden="true"></i><span>Báo cáo</span></a>
+        <a href="#archive" data-page="archive" title="Lưu trữ"><i class="ph-bold ph-archive" aria-hidden="true"></i><span>Lưu trữ</span></a>
+        <a href="#accounts" data-page="accounts" data-admin-only title="Tài khoản"><i class="ph-bold ph-gear-six" aria-hidden="true"></i><span>Tài khoản</span></a>
+        <div class="nav-group" data-devops-or-admin-only>
+          <span class="nav-group-label"><i class="ph-bold ph-sliders" aria-hidden="true"></i><span>Setting</span></span>
+          <a href="#settings-deliveries" data-page="settings-deliveries" title="Delivery Log">Delivery Log</a>
+          <a href="#settings-rules" data-page="settings-rules" data-devops-only title="Email Rules">Email Rules</a>
+          <a href="#settings-templates" data-page="settings-templates" data-devops-only title="Email Templates">Email Templates</a>
+          <a href="#settings-cron" data-page="settings-cron" data-devops-only title="Cron Jobs">Cron Jobs</a>
+          <a href="#settings-smtp" data-page="settings-smtp" data-devops-only title="SMTP & Sending">SMTP & Sending</a>
+        </div>
+      </nav>
+      <div class="sidebar-foot">
+        <div id="sidebar-user" class="user-chip"></div>
+        <div class="sidebar-foot-actions">
+          <button type="button" class="notification-trigger desktop-notification" aria-label="Thông báo hệ thống" aria-expanded="false" aria-controls="notification-panel" title="Thông báo">
+            <i class="ph-bold ph-bell" style="font-size:16px;" aria-hidden="true"></i>
+            <b class="notification-count hidden">0</b>
+          </button>
+          <button type="button" class="lang-toggle" data-language aria-label="Chuyển đổi ngôn ngữ"><b>EN</b><span>VN</span></button>
+          <button type="button" id="logout" class="logout-btn icon-rail-logout" title="Đăng xuất" aria-label="Đăng xuất khỏi tài khoản">
+            <i class="ph-bold ph-sign-out" style="font-size:16px;" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+    <header class="topbar"><a class="brand" href="#dashboard"><span class="brand-mark">T</span><span>Activity Hub</span></a><div class="top-actions"><button type="button" class="lang-toggle" data-language aria-label="Chuyển đổi ngôn ngữ"><b>EN</b><span>VN</span></button><button type="button" id="mobile-menu" class="icon-btn" aria-label="Mở menu điều hướng" aria-controls="sidebar" aria-expanded="false"><i class="ph-bold ph-list" style="font-size:20px;" aria-hidden="true"></i></button></div></header>
+    <button type="button" id="sidebar-overlay" class="sidebar-overlay" aria-label="Đóng menu điều hướng" hidden></button>
+    <button type="button" class="notification-trigger mobile-notification" aria-label="Thông báo hệ thống" aria-expanded="false" aria-controls="notification-panel"><i class="ph-bold ph-bell" style="font-size:18px;" aria-hidden="true"></i><b class="notification-count hidden">0</b></button>
+    <section id="notification-panel" class="notification-panel hidden" aria-label="Thông báo"><div class="notification-head"><strong>Notifications</strong><small>Kept for 7 days</small></div><div id="notification-list"></div></section>
+    <div id="notification-popups" class="notification-popups" aria-live="polite"></div>
+    <main id="content" class="content" tabindex="-1" aria-live="polite" aria-atomic="true"></main>
+  </div>
+
+  <dialog id="modal" aria-modal="true" aria-label="Cửa sổ thông tin"><button type="button" class="modal-close" data-close aria-label="Đóng cửa sổ"><i class="ph-bold ph-x" aria-hidden="true"></i></button><div id="modal-content"></div></dialog>
+  <dialog id="onboarding-modal" class="onboarding-modal" aria-modal="true" aria-labelledby="onboarding-title"><div id="onboarding-content"></div></dialog>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script src="/app.js?v=2.9.0" defer></script>
+  <script src="/notifications.js?v=2.9.0" defer></script>
+  <script src="/settings.js?v=2.9.0" defer></script>
+</body>
+</html>

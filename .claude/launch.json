@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "core-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["app.js"],
+      "cwd": "core",
+      "port": 3000
+    }
+  ]
+}

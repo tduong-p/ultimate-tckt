@@ -1,0 +1,42 @@
+/* Global interaction layer for the Clay Design Language.
+   Inline styles can't express :hover/:active/:focus-visible, so those
+   states live here and apply uniformly to every button/input in the app. */
+
+html {
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, .display-title {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+button:not(:disabled) {
+  will-change: transform;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  filter: brightness(0.92);
+}
+
+input:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: #a8a399;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(18, 17, 16, 0.14);
+}

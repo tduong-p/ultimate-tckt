@@ -1,0 +1,4 @@
+# Chạy migration lúc khởi động: an toàn khi nhiều instance cùng khởi động
+# song song vì alembic/env.py giữ khoá tư vấn Postgres (pg_advisory_xact_lock)
+# trong lúc chạy migration — tiến trình thứ hai sẽ đợi thay vì chạy trùng.
+web: alembic upgrade head && python -m app.seeds && uvicorn app.main:app --host 0.0.0.0 --port $PORT

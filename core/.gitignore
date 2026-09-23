@@ -1,0 +1,8 @@
+node_modules/
+.env
+storage/task-attachments/
+log.md
+*.log
+.DS_Store
+
+.worktrees/

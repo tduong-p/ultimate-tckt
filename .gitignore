@@ -1,0 +1,23 @@
+# deps / build
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+dist/
+*.tsbuildinfo
+services/ctd-api/backend/static/
+# runtime
+.env
+.env.*
+!.env.example
+core/storage/task-attachments/
+*.log
+log.md
+# OS / tooling
+.DS_Store
+.worktrees/
+.superpowers/
+.claude/scheduled_tasks.lock
+docs-export/
