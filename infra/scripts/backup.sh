@@ -24,7 +24,7 @@ fi
 dc exec -T "$CORE_DB_SVC" sh -c 'mysqldump --single-transaction --routines -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
   | gzip > "$OUT/$ENV-$TS-core.sql.gz"
 # shellcheck disable=SC2016
-dc exec -T ctd-db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+dc exec -T ctd-db sh -c 'pg_dump --clean --if-exists -U "$POSTGRES_USER" "$POSTGRES_DB"' \
   | gzip > "$OUT/$ENV-$TS-ctd.sql.gz"
 
 for kind in core ctd; do

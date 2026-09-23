@@ -1,7 +1,7 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 1.0
+version: 1.1
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -37,9 +37,14 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 8. **Không dùng lại tên hạ tầng cũ `seee`/`tckt-app`/`ctd-app`** trong code hoặc cấu hình mới — chỉ còn ở
    `infra/scripts/migrate-volumes.sh` (script chuyển dữ liệu, cần biết tên cũ để chép đúng volume nguồn) và
    `docs/adr/` (ghi lại quyết định đổi tên).
+9. **Không để cấu hình nginx hỏng nằm trong `sites-enabled`.** nginx phục vụ cả hai môi trường; một file lỗi làm
+   lần reload/khởi động lại sau đó chết cả staging lẫn production. `apply-infra.sh` gỡ/khôi phục site mới khi `nginx -t` lỗi.
+10. **Mật khẩu DB không bao giờ đi qua dòng lệnh trên host** (`ps` thấy được): dump/restore chạy `sh -c '…$MYSQL_…/$POSTGRES_…'`
+   trong container (xem `infra/scripts/backup.sh`). Dump Postgres luôn có `--clean --if-exists` để restore đè được.
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm bất biến 9 (nginx hỏng) và 10 (mật khẩu DB không qua dòng lệnh host) | DYC |
