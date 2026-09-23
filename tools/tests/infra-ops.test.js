@@ -32,11 +32,22 @@ test('backup.sh writes both dumps under backups/', () => {
   const r = sb.run('backup.sh', ['staging']);
   assert.equal(r.status, 0, r.stderr);
   const c = sb.calls().join('\n');
-  assert.match(c, /exec -T core-db mysqldump/);
-  assert.match(c, /exec -T ctd-db pg_dump/);
+  assert.match(c, /exec -T core-db sh -c mysqldump .*\$MYSQL_ROOT_PASSWORD/);
+  assert.match(c, /exec -T ctd-db sh -c pg_dump .*\$POSTGRES_USER/);
+  // Không bao giờ đưa mật khẩu từ host vào dòng lệnh.
+  assert.doesNotMatch(c, /-p[^"$ ]/);
   const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-core\.sql\.gz$/.test(f)), files.join(','));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-ctd\.sql\.gz$/.test(f)), files.join(','));
+});
+
+test('backup.sh on the old stack uses given compose args and tckt-db service', () => {
+  const sb = makeSandbox();
+  const r = sb.run('backup.sh', ['staging'], { UT_BACKUP_COMPOSE_ARGS: '-p old-staging -f /x.yml' });
+  assert.equal(r.status, 0, r.stderr);
+  const c = sb.calls().join('\n');
+  assert.match(c, /docker compose -p old-staging -f \/x\.yml exec -T tckt-db sh -c mysqldump/);
+  assert.match(c, /docker compose -p old-staging -f \/x\.yml exec -T ctd-db sh -c pg_dump/);
 });
 
 test('migrate-volumes.sh copies each old volume into its new name', () => {

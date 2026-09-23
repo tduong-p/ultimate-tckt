@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Usage: backup.sh <staging|production>
 # Dump MySQL (core) + Postgres (ctd) của một môi trường vào $UT_ROOT/backups/, giữ 14 bản mỗi loại.
-# UT_BACKUP_PROJECT=seee-ctd-<env> để backup stack cũ trước khi chuyển (dùng file compose cũ qua UT_BACKUP_COMPOSE_ARGS).
+# Mật khẩu KHÔNG đi qua host: lệnh dump chạy trong container và đọc biến môi trường của chính container.
+# Backup stack cũ trước khi chuyển đổi (xem docs/ops/chuyen-doi-ultimate-tckt.md):
+#   UT_BACKUP_COMPOSE_ARGS="-p <project cũ> --env-file <env cũ> -f <compose cũ>" backup.sh <env>
+#   (service MySQL cũ tên tckt-db; đổi bằng UT_BACKUP_CORE_DB_SVC nếu khác)
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -12,25 +15,16 @@ if [[ -n "${UT_BACKUP_COMPOSE_ARGS:-}" ]]; then
   # shellcheck disable=SC2086
   dc() { docker compose $UT_BACKUP_COMPOSE_ARGS "$@"; }
   CORE_DB_SVC="${UT_BACKUP_CORE_DB_SVC:-tckt-db}"
-  MYSQL_ROOT_PASSWORD_HOST="${UT_BACKUP_MYSQL_ROOT_PASSWORD:-}"
-  MYSQL_DATABASE_HOST="${UT_BACKUP_MYSQL_DATABASE:-}"
-  PG_USER_HOST="${UT_BACKUP_PG_USER:-}"
-  PG_DB_HOST="${UT_BACKUP_PG_DATABASE:-}"
 else
   dc() { ut_compose "$ENV" "$@"; }
   CORE_DB_SVC=core-db
-  ENV_FILE="$(ut_env_dir "$ENV")/infra/.env"
-  # Đọc .env trên host để truyền giá trị thật vào lệnh exec (container không thấy biến shell của host).
-  [[ -f "$ENV_FILE" ]] && { set -a; source "$ENV_FILE"; set +a; }
-  MYSQL_ROOT_PASSWORD_HOST="${CORE_MYSQL_ROOT_PASSWORD:-}"
-  MYSQL_DATABASE_HOST="${CORE_DB_NAME:-}"
-  PG_USER_HOST="${CTD_DB_USER:-}"
-  PG_DB_HOST="${CTD_DB_NAME:-}"
 fi
 
-dc exec -T "$CORE_DB_SVC" mysqldump --single-transaction --routines -uroot -p"$MYSQL_ROOT_PASSWORD_HOST" "$MYSQL_DATABASE_HOST" \
+# shellcheck disable=SC2016  # biến được mở rộng bên trong container
+dc exec -T "$CORE_DB_SVC" sh -c 'mysqldump --single-transaction --routines -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
   | gzip > "$OUT/$ENV-$TS-core.sql.gz"
-dc exec -T ctd-db pg_dump -U "$PG_USER_HOST" "$PG_DB_HOST" \
+# shellcheck disable=SC2016
+dc exec -T ctd-db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
   | gzip > "$OUT/$ENV-$TS-ctd.sql.gz"
 
 for kind in core ctd; do
