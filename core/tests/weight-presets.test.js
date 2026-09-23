@@ -41,14 +41,14 @@ test('executive can create, update, and delete weight presets; validates points 
     // Member forbidden
     await client.login(member.email, member.password);
     const forbiddenRes = await client.request('POST', '/api/admin/weight-presets', {
-      body: { label: 'Task siêu to', points: 8 }
+      body: { name: 'Task siêu to', points: 8 }
     });
     assert.equal(forbiddenRes.status, 403);
 
     // Admin creates valid preset
     await client.login(admin.email, admin.password);
     const createRes = await client.request('POST', '/api/admin/weight-presets', {
-      body: { label: 'Task trọng điểm', points: 8 }
+      body: { name: 'Task trọng điểm', points: 8 }
     });
     assert.equal(createRes.status, 201);
     const presetId = createRes.json.id;
@@ -56,19 +56,19 @@ test('executive can create, update, and delete weight presets; validates points 
 
     // Validation: points < 0 or > 10 rejected
     const invalidRes1 = await client.request('POST', '/api/admin/weight-presets', {
-      body: { label: 'Lỗi', points: -1 }
+      body: { name: 'Lỗi', points: -1 }
     });
     assert.equal(invalidRes1.status, 400);
 
     const invalidRes2 = await client.request('POST', '/api/admin/weight-presets', {
-      body: { label: 'Lỗi', points: 11 }
+      body: { name: 'Lỗi', points: 11 }
     });
     assert.equal(invalidRes2.status, 400);
 
     // vice_admin updates preset
     await client.login(viceAdmin.email, viceAdmin.password);
     const updateRes = await client.request('PATCH', `/api/admin/weight-presets/${presetId}`, {
-      body: { label: 'Đặc biệt quan trọng', points: 9 }
+      body: { name: 'Đặc biệt quan trọng', points: 9 }
     });
     assert.equal(updateRes.status, 200);
 
