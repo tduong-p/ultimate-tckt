@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.0
+version: 1.1
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -45,9 +45,15 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
   chạy với `app_env=dev` ở mọi nơi kể cả môi trường thật, nghĩa là ai biết email người dùng cũng đăng nhập được
   bằng mã `123456` (xem `services/ctd-api/backend/app/infra/otp.py`). Đã đóng bằng cách bắt buộc set `APP_ENV`
   đúng môi trường khi deploy — kiểm lại giá trị này mỗi khi thấy đăng nhập CTD "quá dễ" trên staging/production.
+- **`dorny/paths-filter` trên PR cần quyền `pull-requests: read`.** Token mặc định của repo mới không có quyền
+  này → job `changes` lỗi "Resource not accessible by integration" và mọi job sau bị skip. Job `changes` trong
+  `deploy.yml` khai báo `permissions: { contents: read, pull-requests: read }`; đừng xoá.
+- **Push nhiều nhánh cùng lúc vào repo vừa tạo có thể không kích hoạt workflow** cho một trong các nhánh
+  (gặp với `staging` ngày 2026-09-24). Nếu thiếu run, đẩy thêm một commit (qua PR) để kích hoạt lại.
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
