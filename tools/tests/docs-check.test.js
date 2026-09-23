@@ -81,3 +81,10 @@ test('build renders a table row per doc grouped by folder', () => {
   assert.match(out, /## dev/);
   assert.match(out, /\| \[DEV-ARCH-001\]\(dev\/arch\.md\) \| Kiến trúc \| 1\.0 \| active \| dev \|/);
 });
+
+test('brokenLinks ignores links inside fenced and inline code', () => {
+  const body = "```js\nconst b = '[a](nope.md)';\n```\nText `[x](nope2.md)` and [real](gone.md)\n~~~\n[y](nope3.md)\n~~~\n";
+  const errs = rules.brokenLinks('docs/a.md', body, () => false);
+  assert.equal(errs.length, 1, errs.join('\n'));
+  assert.match(errs[0], /gone\.md/);
+});
