@@ -50,6 +50,18 @@ test('checkBump: bump with updated date and history row passes', () => {
   assert.deepEqual(rules.checkBump(a, b, 'x.md'), []);
 });
 
+test('checkBump: second bump on the same day passes', () => {
+  const body = doc().split('---\n')[2].replace('Nội dung.', 'Nội dung mới.') + '| 1.1 | 2026-09-23 | Sửa | DYC |\n';
+  const b = doc({ version: '1.1' }, body);
+  assert.deepEqual(rules.checkBump(doc(), b, 'x.md'), []);
+});
+
+test('checkBump: updated date moving backwards fails', () => {
+  const body = doc().split('---\n')[2].replace('Nội dung.', 'Nội dung mới.') + '| 1.1 | 2026-09-22 | Sửa | DYC |\n';
+  const b = doc({ version: '1.1', updated: '2026-09-22' }, body);
+  assert.match(rules.checkBump(doc(), b, 'x.md').join('\n'), /updated/);
+});
+
 test('checkBump: bump without history row fails', () => {
   const b = doc({ version: '1.1', updated: '2026-09-24' }, doc().split('---\n')[2].replace('Nội dung.', 'Khác.'));
   assert.match(rules.checkBump(doc(), b, 'x.md').join('\n'), /Lịch sử/);
@@ -59,6 +71,11 @@ test('compareVersions orders numerically', () => {
   assert.equal(rules.compareVersions('1.10', '1.9'), 1);
   assert.equal(rules.compareVersions('2.0', '2.0'), 0);
   assert.equal(rules.compareVersions('1.0', '2.0'), -1);
+});
+
+test('docsImpact ignores ADRs (immutable decisions)', () => {
+  const docs = [{ path: 'docs/adr/0012-x.md', data: { doc_id: 'ADR-0012-001', related_code: ['tools/docs-check/**'] } }];
+  assert.deepEqual(rules.docsImpact(['tools/docs-check/rules.js'], docs), []);
 });
 
 test('docsImpact flags code changes whose doc did not change', () => {

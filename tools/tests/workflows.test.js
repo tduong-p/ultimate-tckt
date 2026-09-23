@@ -23,6 +23,12 @@ test('deploy.yml wires test -> build -> deploy with gates', () => {
   assert.doesNotMatch(y, /seee|tckt-activity-hub|\/opt\/infra/);
 });
 
+test('deploy.yml changes job may read PR file list (paths-filter on pull_request)', () => {
+  const y = wf('deploy.yml');
+  const job = y.slice(y.indexOf('\n  changes:'), y.indexOf('\n  test-core:'));
+  assert.match(job, /permissions: \{ contents: read, pull-requests: read \}/);
+});
+
 test('ghcr-cleanup keeps 10 versions of both images weekly', () => {
   const y = wf('ghcr-cleanup.yml');
   assert.match(y, /cron:/);
@@ -38,4 +44,6 @@ test('docs.yml checks every PR/push and tags docs on main', () => {
   assert.match(y, /no-docs-needed/);
   assert.match(y, /docs-v/);
   assert.match(y, /pandoc/);
+  // Tác động code→tài liệu gác ở PR (ruleset bắt buộc PR); push chỉ kiểm frontmatter/bump.
+  assert.match(y, /NO_DOCS: \$\{\{ github\.event_name == 'push' \|\| contains\(github\.event\.pull_request\.labels\.\*\.name, 'no-docs-needed'\) \}\}/);
 });

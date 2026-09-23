@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.0
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -34,19 +34,20 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 3. Ruleset nhánh `main`
 
 - Yêu cầu Pull Request trước khi merge (không cho push thẳng).
-- Yêu cầu các status check sau phải xanh trước khi merge: `test-core`, `test-ctd`, `docs`.
-- Chặn force-push.
+- Yêu cầu các status check sau phải xanh trước khi merge: `changes`, `test-core`, `test-ctd`, `docs` (job bị skip theo path filter vẫn tính là đạt).
+- Chặn force-push và xoá nhánh.
 - Không cần bypass list: `docs.yml` chỉ gắn tag `docs-v*` và tạo GitHub Release, không commit vào `main`.
 
 ## 4. Ruleset nhánh `staging`
 
-- Yêu cầu các status check bắt buộc xanh (tối thiểu `test-core`, `test-ctd`).
-- Chặn force-push.
-- Không bắt buộc PR (được push thẳng theo luồng ở `docs/ops/deploy-va-nhanh.md`).
+- Yêu cầu status check `changes`, `test-core`, `test-ctd`, `docs` xanh.
+- Chặn force-push và xoá nhánh.
+- Không bắt buộc review, nhưng vì ruleset bắt buộc check nên **push thẳng commit mới vào `staging` bị từ chối** (commit chưa có check). Thực tế: đẩy lên nhánh tính năng → mở PR vào `staging` → merge khi CI xanh.
+- Ruleset hiện có: `protect-main`, `protect-staging` (xem `gh api repos/tduong-p/ultimate-tckt/rulesets`).
 
 ## 5. Nhãn (Label)
 
-- `no-docs-needed` — gắn vào PR khi thay đổi không cần cập nhật tài liệu, đi kèm dòng "Docs: không cần vì …" trong mô tả PR (xem `.github/pull_request_template.md`, và luật ở `AGENTS.md`).
+- `no-docs-needed` — gắn vào PR khi thay đổi không cần cập nhật tài liệu, đi kèm dòng "Docs: không cần vì …" trong mô tả PR (xem `.github/pull_request_template.md`, và luật ở `AGENTS.md`). Kiểm tác động code→tài liệu chỉ chạy ở PR, nên nhãn này không cần lặp lại sau merge.
 
 ## 6. GHCR (GitHub Container Registry)
 
@@ -64,3 +65,5 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi đúng ruleset đã tạo: thêm check `changes`, chặn xoá nhánh; staging bắt buộc check nên thay đổi đi qua PR | DYC |
+| 1.2 | 2026-09-24 | Nhãn `no-docs-needed`: kiểm tác động chỉ ở PR | DYC |
