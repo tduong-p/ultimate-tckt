@@ -44,4 +44,6 @@ test('docs.yml checks every PR/push and tags docs on main', () => {
   assert.match(y, /no-docs-needed/);
   assert.match(y, /docs-v/);
   assert.match(y, /pandoc/);
+  // Tác động code→tài liệu gác ở PR (ruleset bắt buộc PR); push chỉ kiểm frontmatter/bump.
+  assert.match(y, /NO_DOCS: \$\{\{ github\.event_name == 'push' \|\| contains\(github\.event\.pull_request\.labels\.\*\.name, 'no-docs-needed'\) \}\}/);
 });

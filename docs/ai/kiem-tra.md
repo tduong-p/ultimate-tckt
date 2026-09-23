@@ -1,7 +1,7 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.1
+version: 1.2
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -57,6 +57,8 @@ Workflow `.github/workflows/docs.yml`: chạy `docs:check` trên PR, xuất docx
 `updated` không bị coi là thay đổi nội dung. Khi tăng `version`, `updated` là ngày sửa: được giữ nguyên nếu
 sửa lần nữa trong cùng ngày, nhưng không được lùi về ngày cũ hơn. Đổi code khớp `related_code` của một tài liệu
 mà không sửa tài liệu đó → lỗi; ADR (`docs/adr/`) được bỏ qua vì ADR không sửa, chỉ thay bằng ADR mới.
+Trên CI, kiểm tác động này chỉ chạy ở PR (nhãn `no-docs-needed` trên PR cho phép bỏ qua kèm lý do); lần chạy
+sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay đổi đã phải qua PR.
 
 ## Lịch sử phiên bản
 
@@ -64,3 +66,4 @@ mà không sửa tài liệu đó → lỗi; ADR (`docs/adr/`) được bỏ qua
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Ghi luật ngày `updated` khi bump và việc bỏ qua ADR trong kiểm tác động | DYC |
+| 1.2 | 2026-09-24 | Kiểm tác động code→tài liệu chỉ gác ở PR, push không lặp lại | DYC |
