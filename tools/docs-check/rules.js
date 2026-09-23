@@ -40,7 +40,8 @@ function checkBump(oldText, newText, file) {
     e.push(`${file}: content changed but version was not increased (still ${n.data.version})`);
     return e;
   }
-  if (n.data.updated === o.data.updated) e.push(`${file}: version bumped but updated date unchanged`);
+  // Same-day bumps keep the date; only a date going backwards is wrong (ISO dates compare as strings).
+  if (String(n.data.updated) < String(o.data.updated)) e.push(`${file}: version bumped but updated date moved backwards (${o.data.updated} → ${n.data.updated})`);
   if (!new RegExp(`^\\|\\s*${n.data.version.replace('.', '\\.')}\\s*\\|`, 'm').test(n.body)) {
     e.push(`${file}: add a row for ${n.data.version} under "${HISTORY}"`);
   }
