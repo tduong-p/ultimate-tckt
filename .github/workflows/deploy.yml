@@ -1,0 +1,189 @@
+name: deploy
+
+on:
+  push:
+    branches: [staging, main]
+  pull_request:
+    branches: [staging, main]
+  workflow_dispatch:
+    inputs:
+      apply_db:
+        description: 'Infra: also apply database services (core-db / ctd-db)?'
+        type: boolean
+        default: false
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.f.outputs.core }}
+      ctd: ${{ steps.f.outputs.ctd }}
+      infra: ${{ steps.f.outputs.infra }}
+      tag: ${{ steps.v.outputs.tag }}
+      env: ${{ steps.v.outputs.env }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            core:
+              - 'core/**'
+              - 'web/**'
+            ctd:
+              - 'services/ctd-api/**'
+            infra:
+              - 'infra/**'
+      - id: v
+        run: |
+          echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then echo "env=production" >> "$GITHUB_OUTPUT"; else echo "env=staging" >> "$GITHUB_OUTPUT"; fi
+
+  test-core:
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -proot" --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: core
+    env:
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: 3306
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: core/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  test-ctd:
+    needs: changes
+    if: needs.changes.outputs.ctd == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ctd_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: services/ctd-api/backend
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e . pytest httpx
+      - run: pytest -q
+
+  build-core:
+    needs: [changes, test-core]
+    if: github.event_name == 'push' && needs.changes.outputs.core == 'true'
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      # VM là Oracle Ampere A1 (arm64); runner miễn phí là amd64 -> build arm64 qua QEMU.
+      - uses: docker/build-push-action@v6
+        with:
+          context: core
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/tduong-p/ultimate-tckt-core:${{ needs.changes.outputs.tag }}
+          cache-from: type=gha,scope=core
+          cache-to: type=gha,scope=core,mode=max
+
+  build-ctd-api:
+    needs: [changes, test-ctd]
+    if: github.event_name == 'push' && needs.changes.outputs.ctd == 'true'
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: services/ctd-api
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/tduong-p/ultimate-tckt-ctd-api:${{ needs.changes.outputs.tag }}
+          cache-from: type=gha,scope=ctd-api
+          cache-to: type=gha,scope=ctd-api,mode=max
+
+  deploy-core:
+    needs: [changes, build-core]
+    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.changes.outputs.env }}
+    concurrency:
+      group: vm-deploy-${{ needs.changes.outputs.env }}
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash /opt/ultimate-tckt/${{ needs.changes.outputs.env }}/infra/scripts/deploy.sh ${{ needs.changes.outputs.env }} core ${{ needs.changes.outputs.tag }}
+
+  deploy-ctd-api:
+    needs: [changes, build-ctd-api]
+    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.changes.outputs.env }}
+    concurrency:
+      group: vm-deploy-${{ needs.changes.outputs.env }}
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash /opt/ultimate-tckt/${{ needs.changes.outputs.env }}/infra/scripts/deploy.sh ${{ needs.changes.outputs.env }} ctd-api ${{ needs.changes.outputs.tag }}
+
+  infra:
+    needs: changes
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && needs.changes.outputs.infra == 'true'))
+    runs-on: ubuntu-latest
+    environment: ${{ needs.changes.outputs.env }}
+    concurrency:
+      group: vm-deploy-${{ needs.changes.outputs.env }}
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash /opt/ultimate-tckt/${{ needs.changes.outputs.env }}/infra/scripts/apply-infra.sh ${{ needs.changes.outputs.env }} ${{ inputs.apply_db == true && 'true' || 'false' }}

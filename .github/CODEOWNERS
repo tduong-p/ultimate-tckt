@@ -1,0 +1,6 @@
+# Mặc định: DYC review mọi thứ. Thêm nhóm theo module khi có thành viên.
+*                    @tduong-p
+/core/               @tduong-p
+/services/ctd-api/   @tduong-p
+/infra/              @tduong-p
+/docs/               @tduong-p
