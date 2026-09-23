@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-CUT-001
 title: Runbook chuyển đổi sang hạ tầng ultimate-tckt
-version: 1.0
+version: 1.1
 status: active
 audience: [ops, ai]
 owner: DYC
@@ -52,6 +52,14 @@ ssh-keygen -t ed25519 -f ./ultimate_tckt_ci -N ''
 
 ## 1. Bootstrap VM (không đụng container đang chạy)
 
+`/opt` thuộc root nên tạo thư mục gốc trước (một lần):
+
+```bash
+sudo mkdir -p /opt/ultimate-tckt && sudo chown ubuntu:ubuntu /opt/ultimate-tckt
+```
+
+Trên VM hiện tại, deploy key dùng host alias `github-ultimate-tckt` trong `~/.ssh/config`; khi đó thay URL clone bằng `git@github-ultimate-tckt:tduong-p/ultimate-tckt.git` và chạy bootstrap với `UT_REPO_URL=git@github-ultimate-tckt:tduong-p/ultimate-tckt.git`.
+
 ```bash
 git clone --filter=blob:none --sparse --branch staging git@github.com:tduong-p/ultimate-tckt.git /tmp/ut
 git -C /tmp/ut sparse-checkout set infra
@@ -84,6 +92,8 @@ docker compose -p seee-ctd-<env> --env-file /opt/infra/.env.<env> -f /opt/infra/
 ```
 
 Ghi lại 4 con số này (users, activities, tasks, case) — dùng để so sánh lại ở bước 2.6.
+
+Nên đếm chính xác **mọi bảng** của cả hai DB (lặp `SHOW TABLES` / `pg_tables` rồi `COUNT(*)` từng bảng), lưu vào `~/ut-cutover/<env>-before.txt`, và ở bước 2.6 so bằng `diff <(sort before) <(sort after)`. Lần chuyển staging đã làm vậy (37 bảng).
 
 ### 2.2. Backup stack cũ
 
@@ -136,7 +146,7 @@ docker compose -p ultimate-tckt-<env> --env-file /opt/ultimate-tckt/<env>/infra/
   exec -T ctd-db sh -c 'psql -tA -U "$CTD_DB_USER" "$CTD_DB_NAME" -c "SELECT COUNT(*) FROM \"case\""'
 ```
 
-**Khớp với mục 2.1** → tiếp tục. **Lệch** → dừng ngay, không xoá gì, làm theo mục Rollback bên dưới — volume cũ vẫn còn nguyên nên không mất dữ liệu.
+**Khớp với mục 2.1** → tiếp tục. Ngoại lệ đã biết: CTD tự seed tài khoản quản trị khi khởi động nếu `app_user` rỗng (log: "Đã seed … tài khoản quản trị"), nên `app_user` có thể tăng 0 → 1; tài khoản này có mật khẩu mặc định — chủ repo đổi ngay sau khi chuyển. **Lệch** → dừng ngay, không xoá gì, làm theo mục Rollback bên dưới — volume cũ vẫn còn nguyên nên không mất dữ liệu.
 
 ### 2.7. Gỡ nginx site cũ, dùng site mới
 
@@ -192,7 +202,7 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 
 | Môi trường | Ngày | Người | Ghi chú |
 |---|---|---|---|
-| staging | | | |
+| staging | 2026-09-24 | Claude (theo uỷ quyền DYC) | Backup `staging-20260923-1840-*`. 37 bảng khớp, trừ `app_user` 0→1 (CTD seed admin). Image core `fd51e64975dd`, ctd-api `52da14bcdaac`. Health 200 qua domain; `app_env=staging` (OTP dev đã tắt). Đã gỡ `staging-{tckt,ctd}.conf`. Workflow deploy của 3 repo cũ đã tắt. |
 | production | | | |
 
 ## Lịch sử phiên bản
@@ -200,3 +210,4 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi nhật ký chuyển staging; thêm bước tạo `/opt/ultimate-tckt`, host alias deploy key, đếm mọi bảng, ngoại lệ seed admin CTD | DYC |
