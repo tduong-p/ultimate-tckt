@@ -1,0 +1,72 @@
+# Stack staging. Chạy qua infra/scripts/lib.sh (compose project: ultimate-tckt-staging).
+services:
+  core-db:
+    image: mysql:8
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${CORE_MYSQL_ROOT_PASSWORD:?}
+      MYSQL_DATABASE: ${CORE_DB_NAME:?}
+      MYSQL_USER: ${CORE_DB_USER:?}
+      MYSQL_PASSWORD: ${CORE_DB_PASSWORD:?}
+    volumes:
+      - core_mysql:/var/lib/mysql
+      - ../seed/core-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  core:
+    image: ghcr.io/tduong-p/ultimate-tckt-core:${CORE_IMAGE_TAG:?}
+    restart: unless-stopped
+    depends_on:
+      - core-db
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: core-db
+      DB_PORT: 3306
+      DB_NAME: ${CORE_DB_NAME:?}
+      DB_USER: ${CORE_DB_USER:?}
+      DB_PASSWORD: ${CORE_DB_PASSWORD:?}
+      SESSION_SECRET: ${CORE_SESSION_SECRET:?}
+      SETTINGS_ENCRYPTION_KEY: ${CORE_SETTINGS_ENCRYPTION_KEY:?}
+      DEVOPS_EMAILS: ${CORE_DEVOPS_EMAILS:-}
+      APP_BASE_URL: https://tckt-hub-staging.duckdns.org
+      APP_ENV: staging
+      EMAIL_NOTIFICATIONS_ENABLED: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - core_uploads:/app/storage/task-attachments
+
+  ctd-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${CTD_DB_NAME:?}
+      POSTGRES_USER: ${CTD_DB_USER:?}
+      POSTGRES_PASSWORD: ${CTD_DB_PASSWORD:?}
+    volumes:
+      - ctd_postgres:/var/lib/postgresql/data
+
+  ctd-api:
+    image: ghcr.io/tduong-p/ultimate-tckt-ctd-api:${CTD_API_IMAGE_TAG:?}
+    restart: unless-stopped
+    depends_on:
+      - ctd-db
+    environment:
+      APP_ENV: staging
+      DATABASE_URL: postgresql+psycopg://${CTD_DB_USER:?}:${CTD_DB_PASSWORD:?}@ctd-db:5432/${CTD_DB_NAME:?}
+      JWT_SECRET: ${CTD_JWT_SECRET:?}
+      MAILER_DRIVER: console
+      STORAGE_DRIVER: local
+      LOCAL_STORAGE_DIR: /app/storage/documents
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ctd_documents:/app/storage/documents
+
+volumes:
+  core_mysql:
+  core_uploads:
+  ctd_postgres:
+  ctd_documents:
