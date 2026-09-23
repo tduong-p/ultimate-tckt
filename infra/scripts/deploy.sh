@@ -1,30 +1,27 @@
 #!/usr/bin/env bash
-# Usage: ./deploy.sh <staging|production> <tckt|ctd> <image-tag>
-# Run ON THE VM (this is what GitHub Actions SSHes in and executes).
+# Usage: deploy.sh <staging|production> <core|ctd-api> <image-tag>
+# Chạy TRÊN VM (GitHub Actions SSH vào và gọi). Chỉ đụng một service của một môi trường.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-ROLE="${1:?Usage: deploy.sh <staging|production> <tckt|ctd> <image-tag>}"
-APP="${2:?Usage: deploy.sh <staging|production> <tckt|ctd> <image-tag>}"
-TAG="${3:?Usage: deploy.sh <staging|production> <tckt|ctd> <image-tag>}"
+ENV="${1:-}"; APP="${2:-}"; TAG="${3:-}"
+BRANCH="$(ut_env_branch "$ENV")"
+SERVICE="$(ut_app_service "$APP")"
+[[ -n "$TAG" ]] || ut_die "Usage: deploy.sh <staging|production> <core|ctd-api> <image-tag>"
 
-case "$APP" in
-  tckt) SERVICE=tckt-app; TAG_VAR=TCKT_IMAGE_TAG ;;
-  ctd)  SERVICE=ctd-app;  TAG_VAR=CTD_IMAGE_TAG ;;
-  *) echo "APP must be 'tckt' or 'ctd', got: $APP" >&2; exit 1 ;;
-esac
+ut_lock "$ENV"
+git -C "$(ut_env_dir "$ENV")" pull --ff-only origin "$BRANCH"
 
-# Acquire lock to serialize deployments and avoid concurrent git pull collisions on FETCH_HEAD
-exec 200>/tmp/infra-deploy.lock
-flock -x -w 180 200
+# Giữ tag của app còn lại để compose không đòi biến rỗng.
+export CORE_IMAGE_TAG="${CORE_IMAGE_TAG:-$(ut_current_tag "$ENV" core)}"
+export CTD_API_IMAGE_TAG="${CTD_API_IMAGE_TAG:-$(ut_current_tag "$ENV" ctd-api)}"
+export "$(ut_app_tag_var "$APP")=$TAG"
+# App còn lại chưa từng chạy -> tag rỗng làm ${VAR:?} của compose lỗi. Giá trị giả chỉ để nội suy;
+# --no-deps đảm bảo service kia không bị pull/up.
+: "${CORE_IMAGE_TAG:=$TAG}" "${CTD_API_IMAGE_TAG:=$TAG}"; export CORE_IMAGE_TAG CTD_API_IMAGE_TAG
 
-cd /opt/infra
-git pull --ff-only origin main
-
-export "${TAG_VAR}=${TAG}"
-COMPOSE_FILE="docker-compose.${ROLE}.yml"
-ENV_FILE=".env.${ROLE}"
-PROJECT="seee-ctd-${ROLE}"
-
-docker compose -p "$PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull "$SERVICE"
-docker compose -p "$PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d "$SERVICE"
-docker image prune -f
+ut_compose "$ENV" pull "$SERVICE"
+ut_compose "$ENV" up -d --no-deps "$SERVICE"
+ut_health "http://127.0.0.1:$(ut_app_port "$ENV" "$APP")/api/health"
+docker image prune -f >/dev/null
+echo "Deployed $APP@$TAG to $ENV"
