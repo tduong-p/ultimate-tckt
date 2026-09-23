@@ -67,9 +67,14 @@ function docsImpact(changedFiles, docs) {
   return [...new Set(e)];
 }
 
+// Bỏ khối code rào (``` hoặc ~~~) và code inline trước khi tìm link.
+function stripCode(body) {
+  return body.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, '').replace(/`[^`\n]*`/g, '');
+}
+
 function brokenLinks(file, body, exists) {
   const e = [];
-  for (const m of body.matchAll(/\]\(([^)\s]+)\)/g)) {
+  for (const m of stripCode(body).matchAll(/\]\(([^)\s]+)\)/g)) {
     const target = m[1];
     if (/^[a-z]+:/i.test(target) || target.startsWith('#')) continue;
     const p = path.normalize(path.join(path.dirname(file), target.split('#')[0]));
