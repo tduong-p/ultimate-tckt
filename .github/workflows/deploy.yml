@@ -114,6 +114,7 @@ jobs:
           context: core
           platforms: linux/arm64
           push: true
+          provenance: false
           tags: ghcr.io/tduong-p/ultimate-tckt-core:${{ needs.changes.outputs.tag }}
           cache-from: type=gha,scope=core
           cache-to: type=gha,scope=core,mode=max
@@ -134,18 +135,20 @@ jobs:
           context: services/ctd-api
           platforms: linux/arm64
           push: true
+          provenance: false
           tags: ghcr.io/tduong-p/ultimate-tckt-ctd-api:${{ needs.changes.outputs.tag }}
           cache-from: type=gha,scope=ctd-api
           cache-to: type=gha,scope=ctd-api,mode=max
 
+  # Không đặt concurrency group chung cho các job deploy: GitHub huỷ job đang *chờ* khi job mới vào cùng group.
+  # deploy.sh / apply-infra.sh đã tự tuần tự bằng flock trên VM. Production cần thêm biến PROD_DEPLOY_ENABLED.
   deploy-core:
     needs: [changes, build-core]
-    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    if: >-
+      github.event_name == 'push' &&
+      vars.DEPLOY_ENABLED == 'true' && (needs.changes.outputs.env == 'staging' || vars.PROD_DEPLOY_ENABLED == 'true')
     runs-on: ubuntu-latest
     environment: ${{ needs.changes.outputs.env }}
-    concurrency:
-      group: vm-deploy-${{ needs.changes.outputs.env }}
-      cancel-in-progress: false
     steps:
       - uses: appleboy/ssh-action@v1.2.0
         with:
@@ -156,12 +159,11 @@ jobs:
 
   deploy-ctd-api:
     needs: [changes, build-ctd-api]
-    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    if: >-
+      github.event_name == 'push' &&
+      vars.DEPLOY_ENABLED == 'true' && (needs.changes.outputs.env == 'staging' || vars.PROD_DEPLOY_ENABLED == 'true')
     runs-on: ubuntu-latest
     environment: ${{ needs.changes.outputs.env }}
-    concurrency:
-      group: vm-deploy-${{ needs.changes.outputs.env }}
-      cancel-in-progress: false
     steps:
       - uses: appleboy/ssh-action@v1.2.0
         with:
@@ -173,14 +175,11 @@ jobs:
   infra:
     needs: changes
     if: >-
-      vars.DEPLOY_ENABLED == 'true' &&
+      vars.DEPLOY_ENABLED == 'true' && (needs.changes.outputs.env == 'staging' || vars.PROD_DEPLOY_ENABLED == 'true') &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' && needs.changes.outputs.infra == 'true'))
     runs-on: ubuntu-latest
     environment: ${{ needs.changes.outputs.env }}
-    concurrency:
-      group: vm-deploy-${{ needs.changes.outputs.env }}
-      cancel-in-progress: false
     steps:
       - uses: appleboy/ssh-action@v1.2.0
         with:

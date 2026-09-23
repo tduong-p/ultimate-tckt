@@ -24,9 +24,9 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 1.0 | active | ai, dev |
+| [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 1.1 | active | ai, dev |
 | [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.1 | active | ai, dev |
-| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.2 | active | ai, dev |
+| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.3 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 1.0 | active | ai, dev |
 
 ## ba
@@ -52,7 +52,7 @@
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 1.0 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 1.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 1.1 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 1.2 | active | dev, ai |
 
 ## onboarding
 
@@ -66,11 +66,11 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [OPS-BAK-001](ops/backup-restore.md) | Backup và restore database | 1.0 | active | dev, ops, ai |
-| [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.1 | active | ops, ai |
+| [OPS-BAK-001](ops/backup-restore.md) | Backup và restore database | 1.1 | active | dev, ops, ai |
+| [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.2 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.0 | active | ops, ba |
-| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 1.1 | active | dev, ops, ai |
-| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.2 | active | dev, ops, ai |
+| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 1.2 | active | dev, ops, ai |
+| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.3 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
 | [OPS-DB-001](ops/truy-cap-db.md) | Truy cập database từ xa (chỉ đọc) | 1.0 | active | dev, ops, ai |
@@ -83,11 +83,11 @@
 | [PB-DBG-001](playbooks/debug.md) | Playbook — debug | 1.0 | active | dev, ai |
 | [PB-RBAC-001](playbooks/doi-quyen.md) | Playbook — đổi quyền | 1.0 | active | dev, ai |
 | [PB-SCH-001](playbooks/doi-schema.md) | Playbook — đổi schema | 1.0 | active | dev, ai |
-| [PB-HOT-001](playbooks/hotfix-production.md) | Playbook — hotfix production | 1.0 | active | dev, ai |
+| [PB-HOT-001](playbooks/hotfix-production.md) | Playbook — hotfix production | 1.1 | active | dev, ai |
 | [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.0 | active | dev, ai |
 | [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.0 | active | dev, ai |
 | [PB-FIX-001](playbooks/sua-loi.md) | Playbook — sửa lỗi | 1.0 | active | dev, ai |
-| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.0 | active | dev, ai |
+| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.1 | active | dev, ai |
 | [PB-FEAT-001](playbooks/them-tinh-nang.md) | Playbook — thêm tính năng | 1.0 | active | dev, ai |
 
 ## specs

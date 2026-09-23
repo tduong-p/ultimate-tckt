@@ -1,7 +1,7 @@
 ---
 doc_id: PB-HOT-001
 title: Playbook — hotfix production
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -28,7 +28,7 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
 3. **Sửa tối thiểu** — chỉ sửa đúng phần gây sự cố, không tiện tay dọn dẹp/refactor thêm trong cùng hotfix.
 4. **Viết/chạy test tái hiện lỗi** theo [`sua-loi.md`](sua-loi.md) — kể cả hotfix cũng không được bỏ qua bước này.
 5. **Mở PR từ `hotfix/<mo-ta-ngan>` vào `main`** (không vào `staging`). CI (`deploy.yml`) chạy `test-core`/`test-ctd` theo path filter như bình thường; ruleset `main` vẫn yêu cầu PR + check xanh, không có đường tắt bỏ qua CI.
-6. **Merge vào `main`** → CI tự build + deploy production (nếu `DEPLOY_ENABLED=true`). Theo dõi health check qua `docs/ops/su-co.md`.
+6. **Merge vào `main`** → CI tự build + deploy production (nếu `DEPLOY_ENABLED=true` và `PROD_DEPLOY_ENABLED=true`). Theo dõi health check qua `docs/ops/su-co.md`.
 7. **Merge ngược `main → staging` ngay sau khi hotfix đã lên production** — bắt buộc, để `staging` không bị lệch lùi:
    ```bash
    git checkout staging && git pull
@@ -55,3 +55,4 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Deploy production cần cả `PROD_DEPLOY_ENABLED` | DYC |

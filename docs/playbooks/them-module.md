@@ -1,7 +1,7 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -49,7 +49,7 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 - [ ] Module type đã chọn có ghi rõ căn cứ (2/3 tiêu chí nào đạt) trong PR hoặc ADR.
 - [ ] Service mới có trong **cả hai** file compose (staging + production), không chỉ một.
 - [ ] `lib.sh`: `ut_app_service`/`ut_app_port` có entry cho module mới, test tooling (`npm run test:tools`) xanh.
-- [ ] `deploy.yml`: path filter + 3 job (test/build/deploy) cho module mới, health check `/api/health` (hoặc endpoint tương đương) đã xác nhận chạy được trước khi bật `DEPLOY_ENABLED`.
+- [ ] `deploy.yml`: path filter + 3 job (test/build/deploy) cho module mới, health check `/api/health` (hoặc endpoint tương đương) đã xác nhận chạy được trước khi bật `DEPLOY_ENABLED` / `PROD_DEPLOY_ENABLED`. Không thêm `concurrency` group cho job deploy (GitHub huỷ job đang chờ; `flock` trên VM đã tuần tự).
 - [ ] Module chỉ chấp nhận JWT bridge, không có luồng đăng nhập/mật khẩu riêng.
 - [ ] Tài liệu BA cho module mới đã có, dẫn từ `docs/ba/tong-quan-nen-tang.md`.
 
@@ -65,3 +65,4 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Công tắc production, không dùng concurrency group | DYC |

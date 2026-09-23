@@ -11,9 +11,12 @@ jobs:
       matrix:
         package: [ultimate-tckt-core, ultimate-tckt-ctd-api]
     steps:
-      # Giữ 10 bản mới nhất. Tag đang chạy luôn nằm trong 10 bản mới nhất vì mỗi deploy là một bản mới.
+      # Giữ 40 bản mới nhất mỗi package. staging và production dùng CHUNG package, nên tag production có thể
+      # cũ hơn nhiều bản staging; 40 bản (build không provenance = 1 bản/lần build) đủ cho vài tuần staging
+      # dồn dập mà vẫn giữ tag production và tag trước đó để rollback. Nếu staging build > 40 lần giữa hai lần
+      # release production, tăng số này.
       - uses: actions/delete-package-versions@v5
         with:
           package-name: ${{ matrix.package }}
           package-type: container
-          min-versions-to-keep: 10
+          min-versions-to-keep: 40
