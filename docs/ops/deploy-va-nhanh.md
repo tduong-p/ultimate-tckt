@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -17,7 +17,7 @@ Tài liệu này giúp dev và AI agent biết push vào nhánh nào thì lên m
 
 | Nhánh | Môi trường | Ghi chú |
 |---|---|---|
-| `staging` | staging | Push thẳng được (không bắt buộc PR), CI vẫn chạy đầy đủ test trước khi deploy. |
+| `staging` | staging | Không bắt buộc review, nhưng ruleset bắt buộc check xanh nên thay đổi đi qua PR từ nhánh tính năng (xem `docs/ops/github.md` mục 4). |
 | `main` | production | Chỉ nhận thay đổi qua Pull Request (ruleset chặn push thẳng, xem `docs/ops/github.md`). |
 
 Luồng làm việc thường ngày:
@@ -88,3 +88,4 @@ docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/doc
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Staging: thay đổi đi qua PR vì ruleset bắt buộc check | DYC |
