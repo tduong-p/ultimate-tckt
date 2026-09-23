@@ -19,7 +19,20 @@ for app in core ctd; do
   sudo cp "$DIR/infra/nginx/$ENV/$app.conf" "/etc/nginx/sites-available/$name"
   sudo ln -sf "/etc/nginx/sites-available/$name" "/etc/nginx/sites-enabled/$name"
 done
-sudo nginx -t || ut_die "nginx -t failed; previous sites saved in $BK — nginx NOT reloaded"
+if ! sudo nginx -t; then
+  # Không để cấu hình hỏng nằm trong sites-enabled (lần reload/khởi động lại sau sẽ làm nginx chết cả hai môi trường).
+  for app in core ctd; do
+    name="ultimate-tckt-$ENV-$app.conf"
+    sudo rm -f "/etc/nginx/sites-enabled/$name"
+    if [[ -f "$BK/$name" ]]; then
+      sudo cp -a "$BK/$name" "/etc/nginx/sites-available/$name"
+      sudo ln -sf "/etc/nginx/sites-available/$name" "/etc/nginx/sites-enabled/$name"
+    else
+      sudo rm -f "/etc/nginx/sites-available/$name"
+    fi
+  done
+  ut_die "nginx -t failed; new sites rolled back from $BK — nginx NOT reloaded"
+fi
 sudo systemctl reload nginx
 
 export CORE_IMAGE_TAG="${CORE_IMAGE_TAG:-$(ut_current_tag "$ENV" core)}"

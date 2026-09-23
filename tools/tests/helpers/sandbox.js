@@ -6,7 +6,7 @@ const { spawnSync } = require('node:child_process');
 
 const repo = path.join(__dirname, '..', '..', '..');
 
-function makeSandbox({ curlCode = '200', dockerOut = {} } = {}) {
+function makeSandbox({ curlCode = '200', dockerOut = {}, sudoFail = '' } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ut-'));
   const bin = path.join(root, 'bin');
   const logFile = path.join(root, 'calls.log');
@@ -15,7 +15,9 @@ function makeSandbox({ curlCode = '200', dockerOut = {} } = {}) {
     fs.writeFileSync(path.join(bin, name),
       `#!/usr/bin/env bash\necho "${name} $*" >> "${logFile}"\n${body}\nexit 0\n`, { mode: 0o755 });
   };
-  for (const n of ['git', 'sudo', 'nginx', 'systemctl', 'certbot', 'flock', 'gzip']) stub(n);
+  for (const n of ['git', 'nginx', 'systemctl', 'certbot', 'flock', 'gzip']) stub(n);
+  // sudo: thất bại (exit 1) khi lệnh khớp sudoFail, để giả lập vd `nginx -t` lỗi
+  stub('sudo', sudoFail ? `[[ "$*" == ${JSON.stringify(sudoFail)} ]] && exit 1` : '');
   stub('curl', `echo -n "${curlCode}"`);
   // docker: trả output theo khoá "docker <sub>" nếu được cấu hình
   const cases = Object.entries(dockerOut)
