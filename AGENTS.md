@@ -12,7 +12,7 @@ Repo `ultimate-tckt`: nền tảng đa đơn vị Đoàn Đại học — `core/
 ## Khi thay đổi (bắt buộc, CI chặn merge nếu thiếu)
 1. Mọi thay đổi code/cấu hình/hạ tầng phải cập nhật tài liệu liên quan **trong cùng PR**.
 2. Sửa nội dung một tài liệu → tăng `version` (MAJOR: người đọc bản cũ sẽ làm sai; MINOR: bổ sung/làm rõ),
-   đổi `updated`, thêm một dòng vào `## Lịch sử phiên bản`.
+   đặt `updated` = ngày hôm nay, thêm một dòng vào `## Lịch sử phiên bản`.
 3. Thêm/xoá/đổi tên tài liệu → chạy `npm run docs:index`.
 4. Quyết định kiến trúc mới → thêm `docs/adr/NNNN-<slug>.md`. Không sửa ADR cũ; thay thế bằng ADR mới có `supersedes`.
 5. Không tạo tài liệu ngoài cấu trúc trong `docs/README.md`. Không để hai tài liệu mô tả cùng một chuyện.
