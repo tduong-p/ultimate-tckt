@@ -15,6 +15,7 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions: { contents: read, pull-requests: read }
     outputs:
       core: ${{ steps.f.outputs.core }}
       ctd: ${{ steps.f.outputs.ctd }}
