@@ -20,7 +20,8 @@ jobs:
       - name: docs:check
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
-          NO_DOCS: ${{ contains(github.event.pull_request.labels.*.name, 'no-docs-needed') }}
+          # Tác động code→tài liệu gác ở PR (ruleset bắt buộc PR, nhãn no-docs-needed nằm trên PR); push chỉ kiểm frontmatter/bump.
+          NO_DOCS: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'no-docs-needed') }}
         run: |
           if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then npm run docs:check; exit; fi
           extra=""; [[ "$NO_DOCS" == "true" ]] && extra="--allow-no-docs"
