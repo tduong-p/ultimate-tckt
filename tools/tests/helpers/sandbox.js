@@ -19,7 +19,7 @@ function makeSandbox({ curlCode = '200', dockerOut = {} } = {}) {
   stub('curl', `echo -n "${curlCode}"`);
   // docker: trả output theo khoá "docker <sub>" nếu được cấu hình
   const cases = Object.entries(dockerOut)
-    .map(([k, v]) => `  *"${k}"*) printf '%s' ${JSON.stringify(v)} ;;`).join('\n');
+    .map(([k, v]) => `  *"${k}"*) printf '%b' ${JSON.stringify(v)} ;;`).join('\n');
   stub('docker', `case "$*" in\n${cases}\n  *) : ;;\nesac`);
   for (const env of ['staging', 'production']) {
     fs.mkdirSync(path.join(root, 'opt', env, 'infra', 'compose'), { recursive: true });
