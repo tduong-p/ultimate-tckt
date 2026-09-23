@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# Usage: ./setup-vm.sh <github-owner>
-# This VM hosts BOTH staging and production (single Always-Free VM), so it
-# enables every Nginx site under nginx/staging/ and nginx/production/.
+# Usage: ./setup-vm.sh
+# This VM hosts BOTH staging and production (single Always-Free VM). Repo is
+# fixed: tduong-p/ultimate-tckt.
 set -euo pipefail
-
-GH_OWNER="${1:?Usage: setup-vm.sh <github-owner>}"
 
 echo "== Opening firewall (iptables) for 80/443 =="
 # Insert ACCEPT rules right before the first REJECT/DROP rule in INPUT, not at
@@ -31,28 +29,18 @@ echo "== Installing Nginx + Certbot =="
 sudo apt update
 sudo apt install -y nginx certbot python3-certbot-nginx git
 
-echo "== Cloning infra repo to /opt/infra =="
-# Uses git@github.com: (SSH) rather than https:// because this repo is
-# private and the VM authenticates via a read-only deploy key registered on
-# GitHub, not a stored PAT — see docs/manual-setup-guide.md for how that key
-# was set up.
-sudo mkdir -p /opt/infra
-sudo chown "$USER":"$USER" /opt/infra
-if [[ ! -d /opt/infra/.git ]]; then
-  git clone "git@github.com:${GH_OWNER}/infra.git" /opt/infra
-fi
-
-echo "== Enabling all Nginx sites (staging + production) =="
-for conf in /opt/infra/nginx/staging/*.conf /opt/infra/nginx/production/*.conf; do
-  role=$(basename "$(dirname "$conf")")
-  name="${role}-$(basename "$conf")"
-  sudo cp "$conf" "/etc/nginx/sites-available/$name"
-  sudo ln -sf "/etc/nginx/sites-available/$name" "/etc/nginx/sites-enabled/$name"
-done
-sudo nginx -t
-sudo systemctl reload nginx
+echo "== Preparing /opt/ultimate-tckt =="
+sudo mkdir -p /opt/ultimate-tckt/backups
+sudo chown -R "$USER":"$USER" /opt/ultimate-tckt
+echo "== Next: add this VM's deploy key to tduong-p/ultimate-tckt, then for each env run =="
+echo "   bash <(curl -fsSL …) is NOT used — copy infra/scripts from a checkout and run:"
+echo "   infra/scripts/bootstrap-vm.sh staging && infra/scripts/apply-infra.sh staging"
+echo "   infra/scripts/bootstrap-vm.sh production && infra/scripts/apply-infra.sh production"
 
 echo "== Done. Next steps (manual): =="
 echo "1. sudo certbot --nginx  (issues certs for every server_name found in enabled sites)"
-echo "2. Create /opt/infra/.env.staging AND /opt/infra/.env.production with real secrets (see infra/README.md)"
-echo "3. docker login ghcr.io -u $GH_OWNER  (use a GitHub PAT with read:packages scope)"
+echo "2. Add this VM's deploy key to tduong-p/ultimate-tckt (read-only), then run:"
+echo "   infra/scripts/bootstrap-vm.sh staging && infra/scripts/apply-infra.sh staging"
+echo "   infra/scripts/bootstrap-vm.sh production && infra/scripts/apply-infra.sh production"
+echo "   (each writes /opt/ultimate-tckt/<env>/infra/.env; set UT_OLD_ENV_DIR if migrating an older host)"
+echo "3. docker login ghcr.io -u <github-user>  (use a GitHub PAT with read:packages scope)"

@@ -1,41 +1,32 @@
 #!/usr/bin/env bash
-# Usage: ./create-tckt-readonly-user.sh <staging|production> [username]
-# Run ON THE VM, from /opt/infra. Creates a read-only (SELECT-only) MySQL user
+# Usage: ./create-core-readonly-user.sh <staging|production> [username]
+# Run ON THE VM. Creates a read-only (SELECT-only) MySQL user
 # for remote DB inspection via DBeaver / SSH tunnel.
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-ROLE="${1:?Usage: create-tckt-readonly-user.sh <staging|production> [username]}"
-case "$ROLE" in
-  staging|production) ;;
-  *) echo "ROLE must be 'staging' or 'production', got: $ROLE" >&2; exit 1 ;;
-esac
-
-READONLY_USER="${2:-tckt_viewer}"
+ENV="${1:-}"; ut_env_branch "$ENV" >/dev/null
+READONLY_USER="${2:-core_viewer}"
 
 if [[ ! "$READONLY_USER" =~ ^[a-zA-Z0-9_]+$ ]]; then
   echo "Error: Username '$READONLY_USER' contains invalid characters. Only letters, numbers, and underscores are allowed." >&2
   exit 1
 fi
 
-cd /opt/infra
-COMPOSE_FILE="docker-compose.${ROLE}.yml"
-ENV_FILE=".env.${ROLE}"
-PROJECT="seee-ctd-${ROLE}"
-COMPOSE=(docker compose -p "$PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE")
-
+ENV_FILE="$(ut_env_dir "$ENV")/infra/.env"
 if [ ! -f "$ENV_FILE" ]; then
-  echo "Error: Environment file '$ENV_FILE' not found in /opt/infra." >&2
+  echo "Error: Environment file '$ENV_FILE' not found." >&2
   exit 1
 fi
 
-ROOT_PASSWORD="$(grep -m1 '^TCKT_MYSQL_ROOT_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)"
+ROOT_PASSWORD="$(grep -m1 '^CORE_MYSQL_ROOT_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)"
 if [ -z "$ROOT_PASSWORD" ]; then
-  echo "Error: TCKT_MYSQL_ROOT_PASSWORD not found in $ENV_FILE" >&2
+  echo "Error: CORE_MYSQL_ROOT_PASSWORD not found in $ENV_FILE" >&2
   exit 1
 fi
 
-DB_NAME="$(grep -m1 '^TCKT_DB_NAME=' "$ENV_FILE" | cut -d= -f2-)"
-DB_NAME="${DB_NAME:-tckt_activity_hub}"
+DB_NAME="$(grep -m1 '^CORE_DB_NAME=' "$ENV_FILE" | cut -d= -f2-)"
+DB_NAME="${DB_NAME:-ultimate_tckt}"
 
 read -rsp "Enter password for '$READONLY_USER' (leave empty to auto-generate secure password): " INPUT_PASSWORD
 echo
@@ -57,16 +48,16 @@ REVOKE ALL PRIVILEGES, GRANT OPTION FROM '${READONLY_USER}'@'%';
 GRANT SELECT ON \`${DB_NAME}\`.* TO '${READONLY_USER}'@'%';
 FLUSH PRIVILEGES;"
 
-printf '%s\n' "$SQL" | "${COMPOSE[@]}" exec -T tckt-db \
+printf '%s\n' "$SQL" | ut_compose "$ENV" exec -T core-db \
   mysql -u root -p"$ROOT_PASSWORD"
 
-HOST_PORT="$([ "$ROLE" = "staging" ] && echo 3306 || echo 3307)"
+HOST_PORT="$([ "$ENV" = "staging" ] && echo 3306 || echo 3307)"
 
 echo ""
 echo "=============================================================="
 echo "Read-only MySQL user ready!"
 echo "--------------------------------------------------------------"
-echo "Role:        ${ROLE}"
+echo "Env:         ${ENV}"
 echo "Database:    ${DB_NAME}"
 echo "Username:    ${READONLY_USER}"
 echo "Password:    ${READONLY_PASSWORD}"
