@@ -73,6 +73,11 @@ test('compareVersions orders numerically', () => {
   assert.equal(rules.compareVersions('1.0', '2.0'), -1);
 });
 
+test('docsImpact ignores ADRs (immutable decisions)', () => {
+  const docs = [{ path: 'docs/adr/0012-x.md', data: { doc_id: 'ADR-0012-001', related_code: ['tools/docs-check/**'] } }];
+  assert.deepEqual(rules.docsImpact(['tools/docs-check/rules.js'], docs), []);
+});
+
 test('docsImpact flags code changes whose doc did not change', () => {
   const docs = [{ path: 'docs/dev/rbac.md', data: { doc_id: 'DEV-RBAC-001', related_code: ['core/src/policies/**'] } }];
   assert.equal(rules.docsImpact(['core/src/policies/access.js'], docs).length, 1);

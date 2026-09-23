@@ -59,6 +59,7 @@ function docsImpact(changedFiles, docs) {
   for (const f of changedFiles) {
     if (f.startsWith('docs/')) continue;
     for (const d of docs) {
+      if (d.path.startsWith('docs/adr/')) continue; // ADR bất biến: thay bằng ADR mới, không sửa
       const globs = d.data.related_code || [];
       if (globs.some((g) => globToRegExp(g).test(f)) && !changed.has(d.path)) {
         e.push(`${f} changed but ${d.data.doc_id} (${d.path}) was not updated`);
