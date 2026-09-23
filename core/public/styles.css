@@ -1489,34 +1489,6 @@ body[data-lang="vi"] .lang-toggle span {
 .sidebar nav a.active i {
   color: #0075de;
 }
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid #e6e6e6;
-}
-.nav-group-label {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  padding: 7px 10px;
-  color: #8a8681;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font: 600 11px "Plus Jakarta Sans", sans-serif;
-  box-sizing: border-box;
-}
-.nav-group-label i {
-  font-size: 14px;
-  color: #8a8681;
-  flex-shrink: 0;
-}
-.nav-group a {
-  padding-left: 30px;
-}
 .sidebar-foot {
   margin-top: auto;
   border-top: 1px solid #e6e6e6;

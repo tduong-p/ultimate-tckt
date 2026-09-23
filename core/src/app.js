@@ -9,15 +9,15 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, devops, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
 const { asyncRoute, validHttpUrl, one, ids } = require('./routes/utils');
 const { registerRoutes } = require('./routes');
 const logger = require('./logger');
+const mailer = require('./mailer');
 const push = require('./push');
-const emailEvents = require('./services/email-events');
 
 function createApplication(options = {}) {
   const runtimeConfig = options.config || config;
@@ -26,7 +26,7 @@ function createApplication(options = {}) {
   const attachmentRoot = path.join(__dirname, '..', 'storage', 'task-attachments');
   fs.mkdirSync(attachmentRoot, { recursive: true });
 
-  warnAboutConfiguration(runtimeConfig, { push });
+  warnAboutConfiguration(runtimeConfig, { mailer, push });
   app.set('trust proxy', 1);
   app.use(helmet({
     contentSecurityPolicy: {
@@ -53,10 +53,10 @@ function createApplication(options = {}) {
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, devops, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
-    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, push, emailEvents,
+    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, mailer, push,
     taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto
   };
   registerRoutes(app, context);

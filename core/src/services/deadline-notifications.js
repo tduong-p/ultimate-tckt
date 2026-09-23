@@ -1,6 +1,4 @@
 const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
-const appBaseUrl = String(process.env.APP_BASE_URL || '').replace(/\/$/, '');
-const activityUrl = activityId => appBaseUrl ? `${appBaseUrl}/#activity/${activityId}` : '';
 
 function dateInVietnam(now = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
@@ -47,7 +45,7 @@ async function insertNotificationOnce(db, { userId, activityId, taskId, kind, ti
   return result.affectedRows > 0;
 }
 
-async function runDeadlineNotifications({ db, push, emailEvents, logger, now = new Date() }) {
+async function runDeadlineNotifications({ db, push, mailer, logger, now = new Date() }) {
   const today = dateInVietnam(now);
   await db.execute('DELETE FROM notifications WHERE expires_at<=NOW()');
   let created = 0;
@@ -63,7 +61,7 @@ async function runDeadlineNotifications({ db, push, emailEvents, logger, now = n
     if (inserted) {
       created += 1;
       if (push?.queuePush) push.queuePush(`deadline ${window} task ${item.task_id} to user ${item.user_id}`, { userId: item.user_id, title, message: body, url });
-      if (emailEvents?.emit) emailEvents.emit(db, 'task.deadline_soon', { user: { id: item.user_id, name: item.user_name, email: item.user_email }, task: { id: item.task_id, title: item.task_title, activity_title: item.activity_title, deadline: item.deadline }, window_text: window === '4h' ? '4 giờ' : '24 giờ', url: activityUrl(item.activity_id) }, { logger });
+      if (mailer?.notifyTaskDeadlineSoon) mailer.notifyTaskDeadlineSoon({ id: item.user_id, name: item.user_name, email: item.user_email }, { id: item.task_id, title: item.task_title, activity_id: item.activity_id, activity_title: item.activity_title, deadline: item.deadline }, window);
     }
   }
 
@@ -76,7 +74,7 @@ async function runDeadlineNotifications({ db, push, emailEvents, logger, now = n
     if (inserted) {
       created += 1;
       if (push?.queuePush) push.queuePush(`overdue task ${item.task_id} to user ${item.user_id}`, { userId: item.user_id, title, message: body, url });
-      if (emailEvents?.emit) emailEvents.emit(db, 'task.overdue', { user: { id: item.user_id, name: item.user_name, email: item.user_email }, task: { id: item.task_id, title: item.task_title, activity_title: item.activity_title, deadline: item.deadline }, url: activityUrl(item.activity_id) }, { logger });
+      if (mailer?.notifyTaskOverdue) mailer.notifyTaskOverdue({ id: item.user_id, name: item.user_name, email: item.user_email }, { id: item.task_id, title: item.task_title, activity_id: item.activity_id, activity_title: item.activity_title, deadline: item.deadline });
     }
   }
 
@@ -89,7 +87,7 @@ async function runDeadlineNotifications({ db, push, emailEvents, logger, now = n
     const inserted = await insertNotificationOnce(db, { userId: item.lead_id, activityId: item.activity_id, taskId: item.task_id, kind: 'task_unacknowledged', title, body, url, sourceKey: `task-unacknowledged:${item.task_id}:${item.member_id}` });
     if (inserted) {
       created += 1;
-      if (emailEvents?.emit) emailEvents.emit(db, 'task.unacknowledged', { lead: { id: item.lead_id, name: item.lead_name, email: item.lead_email }, task: { id: item.task_id, title: item.task_title }, member_name: item.member_name, url: activityUrl(item.activity_id) }, { logger });
+      if (mailer?.notifyTaskUnacknowledged) mailer.notifyTaskUnacknowledged({ id: item.lead_id, name: item.lead_name, email: item.lead_email }, { id: item.task_id, title: item.task_title, activity_id: item.activity_id }, item.member_name);
     }
   }
 

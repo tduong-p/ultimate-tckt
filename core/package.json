@@ -23,7 +23,6 @@
     "helmet": "^8.1.0",
     "multer": "^2.2.0",
     "mysql2": "^3.14.3",
-    "node-cron": "^3.0.3",
     "nodemailer": "^9.0.5"
   }
 }

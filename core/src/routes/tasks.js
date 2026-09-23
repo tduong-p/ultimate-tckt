@@ -2,14 +2,12 @@ const express = require('express');
 const { createAttachment } = require('../services/task-attachments');
 
 function createTaskRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, emailEvents, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
+  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
   const router = express.Router();
-  const appBaseUrl = String(process.env.APP_BASE_URL || '').replace(/\/$/, '');
-  const activityUrl = activityId => appBaseUrl ? `${appBaseUrl}/#activity/${activityId}` : '';
 
   async function canTouchTask(context, req, taskId) {
     const { db, canManageTeam } = context;
-    const [rows] = await db.execute('SELECT t.*,a.title activity_title,EXISTS(SELECT 1 FROM task_assignees ta WHERE ta.task_id=t.id AND ta.user_id=?) assigned_to_me FROM tasks t JOIN activities a ON a.id=t.activity_id WHERE t.id=?', [req.session.user.id, taskId]);
+    const [rows] = await db.execute('SELECT t.*,EXISTS(SELECT 1 FROM task_assignees ta WHERE ta.task_id=t.id AND ta.user_id=?) assigned_to_me FROM tasks t WHERE t.id=?', [req.session.user.id, taskId]);
     const task = rows[0] || null;
     if (!task) return { task: null, allowed: false };
     const manages = await canManageTeam(req.session.user, task.team_id);
@@ -105,7 +103,7 @@ router.post('/api/tasks/:id/submit-review', auth, taskUpload.single('file'), asy
       const [[reviewers]] = await Promise.all([
         db.query("SELECT DISTINCT u.id,u.name,u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1)", [task.team_id])
       ]);
-      for (const reviewer of reviewers) emailEvents.emit(db, 'task.submitted_for_review', { reviewer: { id: reviewer.id, name: reviewer.name, email: reviewer.email }, task: { id: task.id, title: task.title, activity_title: task.activity_title }, submitted_by: req.session.user.name, url: activityUrl(task.activity_id) }, { logger });
+      for (const reviewer of reviewers) mailer.notifyTaskSubmittedForReview(reviewer, task, req.session.user.name);
     } catch (error) { logger.error(`Unable to prepare task ${req.params.id} review notifications.`, error); }
     res.status(201).json(created);
   } catch (error) {
@@ -139,9 +137,7 @@ router.post('/api/tasks/:id/review', auth, asyncRoute(async (req, res) => {
   );
   try {
     const [assignees] = await db.query('SELECT u.id,u.name,u.email FROM task_assignees ta JOIN users u ON u.id=ta.user_id WHERE ta.task_id=?', [req.params.id]);
-    const heading = decision === 'approve' ? 'Công việc của bạn đã được duyệt đạt' : decision === 'cancel' ? 'Công việc của bạn đã bị bác bỏ' : 'Công việc của bạn cần làm lại';
-    const reviewActionText = decision === 'approve' ? 'duyệt đạt' : decision === 'cancel' ? 'bác bỏ' : 'yêu cầu làm lại';
-    for (const assignedUser of assignees) emailEvents.emit(db, 'task.reviewed', { user: { id: assignedUser.id, name: assignedUser.name, email: assignedUser.email }, task: { id: task.id, title: task.title }, heading, action_text: reviewActionText, feedback_note: feedback ? `Nhận xét: ${feedback}` : '', reviewed_by: req.session.user.name, url: activityUrl(task.activity_id) }, { logger });
+    for (const assignedUser of assignees) mailer.notifyTaskReviewed(assignedUser, task, decision, feedback, req.session.user.name);
   } catch (error) { logger.error(`Unable to prepare task ${req.params.id} review-result notifications.`, error); }
   res.json({ ok: true, status: nextStatus });
 }));
