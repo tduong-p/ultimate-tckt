@@ -7,9 +7,9 @@ const port = Number(process.env.PORT || 3000);
 const db = {
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || 'seee_app',
+  user: process.env.DB_USER || 'ultimate_tckt_app',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'seee_activity_hub',
+  database: process.env.DB_NAME || 'ultimate_tckt',
   charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10
