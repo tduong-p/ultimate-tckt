@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -47,7 +47,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 
 ## 5. Nhãn (Label)
 
-- `no-docs-needed` — gắn vào PR khi thay đổi không cần cập nhật tài liệu, đi kèm dòng "Docs: không cần vì …" trong mô tả PR (xem `.github/pull_request_template.md`, và luật ở `AGENTS.md`).
+- `no-docs-needed` — gắn vào PR khi thay đổi không cần cập nhật tài liệu, đi kèm dòng "Docs: không cần vì …" trong mô tả PR (xem `.github/pull_request_template.md`, và luật ở `AGENTS.md`). Kiểm tác động code→tài liệu chỉ chạy ở PR, nên nhãn này không cần lặp lại sau merge.
 
 ## 6. GHCR (GitHub Container Registry)
 
@@ -66,3 +66,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Ghi đúng ruleset đã tạo: thêm check `changes`, chặn xoá nhánh; staging bắt buộc check nên thay đổi đi qua PR | DYC |
+| 1.2 | 2026-09-24 | Nhãn `no-docs-needed`: kiểm tác động chỉ ở PR | DYC |
