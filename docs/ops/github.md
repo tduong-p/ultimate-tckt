@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -30,6 +30,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 2. Biến repo (Variables)
 
 - `DEPLOY_ENABLED` (`true`/`false`) — bật/tắt bước SSH-deploy trong `deploy.yml`. Đặt `false` cho tới khi VM đã bootstrap xong và sẵn sàng nhận deploy (xem `docs/ops/chuyen-doi-ultimate-tckt.md`).
+- `PROD_DEPLOY_ENABLED` (`true`/`false`) — công tắc riêng cho production; deploy production cần cả hai biến `true`.
 
 ## 3. Ruleset nhánh `main`
 
@@ -52,7 +53,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 6. GHCR (GitHub Container Registry)
 
 - Hai package: `ultimate-tckt-core`, `ultimate-tckt-ctd-api` — đặt **Private**, không public.
-- Workflow `ghcr-cleanup.yml` chạy định kỳ hàng tuần, giữ lại 10 phiên bản mới nhất mỗi package (`min-versions-to-keep: 10`), xoá bản cũ hơn để tránh phình dung lượng registry.
+- Workflow `ghcr-cleanup.yml` chạy định kỳ hàng tuần, giữ lại 40 phiên bản mới nhất mỗi package (`min-versions-to-keep: 40`), xoá bản cũ hơn. Staging và production dùng chung package nên phải giữ đủ nhiều để tag production (và tag trước đó để rollback) không bị xoá; image build với `provenance: false` để mỗi lần build chỉ tạo một phiên bản.
 
 ## 7. Kiểm tra sau khi cấu hình xong
 
@@ -67,3 +68,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Ghi đúng ruleset đã tạo: thêm check `changes`, chặn xoá nhánh; staging bắt buộc check nên thay đổi đi qua PR | DYC |
 | 1.2 | 2026-09-24 | Nhãn `no-docs-needed`: kiểm tác động chỉ ở PR | DYC |
+| 1.3 | 2026-09-24 | Thêm `PROD_DEPLOY_ENABLED`; GHCR giữ 40 bản, build không provenance | DYC |

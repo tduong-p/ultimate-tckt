@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -44,7 +44,7 @@ Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
    ```
 6. **`infra`** — chạy khi `infra/**` đổi (push) hoặc chạy tay (`workflow_dispatch`), cũng cần `DEPLOY_ENABLED == 'true'`: SSH chạy `infra/scripts/apply-infra.sh <env> [apply_db]`. Tick `apply_db` khi kích hoạt thủ công để đồng thời cập nhật `core-db`/`ctd-db` (mặc định false — không đụng database).
 
-Các job deploy/infra của cùng một môi trường dùng chung nhóm concurrency `vm-deploy-<env>` nên không chạy chồng lên nhau; thứ tự giữa `infra` và `deploy-*` khi cùng đổi trong một push không được đảm bảo (chấp nhận được vì cả hai đều `git pull` trước khi chạy).
+Các job deploy/infra **không** dùng concurrency group của GitHub (GitHub huỷ job đang chờ khi job mới vào cùng group — deploy sẽ bị bỏ âm thầm). Việc tuần tự do `flock` trên VM đảm nhận (`/tmp/ultimate-tckt-<env>-deploy.lock`, chờ tối đa 180 giây). Thứ tự giữa `infra` và `deploy-*` khi cùng đổi trong một push không được đảm bảo (chấp nhận được vì cả hai đều `git pull` trước khi chạy).
 
 Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitHub tính là "thành công" nên không chặn merge — đây là lý do PR thuần tài liệu vẫn qua được required checks `test-core`/`test-ctd`.
 
@@ -62,7 +62,9 @@ Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitH
 Biến repo `DEPLOY_ENABLED` (GitHub → Settings → Variables):
 
 - `false`: CI chỉ test + build image, không SSH vào VM. Dùng khi mới dựng repo hoặc đang tạm dừng deploy tự động.
-- `true`: deploy tự động sau mỗi push đủ điều kiện.
+- `true`: deploy tự động sau mỗi push đủ điều kiện vào `staging`.
+
+Production cần thêm biến `PROD_DEPLOY_ENABLED == 'true'` (công tắc riêng, để có thể bật staging mà production vẫn tắt, vd trong lúc chuyển đổi).
 
 ## 5. Deploy/rollback thủ công
 
@@ -89,3 +91,4 @@ docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/doc
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Staging: thay đổi đi qua PR vì ruleset bắt buộc check | DYC |
+| 1.2 | 2026-09-24 | Bỏ concurrency group (flock trên VM), thêm công tắc `PROD_DEPLOY_ENABLED` | DYC |

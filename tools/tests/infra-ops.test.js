@@ -20,6 +20,20 @@ test('apply-infra.sh staging installs only staging nginx sites, tests before rel
   assert.ok(!c.some((l) => l.includes('core-db')));
 });
 
+test('apply-infra.sh: nginx -t failing removes the new site links and does not reload or start apps', () => {
+  const sb = makeSandbox({ sudoFail: 'nginx -t' });
+  const r = sb.run('apply-infra.sh', ['staging']);
+  assert.notEqual(r.status, 0);
+  const c = sb.calls();
+  const t = c.findIndex((l) => l === 'sudo nginx -t');
+  const after = c.slice(t + 1);
+  for (const app of ['core', 'ctd']) {
+    assert.ok(after.some((l) => l === `sudo rm -f /etc/nginx/sites-enabled/ultimate-tckt-staging-${app}.conf`), c.join('\n'));
+  }
+  assert.ok(!c.includes('sudo systemctl reload nginx'));
+  assert.ok(!c.some((l) => l.includes('up -d')));
+});
+
 test('apply-infra.sh production true also applies databases without --no-deps', () => {
   const sb = makeSandbox();
   const r = sb.run('apply-infra.sh', ['production', 'true']);
@@ -34,6 +48,8 @@ test('backup.sh writes both dumps under backups/', () => {
   const c = sb.calls().join('\n');
   assert.match(c, /exec -T core-db sh -c mysqldump .*\$MYSQL_ROOT_PASSWORD/);
   assert.match(c, /exec -T ctd-db sh -c pg_dump .*\$POSTGRES_USER/);
+  // Dump tự DROP trước khi tạo lại → restore đè lên DB đang có dữ liệu không bị lỗi "already exists".
+  assert.match(c, /pg_dump --clean --if-exists/);
   // Không bao giờ đưa mật khẩu từ host vào dòng lệnh.
   assert.doesNotMatch(c, /-p[^"$ ]/);
   const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));

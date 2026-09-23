@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-CUT-001
 title: Runbook chuyển đổi sang hạ tầng ultimate-tckt
-version: 1.1
+version: 1.2
 status: active
 audience: [ops, ai]
 owner: DYC
@@ -122,7 +122,7 @@ Script chép `seee-ctd-<env>_{tckt_mysql_data,tckt_uploads,ctd_postgres_data,ctd
 
 ### 2.5. Khởi động stack mới
 
-Đặt tag image (dùng đúng SHA vừa build trên CI cho lần push đầu tiên của repo mới):
+Đặt tag image = SHA 12 ký tự của một lần build CI **trên đúng nhánh của môi trường**: staging dùng tag build từ `staging`, production dùng tag build từ `main` (tag từ `staging` chứa code core mới hơn, chạy lên DB production là sai). `ctd-api` giống nhau ở hai nhánh thì dùng chung tag được.
 
 ```bash
 export CORE_IMAGE_TAG=<sha12>
@@ -139,11 +139,11 @@ Chạy lại đúng hai câu lệnh ở mục 2.1, nhưng nhắm vào stack mớ
 ```bash
 docker compose -p ultimate-tckt-<env> --env-file /opt/ultimate-tckt/<env>/infra/.env \
   -f /opt/ultimate-tckt/<env>/infra/compose/docker-compose.<env>.yml \
-  exec -T core-db sh -c 'mysql -N -uroot -p"$CORE_MYSQL_ROOT_PASSWORD" "$CORE_DB_NAME" -e "SELECT (SELECT COUNT(*) FROM users),(SELECT COUNT(*) FROM activities),(SELECT COUNT(*) FROM tasks)"'
+  exec -T core-db sh -c 'mysql -N -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT (SELECT COUNT(*) FROM users),(SELECT COUNT(*) FROM activities),(SELECT COUNT(*) FROM tasks)"'
 
 docker compose -p ultimate-tckt-<env> --env-file /opt/ultimate-tckt/<env>/infra/.env \
   -f /opt/ultimate-tckt/<env>/infra/compose/docker-compose.<env>.yml \
-  exec -T ctd-db sh -c 'psql -tA -U "$CTD_DB_USER" "$CTD_DB_NAME" -c "SELECT COUNT(*) FROM \"case\""'
+  exec -T ctd-db sh -c 'psql -tA -U "$POSTGRES_USER" "$POSTGRES_DB" -c "SELECT COUNT(*) FROM \"case\""'
 ```
 
 **Khớp với mục 2.1** → tiếp tục. Ngoại lệ đã biết: CTD tự seed tài khoản quản trị khi khởi động nếu `app_user` rỗng (log: "Đã seed … tài khoản quản trị"), nên `app_user` có thể tăng 0 → 1; tài khoản này có mật khẩu mặc định — chủ repo đổi ngay sau khi chuyển. **Lệch** → dừng ngay, không xoá gì, làm theo mục Rollback bên dưới — volume cũ vẫn còn nguyên nên không mất dữ liệu.
@@ -161,11 +161,11 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ### 2.8. Bật deploy tự động và xác nhận CI
 
-```bash
-gh variable set DEPLOY_ENABLED --body true
-```
+Câu lệnh trong `sh -c '…'` chạy **trong container**, nên dùng biến của container (`MYSQL_*`, `POSTGRES_*`), không dùng tên biến `CORE_*`/`CTD_*` của `.env` trên host.
 
-Push lên `staging` (hoặc merge PR `staging → main` cho production) một commit chạm cả `docs/ops/chuyen-doi-ultimate-tckt.md` (cập nhật Nhật ký chuyển đổi bên dưới, bump version) và một thay đổi nhỏ chạm `core/` + `services/ctd-api/` (ví dụ comment version trong Dockerfile) để kích hoạt cả hai job deploy.
+Có hai công tắc (biến repo): `DEPLOY_ENABLED` cho mọi môi trường và `PROD_DEPLOY_ENABLED` riêng cho production. Sau khi chuyển xong **staging**: `gh variable set DEPLOY_ENABLED --body true` (production vẫn chưa deploy vì `PROD_DEPLOY_ENABLED` chưa bật — nếu bật sớm, container mới không chiếm được cổng 3001 của stack cũ còn health check lại trúng app cũ và báo xanh giả). Chỉ sau khi chuyển xong **production**: `gh variable set PROD_DEPLOY_ENABLED --body true`.
+
+Để kiểm, mở PR vào `staging` (với production: PR từ một nhánh tách từ `main` vào `main` — **không** PR `staging → main`, vì như thế sẽ đưa code core của staging lên production) chứa một commit chạm cả `docs/ops/chuyen-doi-ultimate-tckt.md` (cập nhật Nhật ký chuyển đổi bên dưới, bump version) và một thay đổi nhỏ chạm `core/` + `services/ctd-api/` (ví dụ comment version trong Dockerfile) để kích hoạt cả hai job deploy.
 
 Xác nhận: CI job `deploy-core`, `deploy-ctd-api` xanh.
 
@@ -211,3 +211,4 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Ghi nhật ký chuyển staging; thêm bước tạo `/opt/ultimate-tckt`, host alias deploy key, đếm mọi bảng, ngoại lệ seed admin CTD | DYC |
+| 1.2 | 2026-09-24 | Sửa lệnh đếm 2.6 (biến trong container), tag production phải build từ `main`, hai công tắc `DEPLOY_ENABLED`/`PROD_DEPLOY_ENABLED` | DYC |
