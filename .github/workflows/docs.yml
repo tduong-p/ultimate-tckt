@@ -1,0 +1,54 @@
+name: docs
+
+on:
+  pull_request:
+    branches: [staging, main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [staging, main]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm run test:tools
+      - name: docs:check
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+          NO_DOCS: ${{ contains(github.event.pull_request.labels.*.name, 'no-docs-needed') }}
+        run: |
+          if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then npm run docs:check; exit; fi
+          extra=""; [[ "$NO_DOCS" == "true" ]] && extra="--allow-no-docs"
+          npm run docs:check -- --base "$BASE" $extra
+      - name: Export Word/PDF
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq pandoc >/dev/null
+          bash tools/docs-export/export.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: docs-export, path: docs-export/ }
+      # Trên main: gắn tag bộ tài liệu + GitHub Release (không commit vào main, nên không cần vượt quyền bảo vệ nhánh).
+      - name: Tag and release docs version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [[ "$BEFORE" == "0000000000000000000000000000000000000000" ]]; then BEFORE="$(git rev-list --max-parents=0 HEAD | tail -1)"; fi
+          changed="$(git diff --name-only "$BEFORE" HEAD -- docs/ | grep -v -e '^docs/README.md$' -e '^docs/CHANGELOG.md$' || true)"
+          if [[ -z "$changed" ]]; then echo "no docs change"; exit 0; fi
+          ym="$(date -u +%Y.%m)"
+          n=$(( $(git tag -l "docs-v$ym.*" | wc -l) + 1 ))
+          tag="docs-v$ym.$n"
+          {
+            echo "Tài liệu thay đổi trong bản $tag:"; echo
+            for f in $changed; do
+              if [[ -f "$f" ]]; then v="$(sed -nE 's/^version: *([0-9.]+).*/\1/p' "$f" | head -1)"; echo "- \`$f\` → ${v:-(nguồn)}"; else echo "- \`$f\` → đã xoá"; fi
+            done
+          } > notes.md
+          git tag "$tag" && git push origin "$tag"
+          gh release create "$tag" --title "$tag" --notes-file notes.md docs-export/*

@@ -30,3 +30,12 @@ test('ghcr-cleanup keeps 10 versions of both images weekly', () => {
   assert.match(y, /ultimate-tckt-core/);
   assert.match(y, /ultimate-tckt-ctd-api/);
 });
+
+test('docs.yml checks every PR/push and tags docs on main', () => {
+  const y = wf('docs.yml');
+  assert.match(y, /^  docs:/m);
+  assert.match(y, /docs:check -- --base/);
+  assert.match(y, /no-docs-needed/);
+  assert.match(y, /docs-v/);
+  assert.match(y, /pandoc/);
+});

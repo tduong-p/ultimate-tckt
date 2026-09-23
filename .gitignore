@@ -20,4 +20,4 @@ log.md
 .worktrees/
 .superpowers/
 .claude/scheduled_tasks.lock
-docs-export/
+/docs-export/
