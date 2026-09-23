@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -48,7 +48,8 @@ thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_
 
 Script bash (`infra/scripts/*.sh`) được test bằng `node --test` với các lệnh hệ thống (`docker`, `git`, `sudo`,
 `nginx`, `curl`…) thay bằng stub ghi log, không đụng máy thật. Helper: `tools/tests/helpers/sandbox.js`
-(`makeSandbox`). Chạy toàn bộ tooling + docs-check:
+(`makeSandbox`). Luật của docs-check (frontmatter, bump version, tác động code→tài liệu, link hỏng) có test riêng ở
+`tools/tests/docs-check.test.js` — sửa `tools/docs-check/` thì thêm test ở đó trước. Chạy toàn bộ tooling + docs-check:
 
 ```bash
 npm run test:tools
@@ -74,3 +75,4 @@ nào, kể cả mật khẩu mặc định.
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Chỉ chỗ test luật docs-check | DYC |

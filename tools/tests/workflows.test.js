@@ -23,6 +23,12 @@ test('deploy.yml wires test -> build -> deploy with gates', () => {
   assert.doesNotMatch(y, /seee|tckt-activity-hub|\/opt\/infra/);
 });
 
+test('deploy.yml changes job may read PR file list (paths-filter on pull_request)', () => {
+  const y = wf('deploy.yml');
+  const job = y.slice(y.indexOf('\n  changes:'), y.indexOf('\n  test-core:'));
+  assert.match(job, /permissions: \{ contents: read, pull-requests: read \}/);
+});
+
 test('ghcr-cleanup keeps 10 versions of both images weekly', () => {
   const y = wf('ghcr-cleanup.yml');
   assert.match(y, /cron:/);
