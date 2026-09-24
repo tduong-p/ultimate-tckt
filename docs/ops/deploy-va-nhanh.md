@@ -1,12 +1,12 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh]
+related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, core/src/config/migrate-units.js]
 ---
 
 # Deploy và nhánh git
@@ -77,7 +77,36 @@ bash /opt/ultimate-tckt/<staging|production>/infra/scripts/deploy.sh <staging|pr
 
 Lấy `<tag>` từ tab Actions (SHA rút gọn của lần build cuối tốt) hoặc từ `git log --oneline` trên nhánh tương ứng. Xem thêm `docs/playbooks/rollback.md` và `docs/ops/su-co.md`.
 
-## 6. Xem log khi deploy
+## 6. Deploy GĐ1-A (nền tảng đa đơn vị)
+
+GĐ1-A thêm migration `unit_memberships`/`org_units`/... (`core/src/config/migrate-units.js`, chạy tự động khi
+`core` khởi động). Trước khi mở PR `staging → main`, làm đủ 4 bước sau trên staging — chỉ mở PR khi cả 4 đạt:
+
+1. **Backup `core-db` trước khi merge vào `main`** (xem `docs/ops/backup-restore.md`):
+   ```bash
+   ssh ubuntu@168.107.68.32
+   cd /opt/ultimate-tckt/production
+   bash infra/scripts/backup.sh production
+   ```
+2. **Sau khi deploy lên staging, kiểm dữ liệu migration đã chạy đúng:**
+   ```bash
+   docker compose -p ultimate-tckt-staging exec core-db mysql -u<user> -p<pass> <db> \
+     -e "SELECT COUNT(*) FROM unit_memberships; SELECT COUNT(*) FROM users; SELECT name FROM platform_migrations;"
+   ```
+   Điều kiện đạt: `unit_memberships` ≥ `users` (mỗi user cũ có ít nhất một membership TCKT), và danh sách
+   `platform_migrations` có `multi_unit_backfill_v1`.
+3. **Kiểm log không có lỗi auto-migrate:**
+   ```bash
+   docker compose -p ultimate-tckt-staging logs core | grep -i "migrat"
+   ```
+   Điều kiện đạt: không có dòng `Auto-migration failed`.
+4. **Đăng nhập kiểm `req.session.user` có `units`:** một tài khoản TCKT thường và một tài khoản trong
+   `CORE_DEVOPS_EMAILS` (được đảm bảo membership `dyc_admin`), gọi `GET /api/session` cho từng tài khoản, kiểm
+   response có mảng `units` khớp membership mong đợi (TCKT thường: chỉ TCKT; tài khoản devops: có DYC).
+
+Chỉ khi cả 4 bước trên đạt mới mở PR `staging → main`.
+
+## 7. Xem log khi deploy
 
 ```bash
 ssh ubuntu@168.107.68.32
@@ -92,3 +121,4 @@ docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/doc
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Staging: thay đổi đi qua PR vì ruleset bắt buộc check | DYC |
 | 1.2 | 2026-09-24 | Bỏ concurrency group (flock trên VM), thêm công tắc `PROD_DEPLOY_ENABLED` | DYC |
+| 1.3 | 2026-09-24 | Thêm mục 6 "Deploy GĐ1-A" (backup, kiểm migration `unit_memberships`, log auto-migrate, đăng nhập kiểm `units`) trước khi mở PR `staging → main`, GĐ1-A Task 9 | DYC |

@@ -1,12 +1,12 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 1.2
+version: 1.3
 status: active
 audience: [ai, dev]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, infra/**]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
 ---
 
 # Bất biến — điều không được phá
@@ -48,6 +48,12 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
    `LEGACY_PREFIXES` (`core/src/middleware/legacy-gate.js`) gọi `recordAudit` cho mỗi request GET/HEAD của
    thành viên DYC không thuộc TCKT. Route mới ở các module khác cho phép DYC đọc xuyên đơn vị cũng phải ghi
    audit tương tự — không được cho đọc "im lặng".
+13. **Mọi route `GET /api/*` mới phải qua `core/tests/units.leak.test.js`.** Test này tự quét
+   `router.get('/api/...')` trong `core/src/routes/` (không cần sửa test khi thêm route) và gọi bằng một tài
+   khoản BTV-only: phải trả 403 trừ khi nằm trong `OUTSIDER_ALLOW` (dữ liệu cá nhân của người gọi, không phải
+   dữ liệu nghiệp vụ đơn vị khác — mỗi ngoại lệ phải có lý do ghi cạnh regex); và bằng một tài khoản DYC-only:
+   không bao giờ được 403. Route thiếu gate → thêm vào `LEGACY_PREFIXES`/gắn `settingGuard`/`platformAdmin`,
+   không được nới `OUTSIDER_ALLOW` để né test.
 
 ## Lịch sử phiên bản
 
@@ -56,3 +62,4 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bất biến 9 (nginx hỏng) và 10 (mật khẩu DB không qua dòng lệnh host) | DYC |
 | 1.2 | 2026-09-24 | Thêm bất biến 11 (quyền đọc từ `unit_memberships` qua `req.actor`, không dùng `users.role`) và 12 (DYC đọc liên đơn vị phải ghi `audit_logs`) | DYC |
+| 1.3 | 2026-09-24 | Thêm bất biến 13 (mọi `GET /api/*` mới phải qua `units.leak.test.js`, GĐ1-A Task 9) | DYC |
