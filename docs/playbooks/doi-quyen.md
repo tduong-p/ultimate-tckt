@@ -1,12 +1,12 @@
 ---
 doc_id: PB-RBAC-001
 title: Playbook — đổi quyền
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Playbook — đổi quyền
@@ -31,6 +31,11 @@ Khi thêm/sửa vai trò, thay đổi phạm vi dữ liệu một vai trò đư�
    cd services/ctd-api/backend && .venv/bin/pytest tests/test_quyen_thao_tac.py tests/test_scope.py
    ```
 6. **Cập nhật tài liệu nghiệp vụ** phản ánh đúng quyền mới — đây là bước hay bị quên nhất vì bảng phân quyền dễ nằm rải rác nhiều file.
+7. **Thêm route Điều hành mới → thêm prefix vào `LEGACY_PREFIXES`** (`core/src/middleware/legacy-gate.js`) nếu
+   route nằm ngoài các prefix sẵn có — nếu không, `createLegacyGate` sẽ không chặn route đó và người ngoài
+   TCKT/DYC sẽ đi qua thẳng, bỏ qua cả kiểm tra 403 lẫn audit `cross_unit_read` (xem
+   `docs/dev/phan-quyen.md` mục "Cổng Điều hành (`legacyGate`)"). Route thuộc setting `managed_by=unit`/`platform`
+   (ví dụ weight-presets qua `/api/admin/`) đi qua `settingGuard` riêng, không thêm vào đây.
 
 ## Kiểm tra xong
 
@@ -50,3 +55,4 @@ Khi thêm/sửa vai trò, thay đổi phạm vi dữ liệu một vai trò đư�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm bước 7: route Điều hành mới ngoài prefix sẵn có phải thêm vào `LEGACY_PREFIXES` | DYC |

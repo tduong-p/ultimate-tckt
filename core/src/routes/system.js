@@ -23,7 +23,7 @@ router.post('/api/onboarding/student-class',auth,asyncRoute(async(req,res)=>{if(
 router.patch('/api/account',auth,asyncRoute(async(req,res)=>{const email=String(req.body.email||'').trim().toLowerCase(),phone=String(req.body.phone||'').trim(),avatarColor=String(req.body.avatar_color||'');if(!email||!/^#[0-9a-f]{6}$/i.test(avatarColor))return res.status(400).json({error:'A valid email and avatar color are required.'});const values=[email,phone||null,avatarColor],sets=['email=?','phone=?','avatar_color=?'];if(req.body.password){if(String(req.body.password).length<8)return res.status(400).json({error:'Password must contain at least 8 characters.'});sets.push('password_hash=?');values.push(await bcrypt.hash(String(req.body.password),10))}values.push(req.session.user.id);await db.execute(`UPDATE users SET ${sets.join(',')} WHERE id=?`,values);Object.assign(req.session.user,{email,phone:phone||null,avatar_color:avatarColor});res.json({user:withHustIdentity(req.session.user)})}));
 
 router.get('/api/bootstrap',auth,asyncRoute(async(req,res)=>{
-  const user=req.session.user,s=activityScope(user);
+  const user=req.actor,s=activityScope(user);
   const taskScope=isExecutive(user)?'1=1':isLeadership(user)?`(EXISTS(SELECT 1 FROM user_teams x WHERE x.user_id=? AND x.team_id=t.team_id AND (x.is_lead=1 OR x.is_vice_lead=1)) OR EXISTS(SELECT 1 FROM task_assignees x WHERE x.task_id=t.id AND x.user_id=?))`:`EXISTS(SELECT 1 FROM task_assignees x WHERE x.task_id=t.id AND x.user_id=?)`;
   const taskParams=isExecutive(user)?[]:isLeadership(user)?[user.id,user.id]:[user.id];
   const [[statRows],[upcoming],[tasks],[activity],[teams]]=await Promise.all([
@@ -37,7 +37,7 @@ router.get('/api/bootstrap',auth,asyncRoute(async(req,res)=>{
 }));
 
 router.get('/api/my-tasks-today', auth, asyncRoute(async (req, res) => {
-  const user = req.session.user;
+  const user = req.actor;
   const [[dueToday], [overdue], [pendingMyReview]] = await Promise.all([
     db.execute(
       `SELECT t.*,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id

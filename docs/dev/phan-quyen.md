@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -89,14 +89,47 @@ không bao giờ 500. `POST /api/session/unit { unit_id }` chuyển `current_uni
 (`POST /api/users`, `/api/users/bulk-import`, `PATCH /api/users/:id`, tài khoản HUST SSO tạo mới lần đầu) gọi
 `syncTcktMembershipFromRole(db, userId)` ngay sau khi commit để đồng bộ ngược sang `unit_memberships`.
 
+## Cổng Điều hành (`legacyGate`) và audit đọc liên đơn vị (`core/src/middleware/legacy-gate.js`)
+
+Route Điều hành "kiểu cũ" nằm dưới các prefix trong `LEGACY_PREFIXES`:
+
+```
+/api/activities, /api/documents, /api/archive, /api/reports, /api/tasks,
+/api/task-attachments, /api/teams, /api/people, /api/users,
+/api/bootstrap, /api/my-tasks-today, /api/weight-presets
+```
+
+`/api/admin/weight-presets` (setting `managed_by=unit`, quản bởi `settingGuard` — GĐ1-A Task 7) **không** nằm
+trong danh sách này — đừng thêm nhầm.
+
+`createLegacyGate(db)` chạy ngay sau `createUnitContext(db)` trong `app.js`, áp cho các prefix trên, theo đúng
+3 quy tắc:
+
+1. Chưa đăng nhập hoặc không có membership nào → `next()` (để `auth` ở route xử lý, trả 401/403 riêng).
+2. Có membership TCKT → `next()` — ghi/đọc bình thường theo role TCKT của chính họ.
+3. Không có membership TCKT nhưng có membership DYC (`platform_owner`) **và** method là GET/HEAD → ghi một dòng
+   `audit_logs` (`action='cross_unit_read'`, `target_type='http'`, `target_id='<METHOD> <path không query>'`,
+   `owner_unit_id=<id TCKT>`), rồi `next()`. Còn lại (DYC đang ghi, hoặc đơn vị khác không phải TCKT/DYC) →
+   403 `{ error: 'Chức năng Điều hành hiện chỉ dành cho Ban TCKT.' }` — middleware lỗi chung
+   (`core/src/middleware/errors.js`) không đọc `err.status` nên cổng này tự trả response, không gọi `next(error)`
+   cho nhánh 403.
+
+`recordAudit(db, entry)` (`core/src/services/audit.js`) là hàm ghi `audit_logs` dùng chung — mọi chỗ khác cần
+ghi audit (đổi mức xem, khoá/mở khoá setting, đổi membership — GĐ1-A Task 6/7) gọi lại hàm này, không tự viết
+`INSERT` riêng.
+
+Route mới thêm trong `core/src/routes/*` (trừ đăng nhập/SSO/onboarding/`/api/account` trong `system.js`) đọc
+`req.actor`, **không** đọc `req.session.user` — xem mục "Membership và `req.actor`" phía trên.
+
 ## Quyết định đã chốt nhưng CHƯA LÀM (theo `.kiro/specs/nen-tang-da-don-vi/`)
 
 Hai điểm dưới đây là quyết định nghiệp vụ đã chốt ngày 2026-09-23, **chưa có trong code** — đừng lập trình theo
 đây mà không kiểm tra lại trạng thái `.kiro/specs/nen-tang-da-don-vi/tasks.md` trước:
 
 - **DYC là admin global.** DYC (Văn phòng Đoàn trường) sẽ đọc được mọi dữ liệu nghiệp vụ của mọi đơn vị và mọi
-  module (kể cả hồ sơ CTD), có audit log riêng. Hiện tại **chưa có** cơ chế nào trong `core/` hay `services/ctd-api/`
-  cấp quyền xuyên module như vậy — cả hai app vẫn kiểm quyền độc lập trong phạm vi của mình.
+  module (kể cả hồ sơ CTD), có audit log riêng. Phần route Điều hành cũ trong `core/` **đã làm** (xem mục
+  "Cổng Điều hành (`legacyGate`)" phía trên: DYC đọc được, có audit `cross_unit_read`, không ghi được). **Chưa có**
+  cơ chế tương đương bên `services/ctd-api/` — CTD vẫn kiểm quyền độc lập trong phạm vi của mình.
 - **TCKT từ tổ phó trở lên có quyền CTD.** Người dùng Core có role `vice_leader`, `leader`, `vice_admin`, `admin`
   sẽ được cấp quyền tương đương role `tckt` bên CTD; `member` thì không. Hiện tại **chưa có** cầu nối cấp quyền
   CTD tự động từ role Core — CTD vẫn cấp role độc lập qua `identity.py`/seed của chính nó.
@@ -109,3 +142,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm mục "Membership và `req.actor`": `unit_memberships` là nguồn quyền, `legacyRole`, `auth` 403 khi không có membership, `current_unit_id` rơi về membership đầu tiên | DYC |
+| 1.2 | 2026-09-24 | Thêm mục "Cổng Điều hành (`legacyGate`)": `LEGACY_PREFIXES`, 3 quy tắc gate, audit `cross_unit_read`, `recordAudit`; cập nhật "DYC là admin global" — phần core đã làm | DYC |

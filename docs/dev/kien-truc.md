@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py]
+related_code: [core/src/app.js, core/src/server.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, services/ctd-api/backend/app/main.py]
 ---
 
 # Kiến trúc hệ thống
@@ -19,7 +19,10 @@ Tài liệu này giúp dev/AI hiểu nhanh cách hai app trong monorepo được
   nghiệm thu, báo cáo, Trình, quản lý team/người dùng) và hạ tầng dùng chung của mọi module loại A (session,
   auth, policy, email rule engine, cron runner). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
   → `core/src/app.js` (`createApplication`, dựng Express app: helmet CSP, session, static `public/`, đăng ký
-  route qua `registerRoutes`, fallback SPA `index.html`, error handler cuối cùng).
+  route qua `registerRoutes`, fallback SPA `index.html`, error handler cuối cùng). Giữa session và
+  `registerRoutes`: `createUnitContext(db)` (gắn `req.memberships`/`req.actor` từ `unit_memberships`, GĐ1-A
+  Task 4) rồi `createLegacyGate(db)` áp cho `LEGACY_PREFIXES` (chặn route Điều hành cũ theo đơn vị, ghi audit
+  đọc liên đơn vị, GĐ1-A Task 5) — xem `docs/dev/phan-quyen.md`.
 - **CTD** (`services/ctd-api/`): FastAPI + SQLAlchemy 2.0 + Alembic + Postgres 16. Module **Công tác Đảng** (xét
   duyệt hồ sơ Đảng). Entry point: `services/ctd-api/backend/app/main.py` (`include_router(auth.router)`,
   `cases.router`, `documents.router`). Frontend riêng React/Vite ở `services/ctd-api/frontend`, build ra
@@ -56,3 +59,4 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi middleware order trong `app.js`: `createUnitContext` rồi `createLegacyGate` giữa session và `registerRoutes` (nợ tài liệu từ GĐ1-A Task 4, khớp luôn khi Task 5 sửa `app.js`) | DYC |

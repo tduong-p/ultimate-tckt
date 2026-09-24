@@ -11,6 +11,7 @@ const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
 const { auth, admin, manager, devops, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createUnitContext } = require('./middleware/unit-context');
+const { LEGACY_PREFIXES, createLegacyGate } = require('./middleware/legacy-gate');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
@@ -52,6 +53,7 @@ function createApplication(options = {}) {
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(createUnitContext(db));
+  app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
