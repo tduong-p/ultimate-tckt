@@ -59,6 +59,6 @@ async function ensureDycAdmins(db, emails) {
   return users.length;
 }
 
-const hasDycMembership = memberships => (memberships || []).some(x => x.code === 'DYC');
+const hasDycMembership = memberships => (memberships || []).some(x => x.kind === 'platform_owner');
 
 module.exports = { unitIdByCode, getUnit, listMemberships, upsertMembership, removeMembership, syncTcktMembershipFromRole, setTcktRoleColumn, ensureDycAdmins, hasDycMembership };

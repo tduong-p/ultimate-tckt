@@ -70,6 +70,6 @@ test('ensureDycAdmins grants (or upgrades to) dyc_admin for existing emails only
       assert.equal(dyc.role, 'dyc_admin');
     }
     assert.equal(m.hasDycMembership(await m.listMemberships(pool, a.id)), true);
-    assert.equal(m.hasDycMembership([{ kind: 'platform_owner' }]), false);
+    assert.equal(m.hasDycMembership([{ kind: 'platform_owner' }]), true);
   } finally { await teardown(); }
 });
