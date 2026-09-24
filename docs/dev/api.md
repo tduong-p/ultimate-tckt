@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -60,6 +60,11 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
+
+`GET /api/health`: 200 `{status:'ok'}` khi DB trả lời **và** `platform_migrations` có `multi_unit_backfill_v1`;
+thiếu marker → 503 `{status:'migration_incomplete'}` (gate health của `deploy.sh` bắt được migration hỏng).
+`PATCH`/`DELETE /api/users/:id`: 403 `'Tài khoản này thuộc đơn vị khác ngoài TCKT — chỉ DYC được sửa hoặc xoá.'`
+khi tài khoản đích có membership ngoài TCKT và người gọi không phải DYC.
 
 ### `/api/platform/setting-locks` — khoá cấu hình đơn vị (DYC)
 
@@ -140,3 +145,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 1.3 | 2026-09-24 | Thêm `/api/units*` (GET danh sách, GET thành viên, PUT/DELETE membership) và mã lỗi 400/403/404/409 | DYC |
 | 1.4 | 2026-09-24 | `PUT /api/units/:id/members/:userId` cũng trả 409 khi tự hạ cấp `dyc_admin` cuối cùng của đơn vị (cùng điều kiện với DELETE) | DYC |
 | 1.5 | 2026-09-24 | GĐ1-A Task 9 fix round 1: `GET /api/platform/setting-locks` scope theo đơn vị của người gọi (DYC thấy mọi dòng, người khác chỉ thấy khoá toàn cục + khoá đơn vị mình) thay vì trả mọi dòng cho mọi người | DYC |
+| 1.6 | 2026-09-24 | `/api/health` trả 503 `migration_incomplete` khi thiếu marker backfill; `PATCH/DELETE /api/users/:id` 403 với tài khoản thuộc đơn vị khác (trừ DYC) | DYC |

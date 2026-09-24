@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -94,6 +94,13 @@ không bao giờ 500. `POST /api/session/unit { unit_id }` chuyển `current_uni
 `users.role` **giữ trong GĐ1** như bản sao role TCKT (đọc bởi code cũ chưa migrate hết); mọi đường ghi
 (`POST /api/users`, `/api/users/bulk-import`, `PATCH /api/users/:id`, tài khoản HUST SSO tạo mới lần đầu) gọi
 `syncTcktMembershipFromRole(db, userId)` ngay sau khi commit để đồng bộ ngược sang `unit_memberships`.
+Mặc định hàm này **chỉ cập nhật membership TCKT đã có**; chỉ đường tạo tài khoản TCKT (`POST /api/users`,
+bulk-import, HUST SSO lần đầu, thêm vào Tổ kèm phong Tổ trưởng/Tổ phó) truyền `{ create: true }`. Nhờ vậy người đã
+bị gỡ khỏi TCKT qua `/api/units` không bị kéo lại khi sửa Tổ, và người chỉ thuộc BTV/DYC không bị thành member TCKT.
+
+**Tài khoản thuộc đơn vị khác:** `PATCH`/`DELETE /api/users/:id` trả 403 khi tài khoản đích có membership ở
+đơn vị khác TCKT và người gọi không có membership DYC — admin TCKT không được đặt lại mật khẩu/email hay khoá
+tài khoản DYC, BTV… (chặn chiếm quyền liên đơn vị). DYC vẫn sửa được.
 
 ## Cổng Điều hành (`legacyGate`) và audit đọc liên đơn vị (`core/src/middleware/legacy-gate.js`)
 
@@ -150,3 +157,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.1 | 2026-09-24 | Thêm mục "Membership và `req.actor`": `unit_memberships` là nguồn quyền, `legacyRole`, `auth` 403 khi không có membership, `current_unit_id` rơi về membership đầu tiên | DYC |
 | 1.2 | 2026-09-24 | Thêm mục "Cổng Điều hành (`legacyGate`)": `LEGACY_PREFIXES`, 3 quy tắc gate, audit `cross_unit_read`, `recordAudit`; cập nhật "DYC là admin global" — phần core đã làm | DYC |
 | 1.3 | 2026-09-24 | `platformAdmin` (membership DYC) thay middleware `devops`/cờ `is_devops` cho cấu hình SMTP/Templates/Rules/Cron; `users.is_devops` không còn được đọc để cấp quyền | DYC |
+| 1.4 | 2026-09-24 | Sync `users.role`→membership chỉ cập nhật membership có sẵn (tạo mới chỉ ở đường tạo tài khoản TCKT); `PATCH/DELETE /api/users/:id` chặn sửa tài khoản thuộc đơn vị khác TCKT trừ DYC | DYC |

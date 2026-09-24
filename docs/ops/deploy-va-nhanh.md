@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -55,7 +55,7 @@ Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitH
 1. Lấy khoá `flock` của môi trường (`/tmp/ultimate-tckt-<env>-deploy.lock`) — tránh hai deploy chạy chồng.
 2. `git pull --ff-only` đúng nhánh của môi trường đó (`staging` hoặc `main`).
 3. `docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/docker-compose.<env>.yml pull <service>` rồi `up -d --no-deps <service>` — chỉ đụng đúng một service, service còn lại giữ tag đang chạy.
-4. Kiểm tra `http://127.0.0.1:<port>/api/health` trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công.
+4. Kiểm tra `http://127.0.0.1:<port>/api/health` trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công. Với `core`, health trả 503 `migration_incomplete` nếu migration đa đơn vị chưa chạy xong (thiếu marker `multi_unit_backfill_v1`), nên deploy có migration hỏng sẽ đỏ.
 
 ## 4. Bật/tắt deploy tự động
 
@@ -122,3 +122,4 @@ docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/doc
 | 1.1 | 2026-09-24 | Staging: thay đổi đi qua PR vì ruleset bắt buộc check | DYC |
 | 1.2 | 2026-09-24 | Bỏ concurrency group (flock trên VM), thêm công tắc `PROD_DEPLOY_ENABLED` | DYC |
 | 1.3 | 2026-09-24 | Thêm mục 6 "Deploy GĐ1-A" (backup, kiểm migration `unit_memberships`, log auto-migrate, đăng nhập kiểm `units`) trước khi mở PR `staging → main`, GĐ1-A Task 9 | DYC |
+| 1.4 | 2026-09-24 | Health của `core` kiểm marker migration đa đơn vị (503 khi thiếu) | DYC |
