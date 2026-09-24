@@ -19,7 +19,7 @@ async function findOrCreateHustAccount({ db, bcrypt, crypto }, email, profile) {
     }
     const [[created]] = await db.execute('SELECT id FROM users WHERE email=?', [email]);
     // Giữ hành vi cũ: tài khoản HUST mới là member của TCKT, không bị khoá ngoài.
-    if (created) await syncTcktMembershipFromRole(db, created.id);
+    if (created) await syncTcktMembershipFromRole(db, created.id, { create: true });
     [rows] = await db.execute(select, [email]);
   }
   const user = rows[0];

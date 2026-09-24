@@ -40,10 +40,27 @@ async function removeMembership(db, userId, unitId) {
 }
 
 // users.role là bản sao role TCKT trong GĐ1 (xoá ở GĐ2). Mọi đường ghi users.role gọi hàm này.
-async function syncTcktMembershipFromRole(db, userId) {
+// Mặc định chỉ cập nhật membership TCKT đã có — người đã bị gỡ khỏi TCKT (hoặc chỉ thuộc đơn vị
+// khác) không bị kéo lại vào TCKT bởi thao tác thường. Chỉ đường tạo tài khoản TCKT truyền create:true.
+async function syncTcktMembershipFromRole(db, userId, { create = false } = {}) {
   const [rows] = await db.execute('SELECT role FROM users WHERE id=?', [userId]);
   if (!rows.length) return;
-  await upsertMembership(db, userId, await unitIdByCode(db, TCKT_CODE), rows[0].role);
+  const tcktId = await unitIdByCode(db, TCKT_CODE);
+  if (!create) {
+    const [existing] = await db.execute('SELECT 1 FROM unit_memberships WHERE user_id=? AND unit_id=?', [userId, tcktId]);
+    if (!existing.length) return;
+  }
+  await upsertMembership(db, userId, tcktId, rows[0].role);
+}
+
+// Tài khoản có membership ở đơn vị khác TCKT: route quản lý người dùng của Điều hành không được sửa/xoá
+// (chỉ DYC) — chặn admin TCKT đặt lại mật khẩu của DYC/BTV rồi đăng nhập thay họ.
+async function hasMembershipOutsideTckt(db, userId) {
+  const [rows] = await db.execute(
+    'SELECT 1 FROM unit_memberships m JOIN org_units u ON u.id=m.unit_id WHERE m.user_id=? AND u.code<>? LIMIT 1',
+    [userId, TCKT_CODE]
+  );
+  return rows.length > 0;
 }
 
 async function setTcktRoleColumn(db, userId, role) {
@@ -61,4 +78,4 @@ async function ensureDycAdmins(db, emails) {
 
 const hasDycMembership = memberships => (memberships || []).some(x => x.kind === 'platform_owner');
 
-module.exports = { unitIdByCode, getUnit, listMemberships, upsertMembership, removeMembership, syncTcktMembershipFromRole, setTcktRoleColumn, ensureDycAdmins, hasDycMembership };
+module.exports = { unitIdByCode, getUnit, listMemberships, upsertMembership, removeMembership, syncTcktMembershipFromRole, hasMembershipOutsideTckt, setTcktRoleColumn, ensureDycAdmins, hasDycMembership };

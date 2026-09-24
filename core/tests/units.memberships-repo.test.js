@@ -49,8 +49,16 @@ test('TCKT role sync works both ways', async () => {
   try {
     const u = await createUser(pool, { role: 'member', units: [] });
     await pool.query("UPDATE users SET role='vice_admin' WHERE id=?", [u.id]);
+    // Không có membership TCKT → sync thường không tạo (tránh kéo người ngoài/đã gỡ vào TCKT).
     await m.syncTcktMembershipFromRole(pool, u.id);
+    assert.deepEqual(await m.listMemberships(pool, u.id), []);
+    // Đường tạo tài khoản TCKT truyền create:true.
+    await m.syncTcktMembershipFromRole(pool, u.id, { create: true });
     assert.deepEqual((await m.listMemberships(pool, u.id)).map(x => [x.code, x.role]), [['TCKT', 'vice_admin']]);
+    // Đã có membership → sync thường cập nhật role.
+    await pool.query("UPDATE users SET role='leader' WHERE id=?", [u.id]);
+    await m.syncTcktMembershipFromRole(pool, u.id);
+    assert.deepEqual((await m.listMemberships(pool, u.id)).map(x => [x.code, x.role]), [['TCKT', 'leader']]);
     await m.setTcktRoleColumn(pool, u.id, 'leader');
     const [[row]] = await pool.query('SELECT role FROM users WHERE id=?', [u.id]);
     assert.equal(row.role, 'leader');
