@@ -59,7 +59,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [ONB-HO-001](onboarding/ban-giao.md) | Onboarding — bàn giao | 1.0 | active | onboarding, dev |
+| [ONB-HO-001](onboarding/ban-giao.md) | Onboarding — bàn giao | 1.1 | active | onboarding, dev |
 | [ONB-D1-001](onboarding/ngay-1.md) | Onboarding — ngày 1 | 1.1 | active | onboarding, dev |
 | [ONB-W1-001](onboarding/tuan-1.md) | Onboarding — tuần 1 | 1.0 | active | onboarding, dev |
 
@@ -97,8 +97,10 @@
 |---|---|---|---|---|
 | [SPEC-MONO-001](specs/2026-09-23-monorepo-ultimate-tckt-design.md) | Thiết kế — Gộp repo thành monorepo ultimate-tckt + hệ thống tài liệu | 1.0 | active | dev, ai |
 | [SPEC-MONO-002](specs/2026-09-23-monorepo-ultimate-tckt-plan.md) | Kế hoạch triển khai — Gộp repo thành monorepo ultimate-tckt | 1.0 | active | dev, ai |
+| [SPEC-UNIT-006](specs/2026-09-24-gd1-phan-lane.md) | Phân lane làm song song — GĐ1 nền tảng đa đơn vị | 1.0 | active | dev, ai |
 | [SPEC-UNIT-004](specs/2026-09-24-gd1a-core-da-don-vi-plan.md) | Kế hoạch triển khai — GĐ1-A Nền tảng đa đơn vị trong Core | 1.0 | active | dev, ai |
+| [SPEC-UNIT-005](specs/2026-09-24-gd1a2-nen-phan-2-plan.md) | Kế hoạch triển khai — GĐ1-A2 Nền phần 2 | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
-| [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
+| [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 
