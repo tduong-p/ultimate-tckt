@@ -1,7 +1,7 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 1.0
+version: 1.1
 status: active
 audience: [ba]
 owner: DYC
@@ -80,8 +80,14 @@ Hai luồng nghiệp vụ mới cho quan hệ BTV ↔ TCKT, **chưa có bảng d
 
 Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang-da-don-vi/requirements.md` Yêu cầu 4–6.
 
+`activities.js`/`tasks.js`/`reports.js` giờ đọc `req.actor` thay vì `req.session.user` (GĐ1-A Task 5) — thay
+đổi cơ học, các luồng nghiệp vụ mô tả ở trên **không đổi hành vi**: `req.actor` vẫn là user hiện tại kèm role
+tính theo membership TCKT (xem `docs/dev/phan-quyen.md`). Route dưới các file này giờ còn đi qua
+`legacyGate` (`docs/dev/phan-quyen.md` mục "Cổng Điều hành") trước khi tới route handler.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi chú `activities.js`/`tasks.js`/`reports.js` đọc `req.actor` và đi qua `legacyGate` (GĐ1-A Task 5) — không đổi hành vi nghiệp vụ | DYC |

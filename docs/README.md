@@ -36,7 +36,7 @@
 | [BA-UNIT-001](ba/co-cau-don-vi-va-role.md) | Cơ cấu đơn vị và vai trò | 1.1 | active | ba |
 | [BA-CTD-001](ba/ctd-use-case.md) | Use case Công tác Đảng (CTD) | 1.0 | active | ba |
 | [BA-DOC-001](ba/danh-muc-giay-to-ctd.md) | Danh mục giấy tờ hồ sơ Đảng | 1.0 | active | ba |
-| [BA-OPS-001](ba/dieu-hanh-use-case.md) | Use case điều hành hoạt động TCKT | 1.0 | active | ba |
+| [BA-OPS-001](ba/dieu-hanh-use-case.md) | Use case điều hành hoạt động TCKT | 1.1 | active | ba |
 | [BA-GLOS-001](ba/thuat-ngu.md) | Thuật ngữ | 1.0 | active | ba, dev, ai |
 | [BA-OVW-001](ba/tong-quan-nen-tang.md) | Tổng quan nền tảng đa đơn vị | 1.0 | active | ba |
 
