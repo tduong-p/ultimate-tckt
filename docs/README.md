@@ -46,13 +46,13 @@
 |---|---|---|---|---|
 | [DEV-API-001](dev/api.md) | API | 1.0 | active | dev, ai |
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.0 | active | dev, ai, onboarding |
-| [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 1.0 | active | dev, ai |
+| [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 1.1 | active | dev, ai |
 | [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 1.0 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.0 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 1.0 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 1.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 1.2 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 1.3 | active | dev, ai |
 
 ## onboarding
 
@@ -82,7 +82,7 @@
 |---|---|---|---|---|
 | [PB-DBG-001](playbooks/debug.md) | Playbook — debug | 1.0 | active | dev, ai |
 | [PB-RBAC-001](playbooks/doi-quyen.md) | Playbook — đổi quyền | 1.0 | active | dev, ai |
-| [PB-SCH-001](playbooks/doi-schema.md) | Playbook — đổi schema | 1.0 | active | dev, ai |
+| [PB-SCH-001](playbooks/doi-schema.md) | Playbook — đổi schema | 1.1 | active | dev, ai |
 | [PB-HOT-001](playbooks/hotfix-production.md) | Playbook — hotfix production | 1.1 | active | dev, ai |
 | [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.0 | active | dev, ai |
 | [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.0 | active | dev, ai |

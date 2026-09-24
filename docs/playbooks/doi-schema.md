@@ -1,12 +1,12 @@
 ---
 doc_id: PB-SCH-001
 title: Playbook — đổi schema
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
+related_code: [core/db.sql, core/src/config/migrate.js, core/src/config/migrate-units.js, services/ctd-api/backend/alembic/**]
 ---
 
 # Playbook — đổi schema
@@ -21,11 +21,19 @@ Khi cần thêm/sửa/xoá bảng hoặc cột ở Core (MySQL) hoặc CTD (Post
 
 ### Core (MySQL) — migration tự viết, idempotent
 
-1. Thêm một khối mới trong `core/src/config/migrate.js`, dùng các hàm kiểm-tồn-tại có sẵn (`tableExists`, `columnExists`, `getColumnType`, `foreignKeyExists`) trước khi `CREATE`/`ALTER` — không giả định trạng thái DB hiện tại.
+1. Bảng/cột thuộc nền tảng đa đơn vị (org_units, unit_memberships, unit_modules, unit_visibility_policies,
+   setting_locks, audit_logs, directives, submissions, ops_logs, ops_log_attendance, teams/activities.unit_id…)
+   đặt trong `core/src/config/migrate-units.js` (hàm `migrateMultiUnit`), không thêm vào `migrate.js` trực tiếp.
+   Bảng/cột khác vẫn thêm một bước mới trong `migrate.js`. Cả hai đều dùng các hàm kiểm-tồn-tại có sẵn
+   (`tableExists`, `columnExists`, `getColumnType`, `foreignKeyExists`, `indexExists`) trước khi `CREATE`/`ALTER`
+   — không giả định trạng thái DB hiện tại.
 2. Chạy `npm run migrate` (từ `core/`) hai lần liên tiếp trên cùng một DB — lần thứ hai phải không lỗi và không đổi gì thêm (chứng minh idempotent).
 3. Chạy lại `npm run migrate` trên một DB **trống** (tạo mới từ `core/db.sql`) — cũng phải không lỗi.
 4. Cập nhật `core/db.sql` để bản import lần đầu đã có sẵn thay đổi này (tránh DB mới phải chạy migrate nhiều bước).
 5. Không xoá dữ liệu người dùng trong migration mà không có bước sao lưu/xác nhận rõ ràng trong PR.
+6. Trong `migrateMultiUnit`, mọi seed/backfill dữ liệu mà quản trị viên có thể sửa sau (membership, module,
+   visibility policy…) phải đặt **sau** khi kiểm tra marker `platform_migrations.multi_unit_backfill_v1` và chỉ
+   chạy khi marker chưa tồn tại — nếu không, chạy migrate lại sẽ thêm lại thứ quản trị viên đã cố tình gỡ.
 
 ### CTD (Postgres) — Alembic
 
@@ -68,3 +76,4 @@ infra/scripts/apply-infra.sh <env> true
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi rõ bảng đa đơn vị đặt trong `migrate-units.js`; seed/backfill có thể sửa phải đi sau marker | DYC |
