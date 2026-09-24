@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-CUT-001
 title: Runbook chuyển đổi sang hạ tầng ultimate-tckt
-version: 1.2
+version: 1.3
 status: active
 audience: [ops, ai]
 owner: DYC
@@ -203,6 +203,7 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 | Môi trường | Ngày | Người | Ghi chú |
 |---|---|---|---|
 | staging | 2026-09-24 | Claude (theo uỷ quyền DYC) | Backup `staging-20260923-1840-*`. 37 bảng khớp, trừ `app_user` 0→1 (CTD seed admin). Image core `fd51e64975dd`, ctd-api `52da14bcdaac`. Health 200 qua domain; `app_env=staging` (OTP dev đã tắt). Đã gỡ `staging-{tckt,ctd}.conf`. Workflow deploy của 3 repo cũ đã tắt. |
+| production | 2026-09-24 | Claude (theo uỷ quyền DYC) | Backup mới `production-20260924-0157-*` ngay trước khi dừng. 31/31 bảng khớp (không có ngoại lệ: `app_user` đã có 1 dòng). Image core và ctd-api `52da14bcdaac` (build từ `main`). Health 200 qua domain; `app_env=production`. Đã gỡ `production-{tckt,ctd}.conf`. Đã bật `PROD_DEPLOY_ENABLED`. Stack cũ `seee-ctd-production` chỉ `stop`, giữ volume 14 ngày. |
 | production | | | |
 
 ## Lịch sử phiên bản
@@ -212,3 +213,4 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Ghi nhật ký chuyển staging; thêm bước tạo `/opt/ultimate-tckt`, host alias deploy key, đếm mọi bảng, ngoại lệ seed admin CTD | DYC |
 | 1.2 | 2026-09-24 | Sửa lệnh đếm 2.6 (biến trong container), tag production phải build từ `main`, hai công tắc `DEPLOY_ENABLED`/`PROD_DEPLOY_ENABLED` | DYC |
+| 1.3 | 2026-09-24 | Ghi nhật ký chuyển production | DYC |
