@@ -21,6 +21,10 @@ function createUnitRoutes(context) {
     return unit;
   };
   const actorUnitId = (req, unit) => (req.memberships.find(m => m.unit_id === unit.id) || req.memberships.find(m => m.kind === 'platform_owner'))?.unit_id ?? null;
+  const isLastDycAdmin = async unitId => {
+    const [[{ c }]] = await db.execute("SELECT COUNT(*) c FROM unit_memberships WHERE unit_id=? AND role='dyc_admin'", [unitId]);
+    return c <= 1;
+  };
 
   router.get('/api/units', auth, asyncRoute(async (req, res) => {
     const isDyc = hasDycMembership(req.memberships);
@@ -52,6 +56,9 @@ function createUnitRoutes(context) {
     if (!user) return res.status(404).json({ error: 'Không tìm thấy tài khoản.' });
     const role = String(req.body.role || '');
     const [[previous]] = await db.execute('SELECT role FROM unit_memberships WHERE user_id=? AND unit_id=?', [userId, unit.id]);
+    if (previous?.role === 'dyc_admin' && role !== 'dyc_admin' && await isLastDycAdmin(unit.id)) {
+      return res.status(409).json({ error: 'Không thể gỡ dyc_admin cuối cùng.' });
+    }
     try { await upsertMembership(db, userId, unit.id, role); } catch (e) { if (e.status === 400) return res.status(400).json({ error: e.message }); throw e; }
     if (unit.code === TCKT_CODE) await setTcktRoleColumn(db, userId, role);
     await recordAudit(db, { actorId: req.session.user.id, actorUnitId: actorUnitId(req, unit), action: 'membership.upsert', targetType: 'user', targetId: userId, ownerUnitId: unit.id, meta: { role, previous_role: previous?.role ?? null } });
@@ -64,9 +71,8 @@ function createUnitRoutes(context) {
     const userId = Number(req.params.userId);
     const [[current]] = await db.execute('SELECT role FROM unit_memberships WHERE user_id=? AND unit_id=?', [userId, unit.id]);
     if (!current) return res.status(404).json({ error: 'Tài khoản không thuộc đơn vị này.' });
-    if (current.role === 'dyc_admin') {
-      const [[{ c }]] = await db.execute("SELECT COUNT(*) c FROM unit_memberships WHERE unit_id=? AND role='dyc_admin'", [unit.id]);
-      if (c <= 1) return res.status(409).json({ error: 'Không thể gỡ dyc_admin cuối cùng.' });
+    if (current.role === 'dyc_admin' && await isLastDycAdmin(unit.id)) {
+      return res.status(409).json({ error: 'Không thể gỡ dyc_admin cuối cùng.' });
     }
     await removeMembership(db, userId, unit.id);
     if (unit.code === TCKT_CODE) await setTcktRoleColumn(db, userId, 'member');

@@ -68,3 +68,24 @@ test('TCKT membership changes are mirrored to users.role; DYC unit is managed by
     assert.equal((await client.request('DELETE', `/api/units/${dyc}/members/${boss.id}`)).status, 200);
   } finally { await close(); await teardown(); }
 });
+
+test('PUT cannot demote the last dyc_admin, but can demote one of several', async () => {
+  const { pool, teardown } = await createTestDatabase();
+  const { client, close } = await startTestServer(pool);
+  const roleOf = async (userId, unitId) => (await pool.query('SELECT role FROM unit_memberships WHERE user_id=? AND unit_id=?', [userId, unitId]))[0][0].role;
+  try {
+    const boss = await createUser(pool, { units: [['DYC', 'dyc_admin']] });
+    const dyc = await unitIdByCode(pool, 'DYC');
+
+    await client.login(boss.email, boss.password);
+    const demoteLast = await client.request('PUT', `/api/units/${dyc}/members/${boss.id}`, { body: { role: 'dyc_engineer' } });
+    assert.equal(demoteLast.status, 409);
+    assert.deepEqual(demoteLast.json, { error: 'Không thể gỡ dyc_admin cuối cùng.' });
+    assert.equal(await roleOf(boss.id, dyc), 'dyc_admin');
+
+    const other = await createUser(pool, { units: [['DYC', 'dyc_admin']] });
+    assert.equal((await client.request('PUT', `/api/units/${dyc}/members/${boss.id}`, { body: { role: 'dyc_engineer' } })).status, 200);
+    assert.equal(await roleOf(boss.id, dyc), 'dyc_engineer');
+    assert.equal(await roleOf(other.id, dyc), 'dyc_admin');
+  } finally { await close(); await teardown(); }
+});

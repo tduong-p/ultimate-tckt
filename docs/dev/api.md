@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -92,8 +92,11 @@ từ việc user có membership đơn vị DYC (`platform_owner`) hay không, kh
 `PUT /api/units/:id/members/:userId { role }` (auth): chỉ người quản lý được đơn vị đó theo `canManageUnit`
 (có membership DYC và (đơn vị không phải DYC hoặc mình là `dyc_admin`), hoặc mình là admin của chính đơn vị
 đó theo `isUnitAdmin`) mới gọi được — 403 nếu không; 400 nếu `role` không hợp lệ với `kind` của đơn vị; 404
-nếu tài khoản không tồn tại. Ghi `audit_logs` action `membership.upsert` (`meta: { role, previous_role }`).
-Đơn vị TCKT: đồng bộ luôn cột `users.role` theo role mới (xem `setTcktRoleColumn`).
+nếu tài khoản không tồn tại; 409 `{ error: 'Không thể gỡ dyc_admin cuối cùng.' }` nếu role hiện tại của
+người đó trong đơn vị là `dyc_admin`, role mới khác `dyc_admin`, và đây là `dyc_admin` cuối cùng của đơn vị
+(cùng điều kiện kiểm tra với DELETE bên dưới). Ghi `audit_logs` action `membership.upsert`
+(`meta: { role, previous_role }`). Đơn vị TCKT: đồng bộ luôn cột `users.role` theo role mới (xem
+`setTcktRoleColumn`).
 `DELETE /api/units/:id/members/:userId` (auth): cùng điều kiện quyền như trên; 404 nếu tài khoản không
 thuộc đơn vị; 409 `{ error: 'Không thể gỡ dyc_admin cuối cùng.' }` nếu gỡ `dyc_admin` cuối cùng của đơn vị
 DYC. Ghi `audit_logs` action `membership.remove`. Đơn vị TCKT: đặt lại `users.role = 'member'`.
@@ -130,3 +133,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 1.1 | 2026-09-24 | `GET /api/session` trả thêm `units.{current,memberships}`, `user.is_devops` tính theo membership DYC; thêm `POST /api/session/unit` | DYC |
 | 1.2 | 2026-09-24 | Thêm `/api/platform/setting-locks` (GET/POST/DELETE) và mục giải thích `managed_by`/`settingGuard`/mã lỗi khoá | DYC |
 | 1.3 | 2026-09-24 | Thêm `/api/units*` (GET danh sách, GET thành viên, PUT/DELETE membership) và mã lỗi 400/403/404/409 | DYC |
+| 1.4 | 2026-09-24 | `PUT /api/units/:id/members/:userId` cũng trả 409 khi tự hạ cấp `dyc_admin` cuối cùng của đơn vị (cùng điều kiện với DELETE) | DYC |
