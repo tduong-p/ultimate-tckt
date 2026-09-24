@@ -30,6 +30,8 @@ async function createUser(pool, overrides = {}) {
       [result.insertId, overrides.team_id, isLead, isViceLead]
     );
   }
+  const units = overrides.units ?? [['TCKT', overrides.role || 'member']];
+  for (const [code, role] of units) await addMembership(pool, result.insertId, code, role);
   return { id: result.insertId, email, password: overrides.password || 'MatKhauTest2026!' };
 }
 
@@ -69,4 +71,17 @@ async function createTask(pool, overrides = {}) {
   return result.insertId;
 }
 
-module.exports = { createTeam, createUser, createActivity, createTask };
+async function unitIdByCode(pool, code) {
+  const [rows] = await pool.execute('SELECT id FROM org_units WHERE code=?', [code]);
+  if (!rows.length) throw new Error(`Unknown unit ${code}`);
+  return rows[0].id;
+}
+
+async function addMembership(pool, userId, code, role) {
+  await pool.execute(
+    'INSERT INTO unit_memberships(user_id,unit_id,role) VALUES (?,?,?) ON DUPLICATE KEY UPDATE role=VALUES(role)',
+    [userId, await unitIdByCode(pool, code), role]
+  );
+}
+
+module.exports = { createTeam, createUser, createActivity, createTask, unitIdByCode, addMembership };
