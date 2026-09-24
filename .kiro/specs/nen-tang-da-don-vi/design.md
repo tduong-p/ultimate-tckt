@@ -301,7 +301,7 @@ Chuyển các màn hình `features/canbo/*` và `features/baocao/*` của CTD sa
 - BTV giao việc và thấy tiến độ ở dạng tổng quan.
 - TCKT tiếp nhận, xử lý và Trình lên.
 - ĐT/LCĐ, VP Đoàn, Chi bộ và TCKT dùng được tab CTD trong Hub.
-- BTV chỉ thấy số liệu CTD. DYC không xem được hồ sơ. Sinh viên không thấy tab.
+- BTV chỉ thấy số liệu CTD. DYC (admin global, D4) đọc được hồ sơ CTD, mỗi lượt đọc có ghi `audit_logs`. Sinh viên không thấy tab.
 - Bộ test chống rò rỉ chạy xanh.
 - Email thật và cron đã bật trước khi mở cho người dùng thật.
 
@@ -318,7 +318,7 @@ Chuyển các màn hình `features/canbo/*` và `features/baocao/*` của CTD sa
 - Bảo vệ dữ liệu kiểm tra: đơn vị bị kiểm tra không thấy ghi chú về mình trước khi kết luận được công bố.
 - Các ban chuyên môn khác.
 - Trang nộp hồ sơ sinh viên mới trong `web/` (ngoài shell quản lý).
-- SSO Microsoft.
+- SSO Microsoft cho CTD và trang nộp hồ sơ sinh viên. (Core đã có đăng nhập Microsoft qua `/auth/microsoft`, cấu hình `AZURE_*` trong `core/src/config/environment.js`.)
 - Xét các module mới theo §4.3.
 
 ## 11. Rủi ro đã chấp nhận (không có GĐ0)
