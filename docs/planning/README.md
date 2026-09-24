@@ -36,6 +36,12 @@ Tài liệu kế hoạch phát triển nền tảng đa đơn vị.
   - Integration points
   - Conflict resolution
 
+- **[phan-cong-6-devs.md](phan-cong-6-devs.md)** — Phân công chi tiết 6 devs (4 Backend + 2 Frontend)
+  - Chia việc theo ngày cho Hub-only plan
+  - Code ownership để tránh conflict
+  - Dependency management rõ ràng
+  - Load balancing giữa các devs
+
 ## Quick start
 
 ### Chọn kế hoạch phù hợp
@@ -87,10 +93,15 @@ Tài liệu kế hoạch phát triển nền tảng đa đơn vị.
 | **Final deliverable** | Hub + CTD tích hợp | Hub standalone |
 | **Phù hợp khi** | Team đầy đủ, cần CTD ngay | Team nhỏ, deploy nhanh |
 
+### Công cụ hỗ trợ
+- **[template-phan-cong.md](template-phan-cong.md)** — Template tracking tiến độ
+- **[tham-khao-nhanh.md](tham-khao-nhanh.md)** — Quick reference guide
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.3 | 2026-09-24 | Thêm phan-cong-6-devs.md (chi tiết 4 BE + 2 FE) | DYC |
 | 1.2 | 2026-09-24 | Thêm ke-hoach-hub-core-operations.md (Hub only, no CTD) | DYC |
 | 1.1 | 2026-09-24 | Thêm link đến ke-hoach-phat-trien.md và phan-nhom-dev.md | DYC |
 | 1.0 | 2026-09-23 | Bản đầu | DYC |
