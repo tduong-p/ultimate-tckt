@@ -80,9 +80,10 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 1.0 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
-| [PLAN-IDX-001](planning/README.md) | Planning — Index | 1.1 | active | dev, ba, ops |
+| [PLAN-IDX-001](planning/README.md) | Planning — Index | 1.2 | active | dev, ba, ops |
 | [PLAN-TPL-001](planning/template-phan-cong.md) | Template phân công team | 1.0 | active | dev, ops |
 | [PLAN-QR-001](planning/tham-khao-nhanh.md) | Tham khảo nhanh — Development plan | 1.0 | active | dev |
 
