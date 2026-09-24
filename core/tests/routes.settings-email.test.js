@@ -3,11 +3,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createTestDatabase } = require('./helpers/db');
 const { startTestServer } = require('./helpers/server');
-const { createUser } = require('./helpers/fixtures');
+const { createUser, addMembership } = require('./helpers/fixtures');
 
 async function makeDevopsUser(pool, overrides = {}) {
   const user = await createUser(pool, { role: 'admin', ...overrides });
-  await pool.execute('UPDATE users SET is_devops=1 WHERE id=?', [user.id]);
+  await addMembership(pool, user.id, 'DYC', 'dyc_engineer');
   return user;
 }
 

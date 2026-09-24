@@ -9,7 +9,7 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, devops, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, platformAdmin, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createUnitContext } = require('./middleware/unit-context');
 const { LEGACY_PREFIXES, createLegacyGate } = require('./middleware/legacy-gate');
 const { createErrorHandler } = require('./middleware/errors');
@@ -57,7 +57,7 @@ function createApplication(options = {}) {
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, devops, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
     bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, push, emailEvents,

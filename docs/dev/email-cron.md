@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-MAIL-001
 title: Email và Cron
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js]
+related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js, core/src/middleware/auth.js, core/src/units/memberships.js]
 ---
 
 # Email và Cron
@@ -38,16 +38,33 @@ tạo rule/template qua UI hoặc seed, không phải viết hàm `notifyXxx` m�
 Thêm một sự kiện email mới:
 1. `registerEmailEvent('module.ten_su_kien', { fields: [...], samplePayload: {...} })` trong file service tương ứng.
 2. Gọi `emailEvents.emit('module.ten_su_kien', payload)` đúng chỗ nghiệp vụ xảy ra.
-3. Tạo rule + template qua trang Setting → Email (cần quyền `devops`), hoặc qua seed nếu cần có sẵn.
+3. Tạo rule + template qua trang Setting → Email (cần membership DYC — `platformAdmin`, xem dưới), hoặc qua seed nếu cần có sẵn.
 4. Test: `emailEvents.emit` trong test phải đợi xong hoặc bị mock — xem bẫy "Pool is closed" ở `docs/ai/bay-da-gap.md`.
 
 ## Cron Runner (`core/src/services/cron-runner.js`)
 
 Job runner tổng quát dựa trên `node-cron`, không chỉ dành cho email. `registerCronHandler(key, fn)` khai một
 loại việc lặp lại (ví dụ nhắc hạn chót); job thật (lịch chạy, bật/tắt, job nào dùng handler nào) là dữ liệu trong
-bảng `cron_jobs`, quản lý qua `core/src/routes/settings-cron.js` (yêu cầu quyền `devops`): tạo/sửa/xoá job, bật/
-tắt, chạy thử ngay (`run-now`), xem lịch sử chạy (`cron_job_runs`). Runner khởi động/dừng theo vòng đời HTTP
-server (`core/src/runtime.js`).
+bảng `cron_jobs`, quản lý qua `core/src/routes/settings-cron.js` (yêu cầu `platformAdmin`, xem dưới): tạo/sửa/xoá
+job, bật/tắt, chạy thử ngay (`run-now`), xem lịch sử chạy (`cron_job_runs`). Runner khởi động/dừng theo vòng đời
+HTTP server (`core/src/runtime.js`).
+
+## Quyền cấu hình SMTP/Cron: membership DYC, không còn cờ `devops`
+
+Quyền ghi/đọc cấu hình nền tảng (`email_settings`, `email_templates`, `email_rules`, `cron_jobs`) không còn kiểm
+tra `users.is_devops` hay `isExecutive`. Middleware `platformAdmin` (`core/src/middleware/auth.js`) chỉ kiểm tra
+`req.memberships` có một membership đơn vị `platform_owner` (DYC, bất kể role `dyc_admin`/`dyc_engineer`, bất kể
+`current_unit_id` đang chọn) — nếu không có, trả 403 `{ error: 'Chỉ DYC được thao tác cấu hình nền tảng.' }`.
+Trang Delivery Log (chỉ đọc) vẫn dùng `admin` như cũ, không đổi.
+
+Biến môi trường `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`, xem `infra/`) là danh sách email (phân tách
+bởi dấu phẩy, so khớp không phân biệt hoa/thường) luôn được đảm bảo có membership `dyc_admin` — chống khoá
+ngoài: `ensureDycAdmins(db, devopsEmailAllowlist())` chạy một lần lúc khởi động server (`core/src/runtime.js`,
+ngay sau auto-migrate) cho các tài khoản đã tồn tại, và chạy lại cho từng email trong danh sách ngay khi tài
+khoản đó đăng nhập lần đầu (`POST /api/login` và `GET /auth/microsoft/callback` trong `core/src/routes/system.js`)
+— nhờ vậy một email được thêm vào allowlist sau khi server đã chạy vẫn được cấp `dyc_admin` ngay lần đăng nhập
+đầu tiên, không phải chờ khởi động lại. Cột `users.is_devops` vẫn còn trong DB (dùng để migrate một lần sang
+`unit_memberships` lúc nâng cấp — `core/src/config/migrate-units.js`) nhưng không còn được đọc để cấp quyền.
 
 Thêm một loại job mới: `registerCronHandler('module.ten_job', async (context) => {...})`, sau đó tạo bản ghi
 `cron_jobs` trỏ tới `handler_key` này qua UI/API — không hardcode lịch chạy trong code.
@@ -65,3 +82,4 @@ lỗi).
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm mục "Quyền cấu hình SMTP/Cron": `platformAdmin` (membership DYC) thay cờ `is_devops`/`isExecutive`; `DEVOPS_EMAILS`/`ensureDycAdmins` bootstrap lúc khởi động và lúc đăng nhập | DYC |

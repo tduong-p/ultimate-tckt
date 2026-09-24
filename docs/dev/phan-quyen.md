@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/units/memberships.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -28,15 +28,21 @@ Cơ chế trong code:
 - `isExecutive(user)` = role ∈ `['admin', 'vice_admin']`; `isLeadership(user)` = role ∈ `['leader', 'vice_leader']`
   (`core/src/middleware/auth.js`).
 - Middleware theo route: `auth` (đã đăng nhập), `admin` (executive), `manager` (executive hoặc leadership),
-  `devops` (executive **và** cờ devops — xem dưới), `managerOrEventLead` (executive/leadership, hoặc người được
-  gán Event Lead của đúng hoạt động đang thao tác).
+  `platformAdmin` (membership DYC — xem mục "DYC" dưới), `managerOrEventLead` (executive/leadership, hoặc người
+  được gán Event Lead của đúng hoạt động đang thao tác).
 - Phạm vi dữ liệu: `activityScope(user)` trong `core/src/policies/access.js` — executive thấy tất cả (`1=1`);
   người khác chỉ thấy hoạt động công khai hoặc hoạt động của tổ mình (qua `activity_teams`/`user_teams`).
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
-- **Devops** (quyền cấu hình SMTP/Templates/Rules/Cron) là một lớp **cắt ngang** role, không phải role riêng:
-  cần vừa `isExecutive` vừa `isDevops` (`users.is_devops = 1` hoặc email nằm trong allowlist `DEVOPS_EMAILS`).
-  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `devops`.
+- **DYC** (quyền cấu hình SMTP/Templates/Rules/Cron) không còn là cờ `devops` cắt ngang role TCKT — đây là
+  membership đơn vị `platform_owner` (DYC), role `dyc_admin` hoặc `dyc_engineer`, kiểm bởi
+  `hasDycMembership(req.memberships)`/middleware `platformAdmin` (xem chi tiết trong `docs/dev/email-cron.md`).
+  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `platformAdmin`.
+  `dyc_admin`/`dyc_engineer`: hai role này chưa phân biệt quyền trong GĐ1 (`platformAdmin` chấp nhận cả hai) —
+  tách quyền chi tiết hơn để ở GĐ1 sau nếu cần. Bootstrap: email trong `DEVOPS_EMAILS` luôn được đảm bảo
+  `dyc_admin`; `users.is_devops=1` cũ được migrate một lần thành membership `dyc_engineer`
+  (`core/src/config/migrate-units.js`). Cột `users.is_devops` **còn trong DB** nhưng không còn được đọc để cấp
+  quyền ở bất kỳ đâu trong code (xoá cột ở GĐ2).
 
 ## CTD — role theo `services/ctd-api/backend/app/models/identity.py`
 
@@ -143,3 +149,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm mục "Membership và `req.actor`": `unit_memberships` là nguồn quyền, `legacyRole`, `auth` 403 khi không có membership, `current_unit_id` rơi về membership đầu tiên | DYC |
 | 1.2 | 2026-09-24 | Thêm mục "Cổng Điều hành (`legacyGate`)": `LEGACY_PREFIXES`, 3 quy tắc gate, audit `cross_unit_read`, `recordAudit`; cập nhật "DYC là admin global" — phần core đã làm | DYC |
+| 1.3 | 2026-09-24 | `platformAdmin` (membership DYC) thay middleware `devops`/cờ `is_devops` cho cấu hình SMTP/Templates/Rules/Cron; `users.is_devops` không còn được đọc để cấp quyền | DYC |

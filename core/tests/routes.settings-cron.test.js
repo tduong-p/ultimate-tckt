@@ -3,14 +3,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createTestDatabase } = require('./helpers/db');
 const { startTestServer } = require('./helpers/server');
-const { createUser } = require('./helpers/fixtures');
+const { createUser, addMembership } = require('./helpers/fixtures');
 
 test('settings-cron routes: handler list, job lifecycle, run-now, run history', async () => {
   const { pool, teardown } = await createTestDatabase();
   const { client, close } = await startTestServer(pool);
   try {
     const devopsUser = await createUser(pool, { role: 'admin' });
-    await pool.execute('UPDATE users SET is_devops=1 WHERE id=?', [devopsUser.id]);
+    await addMembership(pool, devopsUser.id, 'DYC', 'dyc_engineer');
     await client.login(devopsUser.email, devopsUser.password);
 
     let res = await client.request('GET', '/api/admin/cron/handlers');
