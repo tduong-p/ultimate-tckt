@@ -4,6 +4,8 @@ const push = require('./push');
 const { startDeadlineNotificationScheduler } = require('./services/deadline-notifications');
 const { migrateDatabase } = require('./config/migrate');
 const { start: startCronRunner, stopAll: stopCronRunner } = require('./services/cron-runner');
+const { ensureDycAdmins } = require('./units/memberships');
+const { devopsEmailAllowlist } = require('./middleware/auth');
 
 async function start(options = {}) {
   const application = createApplication(options);
@@ -13,6 +15,12 @@ async function start(options = {}) {
     } catch (err) {
       logger.error('Auto-migration failed during startup', err);
       console.error('Auto-migration failed during startup:', err);
+    }
+    try {
+      const granted = await ensureDycAdmins(application.db, devopsEmailAllowlist());
+      logger.info(`DYC bootstrap: ${granted} account(s) ensured as dyc_admin.`);
+    } catch (err) {
+      logger.error('DYC bootstrap failed during startup', err);
     }
   }
   const port = options.port ?? application.config.port;

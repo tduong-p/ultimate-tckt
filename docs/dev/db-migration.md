@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-DB-001
 title: Migration cơ sở dữ liệu
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
+related_code: [core/db.sql, core/src/config/migrate.js, core/src/config/migrate-units.js, services/ctd-api/backend/alembic/**]
 ---
 
 # Migration cơ sở dữ liệu
@@ -28,6 +28,31 @@ Quy trình thêm một thay đổi schema:
 4. Không migration nào được xoá dữ liệu người dùng mà không có bước sao lưu/xác nhận rõ ràng.
 
 Không có khái niệm "rollback migration" tự động — muốn revert thì viết một thay đổi mới đảo ngược.
+
+### Bước 11 — đa đơn vị (GĐ1)
+
+`core/src/config/migrate.js` gọi `migrateMultiUnit` (định nghĩa ở `core/src/config/migrate-units.js`) làm bước
+cuối cùng. Bước này tạo các bảng nền tảng đa đơn vị: `org_units`, `unit_memberships`, `unit_modules`,
+`unit_visibility_policies`, `setting_locks`, `audit_logs`, `directives`, `submissions`, `ops_logs`,
+`ops_log_attendance`, `platform_migrations`; và thêm cột `teams.unit_id`, `activities.unit_id`,
+`activities.directive_id`.
+
+`teams.unit_id`/`activities.unit_id` là `NOT NULL DEFAULT` = id của đơn vị TCKT — vì ở GĐ1 chỉ TCKT dùng module
+Điều hành (đội/hoạt động), nên mọi `INSERT` kiểu cũ không truyền `unit_id` (code hiện có, chưa sửa để chọn đơn
+vị) vẫn chạy được và tự động rơi về TCKT thay vì lỗi `NOT NULL`.
+
+Backfill (gán `unit_memberships` theo `users.role` hiện có, đơn vị DYC cho user `is_devops=1`, module theo đơn
+vị, và chính sách xem tóm tắt BTV→TCKT) chỉ chạy **một lần**, đánh dấu bằng bản ghi
+`platform_migrations.name = 'multi_unit_backfill_v1'`. Sau khi marker đã tồn tại, `migrateMultiUnit` bỏ qua toàn
+bộ bước backfill — quản trị viên có thể gỡ một membership/policy/module sau đó và migrate lại **không được**
+thêm lại thứ họ đã gỡ.
+
+Kiểm tra sau khi deploy lên môi trường có dữ liệu cũ:
+```sql
+SELECT COUNT(*) FROM unit_memberships;  -- phải >= SELECT COUNT(*) FROM users;
+```
+Nếu nhỏ hơn, tức là có user chưa có membership TCKT — kiểm tra marker `platform_migrations` và log `[migrate]` để
+biết migration đã chạy qua bước 11 hay chưa.
 
 ## CTD (Postgres) — Alembic
 
@@ -58,3 +83,4 @@ cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-re
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm mục Bước 11 — migration đa đơn vị (bảng, backfill một lần, cách kiểm sau deploy) | DYC |

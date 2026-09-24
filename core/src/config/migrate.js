@@ -3,6 +3,7 @@
 const mysql = require('mysql2/promise');
 const config = require('./environment');
 const { createDatabase } = require('./database');
+const { migrateMultiUnit } = require('./migrate-units');
 
 async function columnExists(db, tableName, columnName) {
   const [rows] = await db.query(
@@ -40,6 +41,16 @@ async function foreignKeyExists(db, tableName, constraintName) {
      FROM information_schema.TABLE_CONSTRAINTS
      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?`,
     [tableName, constraintName]
+  );
+  return rows[0].count > 0;
+}
+
+async function indexExists(db, tableName, indexName) {
+  const [rows] = await db.query(
+    `SELECT COUNT(*) AS count
+     FROM information_schema.STATISTICS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`,
+    [tableName, indexName]
   );
   return rows[0].count > 0;
 }
@@ -464,6 +475,9 @@ async function migrateDatabase(db, options = {}) {
     }
   }
 
+  // 11. Nền tảng đa đơn vị (GĐ1) — xem .kiro/specs/nen-tang-da-don-vi/design.md §5
+  await migrateMultiUnit(db, { log, tableExists, columnExists, foreignKeyExists, indexExists });
+
   log('Database schema check and migration complete.');
 }
 
@@ -489,5 +503,6 @@ module.exports = {
   columnExists,
   getColumnType,
   tableExists,
-  foreignKeyExists
+  foreignKeyExists,
+  indexExists
 };

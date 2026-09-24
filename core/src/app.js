@@ -9,7 +9,10 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, devops, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, platformAdmin, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { createUnitContext } = require('./middleware/unit-context');
+const { createSettingGuard } = require('./middleware/setting-guard');
+const { LEGACY_PREFIXES, createLegacyGate } = require('./middleware/legacy-gate');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
@@ -50,10 +53,12 @@ function createApplication(options = {}) {
   app.use(express.urlencoded({ extended: false }));
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(createUnitContext(db));
+  app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, devops, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, settingGuard: createSettingGuard(db), isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
     bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, push, emailEvents,

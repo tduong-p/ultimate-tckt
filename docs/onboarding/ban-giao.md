@@ -1,7 +1,7 @@
 ---
 doc_id: ONB-HO-001
 title: Onboarding — bàn giao
-version: 1.0
+version: 1.1
 status: active
 audience: [onboarding, dev]
 owner: DYC
@@ -59,9 +59,11 @@ Khi có người rời dự án hoặc đổi thế hệ dev team, thực hiện
 Không lặp lại nội dung — trỏ người kế nhiệm tới:
 - Đọc theo thứ tự ở [`tuan-1.md`](tuan-1.md).
 - Việc còn dang dở (nếu có) ghi trong issue tracker của GitHub repo, không ghi trong tài liệu tĩnh này (dễ lỗi thời).
+- Việc còn lại của GĐ1 chia theo lane (ai sở hữu gì, phụ thuộc gì): [`../specs/2026-09-24-gd1-phan-lane.md`](../specs/2026-09-24-gd1-phan-lane.md). Nhận lane nào thì làm trong module của lane đó; chạm lane khác → raise theo [`../dev/ranh-gioi-module.md`](../dev/ranh-gioi-module.md).
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo, bỏ toàn bộ mật khẩu/secret) | DYC |
+| 1.1 | 2026-09-24 | Mục 3 trỏ tới tài liệu phân lane GĐ1 và quy tắc ranh giới module | DYC |

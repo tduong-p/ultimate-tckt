@@ -1,7 +1,7 @@
 ---
 doc_id: ONB-D1-001
 title: Onboarding — ngày 1
-version: 1.0
+version: 1.1
 status: active
 audience: [onboarding, dev]
 owner: DYC
@@ -28,7 +28,18 @@ cd ultimate-tckt
 
 Xem hướng dẫn chạy local đầy đủ (biến môi trường, DB local, lệnh dev server) ở [`../dev/chay-local.md`](../dev/chay-local.md) — tài liệu này không lặp lại chi tiết đó.
 
-## 3. Chạy test — xác nhận môi trường đã đúng
+## 3. Cài Superpowers cho AI agent của bạn (bắt buộc)
+
+Repo bắt buộc mọi AI agent làm theo quy trình Superpowers — đọc mục 1 của `AGENTS.md` ở gốc repo.
+
+- Claude Code: mở repo, chấp nhận plugin `superpowers@claude-plugins-official` khi được hỏi (khai báo trong `.claude/settings.json`).
+- Antigravity: `agy plugin install https://github.com/obra/superpowers`.
+- Codex: cài plugin Superpowers từ marketplace (`/plugins`).
+- Agent khác: dùng bản vendored ở `.agents/skills/` (bắt đầu từ `.agents/skills/using-superpowers/SKILL.md`).
+
+Đọc thêm [`../dev/ranh-gioi-module.md`](../dev/ranh-gioi-module.md): việc trong một module thì làm luôn, việc liên module phải raise họp team.
+
+## 4. Chạy test — xác nhận môi trường đã đúng
 
 ```bash
 # Core (cần MySQL local)
@@ -44,7 +55,7 @@ npm run docs:check
 
 Nếu cả ba lệnh trên xanh, môi trường của bạn đã sẵn sàng để bắt đầu code. Nếu có lỗi, kiểm lại `../dev/chay-local.md` trước khi hỏi người khác — phần lớn lỗi ngày đầu là thiếu biến `.env` hoặc DB local chưa đúng quyền.
 
-## 4. Đọc gì tiếp theo
+## 5. Đọc gì tiếp theo
 
 Sang ngày thứ hai trở đi, xem thứ tự đọc tài liệu và việc nhỏ đầu tiên ở [`tuan-1.md`](tuan-1.md).
 
@@ -53,3 +64,4 @@ Sang ngày thứ hai trở đi, xem thứ tự đọc tài liệu và việc nh�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm bước cài Superpowers bắt buộc và quy tắc ranh giới module | DYC |

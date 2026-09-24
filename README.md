@@ -18,7 +18,11 @@ và xét duyệt hồ sơ Đảng (module **Công tác Đảng — CTD**), gộp
 
 ## Bắt đầu
 
-Đọc `AGENTS.md` → `docs/onboarding/ngay-1.md`.
+Đọc `AGENTS.md` (luật chung cho dev và mọi AI agent — Claude Code, Codex, Antigravity…) → `docs/onboarding/ngay-1.md`.
+
+- **Bắt buộc dùng Superpowers** cho AI agent (cách cài: `AGENTS.md` mục 1; bản vendored cho agent không cài được plugin: `.agents/skills/`).
+- **Luật tài liệu**: mọi thay đổi cập nhật tài liệu liên quan trong cùng PR và tăng `version` (`AGENTS.md` mục 4).
+- **Ranh giới module**: việc trong một module làm luôn; việc liên module phải raise họp team (`docs/dev/ranh-gioi-module.md`).
 
 ## Nhánh và luồng làm việc
 

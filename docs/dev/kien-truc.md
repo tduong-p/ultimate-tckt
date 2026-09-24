@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 1.0
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py]
+related_code: [core/src/app.js, core/src/server.js, core/src/units/, core/src/settings/, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/middleware/setting-guard.js, services/ctd-api/backend/app/main.py]
 ---
 
 # Kiến trúc hệ thống
@@ -20,6 +20,23 @@ Tài liệu này giúp dev/AI hiểu nhanh cách hai app trong monorepo được
   auth, policy, email rule engine, cron runner). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
   → `core/src/app.js` (`createApplication`, dựng Express app: helmet CSP, session, static `public/`, đăng ký
   route qua `registerRoutes`, fallback SPA `index.html`, error handler cuối cùng).
+  - **Thứ tự middleware** (giữa session và `registerRoutes`, GĐ1-A): session → static → `createUnitContext(db)`
+    (`core/src/middleware/unit-context.js`, gắn `req.memberships`/`req.unit`/`req.actor` từ `unit_memberships`;
+    không có membership nào → 403, Task 4) → `createLegacyGate(db)` áp cho `LEGACY_PREFIXES`
+    (`core/src/middleware/legacy-gate.js`, chặn route Điều hành cũ ngoài TCKT; GET/HEAD của DYC được qua và ghi
+    `audit_logs` (`cross_unit_read`), Task 5) → route handler, nơi các route tự áp thêm `auth`/`admin`/`manager`
+    (đọc `req.actor`), `settingGuard` (`core/src/middleware/setting-guard.js`, chặn ghi setting `managed_by`
+    ngoài quyền, Task 7) hoặc `platformAdmin` (chỉ DYC, Task 6–8) tuỳ route.
+  - **`core/src/units/`** (GĐ1-A Task 1–4, 8): `catalog.js` (danh mục đơn vị/`kind`/role), `memberships.js` (repo
+    đọc/ghi `unit_memberships`, `hasDycMembership`, `unitIdByCode`), dùng bởi `routes/units.js` (CRUD đơn vị +
+    membership, chặn hạ/xoá `dyc_admin` cuối cùng) và `config/migrate-units.js` (migration idempotent).
+  - **`core/src/settings/`** (GĐ1-A Task 7): danh mục setting theo `managed_by` (`platform`: SMTP, cron, đơn vị,
+    membership ngoài đơn vị mình, danh mục module — chỉ DYC; `unit`: email templates/rules, mức xem, weight
+    presets — admin đơn vị sửa được trừ khi có `setting_locks`), dùng bởi `createSettingGuard` và
+    `routes/platform.js` (`/api/platform/setting-locks`).
+  - Xem `docs/dev/phan-quyen.md` cho chi tiết role/quyền theo membership; `core/tests/units.leak.test.js`
+    (GĐ1-A Task 9) quét toàn bộ `router.get('/api/...')` trong `core/src/routes/` để bảo đảm hồi quy: route mới
+    thêm sau này tự động bị kiểm (BTV ngoài TCKT bị 403, DYC không bao giờ 403).
 - **CTD** (`services/ctd-api/`): FastAPI + SQLAlchemy 2.0 + Alembic + Postgres 16. Module **Công tác Đảng** (xét
   duyệt hồ sơ Đảng). Entry point: `services/ctd-api/backend/app/main.py` (`include_router(auth.router)`,
   `cases.router`, `documents.router`). Frontend riêng React/Vite ở `services/ctd-api/frontend`, build ra
@@ -56,3 +73,5 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Ghi middleware order trong `app.js`: `createUnitContext` rồi `createLegacyGate` giữa session và `registerRoutes` (nợ tài liệu từ GĐ1-A Task 4, khớp luôn khi Task 5 sửa `app.js`) | DYC |
+| 1.2 | 2026-09-24 | GĐ1-A Task 9: chốt sơ đồ middleware đầy đủ (session → static → `loadUnitContext` → `legacyGate` → route tự áp `auth`/`admin`/`manager`/`settingGuard`/`platformAdmin`), thêm mục `core/src/units/` và `core/src/settings/` | DYC |
