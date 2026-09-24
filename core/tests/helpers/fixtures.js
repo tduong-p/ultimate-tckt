@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 async function createTeam(pool, overrides = {}) {
   const [result] = await pool.execute(
     'INSERT INTO teams(name,description,color) VALUES (?,?,?)',
-    [overrides.name || `Ban thử nghiệm ${Date.now()}`, overrides.description || null, overrides.color || '#1E3A8A']
+    [overrides.name || `Ban thử nghiệm ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, overrides.description || null, overrides.color || '#1E3A8A']
   );
   return result.insertId;
 }
