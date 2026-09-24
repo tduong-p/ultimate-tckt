@@ -135,14 +135,32 @@ const TABLES = [
     CONSTRAINT fk_ola_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) ${T}`]
 ];
 
+// Đọc trực tiếp IS_NULLABLE/COLUMN_DEFAULT thay vì chỉ kiểm cột tồn tại: cần biết cột đã ở trạng thái
+// "xong" (NOT NULL, DEFAULT = id TCKT) hay chưa, để UPDATE (quét toàn bảng) + MODIFY (DDL) chỉ chạy
+// đúng một lần thay vì mỗi lần app khởi động.
+async function unitColumnNeedsSetup(db, table, tcktId) {
+  const [rows] = await db.query(
+    `SELECT IS_NULLABLE, COLUMN_DEFAULT
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'unit_id'`,
+    [table]
+  );
+  if (!rows.length) return true;
+  const { IS_NULLABLE, COLUMN_DEFAULT } = rows[0];
+  return IS_NULLABLE === 'YES' || Number(COLUMN_DEFAULT) !== Number(tcktId);
+}
+
 async function addUnitColumn(db, table, tcktId, h) {
   if (!(await h.columnExists(db, table, 'unit_id'))) {
     h.log(`Adding ${table}.unit_id`);
     await db.query(`ALTER TABLE ${table} ADD COLUMN unit_id INT NULL`);
   }
-  await db.query(`UPDATE ${table} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
-  // GĐ1: chỉ TCKT có module Điều hành, nên INSERT kiểu cũ (không truyền unit_id) rơi về TCKT.
-  await db.query(`ALTER TABLE ${table} MODIFY unit_id INT NOT NULL DEFAULT ${Number(tcktId)}`);
+  if (await unitColumnNeedsSetup(db, table, tcktId)) {
+    h.log(`Backfilling and locking ${table}.unit_id (NOT NULL DEFAULT TCKT)`);
+    await db.query(`UPDATE ${table} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
+    // GĐ1: chỉ TCKT có module Điều hành, nên INSERT kiểu cũ (không truyền unit_id) rơi về TCKT.
+    await db.query(`ALTER TABLE ${table} MODIFY unit_id INT NOT NULL DEFAULT ${Number(tcktId)}`);
+  }
   if (!(await h.indexExists(db, table, `${table}_unit`))) await db.query(`ALTER TABLE ${table} ADD INDEX ${table}_unit (unit_id)`);
   if (!(await h.foreignKeyExists(db, table, `fk_${table}_unit`))) {
     await db.query(`ALTER TABLE ${table} ADD CONSTRAINT fk_${table}_unit FOREIGN KEY (unit_id) REFERENCES org_units(id)`);

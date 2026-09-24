@@ -67,3 +67,24 @@ test('re-running migrate is idempotent and does not re-add a removed membership'
     assert.equal(await count(pool, 'SELECT COUNT(*) c FROM unit_visibility_policies'), 1);
   } finally { await teardown(); }
 });
+
+function spyPool(pool) {
+  const calls = [];
+  const sqlOf = (sql) => (typeof sql === 'string' ? sql : sql.sql);
+  return {
+    calls,
+    query: (sql, params) => { calls.push(sqlOf(sql)); return pool.query(sql, params); },
+    execute: (sql, params) => { calls.push(sqlOf(sql)); return pool.execute(sql, params); },
+    getConnection: () => pool.getConnection()
+  };
+}
+
+test('re-running migrate does not re-issue the teams/activities.unit_id MODIFY DDL', async () => {
+  const { pool, teardown } = await createTestDatabase();
+  try {
+    const spy = spyPool(pool);
+    await migrateDatabase(spy, quiet);
+    const modifyCalls = spy.calls.filter((sql) => /MODIFY unit_id/i.test(sql));
+    assert.deepEqual(modifyCalls, []);
+  } finally { await teardown(); }
+});
