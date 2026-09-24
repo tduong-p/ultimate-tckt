@@ -1,12 +1,12 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 1.1
+version: 1.2
 status: active
 audience: [ba]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/access.js, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js]
+related_code: [core/src/policies/access.js, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/settings/catalog.js, core/src/middleware/setting-guard.js]
 ---
 
 # Cơ cấu đơn vị và vai trò
@@ -56,12 +56,23 @@ Phần vận hành TCKT (`core/src/policies/access.js`, `core/src/middleware/aut
 - 5 vai trò: `admin`, `vice_admin` (Ban điều hành, toàn quyền — hàm `isExecutive`), `leader`, `vice_leader` (Tổ trưởng/phó, quản lý Tổ mình — gộp cùng `isExecutive` thành `isLeadership`), `member` (thành viên thường). `users.role` **giữ trong GĐ1** như bản sao đồng bộ một chiều của membership TCKT, không còn là nguồn quyền chính.
 - Vai trò được **tự động tính lại** mỗi khi vai trò trong Tổ (`user_teams.is_lead` / `is_vice_lead`) thay đổi (xem `core/src/routes/teams.js`), và đồng bộ sang `unit_memberships` qua `syncTcktMembershipFromRole`.
 - Phạm vi xem/sửa **trong một đơn vị** vẫn qua các hàm thuần trong `access.js`: `activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`, `canManageUser`, v.v. — đây là các hàm sẽ được refactor thành `scopeFor(viewer, resourceType)` đa đơn vị khi GĐ1 triển khai tiếp.
-- Bảng `org_units`, `unit_memberships`, `audit_logs` **đã có** trong `core/db.sql`/migration (GĐ1-A Task 2–4). `unit_visibility_policies`, `setting_locks` — xem tiến độ ở kế hoạch bên dưới.
+- Bảng `org_units`, `unit_memberships`, `audit_logs`, `setting_locks` **đã có** trong `core/db.sql`/migration (GĐ1-A Task 2–7). `unit_visibility_policies` — xem tiến độ ở kế hoạch bên dưới.
 - **DYC là admin toàn cục** đã làm **một phần**: route Điều hành cũ (`core/src/middleware/legacy-gate.js`, `LEGACY_PREFIXES`) cho DYC đọc (không ghi) dữ liệu TCKT, ghi `audit_logs action='cross_unit_read'` mỗi lượt đọc. Chưa mở rộng sang CTD, chưa có phân cấp quyền xem nội bộ trong DYC.
+- **Ai sửa cấu hình nào (`managed_by`, GĐ1-A Task 7, `core/src/settings/catalog.js` + `core/src/middleware/setting-guard.js`)**:
+
+  | Setting | `managed_by` | Ai sửa được | DYC khoá được? |
+  |---|---|---|---|
+  | `email.smtp` | platform | Chỉ DYC | — (đã là platform) |
+  | `cron.jobs` | platform | Chỉ DYC | — (đã là platform) |
+  | `email.templates` | unit | DYC, hoặc TCKT `admin`/`vice_admin` | Có, qua `setting_locks` |
+  | `email.rules` | unit | DYC, hoặc TCKT `admin`/`vice_admin` | Có, qua `setting_locks` |
+  | `weight_presets` | unit | DYC, hoặc TCKT `admin`/`vice_admin` | Có, qua `setting_locks` |
+
+  GĐ1 các bảng setting `unit` chưa có `unit_id` riêng, nên "đơn vị" của setting `unit` mặc định là TCKT — admin/vice_admin TCKT sửa được cho tới khi DYC khoá lại (`POST /api/platform/setting-locks`, có ghi lý do, ghi `audit_logs action='setting.lock'`/`'setting.unlock'`); người bị khoá nhận 403 kèm lý do khoá. Trước Task 7, cả 5 setting này chỉ DYC sửa được (khoảng tạm GĐ1-A Task 6); từ Task 7 đúng thiết kế BA đã chốt ở mục 2.
 
 ### Kế hoạch (GĐ1, chưa có code)
 
-Hàm `scopeFor(viewer, resourceType)` thay thế các hàm trong `access.js`, bảng `unit_visibility_policies`/`setting_locks`, và luồng giao việc liên đơn vị (directive)/Trình (submission) — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §5–§8 và use case vận hành ở [`dieu-hanh-use-case.md`](dieu-hanh-use-case.md).
+Hàm `scopeFor(viewer, resourceType)` thay thế các hàm trong `access.js`, bảng `unit_visibility_policies`, và luồng giao việc liên đơn vị (directive)/Trình (submission) — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §5–§8 và use case vận hành ở [`dieu-hanh-use-case.md`](dieu-hanh-use-case.md).
 
 ## 4. Lưu ý quan trọng — dữ liệu ĐT/LCĐ trong GĐ1 là giả định
 
@@ -86,3 +97,4 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Cập nhật mục 3 "Đã làm": `unit_memberships`/`audit_logs` đã có, nguồn quyền route Điều hành chuyển sang `unit_memberships`, "DYC là admin toàn cục" đã làm một phần qua `legacyGate` (nợ tài liệu từ GĐ1-A Task 4, khớp luôn khi Task 5 sửa `auth.js`-liên quan) | DYC |
+| 1.2 | 2026-09-24 | Thêm mục "Ai sửa cấu hình nào" (`managed_by`, `setting_locks` đã có code — GĐ1-A Task 7): `email.templates`/`email.rules`/`weight_presets` nay TCKT `admin`/`vice_admin` sửa được, DYC có thể khoá | DYC |

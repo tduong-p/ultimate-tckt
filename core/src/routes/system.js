@@ -6,7 +6,7 @@ const { ensureDycAdmins } = require('../units/memberships');
 const { devopsEmailAllowlist } = require('../middleware/auth');
 
 function createSystemRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, microsoftSso, logger, emailEvents, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
+  const { db, auth, admin, manager, settingGuard, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, microsoftSso, logger, emailEvents, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
   const router = express.Router();
 
 router.get('/api/session',(req,res)=>{const view=sessionView(req);res.json({...view,user:withHustIdentity(view.user)})});
@@ -66,12 +66,12 @@ router.get('/api/weight-presets', auth, asyncRoute(async (_req, res) => {
   res.json(rows);
 }));
 
-router.get('/api/admin/weight-presets', auth, admin, asyncRoute(async (_req, res) => {
+router.get('/api/admin/weight-presets', auth, settingGuard('weight_presets'), asyncRoute(async (_req, res) => {
   const [rows] = await db.execute('SELECT id, label AS name, points, description, sort_order, is_active FROM weight_presets ORDER BY sort_order ASC, points ASC, id ASC');
   res.json(rows);
 }));
 
-router.post('/api/admin/weight-presets', auth, admin, asyncRoute(async (req, res) => {
+router.post('/api/admin/weight-presets', auth, settingGuard('weight_presets'), asyncRoute(async (req, res) => {
   const name = String(req.body.name || '').trim();
   const points = Number(req.body.points);
   const sortOrder = Number(req.body.sort_order || 0);
@@ -84,7 +84,7 @@ router.post('/api/admin/weight-presets', auth, admin, asyncRoute(async (req, res
   res.status(201).json({ id: result.insertId, name, points, description, sort_order: sortOrder, is_active: 1 });
 }));
 
-router.patch('/api/admin/weight-presets/:id', auth, admin, asyncRoute(async (req, res) => {
+router.patch('/api/admin/weight-presets/:id', auth, settingGuard('weight_presets'), asyncRoute(async (req, res) => {
   const [existing] = await db.execute('SELECT * FROM weight_presets WHERE id=?', [req.params.id]);
   const preset = one(existing);
   if (!preset) return res.status(404).json({ error: 'Preset không tồn tại.' });
@@ -108,7 +108,7 @@ router.patch('/api/admin/weight-presets/:id', auth, admin, asyncRoute(async (req
   res.json({ ok: true, id: Number(req.params.id), name, points, description, sort_order: sortOrder, is_active: isActive });
 }));
 
-router.delete('/api/admin/weight-presets/:id', auth, admin, asyncRoute(async (req, res) => {
+router.delete('/api/admin/weight-presets/:id', auth, settingGuard('weight_presets'), asyncRoute(async (req, res) => {
   const [result] = await db.execute('DELETE FROM weight_presets WHERE id=?', [req.params.id]);
   if (!result.affectedRows) return res.status(404).json({ error: 'Preset không tồn tại.' });
   res.json({ ok: true, deleted: true });

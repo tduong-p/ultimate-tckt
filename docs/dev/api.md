@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
+related_code: [core/src/routes/**, core/src/settings/catalog.js, core/src/middleware/setting-guard.js, services/ctd-api/backend/app/api/**]
 ---
 
 # API
@@ -53,9 +53,28 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET/PUT/POST | `/api/admin/email/{settings,settings/test-send,events,templates,rules,deliveries}` | `settings-email.js` |
 | PUT/DELETE/PATCH | `/api/admin/email/templates/:id`, `/api/admin/email/rules/:id[/activate\|deactivate\|simulate]` | `settings-email.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
+| GET/POST/DELETE | `/api/platform/setting-locks[/:id]` | `platform.js` |
 
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
+
+### `/api/platform/setting-locks` — khoá cấu hình đơn vị (DYC)
+
+Danh mục setting (`managed_by: 'platform' | 'unit'`) khai ở `core/src/settings/catalog.js`; xem
+`docs/dev/email-cron.md` mục "Danh mục setting" để biết setting nào ai sửa được. Chỉ setting `managed_by:
+'unit'` (`email.templates`, `email.rules`, `weight_presets`) mới khoá được ở đây.
+
+- `GET /api/platform/setting-locks` (auth) → 200 `[{ id, setting_key, unit_id, unit_code, reason, locked_by,
+  created_at }]` — bất kỳ ai đăng nhập cũng đọc được danh sách khoá hiện tại.
+- `POST /api/platform/setting-locks { setting_key, unit_id: null, reason }` (auth + `platformAdmin`, chỉ DYC) →
+  201 `{ id }`. 400 nếu `setting_key` không có trong `SETTINGS` hoặc `managed_by !== 'unit'`
+  (`{ error: 'Chỉ khoá được cấu hình do đơn vị quản lý.' }`), hoặc `reason` rỗng
+  (`{ error: 'Cần ghi lý do khoá.' }`); ghi `audit_logs` action `setting.lock`.
+- `DELETE /api/platform/setting-locks/:id` (auth + `platformAdmin`, chỉ DYC) → 200 `{ ok: true }` / 404 nếu
+  không tìm thấy; ghi `audit_logs` action `setting.unlock`.
+- Khi một setting `unit` đang bị khoá, mọi request ghi (khác GET/HEAD) từ người không phải DYC vào route được
+  bảo vệ bởi `settingGuard` của setting đó trả 403 `{ error: 'Cấu hình này đang bị DYC khoá.', locked: true,
+  reason }` — `reason` lấy từ dòng `setting_locks` khớp.
 
 `GET /api/session` giờ trả thêm `units: { current, memberships }` (đơn vị đang chọn và toàn bộ membership đang
 hoạt động của user, xem `sessionView` trong `core/src/middleware/unit-context.js`); `user.is_devops` giờ tính
@@ -92,3 +111,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | `GET /api/session` trả thêm `units.{current,memberships}`, `user.is_devops` tính theo membership DYC; thêm `POST /api/session/unit` | DYC |
+| 1.2 | 2026-09-24 | Thêm `/api/platform/setting-locks` (GET/POST/DELETE) và mục giải thích `managed_by`/`settingGuard`/mã lỗi khoá | DYC |

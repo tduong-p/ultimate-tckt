@@ -33,7 +33,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [BA-UNIT-001](ba/co-cau-don-vi-va-role.md) | Cơ cấu đơn vị và vai trò | 1.1 | active | ba |
+| [BA-UNIT-001](ba/co-cau-don-vi-va-role.md) | Cơ cấu đơn vị và vai trò | 1.2 | active | ba |
 | [BA-CTD-001](ba/ctd-use-case.md) | Use case Công tác Đảng (CTD) | 1.0 | active | ba |
 | [BA-DOC-001](ba/danh-muc-giay-to-ctd.md) | Danh mục giấy tờ hồ sơ Đảng | 1.0 | active | ba |
 | [BA-OPS-001](ba/dieu-hanh-use-case.md) | Use case điều hành hoạt động TCKT | 1.1 | active | ba |
@@ -44,10 +44,10 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [DEV-API-001](dev/api.md) | API | 1.1 | active | dev, ai |
+| [DEV-API-001](dev/api.md) | API | 1.2 | active | dev, ai |
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.0 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 1.1 | active | dev, ai |
-| [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 1.1 | active | dev, ai |
+| [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 1.2 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.0 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 1.1 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 1.3 | active | dev, ai |

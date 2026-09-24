@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-MAIL-001
 title: Email và Cron
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js, core/src/middleware/auth.js, core/src/units/memberships.js]
+related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js, core/src/routes/platform.js, core/src/settings/catalog.js, core/src/middleware/setting-guard.js, core/src/middleware/auth.js, core/src/units/memberships.js]
 ---
 
 # Email và Cron
@@ -38,24 +38,46 @@ tạo rule/template qua UI hoặc seed, không phải viết hàm `notifyXxx` m�
 Thêm một sự kiện email mới:
 1. `registerEmailEvent('module.ten_su_kien', { fields: [...], samplePayload: {...} })` trong file service tương ứng.
 2. Gọi `emailEvents.emit('module.ten_su_kien', payload)` đúng chỗ nghiệp vụ xảy ra.
-3. Tạo rule + template qua trang Setting → Email (cần membership DYC — `platformAdmin`, xem dưới), hoặc qua seed nếu cần có sẵn.
+3. Tạo rule + template qua trang Setting → Email (cần membership DYC hoặc admin/vice_admin TCKT — `settingGuard('email.templates'|'email.rules')`, xem dưới), hoặc qua seed nếu cần có sẵn.
 4. Test: `emailEvents.emit` trong test phải đợi xong hoặc bị mock — xem bẫy "Pool is closed" ở `docs/ai/bay-da-gap.md`.
 
 ## Cron Runner (`core/src/services/cron-runner.js`)
 
 Job runner tổng quát dựa trên `node-cron`, không chỉ dành cho email. `registerCronHandler(key, fn)` khai một
 loại việc lặp lại (ví dụ nhắc hạn chót); job thật (lịch chạy, bật/tắt, job nào dùng handler nào) là dữ liệu trong
-bảng `cron_jobs`, quản lý qua `core/src/routes/settings-cron.js` (yêu cầu `platformAdmin`, xem dưới): tạo/sửa/xoá
-job, bật/tắt, chạy thử ngay (`run-now`), xem lịch sử chạy (`cron_job_runs`). Runner khởi động/dừng theo vòng đời
-HTTP server (`core/src/runtime.js`).
+bảng `cron_jobs`, quản lý qua `core/src/routes/settings-cron.js` (yêu cầu `settingGuard('cron.jobs')`, xem dưới):
+tạo/sửa/xoá job, bật/tắt, chạy thử ngay (`run-now`), xem lịch sử chạy (`cron_job_runs`). Runner khởi động/dừng
+theo vòng đời HTTP server (`core/src/runtime.js`).
 
-## Quyền cấu hình SMTP/Cron: membership DYC, không còn cờ `devops`
+## Danh mục setting (`managed_by`) và quyền sửa
 
-Quyền ghi/đọc cấu hình nền tảng (`email_settings`, `email_templates`, `email_rules`, `cron_jobs`) không còn kiểm
-tra `users.is_devops` hay `isExecutive`. Middleware `platformAdmin` (`core/src/middleware/auth.js`) chỉ kiểm tra
-`req.memberships` có một membership đơn vị `platform_owner` (DYC, bất kể role `dyc_admin`/`dyc_engineer`, bất kể
-`current_unit_id` đang chọn) — nếu không có, trả 403 `{ error: 'Chỉ DYC được thao tác cấu hình nền tảng.' }`.
-Trang Delivery Log (chỉ đọc) vẫn dùng `admin` như cũ, không đổi.
+`core/src/settings/catalog.js` khai `SETTINGS` — mỗi key có `managed_by: 'platform' | 'unit'`:
+
+| Setting key | managed_by | Ai sửa được |
+|---|---|---|
+| `email.smtp` | platform | Chỉ membership DYC |
+| `cron.jobs` | platform | Chỉ membership DYC |
+| `email.templates` | unit | DYC, hoặc TCKT `admin`/`vice_admin` (trừ khi DYC khoá) |
+| `email.rules` | unit | DYC, hoặc TCKT `admin`/`vice_admin` (trừ khi DYC khoá) |
+| `weight_presets` | unit | DYC, hoặc TCKT `admin`/`vice_admin` (trừ khi DYC khoá) |
+
+`core/src/middleware/setting-guard.js` (`createSettingGuard(db) → settingGuard(key) → middleware`) thay
+`platformAdmin` trên các route tương ứng:
+- `managed_by: 'platform'` (`email.smtp`, `cron.jobs`): chỉ membership DYC được qua; ngược lại 403
+  `{ error: 'Chỉ DYC được thao tác cấu hình nền tảng.' }`.
+- `managed_by: 'unit'` (`email.templates`, `email.rules`, `weight_presets`): DYC, hoặc membership TCKT với role
+  `admin`/`vice_admin` (GĐ1: các bảng này chưa có `unit_id` nên "đơn vị" của setting `unit` mặc định là TCKT);
+  ngược lại 403 `{ error: 'Bạn không có quyền với cấu hình này.' }`. Với method khác GET/HEAD và người gọi không
+  phải DYC: nếu có dòng `setting_locks` khớp `setting_key` (và `unit_id IS NULL` hoặc `unit_id` = TCKT) → 403
+  `{ error: 'Cấu hình này đang bị DYC khoá.', locked: true, reason }`.
+
+DYC khoá/mở khoá setting `unit` qua `POST /api/platform/setting-locks` / `DELETE /api/platform/setting-locks/:id`
+(xem `docs/dev/api.md`) — mỗi lần khoá/mở khoá ghi `audit_logs` với action `setting.lock` / `setting.unlock`.
+
+Quyền ghi/đọc cấu hình nền tảng không còn kiểm tra `users.is_devops` hay `isExecutive`. `hasDycMembership`
+(`core/src/units/memberships.js`) chỉ kiểm tra `req.memberships` có một membership đơn vị `platform_owner` (DYC,
+bất kể role `dyc_admin`/`dyc_engineer`, bất kể `current_unit_id` đang chọn). Trang Delivery Log (chỉ đọc) vẫn
+dùng `admin` như cũ, không đổi.
 
 Biến môi trường `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`, xem `infra/`) là danh sách email (phân tách
 bởi dấu phẩy, so khớp không phân biệt hoa/thường) luôn được đảm bảo có membership `dyc_admin` — chống khoá
@@ -83,3 +105,4 @@ lỗi).
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm mục "Quyền cấu hình SMTP/Cron": `platformAdmin` (membership DYC) thay cờ `is_devops`/`isExecutive`; `DEVOPS_EMAILS`/`ensureDycAdmins` bootstrap lúc khởi động và lúc đăng nhập | DYC |
+| 1.2 | 2026-09-24 | Thêm danh mục setting `managed_by` (`core/src/settings/catalog.js`) và `settingGuard` (`core/src/middleware/setting-guard.js`): `email.templates`/`email.rules`/`weight_presets` nay TCKT `admin`/`vice_admin` sửa được (trước chỉ DYC), DYC có thể khoá qua `setting_locks`/`/api/platform/setting-locks` | DYC |

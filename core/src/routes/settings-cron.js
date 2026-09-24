@@ -4,19 +4,19 @@ const cron = require('node-cron');
 const { getRegisteredHandlerKeys, runJobById, reschedule, unscheduleJob } = require('../services/cron-runner');
 
 function createSettingsCronRoutes(context) {
-  const { db, auth, platformAdmin, asyncRoute, one, logger } = context;
+  const { db, auth, settingGuard, asyncRoute, one, logger } = context;
   const router = express.Router();
 
-  router.get('/api/admin/cron/handlers', auth, platformAdmin, (_req, res) => {
+  router.get('/api/admin/cron/handlers', auth, settingGuard('cron.jobs'), (_req, res) => {
     res.json({ handlers: getRegisteredHandlerKeys() });
   });
 
-  router.get('/api/admin/cron/jobs', auth, platformAdmin, asyncRoute(async (_req, res) => {
+  router.get('/api/admin/cron/jobs', auth, settingGuard('cron.jobs'), asyncRoute(async (_req, res) => {
     const [rows] = await db.execute('SELECT * FROM cron_jobs ORDER BY name');
     res.json({ jobs: rows });
   }));
 
-  router.post('/api/admin/cron/jobs', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.post('/api/admin/cron/jobs', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     const { job_key, name, handler_key, schedule, timezone } = req.body;
     if (!job_key || !name || !handler_key || !schedule) return res.status(400).json({ error: 'job_key, name, handler_key, schedule là bắt buộc.' });
     if (!getRegisteredHandlerKeys().includes(handler_key)) return res.status(400).json({ error: `handler_key '${handler_key}' chưa được đăng ký trong code.` });
@@ -29,7 +29,7 @@ function createSettingsCronRoutes(context) {
     res.status(201).json({ job: one(rows) });
   }));
 
-  router.put('/api/admin/cron/jobs/:id', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.put('/api/admin/cron/jobs/:id', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     const { name, handler_key, schedule, timezone } = req.body;
     if (handler_key && !getRegisteredHandlerKeys().includes(handler_key)) return res.status(400).json({ error: `handler_key '${handler_key}' chưa được đăng ký trong code.` });
     if (schedule && !cron.validate(schedule)) return res.status(400).json({ error: `Lịch cron không hợp lệ: ${schedule}` });
@@ -43,32 +43,32 @@ function createSettingsCronRoutes(context) {
     res.json({ job: one(rows) });
   }));
 
-  router.delete('/api/admin/cron/jobs/:id', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.delete('/api/admin/cron/jobs/:id', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     unscheduleJob(Number(req.params.id));
     await db.execute('DELETE FROM cron_jobs WHERE id=?', [req.params.id]);
     res.json({ ok: true });
   }));
 
-  router.patch('/api/admin/cron/jobs/:id/activate', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.patch('/api/admin/cron/jobs/:id/activate', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     await db.execute('UPDATE cron_jobs SET is_active=1, updated_by=? WHERE id=?', [req.session.user.id, req.params.id]);
     await reschedule(db, logger, req.params.id);
     const [rows] = await db.execute('SELECT * FROM cron_jobs WHERE id=?', [req.params.id]);
     res.json({ job: one(rows) });
   }));
 
-  router.patch('/api/admin/cron/jobs/:id/deactivate', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.patch('/api/admin/cron/jobs/:id/deactivate', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     await db.execute('UPDATE cron_jobs SET is_active=0, updated_by=? WHERE id=?', [req.session.user.id, req.params.id]);
     unscheduleJob(Number(req.params.id));
     const [rows] = await db.execute('SELECT * FROM cron_jobs WHERE id=?', [req.params.id]);
     res.json({ job: one(rows) });
   }));
 
-  router.post('/api/admin/cron/jobs/:id/run-now', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.post('/api/admin/cron/jobs/:id/run-now', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     const outcome = await runJobById(db, logger, req.params.id);
     res.json(outcome);
   }));
 
-  router.get('/api/admin/cron/jobs/:id/runs', auth, platformAdmin, asyncRoute(async (req, res) => {
+  router.get('/api/admin/cron/jobs/:id/runs', auth, settingGuard('cron.jobs'), asyncRoute(async (req, res) => {
     const [rows] = await db.execute('SELECT * FROM cron_job_runs WHERE cron_job_id=? ORDER BY id DESC LIMIT 50', [req.params.id]);
     res.json({ runs: rows });
   }));

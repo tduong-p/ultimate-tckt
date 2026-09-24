@@ -11,6 +11,7 @@ const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
 const { auth, admin, manager, platformAdmin, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createUnitContext } = require('./middleware/unit-context');
+const { createSettingGuard } = require('./middleware/setting-guard');
 const { LEGACY_PREFIXES, createLegacyGate } = require('./middleware/legacy-gate');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
@@ -57,7 +58,7 @@ function createApplication(options = {}) {
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, platformAdmin, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, settingGuard: createSettingGuard(db), isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
     bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, push, emailEvents,
