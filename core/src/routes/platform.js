@@ -2,16 +2,24 @@
 const express = require('express');
 const { SETTINGS } = require('../settings/catalog');
 const { recordAudit } = require('../services/audit');
+const { hasDycMembership } = require('../units/memberships');
 
 function createPlatformRoutes(context) {
   const { db, auth, platformAdmin, asyncRoute } = context;
   const router = express.Router();
   const dycUnitId = req => req.memberships.find(m => m.kind === 'platform_owner')?.unit_id ?? null;
 
-  router.get('/api/platform/setting-locks', auth, asyncRoute(async (_req, res) => {
+  // Đọc được bởi bất kỳ ai đăng nhập (đơn vị cần biết setting của mình đang bị khoá) nhưng
+  // scope theo đơn vị của người gọi: DYC (admin toàn nền tảng) thấy mọi dòng; người khác chỉ
+  // thấy khoá toàn cục (unit_id NULL) hoặc khoá gắn với đơn vị họ là thành viên.
+  router.get('/api/platform/setting-locks', auth, asyncRoute(async (req, res) => {
+    const isDyc = hasDycMembership(req.memberships);
+    const unitIds = (req.memberships || []).map(m => m.unit_id);
+    const where = isDyc ? '' : 'WHERE l.unit_id IS NULL OR l.unit_id IN (?)';
     const [rows] = await db.query(
       `SELECT l.id, l.setting_key, l.unit_id, u.code unit_code, l.reason, l.locked_by, l.created_at
-       FROM setting_locks l LEFT JOIN org_units u ON u.id=l.unit_id ORDER BY l.id`
+       FROM setting_locks l LEFT JOIN org_units u ON u.id=l.unit_id ${where} ORDER BY l.id`,
+      isDyc ? [] : [unitIds.length ? unitIds : [0]]
     );
     res.json(rows);
   }));

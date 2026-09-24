@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createTestDatabase } = require('./helpers/db');
 const { startTestServer } = require('./helpers/server');
-const { createUser } = require('./helpers/fixtures');
+const { createUser, unitIdByCode } = require('./helpers/fixtures');
 const { SETTINGS } = require('../src/settings/catalog');
 
 test('catalog marks SMTP and cron as platform, templates/rules/weight presets as unit', () => {
@@ -49,6 +49,36 @@ test('TCKT admin edits unit settings until DYC locks them; lock reason is return
 
     const [rows] = await pool.query("SELECT action FROM audit_logs WHERE action LIKE 'setting.%' ORDER BY id");
     assert.deepEqual(rows.map(r => r.action), ['setting.lock', 'setting.unlock']);
+  } finally { await close(); await teardown(); }
+});
+
+test('GET /api/platform/setting-locks scopes rows to the caller\'s own units; DYC sees all', async () => {
+  const { pool, teardown } = await createTestDatabase();
+  const { client, close } = await startTestServer(pool);
+  try {
+    const btvUnitId = await unitIdByCode(pool, 'BTV');
+    const tcktUnitId = await unitIdByCode(pool, 'TCKT');
+    await pool.execute(
+      "INSERT INTO setting_locks(setting_key,unit_id,locked_by,reason) VALUES ('weight_presets',?,1,'Khoá BTV')",
+      [btvUnitId]
+    );
+    await pool.execute(
+      "INSERT INTO setting_locks(setting_key,unit_id,locked_by,reason) VALUES ('weight_presets',?,1,'Khoá TCKT')",
+      [tcktUnitId]
+    );
+
+    const btv = await createUser(pool, { units: [['BTV', 'btv_lead']] });
+    const dyc = await createUser(pool, { units: [['DYC', 'dyc_engineer']] });
+
+    await client.login(btv.email, btv.password);
+    const btvView = await client.request('GET', '/api/platform/setting-locks');
+    assert.equal(btvView.status, 200);
+    assert.deepEqual(btvView.json.map(r => r.reason).sort(), ['Khoá BTV']);
+
+    await client.login(dyc.email, dyc.password);
+    const dycView = await client.request('GET', '/api/platform/setting-locks');
+    assert.equal(dycView.status, 200);
+    assert.deepEqual(dycView.json.map(r => r.reason).sort(), ['Khoá BTV', 'Khoá TCKT']);
   } finally { await close(); await teardown(); }
 });
 

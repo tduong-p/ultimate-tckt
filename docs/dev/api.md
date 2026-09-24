@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -68,7 +68,12 @@ Danh mục setting (`managed_by: 'platform' | 'unit'`) khai ở `core/src/settin
 'unit'` (`email.templates`, `email.rules`, `weight_presets`) mới khoá được ở đây.
 
 - `GET /api/platform/setting-locks` (auth) → 200 `[{ id, setting_key, unit_id, unit_code, reason, locked_by,
-  created_at }]` — bất kỳ ai đăng nhập cũng đọc được danh sách khoá hiện tại.
+  created_at }]` — bất kỳ ai đăng nhập cũng đọc được, nhưng danh sách được **scope theo đơn vị của người gọi**:
+  thành viên DYC (`hasDycMembership`) thấy mọi dòng; người khác chỉ thấy khoá toàn cục (`unit_id IS NULL`) và
+  khoá của (các) đơn vị mình là thành viên (`unit_id IN (<unit_id của req.memberships>)`) — không thấy khoá của
+  đơn vị khác. Test: `core/tests/units.settings-guard.test.js` (khoá BTV + khoá TCKT, BTV chỉ thấy khoá BTV, DYC
+  thấy cả hai) và `core/tests/units.leak.test.js` (route nằm trong `OUTSIDER_ALLOW` vì tự scope trong handler,
+  không cần 403 ở tầng gate).
 - `POST /api/platform/setting-locks { setting_key, unit_id: null, reason }` (auth + `platformAdmin`, chỉ DYC) →
   201 `{ id }`. 400 nếu `setting_key` không có trong `SETTINGS` hoặc `managed_by !== 'unit'`
   (`{ error: 'Chỉ khoá được cấu hình do đơn vị quản lý.' }`), hoặc `reason` rỗng
@@ -134,3 +139,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 1.2 | 2026-09-24 | Thêm `/api/platform/setting-locks` (GET/POST/DELETE) và mục giải thích `managed_by`/`settingGuard`/mã lỗi khoá | DYC |
 | 1.3 | 2026-09-24 | Thêm `/api/units*` (GET danh sách, GET thành viên, PUT/DELETE membership) và mã lỗi 400/403/404/409 | DYC |
 | 1.4 | 2026-09-24 | `PUT /api/units/:id/members/:userId` cũng trả 409 khi tự hạ cấp `dyc_admin` cuối cùng của đơn vị (cùng điều kiện với DELETE) | DYC |
+| 1.5 | 2026-09-24 | GĐ1-A Task 9 fix round 1: `GET /api/platform/setting-locks` scope theo đơn vị của người gọi (DYC thấy mọi dòng, người khác chỉ thấy khoá toàn cục + khoá đơn vị mình) thay vì trả mọi dòng cho mọi người | DYC |

@@ -9,6 +9,9 @@ const { createUser } = require('./helpers/fixtures');
 
 const ROUTES_DIR = path.join(__dirname, '..', 'src', 'routes');
 // Route người ngoài TCKT được phép đọc (không phải dữ liệu nghiệp vụ của đơn vị khác).
+// /api/platform/setting-locks: route tự scope trong handler (core/src/routes/platform.js) —
+// DYC thấy mọi dòng, người khác chỉ thấy khoá toàn cục (unit_id NULL) + khoá của đơn vị mình
+// (xem core/tests/units.settings-guard.test.js), nên không cần 403 ở tầng gate.
 const OUTSIDER_ALLOW = [/^\/api\/session$/, /^\/api\/version$/, /^\/api\/health$/, /^\/api\/push\/config$/, /^\/api\/notifications/, /^\/api\/units$/, /^\/api\/platform\/setting-locks$/];
 
 function getPaths() {
