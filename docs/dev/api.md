@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -54,6 +54,9 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | PUT/DELETE/PATCH | `/api/admin/email/templates/:id`, `/api/admin/email/rules/:id[/activate\|deactivate\|simulate]` | `settings-email.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
 | GET/POST/DELETE | `/api/platform/setting-locks[/:id]` | `platform.js` |
+| GET | `/api/units` | `units.js` |
+| GET | `/api/units/:id/members` | `units.js` |
+| PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
 
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
@@ -81,6 +84,20 @@ hoạt động của user, xem `sessionView` trong `core/src/middleware/unit-con
 từ việc user có membership đơn vị DYC (`platform_owner`) hay không, không còn đọc thẳng cột `users.is_devops`.
 `POST /api/session/unit { unit_id }` đổi `current_unit_id` sang đơn vị được chỉ định trong body, trả lại
 `sessionView` như trên; 403 nếu người dùng không phải thành viên đơn vị đó, 401 nếu chưa đăng nhập.
+
+`GET /api/units` (auth): DYC thấy mọi đơn vị; người khác chỉ thấy đơn vị mình thuộc. Mỗi dòng
+`{ id, code, name, kind, is_active, member_count, roles }` (`roles = UNIT_ROLES[kind]`).
+`GET /api/units/:id/members` (auth): DYC hoặc thành viên đơn vị đó mới xem được (403 nếu không); 404 nếu
+đơn vị không tồn tại. Trả `[{ user_id, name, email, role }]`.
+`PUT /api/units/:id/members/:userId { role }` (auth): chỉ người quản lý được đơn vị đó theo `canManageUnit`
+(có membership DYC và (đơn vị không phải DYC hoặc mình là `dyc_admin`), hoặc mình là admin của chính đơn vị
+đó theo `isUnitAdmin`) mới gọi được — 403 nếu không; 400 nếu `role` không hợp lệ với `kind` của đơn vị; 404
+nếu tài khoản không tồn tại. Ghi `audit_logs` action `membership.upsert` (`meta: { role, previous_role }`).
+Đơn vị TCKT: đồng bộ luôn cột `users.role` theo role mới (xem `setTcktRoleColumn`).
+`DELETE /api/units/:id/members/:userId` (auth): cùng điều kiện quyền như trên; 404 nếu tài khoản không
+thuộc đơn vị; 409 `{ error: 'Không thể gỡ dyc_admin cuối cùng.' }` nếu gỡ `dyc_admin` cuối cùng của đơn vị
+DYC. Ghi `audit_logs` action `membership.remove`. Đơn vị TCKT: đặt lại `users.role = 'member'`.
+`/api/units*` không nằm trong danh sách route "cũ" (`LEGACY_PREFIXES`) — không áp policy khoá `settingGuard`.
 
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
@@ -112,3 +129,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | `GET /api/session` trả thêm `units.{current,memberships}`, `user.is_devops` tính theo membership DYC; thêm `POST /api/session/unit` | DYC |
 | 1.2 | 2026-09-24 | Thêm `/api/platform/setting-locks` (GET/POST/DELETE) và mục giải thích `managed_by`/`settingGuard`/mã lỗi khoá | DYC |
+| 1.3 | 2026-09-24 | Thêm `/api/units*` (GET danh sách, GET thành viên, PUT/DELETE membership) và mã lỗi 400/403/404/409 | DYC |

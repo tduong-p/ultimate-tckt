@@ -9,6 +9,7 @@ const { createNotificationRoutes } = require('./notifications');
 const { createSettingsEmailRoutes } = require('./settings-email');
 const { createSettingsCronRoutes } = require('./settings-cron');
 const { createPlatformRoutes } = require('./platform');
+const { createUnitRoutes } = require('./units');
 
 function registerRoutes(app, context) {
   app.use(createSystemRoutes(context));
@@ -22,6 +23,7 @@ function registerRoutes(app, context) {
   app.use(createSettingsEmailRoutes(context));
   app.use(createSettingsCronRoutes(context));
   app.use(createPlatformRoutes(context));
+  app.use(createUnitRoutes(context));
 }
 
 module.exports = { registerRoutes };

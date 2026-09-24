@@ -1,7 +1,7 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 1.2
+version: 1.3
 status: active
 audience: [ba]
 owner: DYC
@@ -70,6 +70,18 @@ Phần vận hành TCKT (`core/src/policies/access.js`, `core/src/middleware/aut
 
   GĐ1 các bảng setting `unit` chưa có `unit_id` riêng, nên "đơn vị" của setting `unit` mặc định là TCKT — admin/vice_admin TCKT sửa được cho tới khi DYC khoá lại (`POST /api/platform/setting-locks`, có ghi lý do, ghi `audit_logs action='setting.lock'`/`'setting.unlock'`); người bị khoá nhận 403 kèm lý do khoá. Trước Task 7, cả 5 setting này chỉ DYC sửa được (khoảng tạm GĐ1-A Task 6); từ Task 7 đúng thiết kế BA đã chốt ở mục 2.
 
+**Ai quản lý thành viên đơn vị nào (GĐ1-A Task 8, `core/src/routes/units.js`)**: qua API `GET /api/units`,
+`GET/PUT/DELETE /api/units/:id/members[/:userId]` — xem `docs/dev/api.md` §Core.
+
+- **DYC** quản lý (xem + sửa membership) **mọi đơn vị**; riêng đơn vị DYC (`platform_owner`) chỉ **`dyc_admin`**
+  mới sửa được (`dyc_engineer` chỉ xem) — không được gỡ `dyc_admin` cuối cùng (409).
+- **`btv_lead`** quản lý thành viên đơn vị BTV.
+- **TCKT `admin`/`vice_admin`** quản lý thành viên đơn vị TCKT — đổi role ở đây tương đương đổi role ở màn
+  Tài khoản cũ, vì `users.role` là bản sao một chiều của role TCKT (`setTcktRoleColumn`).
+- **VP Đoàn, Chi bộ, ĐT/LCĐ** không có role admin riêng (`UNIT_ADMIN_ROLES` rỗng) — chỉ **DYC** quản lý
+  thành viên các đơn vị này.
+- Đổi role sai với `kind` của đơn vị (VD gán role TCKT cho đơn vị BTV) trả 400.
+
 ### Kế hoạch (GĐ1, chưa có code)
 
 Hàm `scopeFor(viewer, resourceType)` thay thế các hàm trong `access.js`, bảng `unit_visibility_policies`, và luồng giao việc liên đơn vị (directive)/Trình (submission) — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §5–§8 và use case vận hành ở [`dieu-hanh-use-case.md`](dieu-hanh-use-case.md).
@@ -98,3 +110,4 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Cập nhật mục 3 "Đã làm": `unit_memberships`/`audit_logs` đã có, nguồn quyền route Điều hành chuyển sang `unit_memberships`, "DYC là admin toàn cục" đã làm một phần qua `legacyGate` (nợ tài liệu từ GĐ1-A Task 4, khớp luôn khi Task 5 sửa `auth.js`-liên quan) | DYC |
 | 1.2 | 2026-09-24 | Thêm mục "Ai sửa cấu hình nào" (`managed_by`, `setting_locks` đã có code — GĐ1-A Task 7): `email.templates`/`email.rules`/`weight_presets` nay TCKT `admin`/`vice_admin` sửa được, DYC có thể khoá | DYC |
+| 1.3 | 2026-09-24 | Thêm mục "Ai quản lý thành viên đơn vị nào" (API `/api/units*` — GĐ1-A Task 8) | DYC |
