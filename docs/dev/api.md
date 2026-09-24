@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -23,6 +23,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | Method | Path | File |
 |---|---|---|
 | GET | `/api/session` | `system.js` |
+| POST | `/api/session/unit` | `system.js` |
 | GET | `/auth/microsoft`, `/auth/microsoft/callback` | `system.js` |
 | GET | `/api/push/config` | `system.js` |
 | GET | `/api/version`, `/api/health` | `system.js` |
@@ -56,6 +57,12 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
 
+`GET /api/session` giờ trả thêm `units: { current, memberships }` (đơn vị đang chọn và toàn bộ membership đang
+hoạt động của user, xem `sessionView` trong `core/src/middleware/unit-context.js`); `user.is_devops` giờ tính
+từ việc user có membership đơn vị DYC (`platform_owner`) hay không, không còn đọc thẳng cột `users.is_devops`.
+`POST /api/session/unit { unit_id }` đổi `current_unit_id` sang đơn vị được chỉ định trong body, trả lại
+`sessionView` như trên; 403 nếu người dùng không phải thành viên đơn vị đó, 401 nếu chưa đăng nhập.
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -84,3 +91,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | `GET /api/session` trả thêm `units.{current,memberships}`, `user.is_devops` tính theo membership DYC; thêm `POST /api/session/unit` | DYC |

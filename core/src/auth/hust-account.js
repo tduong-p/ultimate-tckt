@@ -1,4 +1,5 @@
 'use strict';
+const { syncTcktMembershipFromRole } = require('../units/memberships');
 
 async function findOrCreateHustAccount({ db, bcrypt, crypto }, email, profile) {
   const select = 'SELECT id,name,email,role,phone,class_number,faculty_notice_acknowledged_at,avatar_color,auth_provider,is_active FROM users WHERE email=?';
@@ -16,6 +17,9 @@ async function findOrCreateHustAccount({ db, bcrypt, crypto }, email, profile) {
       // Simultaneous first sign-ins can race on the unique email constraint.
       if (error.code !== 'ER_DUP_ENTRY') throw error;
     }
+    const [[created]] = await db.execute('SELECT id FROM users WHERE email=?', [email]);
+    // Giữ hành vi cũ: tài khoản HUST mới là member của TCKT, không bị khoá ngoài.
+    if (created) await syncTcktMembershipFromRole(db, created.id);
     [rows] = await db.execute(select, [email]);
   }
   const user = rows[0];

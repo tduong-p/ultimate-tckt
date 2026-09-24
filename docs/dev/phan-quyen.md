@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -58,6 +58,37 @@ Hồ sơ ở trạng thái kết thúc (`TERMINAL_STATUSES`) thì không ai sử
 Xác thực CTD: JWT HS256 tự phát (`app/deps.py`), không liên quan trực tiếp tới session Core trừ khi đi qua JWT
 bridge mô tả ở `docs/dev/kien-truc.md`.
 
+## Membership và `req.actor` (`core/src/middleware/unit-context.js`)
+
+Nguồn quyền cho route Điều hành cũ giờ là bảng `unit_memberships`, không còn đọc thẳng `users.role`.
+`createUnitContext(db)` chạy sau session middleware, gắn vào mỗi request: `req.memberships` (mảng membership
+đang hoạt động của user, từ `listMemberships`), `req.unit`/`req.unitRole` (đơn vị đang chọn — `current_unit_id`
+lưu trong session), và `req.actor` = `{ ...session.user, role: legacyRole(...) }`. Middleware `admin`, `manager`,
+`managerOrEventLead` đọc `req.actor` thay vì `req.session.user`; `isExecutive`/`isLeadership` không đổi.
+
+`legacyRole(memberships, method)` quy về đúng 3 trường hợp:
+
+| Điều kiện | Kết quả |
+|---|---|
+| Method là GET/HEAD **và** có membership đơn vị `platform_owner` (DYC) | `'admin'` |
+| Ngược lại, có membership đơn vị TCKT | role TCKT của membership đó (`admin`/`vice_admin`/`leader`/`vice_leader`/`member`) |
+| Không thuộc hai trường hợp trên (kể cả DYC đang ghi, hoặc chỉ thuộc đơn vị khác TCKT) | `null` |
+
+**Ruling:** role tính theo membership TCKT của người dùng, **không phụ thuộc `current_unit_id`** đang chọn.
+Lý do: `core/public/` GĐ1 chưa có bộ chọn đơn vị (GĐ1-D mới thêm); nếu tính theo đơn vị đang đứng, người vừa
+thuộc DYC vừa thuộc TCKT sẽ mất quyền ghi TCKT khi đang đứng ở DYC. `current_unit_id` vẫn được lưu và trả về
+trong `/api/session`, dùng bởi các route mới từ GĐ1-B trở đi.
+
+`auth` giờ trả 401 nếu chưa đăng nhập, và 403 `{ error: 'Tài khoản chưa thuộc đơn vị nào. Liên hệ quản trị đơn vị.' }`
+nếu `req.memberships` rỗng (tài khoản không thuộc đơn vị nào). `current_unit_id` không khớp membership nào
+(đơn vị bị xoá membership, hoặc đơn vị bị `is_active=0`) thì tự rơi về membership đầu tiên trong danh sách,
+không bao giờ 500. `POST /api/session/unit { unit_id }` chuyển `current_unit_id` sang đơn vị được chỉ định,
+403 nếu người dùng không phải thành viên đơn vị đó — xem `docs/dev/api.md`.
+
+`users.role` **giữ trong GĐ1** như bản sao role TCKT (đọc bởi code cũ chưa migrate hết); mọi đường ghi
+(`POST /api/users`, `/api/users/bulk-import`, `PATCH /api/users/:id`, tài khoản HUST SSO tạo mới lần đầu) gọi
+`syncTcktMembershipFromRole(db, userId)` ngay sau khi commit để đồng bộ ngược sang `unit_memberships`.
+
 ## Quyết định đã chốt nhưng CHƯA LÀM (theo `.kiro/specs/nen-tang-da-don-vi/`)
 
 Hai điểm dưới đây là quyết định nghiệp vụ đã chốt ngày 2026-09-23, **chưa có trong code** — đừng lập trình theo
@@ -77,3 +108,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm mục "Membership và `req.actor`": `unit_memberships` là nguồn quyền, `legacyRole`, `auth` 403 khi không có membership, `current_unit_id` rơi về membership đầu tiên | DYC |
