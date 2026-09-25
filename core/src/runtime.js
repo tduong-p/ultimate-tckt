@@ -3,7 +3,6 @@ const logger = require('./logger');
 const push = require('./push');
 const { startDeadlineNotificationScheduler } = require('./services/deadline-notifications');
 const { migrateDatabase } = require('./config/migrate');
-const { start: startCronRunner, stopAll: stopCronRunner } = require('./services/cron-runner');
 
 async function start(options = {}) {
   const application = createApplication(options);
@@ -20,9 +19,8 @@ async function start(options = {}) {
     logger.info(`TCKT Activity Hub v${application.config.packageInfo.version} started on port ${port}.`);
     console.log(`TCKT Activity Hub running on port ${port}`);
   });
-  const emailEvents = require('./services/email-events');
-  const stopDeadlineNotifications = startDeadlineNotificationScheduler({ db: application.db, push, emailEvents, logger });
-  startCronRunner(application.db, logger).catch(err => logger.error('Failed to start cron runner during startup.', err));
+  const mailer = require('./mailer');
+  const stopDeadlineNotifications = startDeadlineNotificationScheduler({ db: application.db, push, mailer, logger });
 
   server.on('error', error => {
     logger.error(`HTTP server could not start on port ${port}.`, error);
@@ -32,7 +30,6 @@ async function start(options = {}) {
   const shutdown = signal => {
     logger.info(`Application received ${signal}; shutting down.`);
     stopDeadlineNotifications();
-    stopCronRunner();
     server.close(() => application.db.end().finally(() => process.exit(0)));
   };
   if (options.handleSignals !== false) {

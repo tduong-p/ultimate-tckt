@@ -6,8 +6,6 @@ const { createTeamRoutes } = require('./teams');
 const { createDocumentRoutes } = require('./documents');
 const { createReportRoutes } = require('./reports');
 const { createNotificationRoutes } = require('./notifications');
-const { createSettingsEmailRoutes } = require('./settings-email');
-const { createSettingsCronRoutes } = require('./settings-cron');
 
 function registerRoutes(app, context) {
   app.use(createSystemRoutes(context));
@@ -18,8 +16,6 @@ function registerRoutes(app, context) {
   app.use(createDocumentRoutes(context));
   app.use(createReportRoutes(context));
   app.use(createNotificationRoutes(context));
-  app.use(createSettingsEmailRoutes(context));
-  app.use(createSettingsCronRoutes(context));
 }
 
 module.exports = { registerRoutes };
