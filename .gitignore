@@ -21,3 +21,10 @@ log.md
 .superpowers/
 .claude/scheduled_tasks.lock
 /docs-export/
+# Ignore all CSV output files from schema inspection
+*.csv
+schema_dump_*.csv
+
+# Allow baseline or example files if needed
+!baseline_schema.csv
+!example_output.csv
