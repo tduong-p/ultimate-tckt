@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-VPS-001
 title: VPS — cài đặt và bố cục
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [infra/scripts/setup-vm.sh, infra/scripts/bootstrap-vm.sh]
 ---
 
@@ -47,7 +47,7 @@ Host github.com
 
 Dán nội dung `~/.ssh/ultimate_tckt_deploy.pub` vào GitHub repo → **Settings → Deploy keys → Add deploy key**, **không** tick "Allow write access" (chỉ đọc). Đây là bước tay, không có script tự động hoá — người thực hiện là chủ repo.
 
-Lưu ý: đây là khoá khác với khoá CI dùng để SSH *vào* VM (xem `docs/ops/github.md` — `SSH_PRIVATE_KEY`); một khoá để VM đọc GitHub, một khoá để GitHub Actions ghi lệnh vào VM.
+Lưu ý: đây là khoá khác với khoá CI dùng để SSH *vào* VM (xem `docs/ops/github.md` — `SSH_PRIVATE_KEY`); một khoá để VM đọc GitHub, một khoá để GitHub Actions ghi lệnh vào VM. Người SSH tay vào VM dùng khoá cá nhân riêng — xem [`ssh.md`](ssh.md).
 
 ## 4. Chuẩn bị VM lần đầu (`setup-vm.sh`)
 
@@ -85,3 +85,4 @@ Chạy `infra/scripts/apply-infra.sh <env>` để cài nginx site và khởi đ�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | Trỏ tới hướng dẫn SSH cá nhân `ssh.md` | DYC |

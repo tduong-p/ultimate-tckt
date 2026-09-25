@@ -1,11 +1,11 @@
 ---
 doc_id: ONB-D1-001
 title: Onboarding — ngày 1
-version: 1.1
+version: 1.2
 status: active
 audience: [onboarding, dev]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: []
 ---
 
@@ -16,7 +16,7 @@ Tài liệu này giúp người mới (dev) có môi trường chạy được v
 ## 1. Quyền cần xin trước
 
 - **GitHub**: quyền `collaborator` (tối thiểu `write`) trên repo `tduong-p/ultimate-tckt` (private) — xin trực tiếp chủ repo.
-- **VM** (chỉ cần nếu việc của bạn liên quan hạ tầng/deploy, không cần cho dev thuần tính năng): SSH access — xin người quản lý hạ tầng thêm public key SSH của bạn vào VM. Không xin private key của người khác.
+- **VM** (chỉ cần nếu việc của bạn liên quan hạ tầng/deploy, không cần cho dev thuần tính năng): SSH access — xin người quản lý hạ tầng thêm public key SSH của bạn vào VM — các bước ở [`../ops/ssh.md`](../ops/ssh.md). Không xin private key của người khác.
 - Không cần quyền gì trên Oracle Cloud/DuckDNS/Azure ở ngày đầu trừ khi việc của bạn là hạ tầng — xem [`ban-giao.md`](ban-giao.md) nếu cần danh sách đầy đủ.
 
 ## 2. Clone và cài đặt
@@ -65,3 +65,4 @@ Sang ngày thứ hai trở đi, xem thứ tự đọc tài liệu và việc nh�
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bước cài Superpowers bắt buộc và quy tắc ranh giới module | DYC |
+| 1.2 | 2026-09-26 | Trỏ tới hướng dẫn SSH `ops/ssh.md` | DYC |
