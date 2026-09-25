@@ -10,10 +10,11 @@ function parseValue(raw) {
 }
 
 function parse(text) {
-  const m = /^---\n([\s\S]*?)\n---\n?/.exec(text);
+  // Support both LF (\n) and CRLF (\r\n) line endings
+  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
   if (!m) return { data: null, body: text };
   const data = {};
-  for (const line of m[1].split('\n')) {
+  for (const line of m[1].split(/\r?\n/)) {
     const kv = /^([a-z_]+):\s*(.*)$/.exec(line);
     if (kv) data[kv[1]] = parseValue(kv[2]);
   }
