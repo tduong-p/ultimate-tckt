@@ -72,9 +72,22 @@
 | [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 1.2 | active | dev, ops, ai |
 | [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.3 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
+| [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.0 | active | dev, ops |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
 | [OPS-DB-001](ops/truy-cap-db.md) | Truy cập database từ xa (chỉ đọc) | 1.0 | active | dev, ops, ai |
 | [OPS-VPS-001](ops/vps.md) | VPS — cài đặt và bố cục | 1.0 | active | dev, ops, ai |
+
+## planning
+
+| Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
+|---|---|---|---|---|
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 1.0 | active | dev, ba |
+| [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
+| [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
+| [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
+| [PLAN-IDX-001](planning/README.md) | Planning — Index | 1.2 | active | dev, ba, ops |
+| [PLAN-TPL-001](planning/template-phan-cong.md) | Template phân công team | 1.0 | active | dev, ops |
+| [PLAN-QR-001](planning/tham-khao-nhanh.md) | Tham khảo nhanh — Development plan | 1.0 | active | dev |
 
 ## playbooks
 
@@ -96,6 +109,7 @@
 |---|---|---|---|---|
 | [SPEC-MONO-001](specs/2026-09-23-monorepo-ultimate-tckt-design.md) | Thiết kế — Gộp repo thành monorepo ultimate-tckt + hệ thống tài liệu | 1.0 | active | dev, ai |
 | [SPEC-MONO-002](specs/2026-09-23-monorepo-ultimate-tckt-plan.md) | Kế hoạch triển khai — Gộp repo thành monorepo ultimate-tckt | 1.0 | active | dev, ai |
+| [SPEC-UNIT-004](specs/2026-09-24-gd1a-core-da-don-vi-plan.md) | Kế hoạch triển khai — GĐ1-A Nền tảng đa đơn vị trong Core | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
