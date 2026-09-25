@@ -1,6 +1,6 @@
 {
   "name": "tckt-activity-hub",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "private": true,
   "description": "Internal activity and task tracking for TCKT",
   "main": "app.js",
