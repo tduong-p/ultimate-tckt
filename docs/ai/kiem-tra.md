@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.3
+version: 1.4
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [.github/workflows/**, tools/**]
 ---
 
@@ -68,3 +68,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.1 | 2026-09-24 | Ghi luật ngày `updated` khi bump và việc bỏ qua ADR trong kiểm tác động | DYC |
 | 1.2 | 2026-09-24 | Kiểm tác động code→tài liệu chỉ gác ở PR, push không lặp lại | DYC |
 | 1.3 | 2026-09-24 | Công tắc `PROD_DEPLOY_ENABLED` | DYC |
+| 1.4 | 2026-09-26 | Thêm database inspection tools trong `tools/database-inspecs/` | DYC |

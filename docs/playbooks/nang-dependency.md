@@ -1,11 +1,11 @@
 ---
 doc_id: PB-DEP-001
 title: Playbook — nâng dependency
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [core/package.json, services/ctd-api/backend/pyproject.toml]
 ---
 
@@ -56,3 +56,4 @@ Khi cần nâng phiên bản một dependency (bản vá bảo mật, tính năn
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 | DYC |
