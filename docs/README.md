@@ -61,7 +61,7 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [ONB-HO-001](onboarding/ban-giao.md) | Onboarding — bàn giao | 1.1 | active | onboarding, dev |
-| [ONB-D1-001](onboarding/ngay-1.md) | Onboarding — ngày 1 | 1.1 | active | onboarding, dev |
+| [ONB-D1-001](onboarding/ngay-1.md) | Onboarding — ngày 1 | 1.2 | active | onboarding, dev |
 | [ONB-W1-001](onboarding/tuan-1.md) | Onboarding — tuần 1 | 1.0 | active | onboarding, dev |
 
 ## ops
@@ -76,9 +76,10 @@
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
 | [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.0 | active | ops, dev |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.0 | active | dev, ops |
+| [OPS-SSH-001](ops/ssh.md) | SSH vào VM — khoá cá nhân và cấp quyền | 1.0 | active | dev, ops, ai, onboarding |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
-| [OPS-DB-001](ops/truy-cap-db.md) | Truy cập database từ xa (chỉ đọc) | 1.0 | active | dev, ops, ai |
-| [OPS-VPS-001](ops/vps.md) | VPS — cài đặt và bố cục | 1.0 | active | dev, ops, ai |
+| [OPS-DB-001](ops/truy-cap-db.md) | Truy cập database từ xa (chỉ đọc) | 1.1 | active | dev, ops, ai |
+| [OPS-VPS-001](ops/vps.md) | VPS — cài đặt và bố cục | 1.1 | active | dev, ops, ai |
 
 ## planning
 
