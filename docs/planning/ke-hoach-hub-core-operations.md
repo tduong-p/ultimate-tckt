@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [core/**, web/**]
 ---
 
@@ -1266,3 +1266,4 @@ npm run docs:check         # Documentation validation
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu - Hub system plan (no CTD) | DYC |
+| 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 - thêm database tooling | DYC |
