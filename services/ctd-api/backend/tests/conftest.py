@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
@@ -11,6 +11,13 @@ import app.models  # noqa: F401
 
 test_engine = create_engine(settings.test_database_url, pool_pre_ping=True)
 TestSession = sessionmaker(bind=test_engine, autoflush=False, expire_on_commit=False)
+
+
+@event.listens_for(test_engine, "connect")
+def _set_utc_timezone(dbapi_conn, _connection_record):
+    cursor = dbapi_conn.cursor()
+    cursor.execute("SET time_zone = '+00:00'")
+    cursor.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -27,11 +34,13 @@ def db() -> Session:
     yield session
     session.rollback()
     session.close()
-    # Dọn sạch giữa các test — thứ tự truncate không quan trọng vì dùng CASCADE.
+    # Dọn sạch giữa các test — MySQL không có RESTART IDENTITY hay CASCADE trên TRUNCATE.
+    # Tắt FK checks tạm để truncate theo thứ tự bất kỳ, bật lại sau.
     with test_engine.begin() as conn:
-        tables = ",".join(f'"{t.name}"' for t in reversed(Base.metadata.sorted_tables))
-        if tables:
-            conn.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
+        for table in reversed(Base.metadata.sorted_tables):
+            conn.execute(text(f"TRUNCATE TABLE `{table.name}`"))
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
 
 
 @pytest.fixture()

@@ -39,14 +39,15 @@ services:
       - core_uploads:/app/storage/task-attachments
 
   ctd-db:
-    image: postgres:16
+    image: mysql:8
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${CTD_DB_NAME:?}
-      POSTGRES_USER: ${CTD_DB_USER:?}
-      POSTGRES_PASSWORD: ${CTD_DB_PASSWORD:?}
+      MYSQL_ROOT_PASSWORD: ${CTD_DB_ROOT_PASSWORD:?}
+      MYSQL_DATABASE: ${CTD_DB_NAME:?}
+      MYSQL_USER: ${CTD_DB_USER:?}
+      MYSQL_PASSWORD: ${CTD_DB_PASSWORD:?}
     volumes:
-      - ctd_postgres:/var/lib/postgresql/data
+      - ctd_mysql:/var/lib/mysql
 
   ctd-api:
     image: ghcr.io/tduong-p/ultimate-tckt-ctd-api:${CTD_API_IMAGE_TAG:?}
@@ -55,7 +56,7 @@ services:
       - ctd-db
     environment:
       APP_ENV: staging
-      DATABASE_URL: postgresql+psycopg://${CTD_DB_USER:?}:${CTD_DB_PASSWORD:?}@ctd-db:5432/${CTD_DB_NAME:?}
+      DATABASE_URL: mysql+pymysql://${CTD_DB_USER:?}:${CTD_DB_PASSWORD:?}@ctd-db:3306/${CTD_DB_NAME:?}?charset=utf8mb4
       JWT_SECRET: ${CTD_JWT_SECRET:?}
       MAILER_DRIVER: console
       STORAGE_DRIVER: local
@@ -68,5 +69,5 @@ services:
 volumes:
   core_mysql:
   core_uploads:
-  ctd_postgres:
+  ctd_mysql:
   ctd_documents:
