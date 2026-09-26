@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
-related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**]
+updated: 2026-09-27
+related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
 # Test
@@ -22,7 +22,7 @@ về `DB_*` rồi `root@localhost`; user DB cần quyền `CREATE`/`DROP DATABAS
 cd core && npm test
 ```
 
-Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + migrate),
+Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + migrate; nạp `.env` tự động qua `dotenv` để đọc cấu hình DB test),
 `server.js` (`startTestServer` — dựng Express app thật, trả về client HTTP giả lập session), `fixtures.js`
 (`createTeam`, `createUser`, `createActivity`… tạo dữ liệu mẫu tối thiểu). Mỗi test nên tự dựng dữ liệu qua
 fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
@@ -77,3 +77,4 @@ nào, kể cả mật khẩu mặc định.
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Chỉ chỗ test luật docs-check | DYC |
 | 1.2 | 2026-09-24 | Tuỳ chọn `sudoFail` của sandbox | DYC |
+| 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |

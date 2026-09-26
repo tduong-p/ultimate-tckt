@@ -1,0 +1,208 @@
+erDiagram
+  USERS ||--o{ UNIT_MEMBERSHIPS : has
+  ORG_UNITS ||--o{ UNIT_MEMBERSHIPS : includes
+  ORG_UNITS ||--o{ ORG_UNITS : parent_of
+  ORG_UNITS ||--o{ UNIT_MODULES : enables
+  ORG_UNITS ||--o{ UNIT_VISIBILITY_POLICIES : owns_or_views
+  ORG_UNITS ||--o{ TEAMS : contains
+  ORG_UNITS ||--o{ DIRECTIVES : sends_or_receives
+  UNIT_MEMBERSHIPS ||--o{ DIRECTIVES : creates_or_owns
+  DIRECTIVES ||--o{ ACTIVITIES : tracks
+  DIRECTIVES ||--o{ SUBMISSIONS : reported_by
+  ORG_UNITS ||--o{ SUBMISSIONS : sends_or_receives
+  UNIT_MEMBERSHIPS ||--o{ SUBMISSIONS : submits_or_responds
+  ORG_UNITS ||--o{ OPS_LOGS : records
+  OPS_LOGS ||--o{ OPS_LOG_ATTENDANCE : attendance
+  USERS ||--o{ OPS_LOG_ATTENDANCE : attends
+
+  USERS ||--o{ USER_TEAMS : joins
+  TEAMS ||--o{ USER_TEAMS : members
+  TEAMS ||--o{ ACTIVITIES : leads
+  ACTIVITIES ||--o{ ACTIVITY_TEAMS : supported_by
+  TEAMS ||--o{ ACTIVITY_TEAMS : supports
+  ACTIVITIES ||--o{ TASKS : contains
+  TEAMS ||--o{ TASKS : owns
+  USERS ||--o{ TASKS : assigned_or_reviews
+  TASKS ||--o{ TASK_ASSIGNEES : assigned_to
+  USERS ||--o{ TASK_ASSIGNEES : assignee
+  TASKS ||--o{ TASK_CHECKLISTS : checklist
+  TASKS ||--o{ TASK_ATTACHMENTS : attachments
+  ACTIVITIES ||--o{ ACTIVITY_PROPOSALS : proposals
+  ACTIVITIES ||--o{ PARTICIPANTS : participants
+  USERS ||--o{ PARTICIPANTS : joins
+  ACTIVITIES ||--o{ UPDATES : updates
+  TASKS ||--o{ UPDATES : task_updates
+  UPDATES ||--o{ UPDATE_TAGGED_USERS : tagged_users
+  USERS ||--o{ NOTIFICATIONS : receives
+  ACTIVITIES ||--o{ NOTIFICATIONS : activity_events
+  TASKS ||--o{ NOTIFICATIONS : task_events
+  USERS ||--o{ AUDIT_LOGS : actor
+  ORG_UNITS ||--o{ AUDIT_LOGS : unit_context
+
+  USERS {
+    int id PK
+    string email UK
+    string name
+    string role legacy_tckt_role
+  }
+  ORG_UNITS {
+    int id PK
+    string code UK
+    string name
+    enum kind
+    int parent_id FK
+    boolean is_active
+  }
+  UNIT_MEMBERSHIPS {
+    int user_id PK, FK
+    int unit_id PK, FK
+    string role
+    boolean is_active
+  }
+  UNIT_MODULES {
+    int unit_id PK, FK
+    string module_id PK
+  }
+  UNIT_VISIBILITY_POLICIES {
+    int viewer_unit_id PK, FK
+    int owner_unit_id PK, FK
+    enum level
+    int updated_by FK
+  }
+  SETTING_LOCKS {
+    string setting_key PK
+    int unit_id FK
+    int locked_by FK
+    string reason
+    datetime created_at
+  }
+  AUDIT_LOGS {
+    bigint id PK
+    int actor_id FK
+    int actor_unit_id FK
+    string action
+    string target_type
+    bigint target_id
+    int owner_unit_id FK
+    json meta
+  }
+  TEAMS {
+    int id PK
+    int unit_id FK
+    string name
+  }
+  USER_TEAMS {
+    int user_id PK, FK
+    int team_id PK, FK
+  }
+  DIRECTIVES {
+    int id PK
+    int from_unit_id FK
+    int to_unit_id FK
+    int created_by FK
+    int owner_user_id FK
+    string title
+    text body
+    date deadline
+    enum status
+  }
+  SUBMISSIONS {
+    int id PK
+    int from_unit_id FK
+    int to_unit_id FK
+    string source_type
+    bigint source_id
+    int directive_id FK
+    int submitted_by FK
+    enum response
+    int responded_by FK
+    datetime withdrawn_at
+  }
+  ACTIVITIES {
+    int id PK
+    int unit_id FK
+    int team_id FK
+    int creator_id FK
+    int event_lead_id FK
+    int directive_id FK
+    enum status
+  }
+  ACTIVITY_TEAMS {
+    int activity_id PK, FK
+    int team_id PK, FK
+    int contact_user_id FK
+  }
+  TASKS {
+    int id PK
+    int activity_id FK
+    int team_id FK
+    int primary_assignee_id FK
+    int assigned_by FK
+    int reviewed_by FK
+    enum status
+  }
+  TASK_ASSIGNEES {
+    int task_id PK, FK
+    int user_id PK, FK
+    datetime acknowledged_at
+  }
+  TASK_CHECKLISTS {
+    int id PK
+    int task_id FK
+    int done_by FK
+  }
+  TASK_ATTACHMENTS {
+    int id PK
+    int task_id FK
+    int user_id FK
+  }
+  ACTIVITY_PROPOSALS {
+    int id PK
+    int activity_id FK
+    int submitted_by FK
+    int reviewer_id FK
+  }
+  PARTICIPANTS {
+    int activity_id PK, FK
+    int user_id PK, FK
+  }
+  DOCUMENTS {
+    int id PK
+    int issuing_team_id FK
+    int created_by FK
+  }
+  UPDATES {
+    int id PK
+    int activity_id FK
+    int task_id FK
+    int user_id FK
+  }
+  UPDATE_TAGGED_USERS {
+    int update_id PK, FK
+    int user_id PK, FK
+  }
+  NOTIFICATIONS {
+    bigint id PK
+    int user_id FK
+    int activity_id FK
+    int task_id FK
+  }
+  WEIGHT_PRESETS {
+    int id PK
+  }
+  OPS_LOGS {
+    int id PK
+    int unit_id FK
+    enum type
+    string title
+    datetime started_at
+    int recorded_by FK
+  }
+  OPS_LOG_ATTENDANCE {
+    int ops_log_id PK, FK
+    int user_id PK, FK
+    enum status
+  }
+  SESSIONS {
+    string session_id PK
+  }

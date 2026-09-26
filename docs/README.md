@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 1.1 | active | ai, dev |
 | [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.1 | active | ai, dev |
-| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.4 | active | ai, dev |
+| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.5 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 1.0 | active | ai, dev |
 
 ## ba
@@ -36,6 +36,7 @@
 | [BA-UNIT-001](ba/co-cau-don-vi-va-role.md) | Cơ cấu đơn vị và vai trò | 1.0 | active | ba |
 | [BA-CTD-001](ba/ctd-use-case.md) | Use case Công tác Đảng (CTD) | 1.0 | active | ba |
 | [BA-DOC-001](ba/danh-muc-giay-to-ctd.md) | Danh mục giấy tờ hồ sơ Đảng | 1.0 | active | ba |
+| [BA-DB-001](ba/database-readme.md) | Database structure — Core and Operations | 1.0 | active | ba, dev, ai |
 | [BA-OPS-001](ba/dieu-hanh-use-case.md) | Use case điều hành hoạt động TCKT | 1.0 | active | ba |
 | [BA-GLOS-001](ba/thuat-ngu.md) | Thuật ngữ | 1.0 | active | ba, dev, ai |
 | [BA-OVW-001](ba/tong-quan-nen-tang.md) | Tổng quan nền tảng đa đơn vị | 1.0 | active | ba |
@@ -52,7 +53,7 @@
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 1.0 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 1.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 1.2 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 1.3 | active | dev, ai |
 
 ## onboarding
 
@@ -81,7 +82,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 1.1 | active | dev, ba |
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 1.2 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
