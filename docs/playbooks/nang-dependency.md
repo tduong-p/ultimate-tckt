@@ -1,7 +1,7 @@
 ---
 doc_id: PB-DEP-001
 title: Playbook — nâng dependency
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -35,6 +35,7 @@ Khi cần nâng phiên bản một dependency (bản vá bảo mật, tính năn
    .venv/bin/pytest
    ```
    Kiểm `requires-python` (`>=3.12`) vẫn khớp với `actions/setup-python` (`python-version: '3.12'`) trong `deploy.yml`.
+4. **Đổi driver DB** (ví dụ `psycopg` → `pymysql`) là trường hợp đặc biệt: đảm bảo connection URL trong `app/config.py` và `.env.example` được cập nhật đồng thời, và build image arm64 được kiểm tra vì driver có thể có phần biên dịch native.
 4. **Chạy toàn bộ test của app vừa nâng**, không chỉ test liên quan trực tiếp tới thư viện đó — dependency có thể ảnh hưởng gián tiếp (ví dụ nâng ORM ảnh hưởng câu query khác).
 5. **Kiểm build Docker image thành công cho arm64** trước khi merge nếu dependency có phần biên dịch native (ví dụ driver DB) — build sai kiến trúc từng là bẫy thật (`docs/ai/bay-da-gap.md`: "Image phải build cho arm64").
 6. **Đọc changelog/breaking-change** của bản nâng nếu là major version — không nâng major mà không đọc gì.
@@ -57,3 +58,4 @@ Khi cần nâng phiên bản một dependency (bản vá bảo mật, tính năn
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 | DYC |
+| 1.2 | 2026-09-26 | Thêm ghi chú đổi driver DB (psycopg → pymysql) | DYC |

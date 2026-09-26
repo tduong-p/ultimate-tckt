@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-LOCAL-001
 title: Chạy dự án ở máy local
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai, onboarding]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json]
 ---
 
@@ -33,9 +33,9 @@ Test cần một MySQL riêng (đặt qua `TEST_DB_HOST/PORT/USER/PASSWORD`, m�
 npm test
 ```
 
-## CTD (FastAPI/Postgres)
+## CTD (FastAPI/MySQL)
 
-Cần Postgres 16 chạy local, Python 3.12.
+Cần MySQL 8 chạy local, Python 3.12.
 
 ```bash
 cd services/ctd-api/backend
@@ -48,10 +48,10 @@ python3.12 -m venv .venv
 ```
 
 Ở `APP_ENV=dev`, mã OTP đăng nhập cố định là `123456` (xem `app/infra/otp.py`) — chỉ dùng được khi `APP_ENV=dev`,
-bị chặn ở mọi giá trị khác. Test cần một DB Postgres test riêng:
+bị chặn ở mọi giá trị khác. Test cần một DB MySQL test riêng:
 
 ```bash
-TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test .venv/bin/pytest
+TEST_DATABASE_URL=mysql+pymysql://root:root@localhost:3306/ctd_test?charset=utf8mb4 .venv/bin/pytest
 ```
 
 Frontend CTD (React/Vite), chạy riêng khi phát triển UI:
@@ -66,15 +66,22 @@ npm ci && npm run dev
 File `.claude/launch.json` khai cấu hình `core-dev` (chạy `node app.js` trong `core/`, cổng 3000) cho công cụ
 preview/dev-server tích hợp. Thêm cấu hình tương tự cho `ctd-api` (uvicorn, cổng 8000) khi cần preview cùng lúc.
 
-## Dựng nhanh MySQL/Postgres bằng Docker (không cần cài native)
+## Dựng nhanh MySQL bằng Docker (không cần cài native)
 
 ```bash
-docker run -d --name dev-mysql -p 3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=ultimate_tckt mysql:8
-docker run -d --name dev-postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16
+docker run -d --name dev-mysql -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=ctd \
+  mysql:8
+# Tạo thêm DB test:
+docker exec dev-mysql mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS ctd_test CHARACTER SET utf8mb4;"
 ```
+
+Core cũng dùng MySQL — cùng một container nếu database name khác nhau.
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | CTD chuyển sang MySQL: cập nhật driver, DATABASE_URL, lệnh docker | DYC |

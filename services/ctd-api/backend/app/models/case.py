@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String, Text, func, text,
+    Boolean, Computed, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String, Text, func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -44,14 +44,12 @@ class Batch(Base):
 class Case(Base):
     __tablename__ = "case"
     __table_args__ = (
-        # Mỗi sinh viên chỉ được có MỘT hồ sơ chưa kết thúc. Đặt ở tầng DB để
-        # hai request gửi song song không cùng lọt qua kiểm tra ở tầng ứng dụng.
-        Index(
-            "uq_case_one_active_per_applicant",
-            "applicant_id",
-            unique=True,
-            postgresql_where=text(f"status NOT IN ({_TERMINAL_SQL})"),
-        ),
+        # MySQL không hỗ trợ partial index. Thay bằng generated column nullable:
+        # - active_applicant_sentinel = applicant_id khi hồ sơ chưa kết thúc
+        # - active_applicant_sentinel = NULL khi hồ sơ kết thúc
+        # MySQL bỏ qua NULL trong unique index → nhiều hồ sơ kết thúc cho phép,
+        # nhưng chỉ một hồ sơ đang chạy mỗi sinh viên được tồn tại.
+        Index("uq_case_one_active_per_applicant", "active_applicant_sentinel", unique=True),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -67,6 +65,17 @@ class Case(Base):
     state_entered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Generated column — giá trị tự tính từ status, không ghi trực tiếp.
+    # = applicant_id khi hồ sơ chưa kết thúc; = NULL khi kết thúc.
+    # Phải là STORED (persisted=True) vì MySQL chỉ cho index STORED generated column.
+    active_applicant_sentinel: Mapped[int | None] = mapped_column(
+        Integer,
+        Computed(
+            f"CASE WHEN status NOT IN ({_TERMINAL_SQL}) THEN applicant_id ELSE NULL END",
+            persisted=True,
+        ),
+    )
 
     applicant = relationship("User", lazy="joined")
     unit = relationship("Unit", lazy="joined")

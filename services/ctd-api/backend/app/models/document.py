@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import ARRAY, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -24,10 +24,10 @@ class DocumentType(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(60), unique=True)
     name: Mapped[str] = mapped_column(String(255))
-    applies_to: Mapped[list[str]] = mapped_column(ARRAY(String(30)))
+    applies_to: Mapped[list[str]] = mapped_column(JSON, default=list)
     is_required: Mapped[bool] = mapped_column(Boolean, default=True)
     allow_not_applicable: Mapped[bool] = mapped_column(Boolean, default=False)
-    accepted_ext: Mapped[list[str]] = mapped_column(ARRAY(String(10)), default=list)
+    accepted_ext: Mapped[list[str]] = mapped_column(JSON, default=list)
     max_size_mb: Mapped[int] = mapped_column(Integer, default=5)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

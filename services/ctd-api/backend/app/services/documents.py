@@ -1,5 +1,6 @@
-from sqlalchemy import select
+from sqlalchemy import func as sa_func, select
 from sqlalchemy.orm import Session
+import json
 
 from app.errors import BusinessError
 from app.infra.storage import get_storage
@@ -17,7 +18,13 @@ def snapshot_for_case(db: Session, case: Case) -> list[Document]:
 
     types = db.scalars(
         select(DocumentType)
-        .where(DocumentType.is_active.is_(True), DocumentType.applies_to.any(case.case_type.value))
+        .where(
+            DocumentType.is_active.is_(True),
+            sa_func.json_contains(
+                DocumentType.applies_to,
+                json.dumps(case.case_type.value),  # e.g. '"ket_nap"' — valid JSON scalar
+            ),
+        )
         .order_by(DocumentType.sort_order)
     ).all()
     for doc_type in types:

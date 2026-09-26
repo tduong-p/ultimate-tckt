@@ -1,11 +1,11 @@
 ---
 doc_id: PB-SCH-001
 title: Playbook — đổi schema
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
 ---
 
@@ -27,17 +27,18 @@ Khi cần thêm/sửa/xoá bảng hoặc cột ở Core (MySQL) hoặc CTD (Post
 4. Cập nhật `core/db.sql` để bản import lần đầu đã có sẵn thay đổi này (tránh DB mới phải chạy migrate nhiều bước).
 5. Không xoá dữ liệu người dùng trong migration mà không có bước sao lưu/xác nhận rõ ràng trong PR.
 
-### CTD (Postgres) — Alembic
+### CTD (MySQL) — Alembic
 
 1. Sửa model SQLAlchemy, sinh revision:
    ```bash
    cd services/ctd-api/backend
    .venv/bin/alembic revision --autogenerate -m "mo_ta_ngan_gon"
    ```
-2. **Đọc lại file revision vừa sinh** — Alembic có thể bỏ sót enum hoặc constraint đặc thù Postgres, không tin tưởng mù quáng bản autogenerate.
+2. **Đọc lại file revision vừa sinh** — Alembic có thể bỏ sót `JSON` type hoặc `Computed` column trên MySQL, không tin tưởng mù quáng bản autogenerate.
 3. Áp lên DB local: `.venv/bin/alembic upgrade head`. Kiểm revert nếu cần: `.venv/bin/alembic downgrade -1`.
 4. Chạy `.venv/bin/pytest tests/test_migrations.py` để xác nhận migration chạy đúng.
 5. Một revision chỉ nên chứa một thay đổi có ý nghĩa — không gộp nhiều thay đổi không liên quan vào một revision.
+6. **MySQL-specific**: không dùng `ARRAY` — dùng `JSON`. Partial index không có — dùng `STORED` generated column nullable + unique index.
 
 ### Áp lên staging/production
 
@@ -68,3 +69,4 @@ infra/scripts/apply-infra.sh <env> true
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | CTD chuyển sang MySQL: cập nhật bước Alembic, ghi chú MySQL-specific | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-DB-001
 title: Migration cơ sở dữ liệu
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
 ---
 
@@ -29,9 +29,9 @@ Quy trình thêm một thay đổi schema:
 
 Không có khái niệm "rollback migration" tự động — muốn revert thì viết một thay đổi mới đảo ngược.
 
-## CTD (Postgres) — Alembic
+## CTD (MySQL) — Alembic
 
-Alembic chuẩn, revision nằm ở `services/ctd-api/backend/alembic/versions/`.
+CTD đã chuyển từ PostgreSQL sang MySQL. Alembic chuẩn, revision nằm ở `services/ctd-api/backend/alembic/versions/`.
 
 ```bash
 cd services/ctd-api/backend
@@ -42,9 +42,12 @@ cd services/ctd-api/backend
 
 Quy tắc:
 - Luôn đọc lại file revision do `--autogenerate` sinh ra — Alembic có thể bỏ sót thay đổi enum hoặc
-  constraint đặc thù của Postgres.
+  constraint, nhất là `Computed` column và `JSON` type trên MySQL.
 - Mỗi revision một thay đổi có ý nghĩa (đặt tên rõ bằng `-m`), không gộp nhiều thay đổi không liên quan.
 - Chạy `.venv/bin/pytest tests/test_migrations.py` sau khi thêm revision.
+- **MySQL-specific**: cột `ARRAY` không tồn tại — dùng `JSON`. Partial index không tồn tại — dùng `STORED`
+  generated column nullable + unique index (NULL bị bỏ qua trong unique index của MySQL).
+- Connection URL dùng `mysql+pymysql://...?charset=utf8mb4` — bắt buộc `utf8mb4`, không dùng `utf8`.
 
 ## Áp migration lên staging/production
 
@@ -58,3 +61,4 @@ cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-re
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | CTD chuyển sang MySQL: cập nhật quy tắc Alembic, ghi chú JSON/generated column | DYC |

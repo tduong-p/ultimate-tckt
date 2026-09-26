@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ARRAY, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -32,7 +32,7 @@ class TransitionDef(Base):
     to_status: Mapped[str] = mapped_column(ForeignKey("status_def.code"))
     action_code: Mapped[str] = mapped_column(String(40), index=True)
     label: Mapped[str] = mapped_column(String(100))
-    allowed_roles: Mapped[list[str]] = mapped_column(ARRAY(String(20)))
+    allowed_roles: Mapped[list[str]] = mapped_column(JSON, default=list)
     requires_reason: Mapped[bool] = mapped_column(Boolean, default=False)
     event_code: Mapped[str | None] = mapped_column(String(40), default=None)
 

@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     # được ngay; mọi giá trị khác bị coi là môi trường thật và bị siết.
     app_env: str = MOI_TRUONG_DEV
 
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/ctd"
-    test_database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test"
+    database_url: str = "mysql+pymysql://root:root@localhost:3306/ctd?charset=utf8mb4"
+    test_database_url: str = "mysql+pymysql://root:root@localhost:3306/ctd_test?charset=utf8mb4"
 
     jwt_secret: str = "doi-chuoi-nay-o-moi-truong-that"
     jwt_ttl_minutes: int = 480

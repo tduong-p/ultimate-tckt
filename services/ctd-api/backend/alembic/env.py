@@ -13,10 +13,10 @@ from app.models.base import Base
 # thêm model mới chỉ cần cập nhật app/models/__init__.py.
 import app.models  # noqa: F401
 
-# Số bất kỳ, chỉ cần duy nhất trong phạm vi CSDL này — dùng làm khoá tư vấn
-# (advisory lock) để chống chạy migration song song khi nhiều instance cùng
-# khởi động (xem run_migrations_online bên dưới).
-MIGRATION_LOCK_ID = 725101
+# Tên khoá dùng với GET_LOCK() của MySQL — thay thế pg_advisory_xact_lock của
+# PostgreSQL. Chống chạy migration song song khi nhiều instance cùng khởi động.
+MIGRATION_LOCK_NAME = "ctd_migration_lock"
+MIGRATION_LOCK_TIMEOUT = 30  # giây tối đa chờ lấy khoá
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -76,19 +76,31 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
-
-        with context.begin_transaction():
-            # Khoá tư vấn: nếu nhiều instance cùng khởi động, tiến trình thứ hai
-            # sẽ ĐỢI ở đây thay vì chạy migration song song. Khoá tự nhả khi
-            # transaction kết thúc, kể cả khi tiến trình chết giữa chừng.
-            connection.execute(
-                text("SELECT pg_advisory_xact_lock(:lock_id)"),
-                {"lock_id": MIGRATION_LOCK_ID},
+        # GET_LOCK() là tương đương MySQL của pg_advisory_xact_lock: nếu nhiều
+        # instance cùng khởi động, tiến trình thứ hai sẽ ĐỢI ở đây tối đa
+        # MIGRATION_LOCK_TIMEOUT giây thay vì chạy migration song song.
+        # Khác PostgreSQL: GET_LOCK() là connection-scoped, KHÔNG phải
+        # transaction-scoped — phải RELEASE_LOCK() tường minh trong finally.
+        result = connection.execute(
+            text("SELECT GET_LOCK(:name, :timeout)"),
+            {"name": MIGRATION_LOCK_NAME, "timeout": MIGRATION_LOCK_TIMEOUT},
+        ).scalar()
+        if not result:
+            raise RuntimeError(
+                f"Không lấy được migration lock '{MIGRATION_LOCK_NAME}' sau "
+                f"{MIGRATION_LOCK_TIMEOUT}s. Kiểm tra xem có tiến trình khác "
+                "đang chạy migration không."
             )
-            context.run_migrations()
+        try:
+            context.configure(connection=connection, target_metadata=target_metadata)
+            with context.begin_transaction():
+                context.run_migrations()
+        finally:
+            # Luôn trả khoá — kể cả khi migration thất bại, tránh khoá treo.
+            connection.execute(
+                text("SELECT RELEASE_LOCK(:name)"),
+                {"name": MIGRATION_LOCK_NAME},
+            )
 
 
 if context.is_offline_mode():
