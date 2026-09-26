@@ -101,10 +101,10 @@ Mở issue tìm được, rồi đọc mục `## Quyết định họp team`.
 
 - [ ] **Step 2: Chuyển spec sang active**
 
-Trong frontmatter của `docs/specs/2026-09-26-ai-kit-repobot-design.md`, đặt `status: active`, `version: 1.1` và `updated: <ngày làm>`. Thêm dòng lịch sử:
+Trong frontmatter của `docs/specs/2026-09-26-ai-kit-repobot-design.md`, đặt `status: active`, `version: 1.2` và `updated: <ngày làm>`. Thêm dòng lịch sử:
 
 ```markdown
-| 1.1 | <ngày làm> | Họp team duyệt (issue #<số>) — chuyển active | DYC |
+| 1.2 | <ngày làm> | Họp team duyệt (issue #<số>) — chuyển active | DYC |
 ```
 
 Trong frontmatter của plan này (`docs/specs/2026-09-26-ai-kit-plan.md`), đặt `status: active`. File này mới trong nhánh spec nên chưa cần tăng version nếu nhánh đó chưa merge. Nếu đã merge, tăng lên `1.1` và thêm dòng lịch sử tương tự.

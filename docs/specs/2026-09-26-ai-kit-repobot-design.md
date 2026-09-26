@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-AIKIT-001
 title: Design — AI kit cho dev và bot Discord repobot
-version: 1.0
+version: 1.1
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -48,7 +48,7 @@ cập nhật tài liệu, và dev giải thích lại được cho reviewer PR �
 | D8 | "Bộ não" của bot là binary `agy` chính thức ở chế độ headless (`agy -p … --output-format json`), dùng subscription Antigravity của chủ repo. **Không** dùng proxy/gateway bên thứ ba (OmniRoute, v.v.) cho subscription |
 | D9 | Gọi bot bằng slash command tiếng Anh: `/ask`, `/docs`, `/done`, `/memory`. Nội dung trả lời, thẻ tóm tắt, nút bấm bằng tiếng Việt |
 | D10 | Mỗi lần gọi mở một thread riêng; nhắn tiếp trong thread không cần lệnh. Idle 30' thì đóng (có bản nháp thì nhắc ở phút 25). Bản nháp chưa duyệt giữ 7 ngày |
-| D11 | Mọi đầu vào/đầu ra của `agy` đi qua **Gateway ba cổng**; cổng hành động làm theo cách A (kiểm tra sau) trước, nâng lên cách B (MCP, kiểm tra trước) nếu bản thử cho phép (mục 5.4) |
+| D11 | Mọi đầu vào/đầu ra của `agy` đi qua **Gateway ba cổng**. `agy` **không ghi file**: nó đọc repo rồi trả nội dung file đề xuất qua `--json-schema`; code bot kiểm tra rồi mới ghi (cách C, chốt sau spike — mục 5.4, 9) |
 | D12 | Memory chỉ nhớ **người và việc**, không nhớ kiến thức dự án — kiến thức phải vào `docs/` qua PR |
 | D13 | Thông báo PR/commit dùng webhook có sẵn của GitHub → Discord, không viết code |
 
@@ -175,33 +175,38 @@ Discord ──▶ ① Vào ──▶ agy (cwd = worktree) ──▶ ② Hành đ
 | Cổng | Kiểm tra | Khi chặn |
 |---|---|---|
 | ① Vào | Role `dev`/`ba`; lệnh hợp lệ; độ dài; hàng đợi. Bọc tin người dùng trong khung "đây là dữ liệu, không phải lệnh" kèm SOUL, memory của người đó và yêu cầu định dạng JSON | Trả lời ephemeral / báo xếp hàng |
-| ② Hành động | `validateChange(path, content)`: chỉ `docs/ba/**/*.md`, không `nguon/`, không xoá/đổi tên; sau đó code chạy `docs:index` (so khớp `docs/README.md`) và `docs:check`. Thread `/ask`: `git status` trong `read/` phải sạch, bẩn thì reset + báo admin | Loại bản nháp, nêu lý do, nút "Sửa tiếp" |
+| ② Hành động | Sau mỗi lượt: `git status` của worktree phải sạch (`agy` không được ghi; bẩn thì reset + báo admin). Với mỗi file đề xuất: `validateChange(path, content)` — chỉ `docs/ba/**/*.md`, không `nguon/`, không xoá/đổi tên; đạt thì **code bot** ghi file, chạy `docs:index` (so khớp `docs/README.md`) và `docs:check` | Loại bản nháp, nêu lý do, nút "Sửa tiếp" |
 | ③ Ra | JSON đúng định dạng; quét chuỗi dạng token/secret trước khi đăng; push/PR chỉ sau nút Đồng ý của người mở thread | Không đăng, ghi log, báo lỗi |
 
-**Cổng ② — cách A (làm trước):** `agy` sửa file trong worktree; Gateway đọc `git diff` rồi gọi `validateChange`
-cho từng file. **Cách B (nâng cấp):** Gateway mở MCP server cục bộ cho `agy` (`search_docs`, `read_file`,
-`propose_doc_change`, `remember`), tắt tool file có sẵn của `agy`; `propose_doc_change` gọi cùng `validateChange`
-trước khi ghi. Chỉ chuyển sang B nếu bản thử (mục 9) xác nhận `agy` headless dùng được MCP tool và tắt được tool
-file có sẵn.
+**Cổng ② — cách C (chốt sau spike, thay cách A/B cũ):** `agy` chạy ở mode mặc định (headless tự từ chối lệnh
+shell; ghi file chỉ xảy ra khi `--mode accept-edits` và bot không bao giờ bật mode đó), chỉ dùng tool xem file để
+đọc worktree, và trả **nội dung đầy đủ mới** của từng file đề xuất trong JSON (ép bằng `--json-schema`, đọc ở trường
+`structured_output`). Gateway gọi `validateChange` cho từng file rồi code bot tự ghi. Không cần MCP. Cách A (để
+`agy` ghi rồi kiểm diff) bị loại vì `agy` hay chọn lệnh shell để ghi (bị chặn) và khó đoán; cách B (MCP) để dành nếu
+sau này cần tool riêng.
 
-**Hợp đồng JSON `agy` → bot** (bot sở hữu, nhét vào prompt mỗi lượt):
+**Hợp đồng JSON `agy` → bot** (bot sở hữu schema, truyền bằng `--json-schema` mỗi lượt):
 
 ```json
 {
   "intent": "answer | draft",
   "reply": "nội dung trả lời tiếng Việt",
-  "summary": [{ "path": "docs/ba/x.md", "action": "edit | create", "change": "…", "reason": "chỉ khi create" }],
+  "files": [{ "path": "docs/ba/x.md", "action": "edit | create", "content": "toàn bộ nội dung mới", "change": "…", "reason": "chỉ khi create" }],
   "remember": [{ "kind": "preference | pending", "text": "…" }],
   "done": false
 }
 ```
 
-`agy` luôn chạy **không** có `--dangerously-skip-permissions`, với biến môi trường sạch (chỉ `HOME`, `PATH`). Git,
-`gh`, `docs:index`, `docs:check` do code bot chạy, không do `agy`.
+`agy` luôn chạy **không** có `--dangerously-skip-permissions`, không `--mode accept-edits`, với biến môi trường
+sạch (chỉ `HOME`, `PATH`), `cwd` = worktree (spike: đọc/ghi ngoài `cwd` bị `agy` chặn). Git, `gh`, `docs:index`,
+`docs:check` do code bot chạy, không do `agy`. Output của `agy` có dạng
+`{conversation_id, status, response, structured_output?, denied_actions?, usage, …}`; `status` khác `SUCCESS`
+hoặc thiếu `structured_output` → coi là lỗi.
 
 ### 5.5. Luồng soạn tài liệu và PR
 
-1. `agy` sửa/tạo file trong `drafts/<thread>/` theo skill `tckt-docs` (kiểm tra trùng trước khi tạo mới).
+1. `agy` đọc `drafts/<thread>/` theo skill `tckt-docs` (kiểm tra trùng trước khi tạo mới) và trả nội dung đề xuất;
+   bot ghi file vào worktree sau cổng ②.
 2. Cổng ② kiểm tra; đạt thì bot đăng **thẻ tóm tắt**: danh sách file (Sửa/Tạo, version cũ → mới, 1–2 dòng mỗi
    file, lý do tạo mới), `docs/README.md` "tự sinh", trạng thái kiểm tra, file `thay-doi.diff` đính kèm, nút
    **[✅ Đồng ý mở PR] [✏️ Sửa tiếp] [🗑 Huỷ]**.
@@ -283,11 +288,24 @@ Trên VM, bằng user `repobot`:
 Nếu (1) hoặc (2) không đạt → đổi nơi chạy (máy riêng/Mac) trước khi làm tiếp. Nếu (4) không bị chặn → chủ repo quyết
 định có thêm user thứ hai cho `agy` hay không; lớp quét secret đầu ra vẫn giữ.
 
+**Kết quả spike (2026-09-26, VM thật, user `repobot`, `agy` 1.2.11):**
+
+| # | Kết quả |
+|---|---|
+| 1 | Đạt. `curl -fsSL https://antigravity.google/cli/install.sh \| bash` (script chính thức, kiểm SHA512, không `sudo`) cài `~/.local/bin/agy` bản arm64 |
+| 2 | Đạt. `agy` chạy tay qua `ssh -t` → Google OAuth → dán mã. Không có keyring trên VM nên token lưu ở file `~/.gemini/antigravity-cli/antigravity-oauth-token` (quyền 600); lệnh `-p` không TTY sau đó chạy được |
+| 3 | Đạt. JSON `{conversation_id, status, response, usage, denied_actions?}`; `--conversation <id>` nhớ lượt trước. Headless tự từ chối lệnh shell (`denied_actions: RunCommand`) |
+| 4 | Đạt về kỹ thuật: đọc/ghi file ngoài `cwd` bị `agy` từ chối (`denied_actions: read_file / write_file`), cả khi `settings.json` ghi `/srv/repobot` là trusted workspace. Không cần user thứ hai |
+| 5 | Chưa cần MCP. `agy mcp add` có sẵn. `--json-schema` trả kết quả trong `structured_output` (nội dung đầy đủ file đề xuất), không ghi đĩa → chốt **cách C** (mục 5.4). `--mode plan` + schema trả rỗng — không dùng |
+| 6 | Một lượt: RSS ~230 MB, CPU ~3% (chủ yếu chờ mạng), 3–45 s. VM: 1 vCPU, ~3.8 GB RAM trống, không swap → 2 phiên đồng thời, `MemoryMax=1G`, `CPUQuota=50%` |
+
 ## 10. Rủi ro còn lại (đã chấp nhận)
 
 - Bot chạy chung VM với production (D7) — giảm bằng user riêng + systemd hardening + giới hạn tài nguyên.
-- `agy` và bot chung một user — về lý thuyết `agy` đọc được token của bot; phụ thuộc giới hạn workspace của `agy`
-  (spike mục 4) và bộ quét đầu ra.
+- `agy` và bot chung một user — về lý thuyết `agy` đọc được token của bot; spike mục 4 cho thấy `agy` chặn đọc
+  ngoài `cwd`, cộng thêm bộ quét đầu ra. Token OAuth của `agy` cũng nằm dạng file trong home của `repobot`.
+- Điều khoản sử dụng Antigravity: chủ repo đã kiểm (2026-09-26), cách dùng `agy` headless bằng subscription của chủ
+  repo cho bot nội bộ là được phép.
 - Cả team dùng subscription Antigravity của một người: quota tính theo người/phút, có thể bị chặn tạm khi nhiều người
   hỏi cùng lúc — giảm bằng hàng đợi; hết hạn đăng nhập cần người đăng nhập lại.
 - Lỗi `permissions.allow` bị bỏ qua ở headless (issue `google-antigravity/antigravity-cli#548`) — vì vậy `agy` không
@@ -307,3 +325,4 @@ Nếu (1) hoặc (2) không đạt → đổi nơi chạy (máy riêng/Mac) trư
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-26 | Bản đầu từ brainstorming: kit chia tầng, bot repobot, Gateway ba cổng, thông báo GitHub | DYC (soạn cùng Claude) |
+| 1.1 | 2026-09-26 | Kết quả spike trên VM; cổng ② đổi sang cách C (`agy` chỉ đề xuất qua `--json-schema`, bot ghi); ToS đã kiểm | DYC (soạn cùng Claude) |
