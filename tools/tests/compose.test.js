@@ -13,7 +13,7 @@ for (const env of ['staging', 'production']) {
     for (const svc of ['core-db:', 'core:', 'ctd-db:', 'ctd-api:']) assert.match(y, new RegExp(`^  ${svc}`, 'm'), svc);
     assert.match(y, /ghcr\.io\/tduong-p\/ultimate-tckt-core:\$\{CORE_IMAGE_TAG:\?/);
     assert.match(y, /ghcr\.io\/tduong-p\/ultimate-tckt-ctd-api:\$\{CTD_API_IMAGE_TAG:\?/);
-    for (const v of ['core_mysql', 'core_uploads', 'ctd_postgres', 'ctd_documents']) assert.match(y, new RegExp(`^  ${v}:`, 'm'), v);
+    for (const v of ['core_mysql', 'core_uploads', 'ctd_mysql', 'ctd_documents']) assert.match(y, new RegExp(`^  ${v}:`, 'm'), v);
     const ports = env === 'staging' ? ['3306:3306', '3000:3000', '8000:8000'] : ['3307:3306', '3001:3000', '8001:8000'];
     for (const p of ports) assert.ok(y.includes(`"127.0.0.1:${p}"`), p);
     assert.match(y, new RegExp(`APP_ENV: ${env}`));

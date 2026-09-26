@@ -18,7 +18,7 @@ test('deploy.yml wires test -> build -> deploy with gates', () => {
   assert.match(y, /ultimate-tckt-ctd-api:\$\{\{ needs\.changes\.outputs\.tag \}\}/);
   assert.match(y, /\/opt\/ultimate-tckt\/\$\{\{ needs\.changes\.outputs\.env \}\}\/infra\/scripts\/deploy\.sh/);
   assert.match(y, /image: mysql:8/);
-  assert.match(y, /image: postgres:16/);
+  assert.doesNotMatch(y, /image: postgres:16/);
   assert.doesNotMatch(y, /seee|tckt-activity-hub|\/opt\/infra/);
 });
 
