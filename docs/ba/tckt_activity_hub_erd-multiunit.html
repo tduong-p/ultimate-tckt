@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCKT Activity Hub — Multi-unit ERD proposal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.12.0/mermaid.min.js"></script>
+<style>
+  body { margin: 0; padding: 24px 20px; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: #222; }
+  h1 { text-align: center; font-size: 22px; margin: 0 0 12px; }
+  .note { max-width: 1100px; margin: 0 auto 18px; font-size: 14px; line-height: 1.55; color: #444; }
+  .toolbar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 10px; background: rgba(255,255,255,.96); border-bottom: 1px solid #ddd; }
+  .toolbar button { min-width: 42px; padding: 8px 12px; border: 1px solid #aaa; border-radius: 6px; background: #fff; color: #222; font: inherit; cursor: pointer; }
+  .toolbar button:hover { background: #f1f4f8; }
+  .toolbar button:disabled { opacity: .55; cursor: wait; }
+  #zoomLevel { min-width: 54px; text-align: center; font-size: 13px; color: #555; }
+  #viewport { height: calc(100vh - 190px); min-height: 480px; overflow: auto; border: 1px solid #d8dce2; background: #f8fafc; cursor: grab; }
+  #viewport.dragging { cursor: grabbing; user-select: none; }
+  #canvas { width: max-content; min-width: 100%; min-height: 100%; padding: 28px; box-sizing: border-box; transform-origin: 0 0; }
+  #erd { display: flex; justify-content: center; }
+  #erd svg { width: 2200px; max-width: none; height: auto; }
+  #erd .entityLabel { font-size: 20px !important; }
+  #erd text { font-size: 17px !important; }
+  @media (max-width: 700px) { body { padding: 16px 10px; } #viewport { height: calc(100vh - 220px); } #erd svg { width: 1900px; } }
+</style>
+</head>
+<body>
+<h1>TCKT Activity Hub — Multi-unit ERD proposal</h1>
+<p class="note">Proposed target model based on the current TCKT schema and the agreed plan: users can belong to multiple units; BTV assigns work to TCKT; TCKT manages its internal activities/tasks and submits reports back. Existing operational entities are retained. Multi-unit and directive/report entities are additions, not claims about the current live schema. Confirm exact columns and constraints against Core migrations before implementation.</p>
+<div class="toolbar" aria-label="Diagram zoom controls">
+  <button type="button" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+  <button type="button" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+  <span id="zoomLevel">100%</span>
+  <button type="button" id="fitDiagram">Fit</button>
+  <button type="button" id="exportPng">Download PNG</button>
+</div>
+<div id="viewport"><div id="canvas"><div id="erd"></div></div></div>
+<script>mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose', er: { layoutDirection: 'LR', entityPadding: 18 } });</script>
+<pre class="mermaid">
+erDiagram
+  USERS ||--o{ UNIT_MEMBERSHIPS : belongs_to
+  ORG_UNITS ||--o{ UNIT_MEMBERSHIPS : has_members
+  ORG_UNITS ||--o{ ORG_UNITS : parent_of
+  ORG_UNITS ||--o{ TEAMS : contains
+  USERS ||--o{ USER_TEAMS : joins
+  TEAMS ||--o{ USER_TEAMS : has_members
+
+  ORG_UNITS ||--o{ DIRECTIVES : sends
+  ORG_UNITS ||--o{ DIRECTIVES : receives
+  UNIT_MEMBERSHIPS ||--o{ DIRECTIVES : creates
+  UNIT_MEMBERSHIPS ||--o{ DIRECTIVES : coordinates
+  DIRECTIVES ||--o{ ACTIVITIES : implemented_by
+  ACTIVITIES ||--o{ TASKS : contains
+  DIRECTIVES ||--o{ DIRECTIVE_REPORTS : reported_on
+  UNIT_MEMBERSHIPS ||--o{ DIRECTIVE_REPORTS : submits
+  DIRECTIVE_REPORTS ||--o{ DIRECTIVE_REPORT_ITEMS : includes
+  DIRECTIVE_REPORTS ||--o{ DIRECTIVE_RESPONSES : receives
+  UNIT_MEMBERSHIPS ||--o{ DIRECTIVE_RESPONSES : responds
+
+  USERS ||--o{ ACTIVITIES : creates
+  USERS ||--o{ TASKS : assigned_primary
+  USERS ||--o{ TASKS : assigns
+  USERS ||--o{ TASKS : reviews
+  USERS ||--o{ ACTIVITY_PROPOSALS : submits
+  USERS ||--o{ ACTIVITY_PROPOSALS : reviews
+  USERS ||--o{ UPDATES : posts
+  USERS ||--o{ NOTIFICATIONS : receives
+  USERS ||--o{ PARTICIPANTS : participates
+  USERS ||--o{ TASK_ASSIGNEES : assigned_collaborator
+  USERS ||--o{ TASK_ATTACHMENTS : uploads
+  USERS ||--o{ TASK_CHECKLISTS : completes
+  USERS ||--o{ UPDATE_TAGGED_USERS : tagged
+
+  TEAMS ||--o{ ACTIVITIES : leads
+  TEAMS ||--o{ TASKS : owns
+  TEAMS ||--o{ DOCUMENTS : issues
+  ACTIVITIES ||--o{ ACTIVITY_TEAMS : involves
+  TEAMS ||--o{ ACTIVITY_TEAMS : supports
+  USERS ||--o{ ACTIVITY_TEAMS : contact
+  ACTIVITIES ||--o{ ACTIVITY_PROPOSALS : has
+  ACTIVITIES ||--o{ UPDATES : has
+  ACTIVITIES ||--o{ NOTIFICATIONS : triggers
+  ACTIVITIES ||--o{ PARTICIPANTS : has
+  TASKS ||--o{ TASK_ATTACHMENTS : has
+  TASKS ||--o{ TASK_CHECKLISTS : has
+  TASKS ||--o{ TASK_ASSIGNEES : has_collaborators
+  TASKS ||--o{ UPDATES : has
+  UPDATES ||--o{ UPDATE_TAGGED_USERS : tags
+
+  USERS {
+    int id PK
+    string email UK
+    string name
+    enum legacy_role
+  }
+  ORG_UNITS {
+    int id PK
+    string code UK
+    string name
+    enum kind
+    int parent_unit_id FK
+    boolean is_active
+  }
+  UNIT_MEMBERSHIPS {
+    int id PK
+    int user_id FK
+    int unit_id FK
+    string role
+    datetime joined_at
+    datetime ended_at
+    boolean is_active
+  }
+  TEAMS {
+    int id PK
+    int unit_id FK
+    string name
+    boolean is_active
+  }
+  USER_TEAMS {
+    int user_id PK_FK
+    int team_id PK_FK
+    boolean is_lead
+    boolean is_vice_lead
+  }
+  DIRECTIVES {
+    int id PK
+    string code UK
+    int from_unit_id FK
+    int to_unit_id FK
+    int created_by_membership_id FK
+    int coordinator_membership_id FK
+    string title
+    text description
+    date issued_at
+    date due_at
+    enum status
+    datetime acknowledged_at
+  }
+  ACTIVITIES {
+    int id PK
+    int team_id FK
+    int creator_id FK
+    int event_lead_id FK
+    int directive_id FK
+    enum status
+  }
+  TASKS {
+    int id PK
+    int activity_id FK
+    int team_id FK
+    int primary_assignee_id FK
+    int assigned_by FK
+    int reviewed_by FK
+    enum status
+  }
+  DIRECTIVE_REPORTS {
+    int id PK
+    int directive_id FK
+    int submitted_by_membership_id FK
+    int revision_no
+    enum status
+    text summary
+    datetime submitted_at
+  }
+  DIRECTIVE_REPORT_ITEMS {
+    int id PK
+    int report_id FK
+    string resource_type
+    int resource_id
+    string title
+    text result_summary
+  }
+  DIRECTIVE_RESPONSES {
+    int id PK
+    int report_id FK
+    int responded_by_membership_id FK
+    enum decision
+    text comment
+    datetime responded_at
+  }
+  ACTIVITY_PROPOSALS {
+    int id PK
+    int activity_id FK
+    int submitted_by FK
+    int reviewer_id FK
+  }
+  ACTIVITY_TEAMS {
+    int activity_id PK_FK
+    int team_id PK_FK
+    int contact_user_id FK
+  }
+  PARTICIPANTS {
+    int activity_id PK_FK
+    int user_id PK_FK
+  }
+  DOCUMENTS {
+    int id PK
+    int issuing_team_id FK
+    int created_by FK
+  }
+  NOTIFICATIONS {
+    bigint id PK
+    int user_id FK
+    int activity_id FK
+    int task_id FK
+  }
+  TASK_ASSIGNEES {
+    int task_id PK_FK
+    int user_id PK_FK
+  }
+  TASK_ATTACHMENTS {
+    int id PK
+    int task_id FK
+    int user_id FK
+  }
+  TASK_CHECKLISTS {
+    int id PK
+    int task_id FK
+    int done_by FK
+  }
+  UPDATES {
+    int id PK
+    int activity_id FK
+    int task_id FK
+    int user_id FK
+  }
+  UPDATE_TAGGED_USERS {
+    int update_id PK_FK
+    int user_id PK_FK
+  }
+  WEIGHT_PRESETS {
+    int id PK
+  }
+  SESSIONS {
+    string session_id PK
+  }
+</pre>
+<script>
+  const viewport = document.getElementById('viewport');
+  const canvas = document.getElementById('canvas');
+  const diagram = document.querySelector('.mermaid');
+  const zoomLabel = document.getElementById('zoomLevel');
+  const exportButton = document.getElementById('exportPng');
+  let scale = 1;
+  let drag = null;
+
+  function setZoom(nextScale, centerX = viewport.clientWidth / 2, centerY = viewport.clientHeight / 2) {
+    const oldScale = scale;
+    scale = Math.max(0.35, Math.min(2.5, nextScale));
+    const diagramX = (viewport.scrollLeft + centerX) / oldScale;
+    const diagramY = (viewport.scrollTop + centerY) / oldScale;
+    canvas.style.transform = `scale(${scale})`;
+    viewport.scrollLeft = diagramX * scale - centerX;
+    viewport.scrollTop = diagramY * scale - centerY;
+    zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+  }
+
+  document.getElementById('zoomIn').addEventListener('click', () => setZoom(scale * 1.2));
+  document.getElementById('zoomOut').addEventListener('click', () => setZoom(scale / 1.2));
+  document.getElementById('fitDiagram').addEventListener('click', () => {
+    const svg = document.querySelector('#erd svg');
+    if (!svg) return;
+    const availableWidth = Math.max(300, viewport.clientWidth - 56);
+    const availableHeight = Math.max(300, viewport.clientHeight - 56);
+    const bounds = svg.getBoundingClientRect();
+    const unscaledWidth = bounds.width / scale;
+    const unscaledHeight = bounds.height / scale;
+    setZoom(Math.min(1, availableWidth / unscaledWidth, availableHeight / unscaledHeight), 0, 0);
+    viewport.scrollLeft = 0;
+    viewport.scrollTop = 0;
+  });
+  viewport.addEventListener('wheel', event => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const bounds = viewport.getBoundingClientRect();
+    setZoom(scale * (event.deltaY < 0 ? 1.08 : 1 / 1.08), event.clientX - bounds.left, event.clientY - bounds.top);
+  }, { passive: false });
+  viewport.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    drag = { x: event.clientX, y: event.clientY, left: viewport.scrollLeft, top: viewport.scrollTop };
+    viewport.classList.add('dragging');
+    viewport.setPointerCapture(event.pointerId);
+  });
+  viewport.addEventListener('pointermove', event => {
+    if (!drag) return;
+    viewport.scrollLeft = drag.left - (event.clientX - drag.x);
+    viewport.scrollTop = drag.top - (event.clientY - drag.y);
+  });
+  function stopDrag() { drag = null; viewport.classList.remove('dragging'); }
+  viewport.addEventListener('pointerup', stopDrag);
+  viewport.addEventListener('pointercancel', stopDrag);
+
+  exportButton.addEventListener('click', async () => {
+    const svg = document.querySelector('#erd svg');
+    if (!svg) return;
+    exportButton.disabled = true;
+    exportButton.textContent = 'Rendering…';
+    try {
+      const clone = svg.cloneNode(true);
+      const bbox = svg.getBBox();
+      const padding = 36;
+      const width = Math.ceil(bbox.width + padding * 2);
+      const height = Math.ceil(bbox.height + padding * 2);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', width);
+      clone.setAttribute('height', height);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
+      clone.style.maxWidth = 'none';
+      clone.style.background = '#ffffff';
+      const svgBlob = new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' });
+      const objectUrl = URL.createObjectURL(svgBlob);
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const pixelRatio = 2;
+          const output = document.createElement('canvas');
+          output.width = width * pixelRatio;
+          output.height = height * pixelRatio;
+          const context = output.getContext('2d');
+          context.fillStyle = '#ffffff';
+          context.fillRect(0, 0, output.width, output.height);
+          context.scale(pixelRatio, pixelRatio);
+          context.drawImage(image, 0, 0, width, height);
+          output.toBlob(blob => {
+            if (!blob) throw new Error('PNG conversion failed');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'tckt-activity-hub-multiunit-erd.png';
+            link.click();
+            URL.revokeObjectURL(link.href);
+          }, 'image/png');
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+          exportButton.disabled = false;
+          exportButton.textContent = 'Download PNG';
+        }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        exportButton.disabled = false;
+        exportButton.textContent = 'Download PNG';
+        alert('Could not render the diagram image. Try opening this page in a modern browser.');
+      };
+      image.src = objectUrl;
+    } catch (error) {
+      exportButton.disabled = false;
+      exportButton.textContent = 'Download PNG';
+      alert(`PNG export failed: ${error.message}`);
+    }
+  });
+
+  mermaid.run({ nodes: [diagram] });
+</script>
+</body>
+</html>
