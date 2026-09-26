@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-09-26
-related_code: [core/**, web/**]
+updated: 2026-09-27
+related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
 # Kế hoạch phát triển Hub (Core + Operations, không CTD)
@@ -1267,3 +1267,5 @@ npm run docs:check         # Documentation validation
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu - Hub system plan (no CTD) | DYC |
 | 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 - thêm database tooling | DYC |
+| 1.2 | 2026-09-27 | Thêm core/src/config/migrate-units.js vào related_code - file migration đa đơn vị | DYC |
+
