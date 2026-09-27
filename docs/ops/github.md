@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [.github/**]
 ---
 
@@ -62,6 +62,15 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 - Thử tạo PR vào `main` không đủ check → bị chặn merge.
 - Thử push thẳng vào `main` → bị từ chối bởi ruleset.
 
+## 8. GitHub App và ruleset cho bot repobot
+
+- GitHub App `tckt-repobot`: không webhook; quyền Contents (read & write), Pull requests (read & write), Metadata
+  (read); chỉ cài cho repo `ultimate-tckt`. Private key nằm trên VM (`docs/ops/repobot.md`), không ở đâu khác.
+- Ruleset `bot-branches` (target `refs/heads/bot/**`): chặn tạo, cập nhật, xoá và force-push; bypass chỉ App
+  `tckt-repobot` — người và agent khác không đẩy hay xoá được nhánh `bot/*`.
+- App không nằm trong bypass của `protect-main`/`protect-staging`: bot chỉ mở PR vào `staging`, không push thẳng
+  hay merge.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -71,3 +80,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.2 | 2026-09-24 | Nhãn `no-docs-needed`: kiểm tác động chỉ ở PR | DYC |
 | 1.3 | 2026-09-24 | Thêm `PROD_DEPLOY_ENABLED`; GHCR giữ 40 bản, build không provenance | DYC |
 | 1.4 | 2026-09-24 | Thêm nhãn `cross-module` và mẫu issue đề xuất thay đổi liên module | DYC |
+| 1.5 | 2026-09-27 | Thêm mục 8: GitHub App và ruleset `bot-branches` cho bot repobot | DYC |

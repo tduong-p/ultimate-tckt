@@ -25,9 +25,9 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 1.1 | active | ai, dev |
-| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.1 | active | ai, dev |
+| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.2 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.5 | active | ai, dev |
-| [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 1.0 | active | ai, dev |
+| [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 1.1 | active | ai, dev |
 
 ## ba
 
@@ -72,8 +72,9 @@
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.3 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.0 | active | ops, ba |
 | [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 1.2 | active | dev, ops, ai |
-| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.4 | active | dev, ops, ai |
+| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.5 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
+| [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.0 | active | ops, dev |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.0 | active | dev, ops |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
 | [OPS-DB-001](ops/truy-cap-db.md) | Truy cập database từ xa (chỉ đọc) | 1.0 | active | dev, ops, ai |
