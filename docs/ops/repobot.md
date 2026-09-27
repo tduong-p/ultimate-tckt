@@ -46,11 +46,12 @@ Bật:
 4. `sudo systemctl restart repobot`.
 
 Lần chạy đầu bot chỉ ghi nhận trạng thái hiện tại, **không đăng bù** lịch sử; bật `NOTIFY_FEATURE_PUSH` lần đầu cũng
-vậy với các nhánh đang có. Tắt: xoá `NOTIFY_CHANNEL_ID` (hoặc `NOTIFY_FEATURE_PUSH`) khỏi `.env` rồi restart.
+vậy với các nhánh đang có. Đổi `NOTIFY_CHANNEL_ID` hoặc bot nghỉ quá 24 giờ (tắt kênh rồi bật lại, VM dừng lâu) →
+bot ghi nhận lại từ hiện tại, báo admin "Kênh thông báo bắt đầu lại…", không đăng bù. Tắt: xoá `NOTIFY_CHANNEL_ID` (hoặc `NOTIFY_FEATURE_PUSH`) khỏi `.env` rồi restart.
 
 Tóm tắt dùng chung `agy` với `/ask`, `/docs` nhưng luôn nhường thread của người dùng chạy trước. `agy` lỗi (hết
 quota 3 lần, hết giờ, hết hạn đăng nhập, trả sai định dạng) → tin vẫn được đăng, ghi "Chưa tóm tắt được thay đổi này."
-Không đăng được vào kênh → bot giữ tin, thử lại mỗi vòng fetch, báo admin một lần.
+Không đăng được vào kênh → bot giữ tin, thử lại mỗi vòng fetch, báo admin một lần cho mỗi đợt hỏng (không phải mỗi tin).
 
 ## Lệnh thường dùng (user `ubuntu`)
 
@@ -106,6 +107,7 @@ thêm mình vào bypass của ruleset, xoá nhánh, rồi gỡ bypass.
 | Admin nhận "agy đã ghi vào …" | Bot đã tự huỷ; xem `journalctl` quanh thời điểm đó, báo trưởng nhóm nếu lặp lại |
 | PR không tạo được | Kiểm GitHub App còn được cài, ruleset `bot-branches` còn bypass cho App |
 | Admin nhận "Không đăng được vào kênh thông báo" | Kiểm `NOTIFY_CHANNEL_ID` đúng kênh, bot còn quyền View Channel + Send Messages |
+| Admin nhận "danh sách PR từ GitHub bị cắt" | Quá nhiều PR cập nhật trong một vòng; có thể sót tin PR — xem PR trên GitHub. Tự hết khi vòng sau đủ |
 | Kênh thông báo im dù có PR/commit | Log có `notify` lỗi? Kiểm GitHub App còn được cài; tin chỉ ra sau lần fetch kế tiếp (≤ 5 phút) |
 
 ## Hạn chế đã biết
@@ -141,4 +143,4 @@ phụ. Xoá `/srv/repobot` hoặc user `repobot` chỉ khi chủ repo yêu cầu
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-27 | Bản đầu: bố trí, lệnh, đăng nhập lại agy, secret, nhánh bot, sự cố, hạn chế đã biết, gỡ bỏ | DYC |
-| 1.1 | 2026-09-27 | Thêm kênh thông báo: `NOTIFY_CHANNEL_ID`, `NOTIFY_FEATURE_PUSH`, worktree `notify/`, bật/tắt, sự cố, hạn chế | DYC (soạn cùng Claude) |
+| 1.1 | 2026-09-27 | Thêm kênh thông báo: `NOTIFY_CHANNEL_ID`, `NOTIFY_FEATURE_PUSH`, worktree `notify/`, bật/tắt, ghi nhận lại khi đổi kênh/nghỉ > 24 giờ, sự cố, hạn chế | DYC (soạn cùng Claude) |

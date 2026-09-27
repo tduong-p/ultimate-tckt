@@ -270,7 +270,8 @@ Chạy sau mỗi lần `git fetch` định kỳ (5 phút, mục 5.1) — không 
    và với squash/rebase merge thì so thêm `merge_commit_sha` cùng các commit trong khoảng đó do PR tạo ra). Còn lại →
    một sự kiện `push` cho nhánh đó.
 3. **Nhánh tính năng (d):** chỉ khi bật cờ; mỗi nhánh có SHA mới → một sự kiện `push`.
-4. **Lần chạy đầu** (chưa có mốc trong DB): chỉ ghi nhận SHA/mốc hiện tại, không đăng bù lịch sử.
+4. **Lần chạy đầu** (chưa có mốc trong DB): chỉ ghi nhận SHA/mốc hiện tại, không đăng bù lịch sử. Tương tự khi đổi
+   `NOTIFY_CHANNEL_ID` hoặc bot nghỉ quá 24 giờ: ghi nhận lại từ hiện tại và báo admin một lần, không đăng bù.
 5. **Force-push / SHA đã lưu không còn là tổ tiên:** tin "nhánh bị viết lại" kèm SHA mới, không TLDR.
 
 Sự kiện ghi vào bảng `notifications` trong `state.db` (khoá duy nhất `(kind, ref, head_sha)`, trạng thái `pending →
