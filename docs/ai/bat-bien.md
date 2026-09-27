@@ -1,12 +1,12 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 1.3
+version: 2.0
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
+updated: 2026-09-27
+related_code: [core/src/policies/**, core/src/middleware/auth.js, infra/**]
 ---
 
 # Bất biến — điều không được phá
@@ -41,19 +41,6 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
    lần reload/khởi động lại sau đó chết cả staging lẫn production. `apply-infra.sh` gỡ/khôi phục site mới khi `nginx -t` lỗi.
 10. **Mật khẩu DB không bao giờ đi qua dòng lệnh trên host** (`ps` thấy được): dump/restore chạy `sh -c '…$MYSQL_…/$POSTGRES_…'`
    trong container (xem `infra/scripts/backup.sh`). Dump Postgres luôn có `--clean --if-exists` để restore đè được.
-11. **Quyền đọc từ `unit_memberships` qua `req.actor`/`req.unitRole`; không dùng `users.role` cho quyết định
-   quyền.** `users.role` chỉ là bản sao đồng bộ một chiều trong GĐ1 (xem `docs/dev/phan-quyen.md`) — route mới
-   kiểm quyền qua `req.actor`/`req.unitRole`/`req.memberships`, không tự đọc `req.session.user.role`.
-12. **Mọi lượt DYC đọc dữ liệu đơn vị khác phải có dòng `audit_logs`.** Route Điều hành cũ dưới
-   `LEGACY_PREFIXES` (`core/src/middleware/legacy-gate.js`) gọi `recordAudit` cho mỗi request GET/HEAD của
-   thành viên DYC không thuộc TCKT. Route mới ở các module khác cho phép DYC đọc xuyên đơn vị cũng phải ghi
-   audit tương tự — không được cho đọc "im lặng".
-13. **Mọi route `GET /api/*` mới phải qua `core/tests/units.leak.test.js`.** Test này tự quét
-   `router.get('/api/...')` trong `core/src/routes/` (không cần sửa test khi thêm route) và gọi bằng một tài
-   khoản BTV-only: phải trả 403 trừ khi nằm trong `OUTSIDER_ALLOW` (dữ liệu cá nhân của người gọi, không phải
-   dữ liệu nghiệp vụ đơn vị khác — mỗi ngoại lệ phải có lý do ghi cạnh regex); và bằng một tài khoản DYC-only:
-   không bao giờ được 403. Route thiếu gate → thêm vào `LEGACY_PREFIXES`/gắn `settingGuard`/`platformAdmin`,
-   không được nới `OUTSIDER_ALLOW` để né test.
 
 ## Lịch sử phiên bản
 
@@ -61,5 +48,4 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bất biến 9 (nginx hỏng) và 10 (mật khẩu DB không qua dòng lệnh host) | DYC |
-| 1.2 | 2026-09-24 | Thêm bất biến 11 (quyền đọc từ `unit_memberships` qua `req.actor`, không dùng `users.role`) và 12 (DYC đọc liên đơn vị phải ghi `audit_logs`) | DYC |
-| 1.3 | 2026-09-24 | Thêm bất biến 13 (mọi `GET /api/*` mới phải qua `units.leak.test.js`, GĐ1-A Task 9) | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |

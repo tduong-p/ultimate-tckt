@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.1
+version: 1.2
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: []
 ---
 
@@ -50,6 +50,13 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
   `deploy.yml` khai báo `permissions: { contents: read, pull-requests: read }`; đừng xoá.
 - **Push nhiều nhánh cùng lúc vào repo vừa tạo có thể không kích hoạt workflow** cho một trong các nhánh
   (gặp với `staging` ngày 2026-09-24). Nếu thiếu run, đẩy thêm một commit (qua PR) để kích hoạt lại.
+- **`agy` headless chọn lệnh shell để ghi file.** Ở mode mặc định, headless tự từ chối lệnh shell
+  (`denied_actions: RunCommand`), và khi được nhờ tạo file thì `agy` hay thử bằng shell nên kết quả rỗng; `--mode
+  plan` kèm `--json-schema` trả rỗng. Bài học: đừng để `agy` ghi — bắt nó trả nội dung qua `--json-schema` (đọc ở
+  `structured_output`) và để code tự ghi. Phát hiện khi spike repobot (2026-09-26).
+- **Ruleset chỉ cho App bypass thì chủ repo cũng không xoá được nhánh.** Ruleset `bot-branches` chặn xoá `bot/**`
+  với mọi người trừ App `tckt-repobot`, nên nút "Delete branch" sau khi đóng PR bot bị từ chối. Dọn bằng cách tạm
+  thêm mình vào bypass (xem `docs/ops/repobot.md`).
 
 ## Lịch sử phiên bản
 
@@ -57,3 +64,4 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
+| 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |

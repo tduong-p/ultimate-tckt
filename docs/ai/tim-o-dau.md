@@ -1,11 +1,11 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 1.1
+version: 2.0
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: []
 ---
 
@@ -18,15 +18,11 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 
 | Cần gì | Xem ở đâu |
 |---|---|
-| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `settings-email.js`, `settings-cron.js`, `system.js`, `units.js`, `platform.js`; đăng ký ở `core/src/routes/index.js` |
-| Phân quyền / phạm vi dữ liệu | `core/src/policies/access.js` (`activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`…); middleware role ở `core/src/middleware/auth.js` (`auth`, `admin`, `manager`, `managerOrEventLead`, `platformAdmin`) |
-| Đơn vị, membership, role theo đơn vị | `core/src/units/catalog.js` (loại đơn vị, role hợp lệ), `core/src/units/memberships.js` (đọc/ghi membership, đồng bộ `users.role` ↔ TCKT), `core/src/middleware/unit-context.js` (`req.memberships`, `req.unit`, `req.actor`), API ở `core/src/routes/units.js` |
-| Chặn route Điều hành theo đơn vị / audit DYC đọc chéo | `core/src/middleware/legacy-gate.js` (`LEGACY_PREFIXES`), `core/src/services/audit.js` (`recordAudit`) |
-| Setting nền tảng vs setting đơn vị, khoá setting | `core/src/settings/catalog.js` (`SETTINGS`, `managed_by`), `core/src/middleware/setting-guard.js`, `core/src/routes/platform.js` (`/api/platform/setting-locks`) |
-| Ranh giới module (việc nào được tự làm, việc nào phải raise) | `docs/dev/ranh-gioi-module.md` |
+| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `settings-email.js`, `settings-cron.js`, `system.js`; đăng ký ở `core/src/routes/index.js` |
+| Phân quyền / phạm vi dữ liệu | `core/src/policies/access.js` (`activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`…); middleware role ở `core/src/middleware/auth.js` (`auth`, `admin`, `manager`, `devops`) |
 | Gửi email / rule engine | `core/src/services/email-events.js` (registry sự kiện + gửi), `core/src/services/email-condition-evaluator.js` (ma trận điều kiện), `core/src/services/email-settings.js` (cấu hình SMTP mã hoá) |
 | Cron job | `core/src/services/cron-runner.js` (registry handler + chạy job), route quản trị ở `core/src/routes/settings-cron.js` |
-| Schema DB / migration | `core/db.sql` (schema gốc), `core/src/config/migrate.js` (migration idempotent chạy bằng `npm run migrate`), `core/src/config/migrate-units.js` (bảng đơn vị/membership/audit/khoá setting + backfill một lần) |
+| Schema DB / migration | `core/db.sql` (schema gốc), `core/src/config/migrate.js` (migration idempotent chạy bằng `npm run migrate`) |
 | Cấu hình môi trường | `core/src/config/environment.js`, `core/src/config/validate.js`, mẫu biến ở `core/.env.example` |
 | Mã hoá secret cấu hình | `core/src/config/settings-crypto.js` (AES-256-GCM, khoá `SETTINGS_ENCRYPTION_KEY`) |
 | Đăng nhập Microsoft SSO | `core/src/auth/hust-account.js`, `core/src/auth/hust-identity.js` |
@@ -74,10 +70,12 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Kiểm tài liệu | `tools/docs-check/{frontmatter,rules,index,cli}.js` |
 | Xuất tài liệu docx/pdf | `tools/docs-export/export.sh` |
 | Test script hạ tầng/tooling | `tools/tests/*.test.js`, stub lệnh hệ thống ở `tools/tests/helpers/sandbox.js` |
+| Bot Discord repobot (vận hành, secret, sự cố) | `docs/ops/repobot.md`; code ở repo phụ `tduong-p/tckt-repobot` |
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
-| 1.1 | 2026-09-24 | Cập nhật theo GĐ1-A: đơn vị/membership, legacy gate, setting guard, `platformAdmin` thay `devops`; trỏ tới ranh giới module | DYC |
+| 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |

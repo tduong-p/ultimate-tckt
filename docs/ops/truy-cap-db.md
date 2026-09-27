@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-DB-001
 title: Truy cập database từ xa (chỉ đọc)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-26
 related_code: [infra/scripts/create-core-readonly-user.sh]
 ---
 
@@ -59,7 +59,7 @@ Mật khẩu chỉ hiện một lần trên console — lưu vào password manag
 | Username | user do script tạo | như staging |
 | Password | mật khẩu ở bước 2 | như staging |
 
-**Tab SSH:** tick **Use SSH Tunnel** — Host/IP `168.107.68.32`, Port `22`, User `ubuntu`, Authentication Method **Public Key**, Private Key = khoá SSH cá nhân của bạn (không phải deploy key của VM).
+**Tab SSH:** tick **Use SSH Tunnel** — Host/IP `168.107.68.32`, Port `22`, User `ubuntu`, Authentication Method **Public Key**, Private Key = khoá SSH cá nhân của bạn (không phải deploy key của VM; tạo và xin cấp quyền theo [`ssh.md`](ssh.md)).
 
 Bấm **Test Connection**. Nếu gặp lỗi `Public Key Retrieval is not allowed`, vào **Driver properties**, đặt `allowPublicKeyRetrieval = TRUE`.
 
@@ -89,3 +89,4 @@ Hiện chưa có script tạo user chỉ đọc cho `ctd-db` (Postgres). `ctd-db
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-26 | Trỏ tới hướng dẫn SSH `ssh.md` | DYC |

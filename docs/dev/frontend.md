@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [core/public/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -60,3 +60,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-27 | Đồng bộ `main` = `staging`: code frontend theo bản `main` (bỏ phần GĐ1-A, lưu ở nhánh `archive/gd1a-staging`); nội dung tài liệu vẫn đúng | DYC |
