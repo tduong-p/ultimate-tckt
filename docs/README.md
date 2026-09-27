@@ -72,9 +72,9 @@
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.3 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.0 | active | ops, ba |
 | [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 2.0 | active | dev, ops, ai |
-| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.5 | active | dev, ops, ai |
+| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.6 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
-| [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.0 | active | ops, dev |
+| [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.1 | active | ops, dev |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.0 | active | dev, ops |
 | [OPS-SSH-001](ops/ssh.md) | SSH vào VM — khoá cá nhân và cấp quyền | 1.0 | active | dev, ops, ai, onboarding |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
@@ -117,8 +117,9 @@
 | [SPEC-UNIT-004](specs/2026-09-24-gd1a-core-da-don-vi-plan.md) | Kế hoạch triển khai — GĐ1-A Nền tảng đa đơn vị trong Core | 1.0 | active | dev, ai |
 | [SPEC-UNIT-005](specs/2026-09-24-gd1a2-nen-phan-2-plan.md) | Kế hoạch triển khai — GĐ1-A2 Nền phần 2 | 1.0 | active | dev, ai |
 | [SPEC-AIKIT-002](specs/2026-09-26-ai-kit-plan.md) | Kế hoạch triển khai — AI kit cho dev (repo chính) | 1.0 | draft | dev, ai |
-| [SPEC-AIKIT-001](specs/2026-09-26-ai-kit-repobot-design.md) | Design — AI kit cho dev và bot Discord repobot | 1.1 | draft | dev, ai, ops |
+| [SPEC-AIKIT-001](specs/2026-09-26-ai-kit-repobot-design.md) | Design — AI kit cho dev và bot Discord repobot | 2.0 | draft | dev, ai, ops |
 | [SPEC-AIKIT-003](specs/2026-09-26-repobot-plan.md) | Kế hoạch triển khai — bot Discord repobot (repo phụ) | 1.0 | draft | dev, ops, ai |
+| [SPEC-AIKIT-004](specs/2026-09-27-repobot-notify-plan.md) | Kế hoạch triển khai — repobot thông báo thay đổi repo kèm TLDR (phần C) | 1.0 | draft | dev, ops, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
