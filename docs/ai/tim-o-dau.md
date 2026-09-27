@@ -1,11 +1,11 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 1.0
+version: 1.1
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: []
 ---
 
@@ -70,9 +70,11 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Kiểm tài liệu | `tools/docs-check/{frontmatter,rules,index,cli}.js` |
 | Xuất tài liệu docx/pdf | `tools/docs-export/export.sh` |
 | Test script hạ tầng/tooling | `tools/tests/*.test.js`, stub lệnh hệ thống ở `tools/tests/helpers/sandbox.js` |
+| Bot Discord repobot (vận hành, secret, sự cố) | `docs/ops/repobot.md`; code ở repo phụ `tduong-p/tckt-repobot` |
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |

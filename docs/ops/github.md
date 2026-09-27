@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.3
+version: 1.5
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [.github/**]
 ---
 
@@ -49,6 +49,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 5. Nhãn (Label)
 
 - `no-docs-needed` — gắn vào PR khi thay đổi không cần cập nhật tài liệu, đi kèm dòng "Docs: không cần vì …" trong mô tả PR (xem `.github/pull_request_template.md`, và luật ở `AGENTS.md`). Kiểm tác động code→tài liệu chỉ chạy ở PR, nên nhãn này không cần lặp lại sau merge.
+- `cross-module` — tạo nhãn này (màu tuỳ ý). Mẫu issue `.github/ISSUE_TEMPLATE/cross-module.md` ("Đề xuất thay đổi liên module") tự gắn nhãn; dùng khi việc chạm module khác hoặc hợp đồng dùng chung, đưa ra họp team (xem `docs/dev/ranh-gioi-module.md`).
 
 ## 6. GHCR (GitHub Container Registry)
 
@@ -61,6 +62,15 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 - Thử tạo PR vào `main` không đủ check → bị chặn merge.
 - Thử push thẳng vào `main` → bị từ chối bởi ruleset.
 
+## 8. GitHub App và ruleset cho bot repobot
+
+- GitHub App `tckt-repobot`: không webhook; quyền Contents (read & write), Pull requests (read & write), Metadata
+  (read); chỉ cài cho repo `ultimate-tckt`. Private key nằm trên VM (`docs/ops/repobot.md`), không ở đâu khác.
+- Ruleset `bot-branches` (target `refs/heads/bot/**`): chặn tạo, cập nhật, xoá và force-push; bypass chỉ App
+  `tckt-repobot` — người và agent khác không đẩy hay xoá được nhánh `bot/*`.
+- App không nằm trong bypass của `protect-main`/`protect-staging`: bot chỉ mở PR vào `staging`, không push thẳng
+  hay merge.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -69,3 +79,5 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.1 | 2026-09-24 | Ghi đúng ruleset đã tạo: thêm check `changes`, chặn xoá nhánh; staging bắt buộc check nên thay đổi đi qua PR | DYC |
 | 1.2 | 2026-09-24 | Nhãn `no-docs-needed`: kiểm tác động chỉ ở PR | DYC |
 | 1.3 | 2026-09-24 | Thêm `PROD_DEPLOY_ENABLED`; GHCR giữ 40 bản, build không provenance | DYC |
+| 1.4 | 2026-09-24 | Thêm nhãn `cross-module` và mẫu issue đề xuất thay đổi liên module | DYC |
+| 1.5 | 2026-09-27 | Thêm mục 8: GitHub App và ruleset `bot-branches` cho bot repobot | DYC |
