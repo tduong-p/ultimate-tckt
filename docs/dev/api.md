@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 1.0
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -84,3 +84,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 1.1
+version: 2.0
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -78,3 +78,4 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
