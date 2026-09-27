@@ -1,7 +1,7 @@
 ---
 doc_id: PB-SCH-001
 title: Playbook — đổi schema
-version: 2.0
+version: 2.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -21,7 +21,7 @@ Khi cần thêm/sửa/xoá bảng hoặc cột ở Core (MySQL) hoặc CTD (Post
 
 ### Core (MySQL) — migration tự viết, idempotent
 
-1. Thêm một khối mới trong `core/src/config/migrate.js`, dùng các hàm kiểm-tồn-tại có sẵn (`tableExists`, `columnExists`, `getColumnType`, `foreignKeyExists`) trước khi `CREATE`/`ALTER` — không giả định trạng thái DB hiện tại.
+1. Thêm một khối mới trong `core/src/config/migrate.js`, dùng các hàm kiểm-tồn-tại có sẵn (`tableExists`, `columnExists`, `getColumnType`, `foreignKeyExists`) trước khi `CREATE`/`ALTER` — không giả định trạng thái DB hiện tại. (Riêng các bảng mới thuộc Đa đơn vị GĐ1, thêm vào `core/src/config/migrate-units.js`; lưu ý dữ liệu seed mà người dùng có thể sửa sau này phải được đặt sau một marker để chỉ backfill một lần duy nhất).
 2. Chạy `npm run migrate` (từ `core/`) hai lần liên tiếp trên cùng một DB — lần thứ hai phải không lỗi và không đổi gì thêm (chứng minh idempotent).
 3. Chạy lại `npm run migrate` trên một DB **trống** (tạo mới từ `core/db.sql`) — cũng phải không lỗi.
 4. Cập nhật `core/db.sql` để bản import lần đầu đã có sẵn thay đổi này (tránh DB mới phải chạy migrate nhiều bước).
@@ -69,3 +69,4 @@ infra/scripts/apply-infra.sh <env> true
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-27 | Cập nhật playbook nhắc nhở các bảng Đa đơn vị GĐ1 đưa vào `migrate-units.js` | D2 |
