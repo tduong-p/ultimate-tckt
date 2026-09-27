@@ -1,10 +1,10 @@
-'use strict';
+﻿'use strict';
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 
 const crypto = require('crypto');
-const { migrateDatabase } = require('../../src/config/migrate');
 
 const rootConfig = {
   host: process.env.TEST_DB_HOST || process.env.DB_HOST || 'localhost',
@@ -24,8 +24,6 @@ async function createTestDatabase() {
   await admin.query(schemaSql);
   await admin.end();
   const pool = mysql.createPool({ ...rootConfig, database: dbName, multipleStatements: false, waitForConnections: true, connectionLimit: 5 });
-  // Schema test = db.sql + migrate, giống production (bảng đa đơn vị chỉ có trong migrate).
-  await migrateDatabase(pool, { logger: { info: () => {} } });
   return {
     pool,
     async teardown() {

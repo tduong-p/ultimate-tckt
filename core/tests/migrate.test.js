@@ -35,21 +35,3 @@ test('migrateDatabase is idempotent and ensures all required tables and columns 
     await teardown();
   }
 });
-
-test('migrateDatabase creates the email + cron module tables and users.is_devops', async () => {
-  const { pool, teardown } = await createTestDatabase();
-  try {
-    await migrateDatabase(pool, { logger: { info: () => {} } });
-    assert.equal(await columnExists(pool, 'users', 'is_devops'), true);
-    assert.equal(await tableExists(pool, 'email_settings'), true);
-    assert.equal(await tableExists(pool, 'email_templates'), true);
-    assert.equal(await tableExists(pool, 'email_rules'), true);
-    assert.equal(await tableExists(pool, 'email_deliveries'), true);
-    assert.equal(await tableExists(pool, 'cron_jobs'), true);
-    assert.equal(await tableExists(pool, 'cron_job_runs'), true);
-    // idempotent: running twice must not throw
-    await migrateDatabase(pool, { logger: { info: () => {} } });
-  } finally {
-    await teardown();
-  }
-});

@@ -1,12 +1,12 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.3
+version: 1.5
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
-related_code: [.github/workflows/**, tools/**]
+updated: 2026-09-27
+related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
 # Cách kiểm tra trước khi coi là xong
@@ -38,6 +38,17 @@ Chỉ sửa một phần (ví dụ chỉ route Core) vẫn nên chạy cả `npm
 Xem `docs/dev/chay-local.md` để dựng MySQL 8 và Postgres 16 bằng Docker cho máy dev. Không dùng DB thật của
 staging/production để chạy test.
 
+### Test fixtures cho local development
+
+`tools/test-fixtures/` cung cấp dữ liệu test và script restore DB local:
+
+- `README.md`: hướng dẫn đầy đủ về test fixtures
+- `restore-db.ps1`: restore MySQL backup vào DB local (Windows PowerShell)
+- `test-local.ps1`: test end-to-end local (restore DB + verify + start server)
+- `sql/mysql/backup_current.sql`: snapshot MySQL hiện tại của TCKT operations
+
+**Không** được copy thư mục này vào Docker images production. Chỉ dùng cho local dev, unit test, và manual QA.
+
 ## Cách đọc CI
 
 Workflow `.github/workflows/deploy.yml`: lọc theo đường dẫn thay đổi (`dorny/paths-filter`) → chạy
@@ -68,3 +79,5 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.1 | 2026-09-24 | Ghi luật ngày `updated` khi bump và việc bỏ qua ADR trong kiểm tác động | DYC |
 | 1.2 | 2026-09-24 | Kiểm tác động code→tài liệu chỉ gác ở PR, push không lặp lại | DYC |
 | 1.3 | 2026-09-24 | Công tắc `PROD_DEPLOY_ENABLED` | DYC |
+| 1.4 | 2026-09-26 | Thêm database inspection tools trong `tools/database-inspecs/` | DYC |
+| 1.5 | 2026-09-27 | Thêm `tools/test-fixtures/` — backup DB và script restore cho local dev | DYC |
