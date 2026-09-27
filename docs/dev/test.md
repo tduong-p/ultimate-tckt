@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 1.3
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -78,3 +78,4 @@ nào, kể cả mật khẩu mặc định.
 | 1.1 | 2026-09-24 | Chỉ chỗ test luật docs-check | DYC |
 | 1.2 | 2026-09-24 | Tuỳ chọn `sudoFail` của sandbox | DYC |
 | 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [.github/CODEOWNERS, .github/ISSUE_TEMPLATE/**, core/src/routes/index.js]
 ---
 
@@ -59,3 +59,4 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu: bảng module, hợp đồng dùng chung, quy tắc raise họp team | DYC |
+| 1.1 | 2026-09-27 | Đồng bộ `main` = `staging`: `core/src/routes/index.js` theo bản `main` (bỏ route đa đơn vị, lưu ở nhánh `archive/gd1a-staging`); luật không đổi | DYC |

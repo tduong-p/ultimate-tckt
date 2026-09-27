@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-DB-001
 title: Migration cơ sở dữ liệu
-version: 1.0
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
 ---
 
@@ -58,3 +58,4 @@ cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-re
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
