@@ -6,6 +6,7 @@ const { createTeamRoutes } = require('./teams');
 const { createDocumentRoutes } = require('./documents');
 const { createReportRoutes } = require('./reports');
 const { createNotificationRoutes } = require('./notifications');
+const { createDirectiveRoutes } = require('./directives');
 
 function registerRoutes(app, context) {
   app.use(createSystemRoutes(context));
@@ -16,6 +17,7 @@ function registerRoutes(app, context) {
   app.use(createDocumentRoutes(context));
   app.use(createReportRoutes(context));
   app.use(createNotificationRoutes(context));
+  app.use('/api/directives', createDirectiveRoutes(context));
 }
 
 module.exports = { registerRoutes };
