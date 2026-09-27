@@ -53,14 +53,15 @@
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 1.0 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 1.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
+| [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.0 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 1.3 | active | dev, ai |
 
 ## onboarding
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [ONB-HO-001](onboarding/ban-giao.md) | Onboarding — bàn giao | 1.0 | active | onboarding, dev |
-| [ONB-D1-001](onboarding/ngay-1.md) | Onboarding — ngày 1 | 1.0 | active | onboarding, dev |
+| [ONB-HO-001](onboarding/ban-giao.md) | Onboarding — bàn giao | 1.1 | active | onboarding, dev |
+| [ONB-D1-001](onboarding/ngay-1.md) | Onboarding — ngày 1 | 1.1 | active | onboarding, dev |
 | [ONB-W1-001](onboarding/tuan-1.md) | Onboarding — tuần 1 | 1.0 | active | onboarding, dev |
 
 ## ops
@@ -71,7 +72,7 @@
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.3 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.0 | active | ops, ba |
 | [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 1.2 | active | dev, ops, ai |
-| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.3 | active | dev, ops, ai |
+| [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.4 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.0 | active | dev, ops, ai |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.0 | active | dev, ops |
 | [OPS-INC-001](ops/su-co.md) | Xử lý sự cố thường gặp | 1.0 | active | dev, ops, ai |
@@ -110,7 +111,9 @@
 |---|---|---|---|---|
 | [SPEC-MONO-001](specs/2026-09-23-monorepo-ultimate-tckt-design.md) | Thiết kế — Gộp repo thành monorepo ultimate-tckt + hệ thống tài liệu | 1.0 | active | dev, ai |
 | [SPEC-MONO-002](specs/2026-09-23-monorepo-ultimate-tckt-plan.md) | Kế hoạch triển khai — Gộp repo thành monorepo ultimate-tckt | 1.0 | active | dev, ai |
+| [SPEC-UNIT-006](specs/2026-09-24-gd1-phan-lane.md) | Phân lane làm song song — GĐ1 nền tảng đa đơn vị | 1.0 | active | dev, ai |
 | [SPEC-UNIT-004](specs/2026-09-24-gd1a-core-da-don-vi-plan.md) | Kế hoạch triển khai — GĐ1-A Nền tảng đa đơn vị trong Core | 1.0 | active | dev, ai |
+| [SPEC-UNIT-005](specs/2026-09-24-gd1a2-nen-phan-2-plan.md) | Kế hoạch triển khai — GĐ1-A2 Nền phần 2 | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
