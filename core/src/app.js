@@ -9,15 +9,18 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, platformAdmin, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { createUnitContext } = require('./middleware/unit-context');
+const { createSettingGuard } = require('./middleware/setting-guard');
+const { LEGACY_PREFIXES, createLegacyGate } = require('./middleware/legacy-gate');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
 const { asyncRoute, validHttpUrl, one, ids } = require('./routes/utils');
 const { registerRoutes } = require('./routes');
 const logger = require('./logger');
-const mailer = require('./mailer');
 const push = require('./push');
+const emailEvents = require('./services/email-events');
 
 function createApplication(options = {}) {
   const runtimeConfig = options.config || config;
@@ -26,7 +29,7 @@ function createApplication(options = {}) {
   const attachmentRoot = path.join(__dirname, '..', 'storage', 'task-attachments');
   fs.mkdirSync(attachmentRoot, { recursive: true });
 
-  warnAboutConfiguration(runtimeConfig, { mailer, push });
+  warnAboutConfiguration(runtimeConfig, { push });
   app.set('trust proxy', 1);
   app.use(helmet({
     contentSecurityPolicy: {
@@ -50,13 +53,15 @@ function createApplication(options = {}) {
   app.use(express.urlencoded({ extended: false }));
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(createUnitContext(db));
+  app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, settingGuard: createSettingGuard(db), isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
-    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, mailer, push,
+    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, push, emailEvents,
     taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto
   };
   registerRoutes(app, context);

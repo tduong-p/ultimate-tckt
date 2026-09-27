@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-UNIT-003
 title: Tasks — Nền tảng đa đơn vị (GĐ1)
-version: 1.0
+version: 1.1
 status: active
 audience: [ba, dev, ai]
 owner: DYC
@@ -17,7 +17,7 @@ Bản gốc Kiro: `.kiro/specs/nen-tang-da-don-vi/`. Sửa ở đây rồi đồ
 
 ## Core
 
-- [ ] 1. Viết migration idempotent (bảng mới + seed đơn vị + gán dữ liệu cũ)
+- [x] 1. Viết migration idempotent (bảng mới + seed đơn vị + gán dữ liệu cũ)
   - Tạo `org_units`, `unit_memberships`, `unit_modules`, `unit_visibility_policies`, `setting_locks`, `audit_logs`, `directives`, `submissions`, `ops_logs`, `ops_log_attendance`
   - Seed đơn vị: DYC, BTV, TCKT, VP Đoàn, Chi bộ, ĐT/LCĐ (dữ liệu giả ở GĐ1 — thay bằng danh sách thật trước khi mở cho người dùng thật)
   - Gán `teams.unit_id` / `activities.unit_id` = TCKT cho dữ liệu hiện có
@@ -26,20 +26,20 @@ Bản gốc Kiro: `.kiro/specs/nen-tang-da-don-vi/`. Sửa ở đây rồi đồ
   - Test chạy migration hai lần, xác nhận không tạo bản ghi trùng
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 3.1_
 
-- [ ] 2. Middleware `loadUnitContext` + refactor `src/policies/access.js`
+- [x] 2. Middleware `loadUnitContext` + refactor `src/policies/access.js`
   - Gắn `req.unit`, `req.unitRole`, `req.memberships` từ session `current_unit_id`
   - Xử lý fallback: `current_unit_id` không hợp lệ → membership đầu tiên; không có membership nào → 403
   - Chuyển `isExecutive`, `leadsTeam`, `activityScope`,… sang dùng `req.unitRole`
   - _Requirements: 1.4, 1.5_
 
-- [ ] 3. DYC + `setting_locks` + `managed_by` + admin global
+- [x] 3. DYC + `setting_locks` + `managed_by` + admin global
   - Thêm cột `managed_by` (`platform` / `unit`) cho setting
   - Endpoint khóa/mở khóa setting (chỉ DYC), ghi audit
   - Bootstrap `DEVOPS_EMAILS` → membership `dyc_admin` mỗi lần khởi động
   - `scopeFor` coi DYC là admin global: cho đọc mọi endpoint dữ liệu nghiệp vụ (không 403), ghi `audit_logs` mỗi lượt đọc liên đơn vị
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 4. `audit_logs`
+- [x] 4. `audit_logs`
   - Ghi log khi: đọc liên đơn vị, đổi mức xem, khóa/mở khóa setting, đổi membership
   - _Requirements: 3.6, 3.7, 9.1, 9.2_
 
@@ -59,6 +59,8 @@ Bản gốc Kiro: `.kiro/specs/nen-tang-da-don-vi/`. Sửa ở đây rồi đồ
   - _Requirements: 7.1, 7.4, 7.5_
 
 - [ ] 8. Quản lý đơn vị và membership (UI cho DYC + admin đơn vị)
+  - [x] Backend: API `core/src/routes/units.js` (CRUD đơn vị, membership, chặn hạ/xoá `dyc_admin` cuối cùng qua PUT/DELETE) — GĐ1-A Task 8
+  - [ ] UI (DYC + admin đơn vị) → dời sang GĐ1-D
   - _Requirements: 1.1, 1.3_
 
 ## Điều hành
@@ -120,3 +122,4 @@ Bản gốc Kiro: `.kiro/specs/nen-tang-da-don-vi/`. Sửa ở đây rồi đồ
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản có frontmatter, đồng bộ từ `.kiro/specs/nen-tang-da-don-vi/tasks.md` | DYC |
+| 1.1 | 2026-09-24 | Đồng bộ lại từ bản Kiro: tick mục 1–4 và phần backend của mục 8 (GĐ1-A xong), UI mục 8 dời GĐ1-D | DYC |

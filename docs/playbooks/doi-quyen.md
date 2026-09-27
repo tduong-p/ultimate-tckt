@@ -1,12 +1,12 @@
 ---
 doc_id: PB-RBAC-001
 title: Playbook — đổi quyền
-version: 1.0
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Playbook — đổi quyền
@@ -31,6 +31,26 @@ Khi thêm/sửa vai trò, thay đổi phạm vi dữ liệu một vai trò đư�
    cd services/ctd-api/backend && .venv/bin/pytest tests/test_quyen_thao_tac.py tests/test_scope.py
    ```
 6. **Cập nhật tài liệu nghiệp vụ** phản ánh đúng quyền mới — đây là bước hay bị quên nhất vì bảng phân quyền dễ nằm rải rác nhiều file.
+7. **Thêm route Điều hành mới → thêm prefix vào `LEGACY_PREFIXES`** (`core/src/middleware/legacy-gate.js`) nếu
+   route nằm ngoài các prefix sẵn có — nếu không, `createLegacyGate` sẽ không chặn route đó và người ngoài
+   TCKT/DYC sẽ đi qua thẳng, bỏ qua cả kiểm tra 403 lẫn audit `cross_unit_read` (xem
+   `docs/dev/phan-quyen.md` mục "Cổng Điều hành (`legacyGate`)"). Route thuộc setting `managed_by=unit`/`platform`
+   (ví dụ weight-presets qua `/api/admin/`) đi qua `settingGuard` riêng, không thêm vào đây.
+
+## Cấp quyền cho người mới (qua API membership, GĐ1-A Task 8)
+
+Không sửa trực tiếp `users.role` (hay `unit_memberships`) bằng SQL tay — luôn đi qua API membership của
+`core/src/routes/units.js`, để đúng người được ghi `audit_logs` và (với đơn vị TCKT) `users.role` được đồng bộ
+tự động:
+
+1. Tìm đơn vị cần thêm người: `GET /api/units` (đăng nhập bằng tài khoản DYC hoặc admin của đơn vị đó).
+2. Gán vai trò: `PUT /api/units/:id/members/:userId { role }` — `role` phải nằm trong `UNIT_ROLES[kind]` của
+   đơn vị đó (400 nếu sai). Chỉ DYC (`dyc_admin` với đơn vị DYC) hoặc admin của chính đơn vị đó
+   (`isUnitAdmin`) gọi được (403 nếu không).
+3. Gỡ quyền: `DELETE /api/units/:id/members/:userId` — cùng điều kiện quyền như trên; không gỡ được
+   `dyc_admin` cuối cùng của đơn vị DYC (409).
+4. Đơn vị TCKT: đổi/gỡ membership ở đây tương đương đổi role ở màn Tài khoản cũ — không cần (và không nên)
+   sửa thêm ở nơi khác.
 
 ## Kiểm tra xong
 
@@ -50,3 +70,5 @@ Khi thêm/sửa vai trò, thay đổi phạm vi dữ liệu một vai trò đư�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-24 | Thêm bước 7: route Điều hành mới ngoài prefix sẵn có phải thêm vào `LEGACY_PREFIXES` | DYC |
+| 1.2 | 2026-09-24 | Thêm mục "Cấp quyền cho người mới (qua API membership)" — dùng `/api/units*`, không sửa `users.role` bằng SQL tay | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -15,21 +15,24 @@ Tài liệu này giúp dev biết chạy test ở đâu, viết test kiểu gì,
 
 ## Core — `node --test`
 
-25 file test tại `core/tests/*.test.js`, cần MySQL local (biến `TEST_DB_HOST/PORT/USER/PASSWORD`, mặc định rơi
+27 file test tại `core/tests/*.test.js`, cần MySQL local (biến `TEST_DB_HOST/PORT/USER/PASSWORD`, mặc định rơi
 về `DB_*` rồi `root@localhost`; user DB cần quyền `CREATE`/`DROP DATABASE` vì test tự tạo/xoá DB tạm). Chạy:
 
 ```bash
 cd core && npm test
 ```
 
-Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + migrate; nạp `.env` tự động qua `dotenv` để đọc cấu hình DB test),
+Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm bằng cách nạp `db.sql` rồi
+chạy `migrateDatabase`, giống hệt schema production; bảng đa đơn vị — `org_units`, `unit_memberships`… — chỉ có
+sau bước migrate, không nằm trong `db.sql`; helper tự nạp `core/.env` qua `dotenv` để đọc cấu hình DB test),
 `server.js` (`startTestServer` — dựng Express app thật, trả về client HTTP giả lập session), `fixtures.js`
 (`createTeam`, `createUser`, `createActivity`… tạo dữ liệu mẫu tối thiểu). Mỗi test nên tự dựng dữ liệu qua
 fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
-frontend cũ và API), `migrate.test.js` (migration idempotent).
+frontend cũ và API), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (bảng đa đơn vị + backfill
+một lần).
 
 ## CTD — `pytest`
 
@@ -77,4 +80,5 @@ nào, kể cả mật khẩu mặc định.
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Chỉ chỗ test luật docs-check | DYC |
 | 1.2 | 2026-09-24 | Tuỳ chọn `sudoFail` của sandbox | DYC |
-| 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |
+| 1.3 | 2026-09-24 | Sửa mô tả `createTestDatabase` cho đúng (đã chạy `migrateDatabase`), thêm `migrate.units.test.js` | DYC |
+| 1.4 | 2026-09-27 | Gộp `main` và `staging`: ghi nhận helper `db.js` nạp `.env` qua `dotenv` | DYC |
