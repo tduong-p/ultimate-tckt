@@ -933,7 +933,7 @@ test('PRs: opened once, merged once; other bases, drafts, old PRs and closed ign
   Object.assign(w.gh.pulls[0], { state: 'closed', mergedAt: T0 + 300, updatedAt: T0 + 300 });
   Object.assign(w.gh.pulls[3], { state: 'closed', mergedAt: T0 + 301, updatedAt: T0 + 301 });
   await w.run(T0 + 400);
-  assert.deepEqual(w.events().map((e) => `${e.kind}:${e.ref}`), ['pr_merged:pr#7', 'pr_opened:pr#2', 'pr_merged:pr#2', 'pr_merged:pr#5']);
+  assert.deepEqual(w.events().map((e) => `${e.kind}:${e.ref}`), ['pr_merged:pr#7', 'pr_opened:pr#2', 'pr_merged:pr#5', 'pr_merged:pr#2']);
 });
 
 test('direct pushes: one event per branch per round; commits of merged PRs are covered', async () => {

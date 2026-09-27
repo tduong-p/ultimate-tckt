@@ -299,12 +299,13 @@ TLDR: <1–3 câu tiếng Việt thường, BA đọc được>
 ### 6.4. Gọi `agy` để tóm tắt
 
 - Worktree riêng `/srv/repobot/notify/` (detached ở SHA đích), tách khỏi `read/` của `/ask`.
-- Code bot tạo diff (`git diff <base>..<head>`) và ghi ra file trong `/srv/repobot/notify-in/` — **ngoài** worktree,
-  không để `agy` nhầm là một phần repo. Prompt chỉ chứa: loại sự kiện, tiêu đề/mô tả PR hoặc commit message, tác giả,
-  `--stat`, đường dẫn file diff. Không nhét cả diff vào `-p` (Linux giới hạn một tham số argv ~128 KB). Diff > 200 KB
-  bị cắt, prompt ghi rõ đã cắt; `agy` được đọc thêm file trong worktree để hiểu ngữ cảnh.
-  (Kiểm lúc làm plan: `agy` đọc được file ngoài `cwd` hay không — spike mục 4 cho thấy bị chặn. Bị chặn thì đặt file
-  diff trong worktree, dưới một thư mục đã git-ignore cục bộ qua `.git/info/exclude` của worktree.)
+- Code bot tạo diff (diff PR từ GitHub, hoặc `git show` từng commit chưa phủ) và ghi ra
+  `/srv/repobot/notify/.repobot-notify/diff.patch` — **trong** worktree vì `agy` chặn đọc ngoài `cwd` (spike mục 4);
+  thư mục này nằm trong `.git/info/exclude` của repo `main/` nên không làm worktree "bẩn", và bị xoá ngay sau lượt.
+  Prompt chỉ chứa: loại sự kiện, tiêu đề/mô tả PR hoặc commit message, tác giả, thống kê, danh sách file, đường dẫn
+  file diff. Không nhét cả diff vào `-p` (Linux giới hạn một tham số argv ~128 KB). Diff > 200 000 ký tự bị cắt,
+  prompt ghi rõ đã cắt; GitHub không trả được diff (quá lớn) thì prompt nói rõ và `agy` tóm tắt từ danh sách file;
+  `agy` được đọc thêm file trong worktree để hiểu ngữ cảnh.
 - Luật `agy` như phần B: mode mặc định, env chỉ `HOME`/`PATH`, `--output-format json --json-schema
   notify-schema.json`, chỉ đọc `structured_output`.
 - Schema: `tldr` (≤ 400 ký tự), `warning` (chuỗi, có thể rỗng), `details` (≤ 15 mục `{area, summary}`). Code bot
@@ -352,7 +353,7 @@ TLDR: <1–3 câu tiếng Việt thường, BA đọc được>
 |---|---|
 | `docs/adr/0013-ai-kit-va-repobot.md` | ADR mới: kit chia tầng, bot ở repo phụ, `agy` headless, không proxy subscription |
 | `docs/dev/ai-kit.md` | Mới: các tầng của kit, lệnh `ai:*`, skill, hook, cách thêm skill/hook; `related_code` trỏ `tools/ai-kit/**`, `.agents/skills/tckt-*/**`, `.claude/**` |
-| `docs/ops/repobot.md` | Mới: user `repobot`, systemd, bố trí `/srv/repobot`, đăng nhập lại `agy`, GitHub App, xử lý sự cố. Phần C: `NOTIFY_CHANNEL_ID`, `NOTIFY_FEATURE_PUSH`, `notify/`, `notify-in/`, bật/tắt, hạn chế đã biết |
+| `docs/ops/repobot.md` | Mới: user `repobot`, systemd, bố trí `/srv/repobot`, đăng nhập lại `agy`, GitHub App, xử lý sự cố. Phần C: `NOTIFY_CHANNEL_ID`, `NOTIFY_FEATURE_PUSH`, `notify/`, bật/tắt, hạn chế đã biết |
 | `docs/ops/github.md` | Thêm: GitHub App và ruleset `bot/*`; App dùng thêm quyền **đọc** PR/commit cho phần C (nằm trong quyền hiện có) |
 | `AGENTS.md` | Thêm: cài kit, báo cáo cuối việc bắt buộc (đổi luật → qua họp team) |
 | `docs/dev/ranh-gioi-module.md` | Trỏ tới dữ liệu module máy đọc được (4.2) |
@@ -416,4 +417,4 @@ Nếu (1) hoặc (2) không đạt → đổi nơi chạy (máy riêng/Mac) trư
 |---|---|---|---|
 | 1.0 | 2026-09-26 | Bản đầu từ brainstorming: kit chia tầng, bot repobot, Gateway ba cổng, thông báo GitHub | DYC (soạn cùng Claude) |
 | 1.1 | 2026-09-26 | Kết quả spike trên VM; cổng ② đổi sang cách C (`agy` chỉ đề xuất qua `--json-schema`, bot ghi); ToS đã kiểm | DYC (soạn cùng Claude) |
-| 2.0 | 2026-09-27 | Phần C đổi hẳn: repobot tự đăng thông báo (poll, sự kiện a–d, cờ `NOTIFY_FEATURE_PUSH`), TLDR viết từ diff bằng `agy`, cảnh báo message mơ hồ, nút Chi tiết; bỏ webhook có sẵn | DYC (soạn cùng Claude) |
+| 2.0 | 2026-09-27 | Phần C đổi hẳn: repobot tự đăng thông báo (poll, sự kiện a–d, cờ `NOTIFY_FEATURE_PUSH`), TLDR viết từ diff bằng `agy` (file diff trong worktree `notify/`), cảnh báo message mơ hồ, nút Chi tiết; bỏ webhook có sẵn | DYC (soạn cùng Claude) |
