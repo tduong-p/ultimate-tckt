@@ -1,11 +1,11 @@
 ---
 doc_id: BA-GLOS-001
 title: Thuật ngữ
-version: 1.0
+version: 1.1
 status: active
 audience: [ba, dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-27
 related_code: []
 ---
 
@@ -51,3 +51,6 @@ Tài liệu này giúp người mới (BA, dev, AI agent) tra nhanh nghĩa của
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-27 | Thêm dòng kiểm thử theo yêu cầu | repobot |
+
+Test repobot
