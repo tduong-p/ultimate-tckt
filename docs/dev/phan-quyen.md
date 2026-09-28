@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 2.0
+version: 3.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
-related_code: [core/src/policies/**, core/src/middleware/auth.js, services/ctd-api/backend/app/deps.py]
+updated: 2026-09-28
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -37,6 +37,31 @@ Cơ chế trong code:
 - **Devops** (quyền cấu hình SMTP/Templates/Rules/Cron) là một lớp **cắt ngang** role, không phải role riêng:
   cần vừa `isExecutive` vừa `isDevops` (`users.is_devops = 1` hoặc email nằm trong allowlist `DEVOPS_EMAILS`).
   Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `devops`.
+
+## Middleware ngữ cảnh đơn vị — `loadUnitContext` (đã code, `core/src/middleware/unit-context.js`)
+
+Middleware `loadUnitContext` chạy **sau session** và **sau `express.static`**, trước mọi route. Gắn 4 thuộc tính
+vào mỗi request đã đăng nhập:
+
+| Property | Kiểu | Mô tả |
+|---|---|---|
+| `req.memberships` | `Membership[]` | Danh sách đơn vị user tham gia (chỉ đơn vị `is_active=1`), mỗi phần tử `{ unit_id, code, name, kind, role }`. Rỗng nếu chưa đăng nhập hoặc không có membership. |
+| `req.unit` | `{ id, code, name, kind }` hoặc `null` | Đơn vị đang chọn. `null` nếu chưa đăng nhập hoặc không có membership. |
+| `req.unitRole` | `string` hoặc `null` | Role của user trong đơn vị đang chọn. |
+| `req.actor` | `{ ...session.user, role }` hoặc `null` | `role` = `legacyRole(memberships, method)` — dùng cho route Điều hành cũ (`admin`, `manager`...). |
+
+**Fallback logic:**
+- Nếu `session.current_unit_id` trỏ tới đơn vị không thuộc quyền hoặc bị tắt → tự chọn membership đầu tiên
+  (theo thứ tự `unit_memberships.id`).
+- User không có membership nào → `req.unit = null`, `req.memberships = []`, `req.actor.role = null`.
+  Middleware **không trả 403** — việc chặn thuộc về middleware `auth` (Task 4).
+
+**`legacyRole(memberships, method)` — bridge cho route Điều hành cũ:**
+- GET/HEAD **và** có membership DYC (`kind = 'platform_owner'`) → `'admin'`
+- Có membership TCKT → role TCKT của user
+- Còn lại → `null`
+- **Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
+  nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
 
 ## CTD — role theo `services/ctd-api/backend/app/models/identity.py`
 
@@ -78,3 +103,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |

@@ -51,7 +51,7 @@
 | [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 2.0 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.1 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 2.0 | active | dev, ai |
-| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 2.0 | active | dev, ai |
+| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 3.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.1 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 2.1 | active | dev, ai |
