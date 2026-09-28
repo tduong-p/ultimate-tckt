@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-DB-001
 title: Migration cơ sở dữ liệu
-version: 2.0
+version: 2.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -21,13 +21,20 @@ Không dùng thư viện migration ngoài. `core/db.sql` là schema gốc (dùng
 
 Quy trình thêm một thay đổi schema:
 1. Viết một khối trong `migrate.js` kiểm tồn tại trước khi `ALTER TABLE`/`CREATE TABLE`/thêm cột — không giả
-   định trạng thái DB hiện tại.
+   định trạng thái DB hiện tại. Từ giai đoạn Đa đơn vị (GĐ1), các bảng/cột mới liên quan tới đa đơn vị nằm trong `core/src/config/migrate-units.js` (gọi từ Bước 11 của `migrate.js`).
 2. Chạy `npm run migrate` trên DB dev đã có dữ liệu cũ **và** trên DB trống — cả hai phải không lỗi.
 3. Cập nhật `core/db.sql` để bản import lần đầu (DB trống) đã có sẵn thay đổi, tránh phải chạy `migrate` nhiều
    bước cho môi trường hoàn toàn mới.
 4. Không migration nào được xoá dữ liệu người dùng mà không có bước sao lưu/xác nhận rõ ràng.
 
 Không có khái niệm "rollback migration" tự động — muốn revert thì viết một thay đổi mới đảo ngược.
+
+### Bước 11 — Đa đơn vị (GĐ1)
+Toàn bộ logic tạo bảng đa đơn vị nằm ở `core/src/config/migrate-units.js`.
+- Bảng mới: `org_units`, `unit_memberships`, `unit_modules`, `unit_visibility_policies`, `setting_locks`, `audit_logs`, `directives`, `submissions`, `ops_logs`, `ops_log_attendance`, `platform_migrations`.
+- Sửa bảng cũ: `teams.unit_id` và `activities.unit_id` mặc định = ID của đơn vị TCKT (để mọi bản ghi tạo theo luồng cũ đều thuộc TCKT).
+- **Backfill 1 lần**: marker `platform_migrations.multi_unit_backfill_v1` đảm bảo chỉ backfill membership/module vào lần đầu tiên chạy. Lần chạy migrate sau sẽ không tự ý thêm lại những membership mà người quản trị đã chủ động gỡ bỏ.
+- **Cách kiểm tra sau deploy**: chạy truy vấn `SELECT COUNT(*) FROM unit_memberships;` kết quả phải ≥ `SELECT COUNT(*) FROM users;`.
 
 ## CTD (Postgres) — Alembic
 
@@ -59,3 +66,4 @@ cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-re
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-27 | Thêm thông tin về migration đa đơn vị | D2 |
