@@ -1,7 +1,7 @@
 const express = require('express');
 
 function createSubmissionRoutes(context) {
-  const { asyncRoute } = context;
+  const { asyncRoute, db } = context;
   const router = express.Router();
 
   const isBtv = (role) => ['btv_lead', 'btv_member'].includes(role);
@@ -10,8 +10,12 @@ function createSubmissionRoutes(context) {
 
   // GET /api/submissions
   router.get('/', asyncRoute(async (req, res) => {
-    // TODO: Truy vấn danh sách submissions từ DB theo scope
-    res.json({ data: [] });
+    const unitId = req.unit ? req.unit.id : null;
+    const [rows] = await db.execute(
+      `SELECT * FROM submissions WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
+      [unitId, unitId]
+    );
+    res.json({ data: rows });
   }));
 
   // POST /api/submissions
@@ -20,18 +24,24 @@ function createSubmissionRoutes(context) {
     if (!isTcktAdmin(unitRole) && !isBtv(unitRole)) {
       return res.status(403).json({ error: 'Bạn không có quyền tạo submission.' });
     }
-    const { to_unit_id, source_type, source_id } = req.body;
+    const { to_unit_id, source_type, source_id, directive_id, note } = req.body;
     if (!to_unit_id || !source_type || !source_id) {
       return res.status(400).json({ error: 'Thiếu thông tin bắt buộc.' });
     }
-    // TODO: Thực hiện câu lệnh SQL tạo submission
-    res.status(201).json({});
+    const fromUnitId = req.unit ? req.unit.id : 1;
+    const [result] = await db.execute(
+      `INSERT INTO submissions(from_unit_id, to_unit_id, source_type, source_id, directive_id, note, submitted_by) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [fromUnitId, to_unit_id, source_type, source_id, directive_id || null, note || null, req.user ? req.user.id : null]
+    );
+    const [created] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [result.insertId]);
+    res.status(201).json(created[0]);
   }));
 
   // GET /api/submissions/:id
   router.get('/:id', asyncRoute(async (req, res) => {
-    // TODO: Lấy chi tiết submission theo id
-    res.json({});
+    const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    res.json(rows[0]);
   }));
 
   // POST /api/submissions/:id/respond
@@ -40,12 +50,18 @@ function createSubmissionRoutes(context) {
     if (!isBtv(unitRole) && !isDyc(req.unit)) {
       return res.status(403).json({ error: 'Chỉ BTV hoặc DYC mới có quyền phản hồi submission.' });
     }
-    const { response } = req.body;
+    const { response, response_note } = req.body;
     if (!['seen', 'revision_requested', 'accepted'].includes(response)) {
       return res.status(400).json({ error: 'Trạng thái phản hồi không hợp lệ.' });
     }
-    // TODO: Cập nhật phản hồi submission trong DB
-    res.json({});
+    const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    await db.execute(
+      `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE id = ?`,
+      [response, response_note || null, req.user ? req.user.id : null, req.params.id]
+    );
+    const [updated] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
+    res.json(updated[0]);
   }));
 
   // POST /api/submissions/:id/withdraw
@@ -54,8 +70,15 @@ function createSubmissionRoutes(context) {
     if (!isTcktAdmin(unitRole)) {
       return res.status(403).json({ error: 'Chỉ đơn vị gửi mới có quyền rút lại submission khi chưa phản hồi.' });
     }
-    // TODO: Kiểm tra điều kiện chưa có response và thực hiện rút lại submission
-    res.json({});
+    const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    const sub = rows[0];
+    if (sub.response !== null) {
+      return res.status(400).json({ error: 'Không thể rút lại submission đã có phản hồi.' });
+    }
+    await db.execute(`UPDATE submissions SET withdrawn_at = NOW() WHERE id = ?`, [req.params.id]);
+    const [updated] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
+    res.json(updated[0]);
   }));
 
   return router;
