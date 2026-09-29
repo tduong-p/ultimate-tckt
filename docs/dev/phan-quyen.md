@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 3.0
+version: 4.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-28
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
+updated: 2026-09-29
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -57,11 +57,75 @@ vào mỗi request đã đăng nhập:
   Middleware **không trả 403** — việc chặn thuộc về middleware `auth` (Task 4).
 
 **`legacyRole(memberships, method)` — bridge cho route Điều hành cũ:**
-- GET/HEAD **và** có membership DYC (`kind = 'platform_owner'`) → `'admin'`
-- Có membership TCKT → role TCKT của user
-- Còn lại → `null`
-- **Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
-  nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
+
+| Điều kiện | Legacy Role |
+|-----------|-------------|
+| GET/HEAD + có membership DYC (`kind = 'platform_owner'`) | `'admin'` |
+| Có membership TCKT | Role TCKT của user |
+| Còn lại | `null` |
+
+**Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
+nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
+
+## Membership và `req.actor` — GĐ1-A Task 4 (đã code)
+
+### Nguồn Quyền
+
+Từ GĐ1-A, quyền được tính theo **membership** (`unit_memberships`), không còn chỉ dựa vào `users.role`.
+
+Middleware `loadUnitContext` gắn vào mọi request:
+- `req.memberships`: Mảng memberships của user (`[{unit_id, code, name, kind, role}]`)
+- `req.unit`: Đơn vị hiện tại user đang chọn (`{id, code, name, kind}`)
+- `req.unitRole`: Role trong đơn vị hiện tại (string)
+- `req.actor`: User với `role` = legacy role TCKT (để tương thích route cũ)
+
+### Middleware Auth Changes
+
+**`auth` middleware (`core/src/middleware/auth.js`):**
+- ✅ Kiểm tra `req.session.user` (401 nếu chưa đăng nhập)
+- ✅ Kiểm tra `req.memberships?.length` (403 nếu không thuộc đơn vị nào)
+  - Message: `"Tài khoản chưa thuộc đơn vị nào. Liên hệ quản trị đơn vị."`
+
+**`admin`, `manager`, `managerOrEventLead`:**
+- ✅ Đọc `req.actor` thay vì `req.session.user`
+
+### Current Unit Fallback
+
+- User có `current_unit_id` trong session → Ưu tiên chọn đơn vị đó
+- `current_unit_id` không còn trong memberships (gỡ membership / đơn vị bị tắt) → **Tự động fallback về membership đầu tiên**
+- Không có membership nào → 403 tất cả route bảo mật
+
+### API Session
+
+**GET /api/session** trả về:
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "...",
+    "role": "leader",  // ← Legacy role (computed via legacyRole)
+    "is_devops": 0     // ← 1 nếu có DYC membership
+  },
+  "units": {
+    "current": { "id": 1, "code": "TCKT", "name": "...", "kind": "department" },
+    "memberships": [
+      { "unit_id": 1, "code": "TCKT", "name": "...", "kind": "department", "role": "leader" }
+    ]
+  }
+}
+```
+
+**POST /api/session/unit** - Đổi đơn vị đang chọn:
+- Request: `{ "unit_id": 2 }`
+- Response: 200 (session view mới) | 403 (không thuộc đơn vị đó)
+
+### Role Sync
+
+Mọi đường ghi `users.role` tự động đồng bộ membership TCKT:
+- `POST /api/users` (tạo mới)
+- `POST /api/users/bulk-import` (import hàng loạt)
+- `PATCH /api/users/:id` (cập nhật)
+- SSO login lần đầu (`findOrCreateHustAccount`)
 
 ## CTD — role theo `services/ctd-api/backend/app/models/identity.py`
 
@@ -104,3 +168,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |
+| 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | AI (Task 4) |

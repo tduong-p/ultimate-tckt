@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 2.0
+version: 3.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-29
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -23,6 +23,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | Method | Path | File |
 |---|---|---|
 | GET | `/api/session` | `system.js` |
+| POST | `/api/session/unit` | `system.js` |
 | GET | `/auth/microsoft`, `/auth/microsoft/callback` | `system.js` |
 | GET | `/api/push/config` | `system.js` |
 | GET | `/api/version`, `/api/health` | `system.js` |
@@ -56,6 +57,83 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
 
+---
+
+## Endpoint Details (Core)
+
+### GET /api/session
+
+Lấy thông tin session hiện tại.
+
+**Auth:** Optional (trả `user: null` nếu chưa đăng nhập)
+
+**Response 200:**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Nguyễn Văn A",
+    "email": "nva@example.com",
+    "role": "leader",        // Legacy TCKT role (computed via legacyRole)
+    "is_devops": 0,          // 1 nếu có membership DYC
+    "avatar_color": "#3b82f6",
+    "hust_identity": { "kind": "student", "cohort": 67, ... }
+  },
+  "units": {
+    "current": {
+      "id": 1,
+      "code": "TCKT",
+      "name": "Ban Tổ chức – Kiểm tra",
+      "kind": "department"
+    },
+    "memberships": [
+      {
+        "unit_id": 1,
+        "code": "TCKT",
+        "name": "Ban Tổ chức – Kiểm tra",
+        "kind": "department",
+        "role": "leader"
+      }
+    ]
+  }
+}
+```
+
+**Chưa đăng nhập:**
+```json
+{
+  "user": null,
+  "units": {
+    "current": null,
+    "memberships": []
+  }
+}
+```
+
+### POST /api/session/unit
+
+Đổi đơn vị đang chọn (current unit).
+
+**Auth:** Required
+
+**Request Body:**
+```json
+{
+  "unit_id": 2
+}
+```
+
+**Response 200:** Session view mới (giống GET /api/session)
+
+**Response 403:**
+```json
+{
+  "error": "Bạn không thuộc đơn vị này."
+}
+```
+
+---
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -85,3 +163,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | AI (Task 4) |
