@@ -8,6 +8,7 @@ const ExcelJS = require('exceljs');
 const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
+const { createUnitContextMiddleware } = require('./middleware/unit-context');
 const { warnAboutConfiguration } = require('./config/validate');
 const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createErrorHandler } = require('./middleware/errors');
@@ -50,6 +51,14 @@ function createApplication(options = {}) {
   app.use(express.urlencoded({ extended: false }));
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(createUnitContextMiddleware(db));
+
+  // Test-only route for verifying unit context middleware (not exposed in production)
+  if (!runtimeConfig.isProduction) {
+    app.get('/test/unit-context', (req, res) => {
+      res.json({ unit: req.unit, unitRole: req.unitRole, memberships: req.memberships, actor: req.actor });
+    });
+  }
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
