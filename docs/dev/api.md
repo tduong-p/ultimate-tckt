@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 3.0
+version: 4.0
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -49,7 +49,8 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET/POST/PATCH | `/api/documents`, `/api/documents/:id` | `documents.js` |
 | GET | `/api/archive` | `reports.js` |
 | GET | `/api/reports/export` | `reports.js` |
-| GET/PATCH/POST | `/api/notifications`, `/api/notifications/:id/seen`, `/api/notifications/seen` | `notifications.js` |
+| GET/POST/PATCH | `/api/notifications`, `/api/notifications/:id/seen`, `/api/notifications/seen` | `notifications.js` |
+| GET/POST/DELETE | `/api/platform/setting-locks[/:id]` | `platform.js` |
 | GET/PUT/POST | `/api/admin/email/{settings,settings/test-send,events,templates,rules,deliveries}` | `settings-email.js` |
 | PUT/DELETE/PATCH | `/api/admin/email/templates/:id`, `/api/admin/email/rules/:id[/activate\|deactivate\|simulate]` | `settings-email.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
@@ -134,6 +135,130 @@ Lấy thông tin session hiện tại.
 
 ---
 
+## Platform Settings & Locks
+
+### GET /api/platform/setting-locks
+
+Lấy danh sách tất cả setting locks hiện tại.
+
+**Auth:** Required (mọi user đăng nhập, để UI hiển thị icon 🔒)
+
+**Response 200:**
+```json
+[
+  {
+    "id": 1,
+    "setting_key": "weight_presets",
+    "unit_id": null,           // null = lock toàn platform
+    "unit_code": null,
+    "reason": "Đang kiểm tra hệ thống",
+    "locked_by": 5,
+    "created_at": "2026-09-29T10:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "setting_key": "email.templates",
+    "unit_id": 3,
+    "unit_code": "TCKT",
+    "reason": "Đang cấu hình lại template",
+    "locked_by": 5,
+    "created_at": "2026-09-29T11:00:00.000Z"
+  }
+]
+```
+
+### POST /api/platform/setting-locks
+
+Tạo một setting lock mới.
+
+**Auth:** platformAdmin (chỉ DYC)
+
+**Request Body:**
+```json
+{
+  "setting_key": "weight_presets",
+  "unit_id": null,              // null = lock toàn platform, hoặc id đơn vị cụ thể
+  "reason": "Đang kiểm tra hệ thống"
+}
+```
+
+**Response 201:**
+```json
+{
+  "id": 1
+}
+```
+
+**Response 400:**
+```json
+{
+  "error": "setting_key không tồn tại trong catalog."
+}
+// Hoặc
+{
+  "error": "Chỉ cấu hình unit-level mới có thể khoá."
+}
+// Hoặc
+{
+  "error": "reason không được rỗng."
+}
+```
+
+**Response 403:**
+```json
+{
+  "error": "Chỉ DYC được thao tác cấu hình nền tảng."
+}
+```
+
+### DELETE /api/platform/setting-locks/:id
+
+Xoá một setting lock.
+
+**Auth:** platformAdmin (chỉ DYC)
+
+**Response 200:**
+```json
+{
+  "ok": true
+}
+```
+
+**Response 404:**
+```json
+{
+  "error": "Lock không tồn tại."
+}
+```
+
+**Response 403:**
+```json
+{
+  "error": "Chỉ DYC được thao tác cấu hình nền tảng."
+}
+```
+
+### Hiệu ứng của Setting Lock
+
+Khi một setting bị lock:
+
+1. **Unit admin bị chặn 403 khi cố sửa:**
+```json
+{
+  "error": "Cấu hình này đang bị DYC khoá.",
+  "locked": true,
+  "reason": "Đang kiểm tra hệ thống",
+  "locked_by_name": "Nguyễn Văn A",
+  "locked_at": "2026-09-29T10:30:00.000Z"
+}
+```
+
+2. **DYC vẫn sửa được** (bypass lock)
+3. **GET/HEAD requests không bị chặn** (chỉ chặn POST/PATCH/DELETE)
+4. **Lock platform-level settings không được phép** (chỉ lock unit-level)
+
+---
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -164,3 +289,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | DYC |
+| 4.0 | 2026-09-29 | Thêm 3 endpoints `/api/platform/setting-locks*` vào bảng routing và section "Platform Settings & Locks" với spec đầy đủ (GET, POST, DELETE), logic lock, và hiệu ứng khi bị lock. | DYC |

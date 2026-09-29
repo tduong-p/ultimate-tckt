@@ -1,7 +1,7 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 2.1
+version: 2.2
 status: active
 audience: [ba]
 owner: DYC
@@ -46,6 +46,7 @@ Một người có thể thuộc nhiều đơn vị cùng lúc; vai trò gắn v
 - **DYC là admin toàn cục**: đọc được mọi dữ liệu nghiệp vụ của mọi đơn vị, kể cả hồ sơ CTD — kèm ghi vết truy cập (audit log) cho mỗi lượt đọc liên đơn vị. Phân cấp quyền xem nội bộ trong DYC (không phải ai trong DYC cũng nên xem hồ sơ CTD) chưa chốt, để thiết kế sau.
 - **Quyền truy cập tab CTD trong nội bộ TCKT**: chỉ nhóm **từ tổ phó trở lên** (`vice_leader`, `leader`, `vice_admin`, `admin`) mới có quyền vào tab Công tác Đảng; role `member` không có quyền này. Phía CTD, nhóm TCKT có quyền này được ánh xạ sang vai trò `tckt` (đã xác nhận đúng với `Role.TCKT` trong `services/ctd-api/backend/app/models/identity.py`).
 - **Mức xem liên đơn vị cấu hình được** (không sửa code khi đổi chính sách): 3 mức cố định — `summary` (tổng quan), `tasks_readonly` (thêm task/assignee chỉ đọc), `full_readonly` (thêm checklist/bình luận/đính kèm/nhật ký trực ban chỉ đọc). Mặc định BTV → TCKT ở mức `summary`.
+- **Quyền quản lý cấu hình hệ thống**: Cấu hình chia hai loại — **platform-level** (SMTP, Cron jobs) chỉ DYC quản lý; **unit-level** (Email templates, Rules, Weight presets) do DYC hoặc unit admin quản lý (trong GĐ1 là TCKT admin: `admin`, `vice_admin`). DYC có thể tạm khoá unit-level settings để ngăn đơn vị sửa khi đang bảo trì hệ thống (setting lock). Chi tiết kỹ thuật: `docs/dev/email-cron.md`.
 
 ## 3. Đã làm vs. kế hoạch
 
@@ -86,3 +87,4 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-29 | Ghi nhận middleware auth và cổng Điều hành chuyển sang xác thực qua membership và req.actor (GĐ1-A Task 4 & 5) | DYC |
+| 2.2 | 2026-09-29 | Thêm quyền quản lý cấu hình hệ thống: platform-level (DYC only) vs unit-level (DYC hoặc unit admin), setting locks mechanism (góc độ BA). | DYC |

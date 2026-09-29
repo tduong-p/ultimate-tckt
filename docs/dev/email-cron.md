@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-MAIL-001
 title: Email và Cron
-version: 2.1
+version: 3.0
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-29
-related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js]
+related_code: [core/src/services/email-*.js, core/src/services/cron-runner.js, core/src/routes/settings-*.js, core/src/settings/catalog.js, core/src/middleware/setting-guard.js]
 ---
 
 # Email và Cron
@@ -52,6 +52,41 @@ server (`core/src/runtime.js`).
 Thêm một loại job mới: `registerCronHandler('module.ten_job', async (context) => {...})`, sau đó tạo bản ghi
 `cron_jobs` trỏ tới `handler_key` này qua UI/API — không hardcode lịch chạy trong code.
 
+## Phân quyền và khoá cấu hình
+
+Từ GĐ1-A Task 7, hệ thống phân chia cấu hình thành hai loại:
+
+### Platform-level settings (chỉ DYC)
+
+- `email.smtp` — SMTP server và xác thực
+- `cron.jobs` — Quản lý cron jobs
+
+**Quyền:** Chỉ DYC (membership `platform_owner`) mới được xem và sửa. Các đơn vị khác (TCKT, BTV...) không có quyền.
+
+### Unit-level settings (DYC hoặc Unit Admin)
+
+- `email.templates` — Email templates
+- `email.rules` — Email rules  
+- `weight_presets` — Weight presets (trong module Điều hành)
+
+**Quyền:** DYC hoặc unit admin (trong GĐ1 là TCKT admin: `admin`, `vice_admin`) có quyền sửa. TCKT leader và member không có quyền.
+
+### Khoá cấu hình (Setting Locks)
+
+DYC có thể **tạm khoá** các unit-level settings để ngăn đơn vị sửa khi đang kiểm tra/sửa lỗi hệ thống:
+
+- **API:** `POST /api/platform/setting-locks` tạo lock, `DELETE /api/platform/setting-locks/:id` xoá lock
+- **Logic:** Lock có `unit_id IS NULL` (lock toàn platform) hoặc `unit_id = <id đơn vị>` (lock một đơn vị cụ thể)
+- **Hiệu ứng:** Unit admin bị chặn (403) khi cố sửa setting đang bị lock; DYC vẫn sửa được (bypass lock)
+- **UI:** Endpoint `GET /api/platform/setting-locks` (auth only) để frontend hiển thị icon 🔒 trước khi user bấm Lưu
+
+**Implementation:** 
+- Catalog: `core/src/settings/catalog.js` định nghĩa tất cả settings và `managed_by` level
+- Middleware: `core/src/middleware/setting-guard.js` kiểm tra quyền và lock
+- Routes: `core/src/routes/platform.js` quản lý CRUD setting locks
+
+Chi tiết API: xem `docs/dev/api.md` section "Platform Settings & Locks".
+
 ## Trạng thái email hiện tại trên staging/production
 
 `EMAIL_NOTIFICATIONS_ENABLED=false` ở cả hai môi trường compose hiện tại (`infra/compose/docker-compose.*.yml`)
@@ -69,3 +104,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.2 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-29 | Cập nhật quyền cấu hình SMTP/cron thành platformAdmin (membership DYC). Thêm chi tiết về DEVOPS_EMAILS bootstrap. | DYC |
+| 3.0 | 2026-09-29 | Thêm section "Phân quyền và khoá cấu hình": platform-level vs unit-level settings, setting locks mechanism, catalog và middleware. | DYC |
