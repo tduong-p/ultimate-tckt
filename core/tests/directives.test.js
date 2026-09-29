@@ -1,4 +1,4 @@
-const test = require('node:test');
+const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const express = require('express');
 const http = require('node:http');
@@ -6,7 +6,6 @@ const { createDirectiveRoutes } = require('../src/routes/directives');
 const { createSubmissionRoutes } = require('../src/routes/submissions');
 const { asyncRoute } = require('../src/routes/utils');
 
-// Helper tạo app test với mock db
 function createMockApp(dbMock, customMiddleware = (req, res, next) => next()) {
   const app = express();
   app.use(express.json());
@@ -43,205 +42,207 @@ function startTestServer(app) {
   });
 }
 
-test('GET /api/directives lấy danh sách chỉ đạo thành công', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('SELECT * FROM directives')) {
-        return [[{ id: 1, title: 'Test Directive', status: 'sent' }]];
+describe('Directives & Submissions API Tests', () => {
+  test('GET /api/directives lấy danh sách chỉ đạo thành công', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('SELECT * FROM directives')) {
+          return [[{ id: 1, title: 'Test Directive', status: 'sent' }]];
+        }
+        return [[]];
       }
-      return [[]];
-    }
-  };
+    };
 
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 1, kind: 'standing_committee' };
-    req.unitRole = 'btv_lead';
-    next();
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unitRole = 'btv_lead';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('GET', '/api/directives');
+    
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.length, 1);
+    assert.equal(res.body.data[0].title, 'Test Directive');
+
+    await server.close();
   });
 
-  const server = await startTestServer(app);
-  const res = await server.client.request('GET', '/api/directives');
-  
-  assert.equal(res.status, 200);
-  assert.equal(res.body.data.length, 1);
-  assert.equal(res.body.data[0].title, 'Test Directive');
-
-  await server.close();
-});
-
-test('POST /api/directives tạo chỉ đạo thành công với btv_lead', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('INSERT INTO directives')) {
-        return [{ insertId: 10 }];
+  test('POST /api/directives tạo chỉ đạo thành công với btv_lead', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('INSERT INTO directives')) {
+          return [{ insertId: 10 }];
+        }
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 10, title: 'Chỉ đạo mới', status: 'sent' }]];
+        }
+        return [[]];
       }
-      if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-        return [[{ id: 10, title: 'Chỉ đạo mới', status: 'sent' }]];
-      }
-      return [[]];
-    }
-  };
+    };
 
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 1, kind: 'standing_committee' };
-    req.unitRole = 'btv_lead';
-    req.user = { id: 99 };
-    next();
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unitRole = 'btv_lead';
+      req.user = { id: 99 };
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/directives', {
+      body: { to_unit_id: 2, title: 'Chỉ đạo mới', deadline: '2026-12-31' }
+    });
+
+    assert.equal(res.status, 201);
+    assert.equal(res.body.title, 'Chỉ đạo mới');
+
+    await server.close();
   });
 
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/directives', {
-    body: { to_unit_id: 2, title: 'Chỉ đạo mới', deadline: '2026-12-31' }
+  test('POST /api/directives trả về 403 nếu không phải BTV', async () => {
+    const dbMock = { execute: async () => [[]] };
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 2, kind: 'department' };
+      req.unitRole = 'member';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/directives', {
+      body: { to_unit_id: 2, title: 'Sai quyền', deadline: '2026-12-31' }
+    });
+
+    assert.equal(res.status, 403);
+
+    await server.close();
   });
 
-  assert.equal(res.status, 201);
-  assert.equal(res.body.title, 'Chỉ đạo mới');
+  test('POST /api/directives/:id/acknowledge tiếp nhận thành công khi là TCKT admin', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 1, status: 'sent' }]];
+        }
+        if (sql.includes('UPDATE directives SET status = \'acknowledged\'')) {
+          return [{ affectedRows: 1 }];
+        }
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 1, status: 'acknowledged' }]];
+        }
+        return [[]];
+      }
+    };
 
-  await server.close();
-});
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 2, kind: 'department' };
+      req.unitRole = 'admin';
+      next();
+    });
 
-test('POST /api/directives trả về 403 nếu không phải BTV', async () => {
-  const dbMock = { execute: async () => [[]] };
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 2, kind: 'department' };
-    req.unitRole = 'member';
-    next();
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/directives/1/acknowledge', {
+      body: {}
+    });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.status, 'acknowledged');
+
+    await server.close();
   });
 
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/directives', {
-    body: { to_unit_id: 2, title: 'Sai quyền', deadline: '2026-12-31' }
+  test('POST /api/directives/:id/link-activity liên kết hoạt động thành công', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 1, status: 'acknowledged' }]];
+        }
+        if (sql.includes('UPDATE activities SET directive_id = ?')) {
+          return [{ affectedRows: 1 }];
+        }
+        if (sql.includes('UPDATE directives SET status = \'in_progress\'')) {
+          return [{ affectedRows: 1 }];
+        }
+        return [[]];
+      }
+    };
+
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 2, kind: 'department' };
+      req.unitRole = 'admin';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/directives/1/link-activity', {
+      body: { activity_id: 5 }
+    });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.status, 'in_progress');
+
+    await server.close();
   });
 
-  assert.equal(res.status, 403);
-
-  await server.close();
-});
-
-test('POST /api/directives/:id/acknowledge tiếp nhận thành công khi là TCKT admin', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-        return [[{ id: 1, status: 'sent' }]];
+  test('POST /api/directives/:id/submit trình kết quả thành công', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 1, status: 'in_progress', to_unit_id: 2, from_unit_id: 1 }]];
+        }
+        if (sql.includes('INSERT INTO submissions')) {
+          return [{ insertId: 20 }];
+        }
+        if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
+          return [[{ id: 20, directive_id: 1, source_type: 'activity' }]];
+        }
+        return [[]];
       }
-      if (sql.includes('UPDATE directives SET status = \'acknowledged\'')) {
-        return [{ affectedRows: 1 }];
-      }
-      if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-        return [[{ id: 1, status: 'acknowledged' }]];
-      }
-      return [[]];
-    }
-  };
+    };
 
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 2, kind: 'department' };
-    req.unitRole = 'admin';
-    next();
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 2, kind: 'department' };
+      req.unitRole = 'admin';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/directives/1/submit', {
+      body: { source_type: 'activity', source_id: 5, note: 'Báo cáo hoàn thành' }
+    });
+
+    assert.equal(res.status, 201);
+    assert.equal(res.body.directive_id, 1);
+
+    await server.close();
   });
 
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/directives/1/acknowledge', {
-    body: {}
+  test('POST /api/submissions/:id/respond phản hồi thành công', async () => {
+    const dbMock = {
+      execute: async (sql, params) => {
+        if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
+          return [[{ id: 20, response: null }]];
+        }
+        if (sql.includes('UPDATE submissions SET response = ?')) {
+          return [{ affectedRows: 1 }];
+        }
+        return [[]];
+      }
+    };
+
+    const app = createMockApp(dbMock, (req, res, next) => {
+      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unitRole = 'btv_lead';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const res = await server.client.request('POST', '/api/submissions/20/respond', {
+      body: { response: 'accepted' }
+    });
+
+    assert.equal(res.status, 200);
+    
+    await server.close();
   });
-
-  assert.equal(res.status, 200);
-  assert.equal(res.body.status, 'acknowledged');
-
-  await server.close();
-});
-
-test('POST /api/directives/:id/link-activity liên kết hoạt động thành công', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-        return [[{ id: 1, status: 'acknowledged' }]];
-      }
-      if (sql.includes('UPDATE activities SET directive_id = ?')) {
-        return [{ affectedRows: 1 }];
-      }
-      if (sql.includes('UPDATE directives SET status = \'in_progress\'')) {
-        return [{ affectedRows: 1 }];
-      }
-      return [[]];
-    }
-  };
-
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 2, kind: 'department' };
-    req.unitRole = 'admin';
-    next();
-  });
-
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/directives/1/link-activity', {
-    body: { activity_id: 5 }
-  });
-
-  assert.equal(res.status, 200);
-  assert.equal(res.body.status, 'in_progress');
-
-  await server.close();
-});
-
-test('POST /api/directives/:id/submit trình kết quả thành công', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-        return [[{ id: 1, status: 'in_progress', to_unit_id: 2, from_unit_id: 1 }]];
-      }
-      if (sql.includes('INSERT INTO submissions')) {
-        return [{ insertId: 20 }];
-      }
-      if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
-        return [[{ id: 20, directive_id: 1, source_type: 'activity' }]];
-      }
-      return [[]];
-    }
-  };
-
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 2, kind: 'department' };
-    req.unitRole = 'admin';
-    next();
-  });
-
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/directives/1/submit', {
-    body: { source_type: 'activity', source_id: 5, note: 'Báo cáo hoàn thành' }
-  });
-
-  assert.equal(res.status, 201);
-  assert.equal(res.body.directive_id, 1);
-
-  await server.close();
-});
-
-test('POST /api/submissions/:id/respond phản hồi thành công', async () => {
-  const dbMock = {
-    execute: async (sql, params) => {
-      if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
-        return [[{ id: 20, response: null }]];
-      }
-      if (sql.includes('UPDATE submissions SET response = ?')) {
-        return [{ affectedRows: 1 }];
-      }
-      return [[]];
-    }
-  };
-
-  const app = createMockApp(dbMock, (req, res, next) => {
-    req.unit = { id: 1, kind: 'standing_committee' };
-    req.unitRole = 'btv_lead';
-    next();
-  });
-
-  const server = await startTestServer(app);
-  const res = await server.client.request('POST', '/api/submissions/20/respond', {
-    body: { response: 'accepted' }
-  });
-
-  assert.equal(res.status, 200);
-  
-  await server.close();
 });
