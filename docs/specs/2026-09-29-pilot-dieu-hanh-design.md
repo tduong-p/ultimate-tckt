@@ -156,7 +156,7 @@ module, không viết trong đợt này.
 
 1. **Tôn trọng mốc chốt đợt (mục 3).** Đến lúc chốt, mọi thứ trên `staging` sẽ lên production.
    Việc GĐ1 dở dang nên merge ở dạng chưa nối vào route/UI hoặc sau cờ tắt mặc định; nếu không kịp thì revert trước
-   giờ chốt. Không merge việc mới từ giờ chốt đến khi phát hành xong.
+   khi chốt. Không merge việc mới từ lúc chốt đến khi phát hành xong.
 2. **Chưa chuyển guard sang `req.actor` / chưa chặn 403 khi không có membership** cho đến khi a5 xong và có test.
 3. **Migration chỉ bổ sung, idempotent, có marker** như `multi_unit_backfill_v1`; không xoá/đổi tên cột đang dùng;
    ghi rõ trong PR khi có migration để người phát hành backup trước.
