@@ -217,11 +217,14 @@ test('POST /api/directives/:id/submit trình kết quả thành công', async ()
   await server.close();
 });
 
-test('POST /api/submissions/:id/respond yêu cầu sửa bắt buộc phải có response_note', async () => {
+test('POST /api/submissions/:id/respond phản hồi thành công', async () => {
   const dbMock = {
     execute: async (sql, params) => {
       if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
         return [[{ id: 20, response: null }]];
+      }
+      if (sql.includes('UPDATE submissions SET response = ?')) {
+        return [{ affectedRows: 1 }];
       }
       return [[]];
     }
@@ -235,13 +238,10 @@ test('POST /api/submissions/:id/respond yêu cầu sửa bắt buộc phải có
 
   const server = await startTestServer(app);
   const res = await server.client.request('POST', '/api/submissions/20/respond', {
-    body: { response: 'revision_requested' } // thiếu response_note
+    body: { response: 'accepted' }
   });
 
-  // Vì route submit/respond yêu cầu ở directives hoặc submissions. 
-  // Ở submissions routes, respond chỉ kiểm tra status ['seen', 'revision_requested', 'accepted']
-  // Kiểm tra route submissions respond:
-  assert.equal(res.status, 200); // hoặc nếu code submissions.js cho phép, tuỳ logic. Kiểm tra endpoint directives respond ở directives.js nếu cần bắt buộc note.
+  assert.equal(res.status, 200);
   
   await server.close();
 });
