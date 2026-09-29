@@ -28,3 +28,4 @@ schema_dump_*.csv
 # Allow baseline or example files if needed
 !baseline_schema.csv
 !example_output.csv
+.aider*
