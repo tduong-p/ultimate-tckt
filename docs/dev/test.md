@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.1
+version: 2.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-29
 related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -29,7 +29,8 @@ fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
-frontend cũ và API), `migrate.test.js` (migration idempotent).
+frontend cũ và API), `migrate.test.js` (migration idempotent), `units.context.test.js` (ngữ cảnh đơn vị và session view),
+`units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị).
 
 ## CTD — `pytest`
 
@@ -80,3 +81,4 @@ nào, kể cả mật khẩu mặc định.
 | 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-27 | Cập nhật helper `createTestDatabase` chạy migration đa đơn vị | D2 |
+| 2.2 | 2026-09-29 | Thêm mô tả các test ngữ cảnh đa đơn vị (units.context) và cổng điều hành (units.legacy-gate) | AI (Task 5) |

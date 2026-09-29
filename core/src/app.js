@@ -9,6 +9,7 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { createUnitContextMiddleware } = require('./middleware/unit-context');
+const { createLegacyGate, LEGACY_PREFIXES } = require('./middleware/legacy-gate');
 const { warnAboutConfiguration } = require('./config/validate');
 const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
 const { createErrorHandler } = require('./middleware/errors');
@@ -52,6 +53,7 @@ function createApplication(options = {}) {
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(createUnitContextMiddleware(db));
+  app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
   // Test-only route for verifying unit context middleware (not exposed in production)
   if (!runtimeConfig.isProduction) {

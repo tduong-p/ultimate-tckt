@@ -163,4 +163,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
-| 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | AI (Task 4) |
+| 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | DYC |

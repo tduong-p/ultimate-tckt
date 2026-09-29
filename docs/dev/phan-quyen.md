@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 4.0
+version: 5.0
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-29
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -147,6 +147,70 @@ Hồ sơ ở trạng thái kết thúc (`TERMINAL_STATUSES`) thì không ai sử
 Xác thực CTD: JWT HS256 tự phát (`app/deps.py`), không liên quan trực tiếp tới session Core trừ khi đi qua JWT
 bridge mô tả ở `docs/dev/kien-truc.md`.
 
+## Legacy Gate — Bảo vệ route Điều hành cũ — GĐ1-A Task 5 (đã code)
+
+Middleware `createLegacyGate` (`core/src/middleware/legacy-gate.js`) bảo vệ 12 route prefix Điều hành cũ, chạy **sau** `loadUnitContext` và **trước** các route handler. Ráp vào pipeline qua `app.use(LEGACY_PREFIXES, createLegacyGate(db))`.
+
+### 12 Route Prefix được bảo vệ
+
+```javascript
+'/api/activities', '/api/documents', '/api/archive', '/api/reports', '/api/tasks',
+'/api/task-attachments', '/api/teams', '/api/people', '/api/users',
+'/api/bootstrap', '/api/my-tasks-today', '/api/weight-presets'
+```
+
+### Ma trận phân quyền
+
+| Trạng thái user | TCKT membership | DYC membership | GET/HEAD | POST/PATCH/DELETE |
+|---|---|---|---|---|
+| Chưa login / Mồ côi | - | - | → `next()` (auth xử lý) | → `next()` (auth xử lý) |
+| Thành viên TCKT | ✅ | - hoặc ✅ | ✅ Cho qua, không audit | ✅ Cho qua |
+| Chỉ DYC (không TCKT) | ❌ | ✅ | ✅ Cho qua + **audit log** | ❌ 403 |
+| Outsider (BTV, LCĐ...) | ❌ | ❌ | ❌ 403 | ❌ 403 |
+
+**Ưu tiên:** TCKT membership > DYC membership. Người có cả hai membership được coi là TCKT, không bị audit.
+
+### Audit Log Format
+
+Mỗi lần DYC đọc dữ liệu TCKT, một bản ghi được tạo trong `audit_logs`:
+
+```sql
+INSERT INTO audit_logs(
+  actor_id,           -- user.id của DYC
+  actor_unit_id,      -- unit_id của DYC
+  action,             -- 'cross_unit_read'
+  target_type,        -- 'http'
+  target_id,          -- 'GET /api/activities' (truncated to 191 chars)
+  owner_unit_id,      -- unit_id của TCKT
+  meta                -- NULL (có thể mở rộng sau)
+) VALUES (...)
+```
+
+Service: `core/src/services/audit.js` — hàm `recordAudit(db, entry)`.
+
+### Refactor req.session.user → req.actor
+
+Tất cả route Điều hành cũ (6 file + một phần system.js) đã chuyển sang đọc `req.actor` thay vì `req.session.user`:
+
+- ✅ `core/src/routes/activities.js` (toàn bộ)
+- ✅ `core/src/routes/tasks.js` (toàn bộ)
+- ✅ `core/src/routes/users.js` (toàn bộ)
+- ✅ `core/src/routes/teams.js` (toàn bộ)
+- ✅ `core/src/routes/documents.js` (toàn bộ)
+- ✅ `core/src/routes/reports.js` (toàn bộ)
+- ✅ `core/src/routes/system.js`: chỉ `/api/bootstrap`, `/api/my-tasks-today`
+- ⚠️ `core/src/routes/system.js`: GIỮ NGUYÊN `req.session.user` cho `/api/login`, `/api/logout`, `/auth/microsoft/*`, `/api/onboarding/*`, `/api/account`, `/api/email/test`
+
+### Test Coverage
+
+File `core/tests/units.legacy-gate.test.js` bao phủ 5 kịch bản:
+
+1. **Outsiders (BTV only) get 403** — BTV không TCKT bị chặn mọi route
+2. **DYC reads with audit, cannot write** — DYC GET thành công + audit log, POST/PATCH bị 403
+3. **TCKT không audit** — TCKT member truy cập bình thường, không tạo audit log
+4. **Dual user (TCKT + DYC)** — TCKT takes precedence, không audit, write được
+5. **Orphan user → auth 403** — User không membership nào bị auth chặn với message "chưa thuộc đơn vị"
+
 ## Quyết định đã chốt nhưng CHƯA LÀM (theo `.kiro/specs/nen-tang-da-don-vi/`)
 
 Hai điểm dưới đây là quyết định nghiệp vụ đã chốt ngày 2026-09-23, **chưa có trong code** — đừng lập trình theo
@@ -168,4 +232,5 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |
-| 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | AI (Task 4) |
+| 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | DYC |
+| 5.0 | 2026-09-29 | Thêm section "Legacy Gate": 12 route prefixes, ma trận phân quyền 5 trạng thái, audit log format, refactor req.actor, test coverage. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |

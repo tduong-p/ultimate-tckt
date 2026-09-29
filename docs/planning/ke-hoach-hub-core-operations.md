@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-29
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -1269,4 +1269,5 @@ npm run docs:check         # Documentation validation
 | 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 - thêm database tooling | DYC |
 | 1.2 | 2026-09-27 | Thêm core/src/config/migrate-units.js vào related_code - file migration đa đơn vị | DYC |
 | 1.3 | 2026-09-27 | Cập nhật file catalog và migration test | D2 |
+| 1.4 | 2026-09-29 | GĐ1-A: Hoàn thành Task 4 (unit context, session, auth) & Task 5 (legacy gate, audit cross-unit read, req.actor) | DYC |
 

@@ -1,11 +1,11 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 2.0
+version: 2.1
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-29
 related_code: [core/src/policies/access.js, core/src/middleware/auth.js]
 ---
 
@@ -56,11 +56,11 @@ Phần vận hành TCKT hiện tại (`core/src/policies/access.js`, `core/src/m
 - 5 vai trò trên cột `users.role`: `admin`, `vice_admin` (Ban điều hành, toàn quyền — hàm `isExecutive`), `leader`, `vice_leader` (Tổ trưởng/phó, quản lý Tổ mình — gộp cùng `isExecutive` thành `isLeadership`), `member` (thành viên thường).
 - Vai trò được **tự động tính lại** mỗi khi vai trò trong Tổ (`user_teams.is_lead` / `is_vice_lead`) thay đổi (xem `core/src/routes/teams.js`).
 - Phạm vi xem/sửa được kiểm soát qua các hàm thuần trong `access.js`: `activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`, `canManageUser`, v.v. — đây chính là các hàm sẽ được refactor thành `scopeFor(viewer, resourceType)` đa đơn vị khi GĐ1 triển khai.
-- Không có bảng `org_units`, `unit_memberships`, `unit_visibility_policies`, `setting_locks`, `audit_logs` trong `core/db.sql` hiện tại.
+- Các bảng `org_units`, `unit_memberships`, `unit_visibility_policies`, `setting_locks`, `audit_logs` đã được bổ sung ở GĐ1-A. Middleware `auth.js` đã chuyển sang kiểm tra membership và phân quyền qua `req.actor` (Task 4 & 5).
 
-### Kế hoạch (GĐ1, chưa có code)
+### Kế hoạch (GĐ1 tiếp theo)
 
-Toàn bộ cây đơn vị ở mục 1, hàm `scopeFor(viewer, resourceType)` thay thế các hàm trong `access.js`, bảng `org_units`/`unit_memberships`/`unit_visibility_policies`/`setting_locks`/`audit_logs`, và luồng giao việc liên đơn vị (directive)/Trình (submission) — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §5–§8 và use case vận hành ở [`dieu-hanh-use-case.md`](dieu-hanh-use-case.md).
+Toàn bộ cây đơn vị ở mục 1, hàm `scopeFor(viewer, resourceType)` thay thế các hàm trong `access.js`, và luồng giao việc liên đơn vị (directive)/Trình (submission) — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §5–§8 và use case vận hành ở [`dieu-hanh-use-case.md`](dieu-hanh-use-case.md).
 
 ## 4. Lưu ý quan trọng — dữ liệu ĐT/LCĐ trong GĐ1 là giả định
 
@@ -85,3 +85,4 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-29 | Ghi nhận middleware auth và cổng Điều hành chuyển sang xác thực qua membership và req.actor (GĐ1-A Task 4 & 5) | DYC |
