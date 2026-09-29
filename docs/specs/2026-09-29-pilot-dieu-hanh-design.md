@@ -45,13 +45,18 @@ commit, người dùng và request.
 
 ## 3. Luồng nhánh và phát hành
 
-- Production chạy từ `main`. Mỗi PR `staging → main` là **một bản phát hành pilot**, mở ngay sau khi PR tính năng
-  vào `staging` xanh và đã kiểm trên staging (theo yêu cầu: tránh `staging` tích tụ rồi xung đột).
-- Hệ quả bắt buộc: **`staging` luôn ở trạng thái phát hành được**. Code chưa xong không được nối vào route/UI
-  (xem luật dev mục 9).
-- Mô tả PR `staging → main` có mục "Người dùng thử cần biết" (1–3 dòng, tiếng Việt thường).
-- Lỗi gấp: `docs/playbooks/hotfix-production.md` (nhánh từ `main`, merge ngược về `staging`).
-- Trước mỗi PR `staging → main` có migration: backup (tự động khi a3 xong; trước đó chạy tay `backup.sh`).
+Production chạy từ `main`, phát hành **theo đợt mỗi tuần** (quyết định 2026-09-29):
+
+| Thời điểm | Việc |
+|---|---|
+| Thứ Hai → trưa thứ Năm | Merge PR tính năng vào `staging` như thường; staging tự deploy để kiểm. |
+| **Thứ Năm 12:00 — chốt đợt** | Ngừng merge việc mới vào `staging` (chỉ nhận sửa lỗi của chính đợt này). Việc GĐ1 dở dang đang có trên `staging` phải được tắt (chưa nối route/UI hoặc sau cờ tắt) hoặc revert trước giờ chốt. |
+| Thứ Năm chiều | Chạy checklist smoke (mục 7.3) trên **staging**. Mở PR `staging → main`, mô tả có mục "Người dùng thử cần biết" (1–3 dòng, tiếng Việt thường) và ghi rõ nếu có migration. |
+| Thứ Sáu sáng | Backup production (tự động khi a3 xong; trước đó chạy tay `backup.sh`) → merge PR → smoke trên production → mở lại `staging`. |
+
+- Giữa hai đợt, `staging` được phép tạm hỏng; người làm hỏng phải sửa hoặc revert trước giờ chốt.
+- Lỗi gấp không đợi đợt: `docs/playbooks/hotfix-production.md` (nhánh từ `main`, merge ngược về `staging`).
+- Đợt đầu tiên mang migration đa đơn vị (PR #28) lên production — xem mục 11.
 
 ## 4. Phần (a) — Bảo mật và dữ liệu
 
@@ -122,7 +127,7 @@ user, quyền upload tệp, khoá mềm + mở lại, bulk import `local`, múi 
 - Nhóm pilot: danh sách do anh/chị chốt (tên, email, team, role) — nhập bằng bulk import (c7).
 - Kênh báo lỗi (b4) và một người trực phân loại mỗi ngày: tạo GitHub issue nhãn `pilot-bug` + mức `P1` (chặn
   công việc, hotfix trong ngày) / `P2` (có cách né, vào bản phát hành kế) / `P3` (góp ý).
-- Họp nhanh cuối tuần: đọc issue `pilot-bug`, chốt bản phát hành tuần sau.
+- Họp nhanh thứ Năm trước giờ chốt: đọc issue `pilot-bug`, quyết định việc nào vào đợt này, việc nào sang đợt sau.
 
 ### 7.2 Staging dùng để làm gì
 - Tài khoản test cho từng role (admin, vice_admin, leader, vice_leader, member, event lead) do script seed tạo,
@@ -148,8 +153,9 @@ module, không viết trong đợt này.
 
 ## 9. Điều dev cần lưu ý khi làm tiếp (luật trong thời gian pilot)
 
-1. **`staging` luôn phát hành được.** Mỗi PR vào `staging` sẽ lên production gần như ngay. Tính năng GĐ1 dở dang:
-   merge được nếu chưa nối vào route/UI, hoặc nằm sau cờ tắt mặc định.
+1. **Tôn trọng giờ chốt đợt (thứ Năm 12:00, mục 3).** Đến giờ chốt, mọi thứ trên `staging` sẽ lên production.
+   Việc GĐ1 dở dang nên merge ở dạng chưa nối vào route/UI hoặc sau cờ tắt mặc định; nếu không kịp thì revert trước
+   giờ chốt. Không merge việc mới từ giờ chốt đến khi phát hành xong.
 2. **Chưa chuyển guard sang `req.actor` / chưa chặn 403 khi không có membership** cho đến khi a5 xong và có test.
 3. **Migration chỉ bổ sung, idempotent, có marker** như `multi_unit_backfill_v1`; không xoá/đổi tên cột đang dùng;
    ghi rõ trong PR khi có migration để người phát hành backup trước.
@@ -174,11 +180,12 @@ không chờ issue này.
 |---|---|
 | Lần `staging → main` đầu mang migration đa đơn vị lên production | Backup tay trước; kiểm marker `multi_unit_backfill_v1` và số dòng `unit_memberships` sau deploy |
 | Hash mật khẩu cũ còn trong lịch sử git public | a4: khoá/đặt lại mọi tài khoản cũ trước khi mở pilot |
-| GĐ1 đổi quyền làm vỡ pilot | Luật 9.1–9.2; test quyền hiện có chạy trong CI |
+| GĐ1 đổi quyền làm vỡ pilot | Luật 9.1–9.2; smoke trên staging trước giờ phát hành; test quyền hiện có chạy trong CI |
+| Việc dở dang còn trên `staging` lúc chốt đợt | Revert trước giờ chốt; nếu phát hiện muộn thì lùi đợt sang tuần sau, không phát hành bản chưa smoke |
 | Không có email → người dùng bỏ sót việc | c1 + chuông thông báo; nhắc người dùng thử mở app mỗi ngày |
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
-| 1.0 | 2026-09-29 | Bản đầu: phạm vi pilot Điều hành, phần a–d, luật dev trong thời gian pilot | DYC |
+| 1.0 | 2026-09-29 | Bản đầu: phạm vi pilot Điều hành, phần a–d, luật dev trong thời gian pilot; phát hành theo đợt tuần (chốt thứ Năm, phát hành thứ Sáu) | DYC |
