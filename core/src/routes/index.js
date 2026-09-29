@@ -7,6 +7,7 @@ const { createDocumentRoutes } = require('./documents');
 const { createReportRoutes } = require('./reports');
 const { createNotificationRoutes } = require('./notifications');
 const { createPlatformRoutes } = require('./platform');
+const { createUnitRoutes } = require('./units');
 
 function registerRoutes(app, context) {
   app.use(createSystemRoutes(context));
@@ -18,6 +19,7 @@ function registerRoutes(app, context) {
   app.use(createReportRoutes(context));
   app.use(createNotificationRoutes(context));
   app.use(createPlatformRoutes(context));
+  app.use(createUnitRoutes(context));
 }
 
 module.exports = { registerRoutes };

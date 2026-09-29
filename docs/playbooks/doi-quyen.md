@@ -1,12 +1,12 @@
 ---
 doc_id: PB-RBAC-001
 title: Playbook — đổi quyền
-version: 3.0
+version: 4.0
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-09-29
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, services/ctd-api/backend/app/deps.py]
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/units.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Playbook — đổi quyền
@@ -34,6 +34,48 @@ Khi thêm/sửa vai trò, thay đổi phạm vi dữ liệu một vai trò đư�
    cd services/ctd-api/backend && .venv/bin/pytest tests/test_quyen_thao_tac.py tests/test_scope.py
    ```
 6. **Cập nhật tài liệu nghiệp vụ** phản ánh đúng quyền mới — đây là bước hay bị quên nhất vì bảng phân quyền dễ nằm rải rác nhiều file.
+
+## Cấp quyền cho user
+
+**⚠️ KHÔNG sửa trực tiếp `users.role` hoặc bảng `unit_memberships` bằng SQL!**
+
+Từ GĐ1-A Task 8, sử dụng API `/api/units/:id/members/:userId` để cấp/sửa/thu hồi quyền:
+
+### Cấp quyền cho user mới
+
+```bash
+# Lấy unit_id
+curl -X GET https://staging.example.com/api/units \
+  -H "Cookie: connect.sid=..."
+
+# Thêm user vào đơn vị với role
+curl -X PUT https://staging.example.com/api/units/3/members/42 \
+  -H "Cookie: connect.sid=..." \
+  -H "Content-Type: application/json" \
+  -d '{"role": "leader"}'
+```
+
+### Đổi role của user hiện có
+
+```bash
+# Cùng endpoint PUT, role mới sẽ ghi đè
+curl -X PUT https://staging.example.com/api/units/3/members/42 \
+  -H "Cookie: connect.sid=..." \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}'
+```
+
+### Thu hồi quyền (xóa membership)
+
+```bash
+curl -X DELETE https://staging.example.com/api/units/3/members/42 \
+  -H "Cookie: connect.sid=..."
+```
+
+**Lưu ý:**
+- Nếu đổi role TCKT, `users.role` tự động đồng bộ (không cần sửa tay).
+- Không thể xóa `dyc_admin` cuối cùng (API trả 409 Conflict).
+- Mọi thao tác được ghi audit log (`membership.upsert` / `membership.remove`).
 
 ## Kiểm tra xong
 
@@ -112,3 +154,4 @@ if (hasDycMembership(req.memberships) && !hasTcktMembership(req.memberships)) {
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.2 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-29 | Thêm mục "Checklist & Anti-patterns khi thêm route Điều hành mới". Cập nhật bước 1 với INV-AUTH-001 và INV-AUDIT-001. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | AI (Task 5) |
+| 4.0 | 2026-09-29 | Thêm section "Cấp quyền cho user" với hướng dẫn dùng API `/api/units/:id/members/:userId` thay vì sửa SQL. Cảnh báo không sửa `users.role` hoặc `unit_memberships` trực tiếp. Thêm `units.js` vào `related_code`. | DYC |

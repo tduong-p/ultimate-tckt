@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 4.0
+version: 5.0
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -51,6 +51,8 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET | `/api/reports/export` | `reports.js` |
 | GET/POST/PATCH | `/api/notifications`, `/api/notifications/:id/seen`, `/api/notifications/seen` | `notifications.js` |
 | GET/POST/DELETE | `/api/platform/setting-locks[/:id]` | `platform.js` |
+| GET | `/api/units`, `/api/units/:id/members` | `units.js` |
+| PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
 | GET/PUT/POST | `/api/admin/email/{settings,settings/test-send,events,templates,rules,deliveries}` | `settings-email.js` |
 | PUT/DELETE/PATCH | `/api/admin/email/templates/:id`, `/api/admin/email/rules/:id[/activate\|deactivate\|simulate]` | `settings-email.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
@@ -259,6 +261,184 @@ Khi một setting bị lock:
 
 ---
 
+## Unit Management
+
+### GET /api/units
+
+Lấy danh sách các đơn vị user có quyền xem.
+
+**Auth:** Required
+
+**Permission:**
+- DYC: Xem tất cả các đơn vị active
+- User thường: Chỉ xem các đơn vị mình là thành viên
+
+**Response 200:**
+```json
+[
+  {
+    "id": 1,
+    "code": "DYC",
+    "name": "DYC — Chủ quản nền tảng",
+    "kind": "platform_owner",
+    "is_active": 1,
+    "created_at": "2026-09-20T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "code": "BTV",
+    "name": "Ban Thường vụ",
+    "kind": "standing_committee",
+    "is_active": 1,
+    "created_at": "2026-09-20T00:00:00.000Z"
+  }
+]
+```
+
+**User không có membership:**
+```json
+[]
+```
+
+### GET /api/units/:id/members
+
+Lấy danh sách thành viên của một đơn vị.
+
+**Auth:** Required
+
+**Permission:** User phải là thành viên của đơn vị này, hoặc là DYC
+
+**Response 200:**
+```json
+[
+  {
+    "user_id": 1,
+    "name": "Nguyễn Văn A",
+    "email": "nva@example.com",
+    "role": "admin"
+  },
+  {
+    "user_id": 2,
+    "name": "Trần Thị B",
+    "email": "ttb@example.com",
+    "role": "leader"
+  }
+]
+```
+
+**Response 403:**
+```json
+{
+  "error": "Bạn không có quyền xem thành viên của đơn vị này."
+}
+```
+
+### PUT /api/units/:id/members/:userId
+
+Thêm hoặc cập nhật thành viên vào đơn vị.
+
+**Auth:** Required
+
+**Permission:**
+- DYC (`dyc_admin` hoặc `dyc_engineer`): Quản lý mọi đơn vị, nhưng **chỉ `dyc_admin` mới sửa được chính đơn vị DYC**
+- Unit admin: Chỉ quản lý đơn vị của mình
+
+**Request Body:**
+```json
+{
+  "role": "leader"
+}
+```
+
+**Response 200:**
+```json
+{
+  "ok": true
+}
+```
+
+**Response 400 - Role không hợp lệ:**
+```json
+{
+  "error": "Role \"btv_lead\" không hợp lệ cho đơn vị loại \"department\"."
+}
+```
+
+**Response 400 - User bị vô hiệu hóa:**
+```json
+{
+  "error": "User đã bị vô hiệu hóa."
+}
+```
+
+**Response 403 - Không có quyền:**
+```json
+{
+  "error": "Bạn không có quyền quản lý thành viên của đơn vị này."
+}
+```
+
+**Response 404 - User không tồn tại:**
+```json
+{
+  "error": "User không tồn tại."
+}
+```
+
+**Response 404 - Đơn vị không tồn tại:**
+```json
+{
+  "error": "Đơn vị không tồn tại."
+}
+```
+
+**Behavior đặc biệt:**
+- Nếu đơn vị là TCKT, hệ thống tự động đồng bộ `users.role` (legacy field) để tương thích code cũ
+- Ghi audit log với `action = 'membership.upsert'`
+
+### DELETE /api/units/:id/members/:userId
+
+Xóa thành viên khỏi đơn vị.
+
+**Auth:** Required
+
+**Permission:** Giống PUT (DYC hoặc unit admin)
+
+**Response 200:**
+```json
+{
+  "ok": true
+}
+```
+
+**Response 403:**
+```json
+{
+  "error": "Bạn không có quyền quản lý thành viên của đơn vị này."
+}
+```
+
+**Response 404 - Membership không tồn tại:**
+```json
+{
+  "error": "Membership không tồn tại."
+}
+```
+
+**Response 409 - Không thể xóa dyc_admin cuối cùng:**
+```json
+{
+  "error": "Không thể xoá dyc_admin cuối cùng. Hãy chỉ định dyc_admin khác trước."
+}
+```
+
+**Behavior đặc biệt:**
+- Chặn xóa `dyc_admin` cuối cùng (409 Conflict) để tránh mất quyền kiểm soát hệ thống
+- Nếu xóa membership TCKT và user không còn membership TCKT nào khác, set `users.role = 'member'` (legacy fallback)
+- Ghi audit log với `action = 'membership.remove'`
+
+---
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -290,3 +470,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | DYC |
 | 4.0 | 2026-09-29 | Thêm 3 endpoints `/api/platform/setting-locks*` vào bảng routing và section "Platform Settings & Locks" với spec đầy đủ (GET, POST, DELETE), logic lock, và hiệu ứng khi bị lock. | DYC |
+| 5.0 | 2026-09-29 | Thêm 4 endpoints `/api/units*` vào bảng routing và section "Unit Management" với spec đầy đủ (GET units, GET members, PUT member, DELETE member), permission matrix (DYC vs unit admin), validation, edge cases (last dyc_admin, TCKT role sync). | DYC |

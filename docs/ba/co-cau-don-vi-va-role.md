@@ -1,12 +1,12 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 2.2
+version: 2.3
 status: active
 audience: [ba]
 owner: DYC
 updated: 2026-09-29
-related_code: [core/src/policies/access.js, core/src/middleware/auth.js]
+related_code: [core/src/policies/access.js, core/src/middleware/auth.js, core/src/routes/units.js]
 ---
 
 # Cơ cấu đơn vị và vai trò
@@ -47,6 +47,7 @@ Một người có thể thuộc nhiều đơn vị cùng lúc; vai trò gắn v
 - **Quyền truy cập tab CTD trong nội bộ TCKT**: chỉ nhóm **từ tổ phó trở lên** (`vice_leader`, `leader`, `vice_admin`, `admin`) mới có quyền vào tab Công tác Đảng; role `member` không có quyền này. Phía CTD, nhóm TCKT có quyền này được ánh xạ sang vai trò `tckt` (đã xác nhận đúng với `Role.TCKT` trong `services/ctd-api/backend/app/models/identity.py`).
 - **Mức xem liên đơn vị cấu hình được** (không sửa code khi đổi chính sách): 3 mức cố định — `summary` (tổng quan), `tasks_readonly` (thêm task/assignee chỉ đọc), `full_readonly` (thêm checklist/bình luận/đính kèm/nhật ký trực ban chỉ đọc). Mặc định BTV → TCKT ở mức `summary`.
 - **Quyền quản lý cấu hình hệ thống**: Cấu hình chia hai loại — **platform-level** (SMTP, Cron jobs) chỉ DYC quản lý; **unit-level** (Email templates, Rules, Weight presets) do DYC hoặc unit admin quản lý (trong GĐ1 là TCKT admin: `admin`, `vice_admin`). DYC có thể tạm khoá unit-level settings để ngăn đơn vị sửa khi đang bảo trì hệ thống (setting lock). Chi tiết kỹ thuật: `docs/dev/email-cron.md`.
+- **Quản lý thành viên đơn vị**: DYC quản lý thành viên mọi đơn vị (nhưng chỉ `dyc_admin` mới sửa được chính đơn vị DYC); unit admin (TCKT admin, BTV lead...) chỉ quản lý thành viên đơn vị của mình. **Quan trọng:** Thêm/xóa/sửa role thành viên TCKT qua API `/api/units/:id/members/:userId` sẽ **tự động đồng bộ** với `users.role` (field cũ dùng cho màn Tài khoản) — không cần sửa tay hai nơi. Chi tiết API: `docs/dev/api.md` section "Unit Management".
 
 ## 3. Đã làm vs. kế hoạch
 
@@ -88,3 +89,4 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-29 | Ghi nhận middleware auth và cổng Điều hành chuyển sang xác thực qua membership và req.actor (GĐ1-A Task 4 & 5) | DYC |
 | 2.2 | 2026-09-29 | Thêm quyền quản lý cấu hình hệ thống: platform-level (DYC only) vs unit-level (DYC hoặc unit admin), setting locks mechanism (góc độ BA). | DYC |
+| 2.3 | 2026-09-29 | Thêm "Quản lý thành viên đơn vị": DYC quản lý mọi đơn vị (chỉ dyc_admin sửa DYC), unit admin quản lý đơn vị mình. Đồng bộ tự động TCKT role ↔ users.role khi sửa membership qua API. | DYC |
