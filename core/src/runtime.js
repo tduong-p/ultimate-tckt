@@ -3,6 +3,8 @@ const logger = require('./logger');
 const push = require('./push');
 const { startDeadlineNotificationScheduler } = require('./services/deadline-notifications');
 const { migrateDatabase } = require('./config/migrate');
+const { ensureDycAdmins } = require('./units/memberships');
+const { devopsEmailAllowlist } = require('./middleware/auth');
 
 async function start(options = {}) {
   const application = createApplication(options);
@@ -14,6 +16,20 @@ async function start(options = {}) {
       console.error('Auto-migration failed during startup:', err);
     }
   }
+  
+  // DYC Bootstrap: Ensure devops allowlist emails have dyc_admin membership at startup
+  try {
+    const emails = devopsEmailAllowlist();
+    if (emails.length) {
+      const granted = await ensureDycAdmins(application.db, emails);
+      if (granted > 0) {
+        logger.info(`DYC bootstrap: ${granted} account(s) ensured as dyc_admin.`);
+      }
+    }
+  } catch (err) {
+    logger.error('DYC bootstrap failed during startup', err);
+  }
+  
   const port = options.port ?? application.config.port;
   const server = application.app.listen(port, () => {
     logger.info(`TCKT Activity Hub v${application.config.packageInfo.version} started on port ${port}.`);

@@ -11,7 +11,7 @@ const { createSessionMiddleware } = require('./config/session');
 const { createUnitContextMiddleware } = require('./middleware/unit-context');
 const { createLegacyGate, LEGACY_PREFIXES } = require('./middleware/legacy-gate');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead, platformAdmin, isPlatformAdmin } = require('./middleware/auth');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
@@ -60,11 +60,14 @@ function createApplication(options = {}) {
     app.get('/test/unit-context', (req, res) => {
       res.json({ unit: req.unit, unitRole: req.unitRole, memberships: req.memberships, actor: req.actor });
     });
+    app.get('/test/platform-admin', auth, platformAdmin, (req, res) => {
+      res.json({ success: true, message: 'DYC platform admin access confirmed' });
+    });
   }
 
   const policies = createAccessPolicies(db, isLeadership, isExecutive);
   const context = {
-    db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, isLeadership, isExecutive, isPlatformAdmin, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
     bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, mailer, push,

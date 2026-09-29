@@ -48,10 +48,10 @@
 | [DEV-API-001](dev/api.md) | API | 3.0 | active | dev, ai |
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.0 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.1 | active | dev, ai |
-| [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 2.0 | active | dev, ai |
+| [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 2.1 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.1 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 2.1 | active | dev, ai |
-| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 5.0 | active | dev, ai |
+| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.1 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 2.2 | active | dev, ai |

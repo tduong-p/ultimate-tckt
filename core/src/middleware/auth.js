@@ -1,7 +1,38 @@
+const { hasDycMembership } = require('../units/memberships');
+
 const executiveRoles = ['admin', 'vice_admin'];
 const leadershipRoles = ['leader', 'vice_leader'];
 const isExecutive = user => executiveRoles.includes(user?.role);
 const isLeadership = user => leadershipRoles.includes(user?.role);
+
+/**
+ * Parse DEVOPS_EMAILS or CORE_DEVOPS_EMAILS env variable into lowercase email list.
+ * Supports both local dev (DEVOPS_EMAILS) and production VM (CORE_DEVOPS_EMAILS).
+ * @returns {string[]} Array of lowercase, trimmed, non-empty emails
+ */
+const devopsEmailAllowlist = () =>
+  String(process.env.DEVOPS_EMAILS || process.env.CORE_DEVOPS_EMAILS || '')
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean);
+
+/**
+ * Check if user has platform admin privileges (DYC membership).
+ * @param {Array} memberships - req.memberships array
+ * @returns {boolean}
+ */
+const isPlatformAdmin = memberships => hasDycMembership(memberships);
+
+/**
+ * Middleware: Require platform admin privileges (DYC membership).
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Function} next
+ */
+const platformAdmin = (req, res, next) =>
+  isPlatformAdmin(req.memberships)
+    ? next()
+    : res.status(403).json({ error: 'Chỉ DYC được thao tác cấu hình nền tảng.' });
 
 const auth = (req, res, next) => {
   // Check đăng nhập trước
@@ -38,4 +69,16 @@ const managerOrEventLead = (canManageActivity) => (req, res, next) => {
     .catch(next);
 };
 
-module.exports = { executiveRoles, leadershipRoles, isExecutive, isLeadership, auth, admin, manager, managerOrEventLead };
+module.exports = { 
+  executiveRoles, 
+  leadershipRoles, 
+  isExecutive, 
+  isLeadership,
+  devopsEmailAllowlist, 
+  isPlatformAdmin, 
+  platformAdmin,
+  auth, 
+  admin, 
+  manager, 
+  managerOrEventLead 
+};

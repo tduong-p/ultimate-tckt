@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 5.0
+version: 6.0
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -28,15 +28,15 @@ Cơ chế trong code:
 - `isExecutive(user)` = role ∈ `['admin', 'vice_admin']`; `isLeadership(user)` = role ∈ `['leader', 'vice_leader']`
   (`core/src/middleware/auth.js`).
 - Middleware theo route: `auth` (đã đăng nhập), `admin` (executive), `manager` (executive hoặc leadership),
-  `devops` (executive **và** cờ devops — xem dưới), `managerOrEventLead` (executive/leadership, hoặc người được
+  `platformAdmin` (yêu cầu membership DYC), `managerOrEventLead` (executive/leadership, hoặc người được
   gán Event Lead của đúng hoạt động đang thao tác).
 - Phạm vi dữ liệu: `activityScope(user)` trong `core/src/policies/access.js` — executive thấy tất cả (`1=1`);
   người khác chỉ thấy hoạt động công khai hoặc hoạt động của tổ mình (qua `activity_teams`/`user_teams`).
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
-- **Devops** (quyền cấu hình SMTP/Templates/Rules/Cron) là một lớp **cắt ngang** role, không phải role riêng:
-  cần vừa `isExecutive` vừa `isDevops` (`users.is_devops = 1` hoặc email nằm trong allowlist `DEVOPS_EMAILS`).
-  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `devops`.
+- **Platform Admin** (quyền cấu hình SMTP/Templates/Rules/Cron): yêu cầu người dùng phải có membership của đơn vị DYC (`kind = 'platform_owner'`).
+  Không phụ thuộc vào các role Điều hành (admin, leader, v.v.). Danh sách `DEVOPS_EMAILS` luôn được cấp membership này tự động lúc khởi động hệ thống và lúc đăng nhập.
+  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `platformAdmin`.
 
 ## Middleware ngữ cảnh đơn vị — `loadUnitContext` (đã code, `core/src/middleware/unit-context.js`)
 
@@ -234,3 +234,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |
 | 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | DYC |
 | 5.0 | 2026-09-29 | Thêm section "Legacy Gate": 12 route prefixes, ma trận phân quyền 5 trạng thái, audit log format, refactor req.actor, test coverage. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |
+| 6.0 | 2026-09-29 | Cập nhật cấu trúc phân quyền cấu hình nền tảng thành platformAdmin thay thế devops. Thêm chi tiết về cơ chế bootstrap DYC membership. | DYC |
