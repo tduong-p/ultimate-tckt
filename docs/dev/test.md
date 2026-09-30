@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.2
+version: 2.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -34,7 +34,7 @@ khởi động phải làm Core thoát).
 
 ## CTD — `pytest`
 
-18 file test tại `services/ctd-api/backend/tests/test_*.py`, cần Postgres local. Chạy:
+19 file test tại `services/ctd-api/backend/tests/test_*.py`, cần Postgres local. Chạy:
 
 ```bash
 cd services/ctd-api/backend
@@ -43,7 +43,8 @@ TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test
 
 Fixture dùng chung ở `tests/conftest.py`. Nhóm test đáng chú ý: `test_quyen_thao_tac.py` (khớp với danh sách
 trắng quyền ở `app/services/permissions.py`), `test_workflow_engine.py`/`test_workflow_matrix.py` (chuyển trạng
-thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_migrations.py`.
+thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_migrations.py`,
+`test_admin_seed.py` (seed theo môi trường và lệnh đặt mật khẩu).
 
 ## Test hạ tầng và tooling — `tools/tests/`
 
@@ -81,4 +82,5 @@ nào, kể cả mật khẩu mặc định.
 | 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-27 | Cập nhật helper `createTestDatabase` chạy migration đa đơn vị | D2 |
-| 2.2 | 2026-09-30 | Thêm test hành vi khởi động khi auto-migration lỗi | DYC |
+| 2.2 | 2026-09-30 | Thêm nhóm test seed admin CTD và lệnh đặt mật khẩu | DYC |
+| 2.3 | 2026-09-30 | Thêm test hành vi khởi động khi auto-migration lỗi | DYC |

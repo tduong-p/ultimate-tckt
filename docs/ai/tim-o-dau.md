@@ -1,11 +1,11 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 2.0
+version: 2.1
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-30
 related_code: []
 ---
 
@@ -49,7 +49,7 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Gửi mail | `services/ctd-api/backend/app/infra/mailer.py` (`MAILER_DRIVER=console|smtp`) |
 | Lưu trữ file hồ sơ | `services/ctd-api/backend/app/infra/storage.py` (`STORAGE_DRIVER=memory|s3|local`) |
 | Job nền (nhắc hạn, gửi outbox) | `services/ctd-api/backend/app/jobs/run_reminders.py`, `send_outbox.py` |
-| Seed dữ liệu | `services/ctd-api/backend/app/seeds/admin_seed.py`, `catalog_seed.py`, `workflow_seed.py`, `demo_seed.py` |
+| Seed dữ liệu | `services/ctd-api/backend/app/seeds/admin_seed.py`, `set_password.py`, `catalog_seed.py`, `workflow_seed.py`, `demo_seed.py` |
 | Frontend — đăng nhập | `services/ctd-api/frontend/src/features/auth/Login.tsx`, `src/lib/auth.tsx` |
 | Frontend — nộp/theo dõi hồ sơ (sinh viên) | `services/ctd-api/frontend/src/features/hoso/SubmitCase.tsx`, `CaseStatus.tsx` |
 | Frontend — xử lý hồ sơ (cán bộ) | `services/ctd-api/frontend/src/features/canbo/Inbox.tsx`, `ReviewCase.tsx` |
@@ -79,3 +79,4 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-30 | Thêm `set_password.py` vào hàng Seed dữ liệu | DYC |

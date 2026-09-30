@@ -27,7 +27,7 @@
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 2.0 | active | ai, dev |
 | [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.2 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.6 | active | ai, dev |
-| [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.0 | active | ai, dev |
+| [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.1 | active | ai, dev |
 
 ## ba
 
@@ -46,7 +46,7 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [DEV-API-001](dev/api.md) | API | 2.0 | active | dev, ai |
-| [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.0 | active | dev, ai, onboarding |
+| [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.1 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.1 | active | dev, ai |
 | [DEV-MAIL-001](dev/email-cron.md) | Email và Cron | 2.0 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.2 | active | dev, ai |
@@ -54,7 +54,7 @@
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 3.0 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.1 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.2 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.3 | active | dev, ai |
 
 ## onboarding
 
@@ -104,7 +104,7 @@
 | [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.1 | active | dev, ai |
 | [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.0 | active | dev, ai |
 | [PB-FIX-001](playbooks/sua-loi.md) | Playbook — sửa lỗi | 1.0 | active | dev, ai |
-| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.1 | active | dev, ai |
+| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.2 | active | dev, ai |
 | [PB-FEAT-001](playbooks/them-tinh-nang.md) | Playbook — thêm tính năng | 1.0 | active | dev, ai |
 
 ## specs
@@ -120,8 +120,8 @@
 | [SPEC-AIKIT-001](specs/2026-09-26-ai-kit-repobot-design.md) | Design — AI kit cho dev và bot Discord repobot | 2.0 | draft | dev, ai, ops |
 | [SPEC-AIKIT-003](specs/2026-09-26-repobot-plan.md) | Kế hoạch triển khai — bot Discord repobot (repo phụ) | 1.0 | draft | dev, ops, ai |
 | [SPEC-AIKIT-004](specs/2026-09-27-repobot-notify-plan.md) | Kế hoạch triển khai — repobot thông báo thay đổi repo kèm TLDR (phần C) | 1.0 | draft | dev, ops, ai |
-| [SPEC-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-design.md) | Design — MVP Điều hành dùng thử nội bộ TCKT (pilot) | 1.3 | draft | dev, ai, ops |
-| [PLAN-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-plan.md) | Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot) | 1.2 | draft | dev, ai |
+| [SPEC-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-design.md) | Design — MVP Điều hành dùng thử nội bộ TCKT (pilot) | 1.4 | draft | dev, ai, ops |
+| [PLAN-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-plan.md) | Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot) | 1.3 | draft | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
