@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-INC-001
 title: Xử lý sự cố thường gặp
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-30
 related_code: []
 ---
 
@@ -59,9 +59,13 @@ Lấy `<tag-cu>` từ tab Actions (SHA rút gọn của lần build/deploy tốt
 - `deploy.sh` tự thoát khác 0 nếu `/api/health` không trả 200 trong 60 giây — CI sẽ đỏ, không tự "coi như deploy thành công".
 - Kiểm log app ngay sau `up -d` (mục 2) để biết đang lỗi kết nối DB, lỗi migration chưa chạy, hay lỗi khác.
 - Nếu app cần migration DB chưa chạy (core: `npm run migrate`; ctd-api: Alembic) mà chưa chạy trước khi deploy code mới, app có thể lỗi ngay khi khởi động — xem `docs/dev/db-migration.md`.
+- Core **thoát** nếu auto-migration lúc khởi động lỗi (từ SPEC-PILOT-001 c22); `restart: unless-stopped` sẽ khởi động
+  lại. Vài dòng `Auto-migration failed during startup` ngay sau khi VM/MySQL khởi động là bình thường; lặp mãi thì
+  đọc lỗi migration trong log và xem `docs/dev/db-migration.md`.
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-30 | Core thoát khi auto-migration lỗi | DYC |
