@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.4
+version: 2.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -85,3 +85,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.2 | 2026-09-30 | Thêm nhóm test seed admin CTD và lệnh đặt mật khẩu | DYC |
 | 2.3 | 2026-09-30 | Thêm test hành vi khởi động khi auto-migration lỗi | DYC |
 | 2.4 | 2026-09-30 | Thêm core/tests/pilot.authz.test.js (pilot PR 4) | DYC |
+| 2.5 | 2026-09-30 | Thêm core/tests/pilot.vn-date.test.js (pilot PR 6) | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 1.5
+version: 1.6
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -244,3 +244,4 @@ không chờ issue này.
 | 1.1 | 2026-09-29 | Rà soát lượt 2 phần (c): thêm c17–c35, mở rộng c3/c4/c7/c9/c13/c14, rate limit đăng nhập lên nhóm 2 tuần đầu, a4 kiểm tài khoản mẫu `admin@example.com`, bổ sung test phải thêm | DYC |
 | 1.0 | 2026-09-29 | Bản đầu: phạm vi pilot Điều hành, phần a–d, luật dev trong thời gian pilot; phát hành theo đợt (lịch cụ thể chốt sau) | DYC |
 | 1.5 | 2026-09-30 | c3 c5 c6 c10 c19 c21 c23 c24 đã sửa trong PR 4; c23 chỉ chặn review_note vì UI cho member gửi evidence | DYC |
+| 1.6 | 2026-09-30 | c4 đã sửa trong PR 6: dateInVietnam dùng chung, bỏ CURDATE() | DYC |

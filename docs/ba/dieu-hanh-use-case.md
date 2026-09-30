@@ -1,7 +1,7 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.1
+version: 2.2
 status: active
 audience: [ba]
 owner: DYC
@@ -87,3 +87,4 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-30 | Event Lead thêm task/người tham gia; người tạo/tham gia mở được hoạt động (pilot PR 4) | DYC |
+| 2.2 | 2026-09-30 | Ngày "hôm nay"/quá hạn tính theo giờ Việt Nam (pilot PR 6) | DYC |
