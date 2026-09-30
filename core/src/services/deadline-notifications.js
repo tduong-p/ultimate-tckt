@@ -1,17 +1,13 @@
-const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
+const { dateInVietnam } = require('../date-vn');
 
-function dateInVietnam(now = new Date()) {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
-  const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
-  return `${value.year}-${value.month}-${value.day}`;
-}
+const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
 
 async function findUpcomingDeadlines(db, now = new Date()) {
   const [rows] = await db.execute(
     `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,a.title activity_title,u.id user_id,u.name user_name,u.email user_email
      FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id JOIN users u ON u.id=ta.user_id AND u.is_active=1
      WHERE t.status NOT IN ('done','cancelled') AND (TIMESTAMPDIFF(HOUR,?,t.deadline) IN (24,4) OR DATEDIFF(t.deadline,?) = 1)`,
-    [now, now]
+    [now, dateInVietnam(now)]
   );
   return rows;
 }
@@ -21,7 +17,7 @@ async function findOverdueTasks(db, now = new Date()) {
     `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,a.title activity_title,u.id user_id,u.name user_name,u.email user_email
      FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id JOIN users u ON u.id=ta.user_id AND u.is_active=1
      WHERE t.status NOT IN ('done','cancelled') AND t.deadline<?`,
-    [now]
+    [dateInVietnam(now)]
   );
   return rows;
 }

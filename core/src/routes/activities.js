@@ -1,5 +1,6 @@
 const express = require('express');
 const { createAttachment } = require('../services/task-attachments');
+const { dateInVietnam } = require('../date-vn');
 
 function createActivityRoutes(context) {
   const { db, auth, admin, manager, managerOrEventLead, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
@@ -256,7 +257,7 @@ router.post('/api/activities/:id/log-task', auth, taskUpload.single('file'), asy
 
   const description = String(req.body.description || '').trim();
   const notes = String(req.body.notes || '').trim();
-  const deadline = activity.deadline || new Date().toISOString().slice(0, 10);
+  const deadline = activity.deadline || dateInVietnam();
 
   let taskId;
   const conn = await db.getConnection();
