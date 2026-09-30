@@ -6,6 +6,6 @@ const logger = require('./src/logger');
   } catch (error) {
     logger.error('Application failed during startup.', error);
     console.error(error);
-    process.exitCode = 1;
+    process.exit(1);
   }
 })();
