@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 2.0
+version: 2.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-30
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -41,6 +41,8 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
 | GET | `/api/task-attachments/:id/content` | `tasks.js` |
+
+Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả 400 khi `kind` không hợp lệ, `attachment_url` không phải http(s) hoặc `task_id` không thuộc hoạt động, 403 khi `kind=review_note` mà người gọi không quản lý được hoạt động; `POST /api/tasks/:id/attachments` trả 403 nếu người gọi không quản lý tổ của task và không được giao task; `POST /api/activities/:id/volunteer` không hạ người đã `confirmed`.
 | GET/POST | `/api/teams` | `teams.js` |
 | PATCH/DELETE | `/api/teams/:id` | `teams.js` |
 | GET | `/api/teams/:id/{members,overview}` | `teams.js` |
@@ -85,3 +87,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-30 | Quy tắc lỗi mới cho updates, attachments, volunteer (pilot PR 4) | DYC |

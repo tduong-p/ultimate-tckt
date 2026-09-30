@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1270,3 +1270,4 @@ npm run docs:check         # Documentation validation
 | 1.2 | 2026-09-27 | Thêm core/src/config/migrate-units.js vào related_code - file migration đa đơn vị | DYC |
 | 1.3 | 2026-09-27 | Cập nhật file catalog và migration test | D2 |
 | 1.4 | 2026-09-30 | Ghi nhận Core thoát thay vì phục vụ trên schema migration lỗi | DYC |
+| 1.5 | 2026-09-30 | Ghi nhận pilot PR 4 sửa lỗi phân quyền Core | DYC |

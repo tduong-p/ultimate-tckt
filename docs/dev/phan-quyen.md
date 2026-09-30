@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 3.0
+version: 3.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-28
+updated: 2026-09-30
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -31,9 +31,18 @@ Cơ chế trong code:
   `devops` (executive **và** cờ devops — xem dưới), `managerOrEventLead` (executive/leadership, hoặc người được
   gán Event Lead của đúng hoạt động đang thao tác).
 - Phạm vi dữ liệu: `activityScope(user)` trong `core/src/policies/access.js` — executive thấy tất cả (`1=1`);
-  người khác chỉ thấy hoạt động công khai hoặc hoạt động của tổ mình (qua `activity_teams`/`user_teams`).
+  người khác chỉ thấy hoạt động công khai, hoạt động của tổ mình (qua `activity_teams`/`user_teams`), hoặc hoạt động
+  mà mình là Event Lead / người tạo / người tham gia (`participants`) dù không thuộc tổ nào của hoạt động.
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
+- **Ranh giới quản lý tài khoản** (`canManageUser`): tổ trưởng/tổ phó chỉ sửa/khoá được `member` mà **mọi** tổ của
+  người đó đều do mình phụ trách; không được đổi mật khẩu hoặc email của người khác (chỉ executive). Thêm một
+  `member` vào tổ mình không làm người đó trở thành "người của mình" nếu họ còn thuộc tổ khác.
+- **Event Lead** (`member` được gán) được thêm task và người tham gia cho hoạt động của mình, nhưng chỉ với các tổ
+  thuộc `activity_teams` của hoạt động đó.
+- **Bài cập nhật hoạt động**: `kind=review_note` chỉ người `canManageActivity` mới đăng được; `attachment_url` phải
+  là http(s); `task_id` phải thuộc đúng hoạt động. Đính tệp vào task (`POST /api/tasks/:id/attachments`) cần
+  `canTouchTask` (quản lý tổ của task hoặc được giao task).
 - **Devops** (quyền cấu hình SMTP/Templates/Rules/Cron) là một lớp **cắt ngang** role, không phải role riêng:
   cần vừa `isExecutive` vừa `isDevops` (`users.is_devops = 1` hoặc email nằm trong allowlist `DEVOPS_EMAILS`).
   Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `devops`.
@@ -104,3 +113,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |
+| 3.1 | 2026-09-30 | Phạm vi hoạt động, ranh giới canManageUser, Event Lead, quy tắc bài cập nhật (pilot PR 4) | DYC |
