@@ -2,8 +2,8 @@ const { hasDycMembership } = require('../units/memberships');
 
 const executiveRoles = ['admin', 'vice_admin'];
 const leadershipRoles = ['leader', 'vice_leader'];
-const isExecutive = user => executiveRoles.includes(user?.role);
-const isLeadership = user => leadershipRoles.includes(user?.role);
+const isExecutive = user => executiveRoles.includes(user?.role) || executiveRoles.includes(user?.unitRole);
+const isLeadership = user => leadershipRoles.includes(user?.role) || leadershipRoles.includes(user?.unitRole);
 
 /**
  * Parse DEVOPS_EMAILS or CORE_DEVOPS_EMAILS env variable into lowercase email list.

@@ -66,7 +66,12 @@ function createUnitContextMiddleware(db) {
 
       req.unit = { id: current.unit_id, code: current.code, name: current.name, kind: current.kind };
       req.unitRole = current.role;
-      req.actor = { ...user, role: legacyRole(memberships, req.method) };
+      req.actor = { 
+        ...user, 
+        role: legacyRole(memberships, req.method),
+        unitRole: current.role,
+        unit: req.unit
+      };
 
       next();
     } catch (err) {

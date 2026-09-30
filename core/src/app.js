@@ -66,7 +66,8 @@ function createApplication(options = {}) {
     });
   }
 
-  const policies = createAccessPolicies(db, isLeadership, isExecutive);
+  const audit = require('./services/audit');
+  const policies = createAccessPolicies(db, isLeadership, isExecutive, audit);
   const settingGuard = createSettingGuard(db);
   const context = {
     db, auth, admin, manager, platformAdmin, settingGuard, isLeadership, isExecutive, isPlatformAdmin, asyncRoute, validHttpUrl, one, ids,
