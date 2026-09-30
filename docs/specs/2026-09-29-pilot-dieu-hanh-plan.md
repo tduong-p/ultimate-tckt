@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.6
+version: 1.7
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -612,3 +612,4 @@ trước khi tạo trên GitHub.
 | 1.4 | 2026-09-30 | PR 4 đang làm: nhánh fix/pilot-core-authz, plan chi tiết ghi trong PR | DYC |
 | 1.5 | 2026-09-30 | PR 6 (c4) làm ở nhánh fix/pilot-core-vn-date | DYC |
 | 1.6 | 2026-09-30 | PR 8 xong (c26, c27 một phần, c29 CSS); PR 5 thông báo tạm hoãn | DYC |
+| 1.7 | 2026-09-30 | Hotfix staging 502 (migrate unit_id) chèn trước PR 7 | DYC |
