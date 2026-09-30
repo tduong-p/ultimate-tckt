@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.6
+version: 2.7
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -87,3 +87,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.4 | 2026-09-30 | Thêm core/tests/pilot.authz.test.js (pilot PR 4) | DYC |
 | 2.5 | 2026-09-30 | Thêm core/tests/pilot.vn-date.test.js (pilot PR 6) | DYC |
 | 2.6 | 2026-09-30 | Thêm pilot.ui-numbers.test.js (c26 c27 c29) | DYC |
+| 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |

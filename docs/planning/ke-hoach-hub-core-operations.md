@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1273,3 +1273,4 @@ npm run docs:check         # Documentation validation
 | 1.5 | 2026-09-30 | Ghi nhận pilot PR 4 sửa lỗi phân quyền Core | DYC |
 | 1.6 | 2026-09-30 | Ghi nhận pilot PR 6 sửa múi giờ Core | DYC |
 | 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
+| 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
