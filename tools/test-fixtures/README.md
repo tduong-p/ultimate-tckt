@@ -40,11 +40,16 @@ mysql> source C:/Nguyen Tri/Code/TCKT/ultimate-tckt/tools/test-fixtures/sql/mysq
 ### Tạo backup mới
 
 ```bash
-# Full backup (schema + data)
-mysqldump -u root -p ultimate_tckt > tools/test-fixtures/sql/mysql/backup_$(date +%Y%m%d).sql
+# macOS/Linux: tạo thư mục local và file mặc định mà restore-db.ps1 đọc
+mkdir -p tools/test-fixtures/sql/mysql
+mysqldump -u root -p ultimate_tckt > tools/test-fixtures/sql/mysql/backup_current.sql
 
-# Windows PowerShell
-mysqldump -u root -p ultimate_tckt > "tools/test-fixtures/sql/mysql/backup_$(Get-Date -Format yyyyMMdd).sql"
+# Windows PowerShell: tạo thư mục local và file mặc định
+New-Item -ItemType Directory -Force tools/test-fixtures/sql/mysql | Out-Null
+mysqldump -u root -p ultimate_tckt > tools/test-fixtures/sql/mysql/backup_current.sql
+
+# Muốn giữ thêm bản theo ngày, đổi tên file và restore bằng:
+# .\tools\test-fixtures\restore-db.ps1 -BackupFile backup_20260930.sql
 
 # Schema only (no data)
 mysqldump -u root -p --no-data ultimate_tckt > tools/test-fixtures/sql/mysql/schema_only.sql
