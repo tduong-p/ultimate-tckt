@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.1
+version: 1.2
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -605,5 +605,6 @@ trước khi tạo trên GitHub.
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.2 | 2026-09-30 | Ghi nhận triển khai Task 2/a2 và cập nhật các tài liệu bị `related_code` tác động | DYC |
 | 1.1 | 2026-09-30 | Ghi nhận hoàn tất Task 1/a1: dump MySQL không còn được theo dõi trong git | DYC |
 | 1.0 | 2026-09-29 | Bản đầu: lộ trình 10 PR, chi tiết PR 1–3 và issue liên module | DYC |
