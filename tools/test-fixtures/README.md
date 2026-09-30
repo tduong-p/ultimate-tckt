@@ -13,11 +13,10 @@ Thư mục này **KHÔNG** được copy vào Docker images. Chỉ dùng cho:
 ## 📁 Cấu trúc
 
 ### `sql/mysql/`
-SQL fixtures cho Core application (MySQL 8):
+Chỗ đặt dump MySQL của Core **ở máy mình** (mọi `*.sql` trong `tools/test-fixtures/sql/` bị git-ignore).
+Repo là public: không commit dump, CSV hay dữ liệu người dùng thật.
 
-- `backup_current.sql` - Backup hiện tại từ database local (ignored by git)
-- `sample_data.sql` - Dữ liệu tối thiểu để chạy app (safe to commit)
-- `schema_only.sql` - Chỉ cấu trúc, không có data (safe to commit)
+- `backup_current.sql` — tên mặc định mà `restore-db.ps1` đọc; tự tạo bằng lệnh ở mục "Tạo backup mới".
 
 ### `sql/postgres/` (future)
 SQL fixtures cho CTD service khi cần.
