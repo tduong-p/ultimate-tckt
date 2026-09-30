@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -65,3 +65,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.2 | 2026-09-30 | Bổ sung contract test chặn shadow helper và helper chỉ có phía server | DYC |
 | 1.3 | 2026-09-30 | Ẩn nút "Tình nguyện" với người đã tham gia (pilot PR 4) | DYC |
 | 1.4 | 2026-09-30 | Ngày mặc định của báo cáo theo giờ Việt Nam (pilot PR 6) | DYC |
+| 1.5 | 2026-09-30 | PR 8: nút Đề xuất hoạt động chỉ hiện cho quản lý; tên team chỉ là link khi có quyền xem tổng quan; bảng cuộn ngang và lịch co được trên 375px | DYC |

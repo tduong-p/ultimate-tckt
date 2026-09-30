@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 2.2
+version: 2.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -91,3 +91,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.6 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-30 | Quy tắc lỗi mới cho updates, attachments, volunteer (pilot PR 4) | DYC |
 | 2.2 | 2026-09-30 | Ngày nghiệp vụ theo giờ Việt Nam qua date-vn.js (pilot PR 6) | DYC |
+| 2.3 | 2026-09-30 | PR 8: bootstrap stats.openTasks đếm việc của chính người dùng; team overview và archive bỏ việc đã huỷ / chỉ đếm done | DYC |
