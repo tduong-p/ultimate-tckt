@@ -188,15 +188,15 @@ async function updateFixture(pool) {
   return { teamId, admin, member, activityId, otherTaskId };
 }
 
-test('c23: a member cannot post a review_note or evidence update', () => withServer(async ({ pool, client }) => {
+test('c23: a member cannot post a review_note update but can still post evidence and comments', () => withServer(async ({ pool, client }) => {
   const { member, activityId } = await updateFixture(pool);
   await client.login(member.email, member.password);
-  for (const kind of ['review_note', 'evidence']) {
-    const result = await client.request('POST', `/api/activities/${activityId}/updates`, { body: { body: 'Giả mạo', kind } });
-    assert.equal(result.status, 403, kind);
+  const forged = await client.request('POST', `/api/activities/${activityId}/updates`, { body: { body: 'Giả mạo', kind: 'review_note' } });
+  assert.equal(forged.status, 403);
+  for (const kind of ['comment', 'evidence']) {
+    const ok = await client.request('POST', `/api/activities/${activityId}/updates`, { body: { body: 'Nội dung', kind } });
+    assert.equal(ok.status, 201, kind);
   }
-  const ok = await client.request('POST', `/api/activities/${activityId}/updates`, { body: { body: 'Bình luận', kind: 'comment' } });
-  assert.equal(ok.status, 201);
 }));
 
 test('c23: an unknown update kind is a 400, not a 500', () => withServer(async ({ pool, client }) => {
