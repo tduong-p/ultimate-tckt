@@ -119,6 +119,183 @@ function createPlatformRoutes(context) {
     res.json({ ok: true });
   }));
   
+  /**
+   * GET /api/platform/visibility-policies
+   * Lấy danh sách các visibility policies.
+   * Auth: authenticated users (để xem policies của đơn vị mình)
+   */
+  router.get('/api/platform/visibility-policies', auth, asyncRoute(async (req, res) => {
+    const { hasDycMembership } = require('../units/memberships');
+    const isDyc = hasDycMembership(req.memberships);
+    
+    let query, params;
+    if (isDyc) {
+      // DYC sees all policies
+      query = `
+        SELECT vp.*, 
+          viewer.code AS viewer_code, viewer.name AS viewer_name,
+          owner.code AS owner_code, owner.name AS owner_name,
+          u.name AS updated_by_name
+        FROM unit_visibility_policies vp
+        JOIN org_units viewer ON viewer.id = vp.viewer_unit_id
+        JOIN org_units owner ON owner.id = vp.owner_unit_id
+        LEFT JOIN users u ON u.id = vp.updated_by
+        ORDER BY viewer.code, owner.code
+      `;
+      params = [];
+    } else {
+      // Regular users see policies where their unit is owner
+      const myUnitIds = req.memberships.map(m => m.unit_id);
+      if (!myUnitIds.length) {
+        return res.json([]);
+      }
+      
+      query = `
+        SELECT vp.*, 
+          viewer.code AS viewer_code, viewer.name AS viewer_name,
+          owner.code AS owner_code, owner.name AS owner_name,
+          u.name AS updated_by_name
+        FROM unit_visibility_policies vp
+        JOIN org_units viewer ON viewer.id = vp.viewer_unit_id
+        JOIN org_units owner ON owner.id = vp.owner_unit_id
+        LEFT JOIN users u ON u.id = vp.updated_by
+        WHERE vp.owner_unit_id IN (?)
+        ORDER BY viewer.code, owner.code
+      `;
+      params = [myUnitIds];
+    }
+    
+    const [rows] = await db.query(query, params);
+    res.json(rows);
+  }));
+  
+  /**
+   * PUT /api/platform/visibility-policies/:viewerUnitId/:ownerUnitId
+   * Tạo hoặc cập nhật visibility policy.
+   * Auth: admin/vice_admin của owner unit, hoặc DYC
+   * Body: { level }
+   */
+  router.put('/api/platform/visibility-policies/:viewerUnitId/:ownerUnitId', auth, asyncRoute(async (req, res) => {
+    const viewerUnitId = Number(req.params.viewerUnitId);
+    const ownerUnitId = Number(req.params.ownerUnitId);
+    const { level } = req.body;
+    
+    // Validate level
+    const validLevels = ['summary', 'tasks_readonly', 'full_readonly'];
+    if (!level || !validLevels.includes(level)) {
+      return res.status(400).json({ 
+        error: 'level phải là một trong: summary, tasks_readonly, full_readonly.' 
+      });
+    }
+    
+    const { hasDycMembership, getUnit } = require('../units/memberships');
+    const { isUnitAdmin } = require('../units/catalog');
+    
+    // Check permission: DYC or admin of owner unit
+    const isDyc = hasDycMembership(req.memberships);
+    const ownerMembership = req.memberships.find(m => m.unit_id === ownerUnitId);
+    
+    const ownerUnit = await getUnit(db, ownerUnitId);
+    if (!ownerUnit) {
+      return res.status(404).json({ error: 'Owner unit không tồn tại.' });
+    }
+    
+    const canManage = isDyc || (ownerMembership && isUnitAdmin(ownerUnit.kind, ownerMembership.role));
+    
+    if (!canManage) {
+      return res.status(403).json({ 
+        error: 'Chỉ admin/vice_admin của đơn vị sở hữu hoặc DYC được cấu hình visibility.' 
+      });
+    }
+    
+    // Check viewer unit exists
+    const viewerUnit = await getUnit(db, viewerUnitId);
+    if (!viewerUnit) {
+      return res.status(404).json({ error: 'Viewer unit không tồn tại.' });
+    }
+    
+    // Upsert policy
+    await db.execute(`
+      INSERT INTO unit_visibility_policies(viewer_unit_id, owner_unit_id, level, updated_by)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE level = VALUES(level), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP
+    `, [viewerUnitId, ownerUnitId, level, req.session.user.id]);
+    
+    // Audit log
+    await recordAudit(db, {
+      actorId: req.session.user.id,
+      actorUnitId: req.unit?.id,
+      action: 'visibility_policy.update',
+      targetType: 'visibility_policy',
+      targetId: `${viewerUnit.code}->${ownerUnit.code}`,
+      ownerUnitId: ownerUnitId,
+      meta: { level, viewer_unit_code: viewerUnit.code }
+    });
+    
+    res.json({ ok: true });
+  }));
+  
+  /**
+   * DELETE /api/platform/visibility-policies/:viewerUnitId/:ownerUnitId
+   * Xóa một visibility policy.
+   * Auth: admin/vice_admin của owner unit, hoặc DYC
+   */
+  router.delete('/api/platform/visibility-policies/:viewerUnitId/:ownerUnitId', auth, asyncRoute(async (req, res) => {
+    const viewerUnitId = Number(req.params.viewerUnitId);
+    const ownerUnitId = Number(req.params.ownerUnitId);
+    
+    const { hasDycMembership, getUnit } = require('../units/memberships');
+    const { isUnitAdmin } = require('../units/catalog');
+    
+    // Check permission: DYC or admin of owner unit
+    const isDyc = hasDycMembership(req.memberships);
+    const ownerMembership = req.memberships.find(m => m.unit_id === ownerUnitId);
+    
+    const ownerUnit = await getUnit(db, ownerUnitId);
+    if (!ownerUnit) {
+      return res.status(404).json({ error: 'Owner unit không tồn tại.' });
+    }
+    
+    const canManage = isDyc || (ownerMembership && isUnitAdmin(ownerUnit.kind, ownerMembership.role));
+    
+    if (!canManage) {
+      return res.status(403).json({ 
+        error: 'Chỉ admin/vice_admin của đơn vị sở hữu hoặc DYC được xóa visibility policy.' 
+      });
+    }
+    
+    // Check policy exists
+    const [[policy]] = await db.execute(
+      'SELECT level FROM unit_visibility_policies WHERE viewer_unit_id = ? AND owner_unit_id = ?',
+      [viewerUnitId, ownerUnitId]
+    );
+    
+    if (!policy) {
+      return res.status(404).json({ error: 'Policy không tồn tại.' });
+    }
+    
+    const viewerUnit = await getUnit(db, viewerUnitId);
+    
+    // Delete policy
+    await db.execute(
+      'DELETE FROM unit_visibility_policies WHERE viewer_unit_id = ? AND owner_unit_id = ?',
+      [viewerUnitId, ownerUnitId]
+    );
+    
+    // Audit log
+    await recordAudit(db, {
+      actorId: req.session.user.id,
+      actorUnitId: req.unit?.id,
+      action: 'visibility_policy.delete',
+      targetType: 'visibility_policy',
+      targetId: `${viewerUnit?.code || viewerUnitId}->${ownerUnit.code}`,
+      ownerUnitId: ownerUnitId,
+      meta: { level: policy.level, viewer_unit_id: viewerUnitId }
+    });
+    
+    res.json({ ok: true });
+  }));
+  
   return router;
 }
 

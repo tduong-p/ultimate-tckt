@@ -5,18 +5,18 @@ const { createTestDatabase } = require('./helpers/db');
 const { startTestServer } = require('./helpers/server');
 const { createUser, createTeam, createActivity, unitIdByCode } = require('./helpers/fixtures');
 
-test('outsiders (BTV only) get 403 on Điều hành routes', async () => {
+test('outsiders (VPD without dieu-hanh module) get 403 on Điều hành routes', async () => {
   const { pool, teardown } = await createTestDatabase();
   const { client, close } = await startTestServer(pool);
   try {
-    // Arrange: Create a user with only BTV membership
-    const btvUser = await createUser(pool, { 
-      email: 'btv@example.com', 
+    // Arrange: Create a user with only VPD membership (VPD does NOT have dieu-hanh module)
+    const vpdUser = await createUser(pool, { 
+      email: 'vpd@example.com', 
       role: 'member',
-      units: [['BTV', 'btv_member']]  // No TCKT membership
+      units: [['VPD', 'officer']]  // No TCKT membership, no dieu-hanh module
     });
 
-    await client.login(btvUser.email, btvUser.password);
+    await client.login(vpdUser.email, vpdUser.password);
 
     // Act & Assert: Try to access various Điều hành routes
     const routes = [

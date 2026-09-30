@@ -24,6 +24,7 @@ const OUTSIDER_ALLOW = [
   /^\/api\/units$/,               // List of units (for login/role selection)
   /^\/api\/units\/[^/]+\/roles$/, // Unit roles (for login)
   /^\/api\/platform\/setting-locks$/, // Anyone authenticated can view locks
+  /^\/api\/platform\/visibility-policies$/, // Anyone authenticated can view policies
   /^\/auth\//                     // Authentication routes (e.g. /auth/microsoft)
 ];
 
@@ -96,11 +97,11 @@ test('Data leak regression test: outsiders get 403, platform admins do not', { t
     // SETUP: Create test users
     // ============================================================
     
-    // BTV user (outsider - not in TCKT)
-    const btvUser = await createUser(pool, { 
-      role: 'leader',
-      email: 'btv_lead@test.com',
-      units: [['BTV', 'leader']]
+    // VPD user (outsider - not in TCKT, no dieu-hanh module)
+    const vpdUser = await createUser(pool, { 
+      role: 'member',
+      email: 'vpd_officer@test.com',
+      units: [['VPD', 'officer']]
     });
     
     // DYC user (platform admin - can read everything)
@@ -123,19 +124,19 @@ test('Data leak regression test: outsiders get 403, platform admins do not', { t
     console.log(`   Business routes (to test): ${businessRoutes.length}`);
     
     // ============================================================
-    // TEST 1: Outsider (BTV) must get 403 on all business routes
+    // TEST 1: Outsider (VPD without dieu-hanh) must get 403 on all business routes
     // ============================================================
     
-    await client.login(btvUser.email, btvUser.password);
+    await client.login(vpdUser.email, vpdUser.password);
     
-    const btvLeaks = [];
+    const vpdLeaks = [];
     
     for (const route of businessRoutes) {
       const res = await client.request('GET', route);
       
-      // If BTV can access (not 403), it's a potential leak
+      // If VPD can access (not 403), it's a potential leak
       if (res.status !== 403) {
-        btvLeaks.push({ route, status: res.status });
+        vpdLeaks.push({ route, status: res.status });
       }
     }
     
@@ -160,10 +161,10 @@ test('Data leak regression test: outsiders get 403, platform admins do not', { t
     // ASSERTIONS
     // ============================================================
     
-    if (btvLeaks.length > 0) {
+    if (vpdLeaks.length > 0) {
       console.error('\n❌ DATA LEAK DETECTED:');
-      console.error('   The following routes are accessible to outsiders (BTV):');
-      for (const leak of btvLeaks) {
+      console.error('   The following routes are accessible to outsiders (VPD without dieu-hanh):');
+      for (const leak of vpdLeaks) {
         console.error(`   - ${leak.route} → ${leak.status}`);
       }
     }
@@ -177,9 +178,9 @@ test('Data leak regression test: outsiders get 403, platform admins do not', { t
     }
     
     assert.equal(
-      btvLeaks.length, 
+      vpdLeaks.length, 
       0, 
-      `Found ${btvLeaks.length} data leak(s). Outsiders should get 403 on all business routes.`
+      `Found ${vpdLeaks.length} data leak(s). Outsiders should get 403 on all business routes.`
     );
     
     assert.equal(

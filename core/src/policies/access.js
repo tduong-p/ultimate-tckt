@@ -54,6 +54,9 @@ function createAccessPolicies(db, isLeadership, isExecutive = (u => ['admin', 'v
       }
     }
 
+    // For teams resource type, just use unit_id filter (no additional scoping needed)
+    // Teams are unit-scoped by default via teams.unit_id
+
     // Check policies for cross-unit visibility
     const [policyRows] = await db.execute('SELECT owner_unit_id, level FROM unit_visibility_policies WHERE viewer_unit_id=?', [viewer.unit.id]);
     const visibleUnits = policyRows.map(r => r.owner_unit_id);

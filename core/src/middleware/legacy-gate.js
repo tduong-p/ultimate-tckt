@@ -21,27 +21,40 @@ const LEGACY_PREFIXES = [
 
 /**
  * Middleware factory that protects legacy Điều hành routes.
- * - Allows TCKT members full access (read + write)
+ * - Allows users whose current unit has dieu-hanh module enabled (full access)
+ * - Allows TCKT members full access (backward compatibility)
  * - Allows DYC members read-only access with audit logging
  * - Blocks everyone else with 403
  * 
  * Assumes:
  * - req.session.user exists (checked by auth middleware)
  * - req.memberships exists (populated by loadUnitContext)
+ * - req.unit exists (populated by loadUnitContext)
  * @param {import('mysql2/promise').Pool} db
  * @returns {(req, res, next) => Promise<void>}
  */
 function createLegacyGate(db) {
   return async (req, res, next) => {
     const { user } = req.session || {};
-    const { memberships } = req;
+    const { memberships, unit } = req;
 
     // If not logged in or no memberships, let auth middleware handle it
     if (!user || !memberships || !memberships.length) {
       return next();
     }
 
-    // TCKT members have full access
+    // Check if current unit has dieu-hanh module enabled
+    if (unit && unit.id) {
+      const [moduleRows] = await db.execute(
+        'SELECT 1 FROM unit_modules WHERE unit_id = ? AND module_id = ?',
+        [unit.id, 'dieu-hanh']
+      );
+      if (moduleRows.length > 0) {
+        return next();
+      }
+    }
+
+    // TCKT members have full access (backward compatibility)
     if (hasTcktMembership(memberships)) {
       return next();
     }
@@ -64,7 +77,7 @@ function createLegacyGate(db) {
       return next();
     }
 
-    // Everyone else (BTV, LCĐ, DYC doing POST/PATCH/DELETE) is blocked
+    // Everyone else (units without dieu-hanh module, DYC doing POST/PATCH/DELETE) is blocked
     return res.status(403).json({
       error: 'Chức năng Điều hành hiện chỉ dành cho Ban TCKT.'
     });
