@@ -4,7 +4,7 @@
 
 ## Core
 
-- [ ] 1. Viết migration idempotent (bảng mới + seed đơn vị + gán dữ liệu cũ)
+- [x] 1. Viết migration idempotent (bảng mới + seed đơn vị + gán dữ liệu cũ)
   - Tạo `org_units`, `unit_memberships`, `unit_modules`, `unit_visibility_policies`, `setting_locks`, `audit_logs`, `directives`, `submissions`, `ops_logs`, `ops_log_attendance`
   - Seed đơn vị: DYC, BTV, TCKT, VP Đoàn, Chi bộ, ĐT/LCĐ (dữ liệu giả ở GĐ1 — thay bằng danh sách thật trước khi mở cho người dùng thật)
   - Gán `teams.unit_id` / `activities.unit_id` = TCKT cho dữ liệu hiện có
@@ -13,20 +13,20 @@
   - Test chạy migration hai lần, xác nhận không tạo bản ghi trùng
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 3.1_
 
-- [ ] 2. Middleware `loadUnitContext` + refactor `src/policies/access.js`
+- [x] 2. Middleware `loadUnitContext` + refactor `src/policies/access.js`
   - Gắn `req.unit`, `req.unitRole`, `req.memberships` từ session `current_unit_id`
   - Xử lý fallback: `current_unit_id` không hợp lệ → membership đầu tiên; không có membership nào → 403
   - Chuyển `isExecutive`, `leadsTeam`, `activityScope`,… sang dùng `req.unitRole`
   - _Requirements: 1.4, 1.5_
 
-- [ ] 3. DYC + `setting_locks` + `managed_by` + admin global
+- [x] 3. DYC + `setting_locks` + `managed_by` + admin global
   - Thêm cột `managed_by` (`platform` / `unit`) cho setting
   - Endpoint khóa/mở khóa setting (chỉ DYC), ghi audit
   - Bootstrap `DEVOPS_EMAILS` → membership `dyc_admin` mỗi lần khởi động
   - `scopeFor` coi DYC là admin global: cho đọc mọi endpoint dữ liệu nghiệp vụ (không 403), ghi `audit_logs` mỗi lượt đọc liên đơn vị
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 4. `audit_logs`
+- [x] 4. `audit_logs`
   - Ghi log khi: đọc liên đơn vị, đổi mức xem, khóa/mở khóa setting, đổi membership
   - _Requirements: 3.6, 3.7, 9.1, 9.2_
 
@@ -91,9 +91,9 @@
 
 ## Chống rò rỉ (chặn merge)
 
-- [ ] 21. Test: mọi route GET với tài khoản BTV mức `summary` không lộ trường/id ngoài phạm vi
+- [x] 21. Test: mọi route GET với tài khoản BTV mức `summary` không lộ trường/id ngoài phạm vi
   - _Requirements: 10.1_
-- [ ] 22. Test: DYC đọc được mọi endpoint nghiệp vụ (không 403) và mỗi lượt đọc có ghi `audit_logs`
+- [x] 22. Test: DYC đọc được mọi endpoint nghiệp vụ (không 403) và mỗi lượt đọc có ghi `audit_logs`
   - _Requirements: 10.2_
 - [ ] 23. Gắn hai test trên vào CI, chặn merge khi fail
   - _Requirements: 10.3_
