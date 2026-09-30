@@ -66,3 +66,19 @@ test('re-running migrate is idempotent and does not re-add a removed membership'
     assert.equal(await count(pool, 'SELECT COUNT(*) c FROM unit_visibility_policies'), 1);
   } finally { await teardown(); }
 });
+
+test('migrate adopts the signed INT type of an existing org_units.id instead of forcing UNSIGNED (staging DB)', async () => {
+  const { pool, teardown } = await createTestDatabase();
+  try {
+    // Dựng lại trạng thái staging: DB đã migrate bởi bản cũ, org_units.id và unit_id là INT có dấu, FK đã có.
+    const [fks] = await pool.query("SELECT TABLE_NAME t, CONSTRAINT_NAME c, COLUMN_NAME col FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME='org_units'");
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} DROP FOREIGN KEY ${f.c}`);
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} MODIFY ${f.col} INT${f.col === 'parent_id' ? ' NULL' : ' NOT NULL'}`);
+    await pool.query('ALTER TABLE org_units MODIFY id INT AUTO_INCREMENT');
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} ADD CONSTRAINT ${f.c} FOREIGN KEY (${f.col}) REFERENCES org_units(id)`);
+    await migrateDatabase(pool, quiet);
+    const [rows] = await pool.query("SELECT TABLE_NAME t, COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='unit_id' AND TABLE_NAME IN ('teams','activities')");
+    assert.equal(rows.length, 2);
+    for (const r of rows) assert.equal(r.ty, 'int', `${r.t}.unit_id must keep matching org_units.id`);
+  } finally { await teardown(); }
+});

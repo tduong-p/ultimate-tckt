@@ -130,14 +130,22 @@ const TABLES = [
     CONSTRAINT fk_ops_attendance_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) ${T}`]
 ];
 
+// DB đã migrate bởi bản cũ có thể có org_units.id là INT có dấu; unit_id phải cùng kiểu với cột nó tham chiếu.
+async function orgUnitIdType(db) {
+  const [rows] = await db.query("SELECT COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='org_units' AND COLUMN_NAME='id'");
+  const ty = String(rows[0]?.ty || 'int unsigned').toLowerCase();
+  return /^int(\(\d+\))?( unsigned)?$/.test(ty) ? ty.replace(/\(\d+\)/, '').toUpperCase() : 'INT UNSIGNED';
+}
+
 async function addUnitColumn(db, table, tcktId, h) {
+  const idType = await orgUnitIdType(db);
   if (!(await h.columnExists(db, table, 'unit_id'))) {
     h.log(`Adding ${table}.unit_id`);
-    await db.query(`ALTER TABLE ${table} ADD COLUMN unit_id INT UNSIGNED NULL`);
+    await db.query(`ALTER TABLE ${table} ADD COLUMN unit_id ${idType} NULL`);
   }
   await db.query(`UPDATE ${table} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
   // GĐ1: chỉ TCKT có module Điều hành, nên INSERT kiểu cũ (không truyền unit_id) rơi về TCKT.
-  await db.query(`ALTER TABLE ${table} MODIFY unit_id INT UNSIGNED NOT NULL DEFAULT ${Number(tcktId)}`);
+  await db.query(`ALTER TABLE ${table} MODIFY unit_id ${idType} NOT NULL DEFAULT ${Number(tcktId)}`);
   if (!(await h.indexExists(db, table, `${table}_unit`))) await db.query(`ALTER TABLE ${table} ADD INDEX ${table}_unit (unit_id)`);
   if (!(await h.foreignKeyExists(db, table, `fk_${table}_unit`))) {
     await db.query(`ALTER TABLE ${table} ADD CONSTRAINT fk_${table}_unit FOREIGN KEY (unit_id) REFERENCES org_units(id)`);
