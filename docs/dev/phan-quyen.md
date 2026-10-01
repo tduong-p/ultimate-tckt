@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.0
+version: 6.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-29
+updated: 2026-10-01
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -31,12 +31,24 @@ Cơ chế trong code:
   `platformAdmin` (yêu cầu membership DYC), `managerOrEventLead` (executive/leadership, hoặc người được
   gán Event Lead của đúng hoạt động đang thao tác).
 - Phạm vi dữ liệu: `activityScope(user)` trong `core/src/policies/access.js` — executive thấy tất cả (`1=1`);
-  người khác chỉ thấy hoạt động công khai hoặc hoạt động của tổ mình (qua `activity_teams`/`user_teams`).
+  người khác chỉ thấy hoạt động công khai, hoạt động của tổ mình (qua `activity_teams`/`user_teams`), hoặc hoạt động
+  mà mình là Event Lead / người tạo / người tham gia (`participants`) dù không thuộc tổ nào của hoạt động.
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
 - **Platform Admin** (quyền cấu hình SMTP/Templates/Rules/Cron): yêu cầu người dùng phải có membership của đơn vị DYC (`kind = 'platform_owner'`).
   Không phụ thuộc vào các role Điều hành (admin, leader, v.v.). Danh sách `DEVOPS_EMAILS` luôn được cấp membership này tự động lúc khởi động hệ thống và lúc đăng nhập.
   Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `platformAdmin`.
+- **Ranh giới quản lý tài khoản** (`canManageUser`): tổ trưởng/tổ phó chỉ sửa/khoá được `member` mà **mọi** tổ của
+  người đó đều do mình phụ trách; không được đổi mật khẩu hoặc email của người khác (chỉ executive). Thêm một
+  `member` vào tổ mình không làm người đó trở thành "người của mình" nếu họ còn thuộc tổ khác.
+- **Event Lead** (`member` được gán) được thêm task và người tham gia cho hoạt động của mình, nhưng chỉ với các tổ
+  thuộc `activity_teams` của hoạt động đó.
+- **Bài cập nhật hoạt động**: `kind=review_note` chỉ người `canManageActivity` mới đăng được; `attachment_url` phải
+  là http(s); `task_id` phải thuộc đúng hoạt động. Đính tệp vào task (`POST /api/tasks/:id/attachments`) cần
+  `canTouchTask` (quản lý tổ của task hoặc được giao task).
+- **Devops** (quyền cấu hình SMTP/Templates/Rules/Cron) là một lớp **cắt ngang** role, không phải role riêng:
+  cần vừa `isExecutive` vừa `isDevops` (`users.is_devops = 1` hoặc email nằm trong allowlist `DEVOPS_EMAILS`).
+  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `devops`.
 
 ## Middleware ngữ cảnh đơn vị — `loadUnitContext` (đã code, `core/src/middleware/unit-context.js`)
 
@@ -161,14 +173,17 @@ Middleware `createLegacyGate` (`core/src/middleware/legacy-gate.js`) bảo vệ 
 
 ### Ma trận phân quyền
 
-| Trạng thái user | TCKT membership | DYC membership | GET/HEAD | POST/PATCH/DELETE |
-|---|---|---|---|---|
-| Chưa login / Mồ côi | - | - | → `next()` (auth xử lý) | → `next()` (auth xử lý) |
-| Thành viên TCKT | ✅ | - hoặc ✅ | ✅ Cho qua, không audit | ✅ Cho qua |
-| Chỉ DYC (không TCKT) | ❌ | ✅ | ✅ Cho qua + **audit log** | ❌ 403 |
-| Outsider (BTV, LCĐ...) | ❌ | ❌ | ❌ 403 | ❌ 403 |
+| Trạng thái user | Unit có module dieu-hanh | TCKT membership | DYC membership | GET/HEAD | POST/PATCH/DELETE |
+|---|---|---|---|---|---|
+| Chưa login / Mồ côi | - | - | - | → `next()` (auth xử lý) | → `next()` (auth xử lý) |
+| Đơn vị có module | ✅ | - | - | ✅ Cho qua, không audit | ✅ Cho qua |
+| Thành viên TCKT | - | ✅ | - hoặc ✅ | ✅ Cho qua, không audit | ✅ Cho qua |
+| Chỉ DYC (không TCKT) | ❌ | ❌ | ✅ | ✅ Cho qua + **audit log** | ❌ 403 |
+| Outsider (VPD, LCĐ...) | ❌ | ❌ | ❌ | ❌ 403 | ❌ 403 |
 
-**Ưu tiên:** TCKT membership > DYC membership. Người có cả hai membership được coi là TCKT, không bị audit.
+**Ưu tiên kiểm tra:** 1) Đơn vị hiện tại có module `dieu-hanh` → 2) TCKT membership → 3) DYC membership. Người có cả hai membership được coi là TCKT, không bị audit.
+
+**Đơn vị có module:** Kiểm tra bảng `unit_modules` xem `req.unit.id` có entry với `module_id='dieu-hanh'` không. Theo seed mặc định, TCKT và BTV có module này.
 
 ### Audit Log Format
 
@@ -205,11 +220,13 @@ Tất cả route Điều hành cũ (6 file + một phần system.js) đã chuy�
 
 File `core/tests/units.legacy-gate.test.js` bao phủ 5 kịch bản:
 
-1. **Outsiders (BTV only) get 403** — BTV không TCKT bị chặn mọi route
+1. **Outsiders (VPD without module) get 403** — VPD không có module dieu-hanh bị chặn mọi route
 2. **DYC reads with audit, cannot write** — DYC GET thành công + audit log, POST/PATCH bị 403
 3. **TCKT không audit** — TCKT member truy cập bình thường, không tạo audit log
 4. **Dual user (TCKT + DYC)** — TCKT takes precedence, không audit, write được
 5. **Orphan user → auth 403** — User không membership nào bị auth chặn với message "chưa thuộc đơn vị"
+
+File `core/tests/units.visibility.test.js` kiểm tra cross-unit data visibility với `scopeFor` và `unit_visibility_policies`.
 
 ## Quyết định đã chốt nhưng CHƯA LÀM (theo `.kiro/specs/nen-tang-da-don-vi/`)
 
@@ -235,3 +252,5 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | DYC |
 | 5.0 | 2026-09-29 | Thêm section "Legacy Gate": 12 route prefixes, ma trận phân quyền 5 trạng thái, audit log format, refactor req.actor, test coverage. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |
 | 6.0 | 2026-09-29 | Cập nhật cấu trúc phân quyền cấu hình nền tảng thành platformAdmin thay thế devops. Thêm chi tiết về cơ chế bootstrap DYC membership. | DYC |
+| 3.1 | 2026-09-30 | Phạm vi hoạt động, ranh giới canManageUser, Event Lead, quy tắc bài cập nhật (pilot PR 4) | DYC |
+| 6.1 | 2026-10-01 | Cập nhật ma trận phân quyền Legacy Gate: thêm kiểm tra unit_modules (đơn vị có module dieu-hanh được truy cập). Cập nhật test coverage ghi nhận units.visibility.test.js | AI |

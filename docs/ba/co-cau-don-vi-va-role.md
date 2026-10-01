@@ -1,11 +1,11 @@
 ---
 doc_id: BA-UNIT-001
 title: Cơ cấu đơn vị và vai trò
-version: 2.3
+version: 2.4
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-09-29
+updated: 2026-10-01
 related_code: [core/src/policies/access.js, core/src/middleware/auth.js, core/src/routes/units.js]
 ---
 
@@ -90,3 +90,5 @@ BA khi viết use case hoặc kịch bản demo liên quan tới ĐT/LCĐ trong 
 | 2.1 | 2026-09-29 | Ghi nhận middleware auth và cổng Điều hành chuyển sang xác thực qua membership và req.actor (GĐ1-A Task 4 & 5) | DYC |
 | 2.2 | 2026-09-29 | Thêm quyền quản lý cấu hình hệ thống: platform-level (DYC only) vs unit-level (DYC hoặc unit admin), setting locks mechanism (góc độ BA). | DYC |
 | 2.3 | 2026-09-29 | Thêm "Quản lý thành viên đơn vị": DYC quản lý mọi đơn vị (chỉ dyc_admin sửa DYC), unit admin quản lý đơn vị mình. Đồng bộ tự động TCKT role ↔ users.role khi sửa membership qua API. | DYC |
+| 2.1 | 2026-09-30 | Tổ trưởng không đổi mật khẩu/email người khác; ranh giới quản lý tài khoản (pilot PR 4) | DYC |
+| 2.4 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

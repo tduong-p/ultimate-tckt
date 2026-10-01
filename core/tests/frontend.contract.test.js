@@ -310,3 +310,14 @@ test('translation function t is never shadowed by local variables or parameters 
   assert.doesNotMatch(app, /,\s*t\s*=\s*d\.task/, 'taskDetailModal must not shadow t with d.task');
 });
 
+test('app.js never declares a local that calls a same-named helper (TDZ crash)', () => {
+  const shadowing = [...assets['app.js'].matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*\1\s*\(/g)]
+    .map(match => match[1]);
+  assert.deepEqual(shadowing, []);
+});
+
+test('app.js does not call server-only role helpers', () => {
+  for (const helper of ['isLeadership', 'isExecutive', 'managerOrEventLead']) {
+    assert.doesNotMatch(assets['app.js'], new RegExp(`\\b${helper}\\s*\\(`), `${helper} only exists on the server`);
+  }
+});

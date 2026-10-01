@@ -20,6 +20,7 @@ router.post('/api/tasks/:id/attachments', auth, taskUpload.single('file'), async
   const [tasks] = await db.execute('SELECT id,activity_id FROM tasks WHERE id=?', [req.params.id]);
   const task = one(tasks);
   if (!task || !(await visibleActivity(req.actor, task.activity_id))) return res.status(404).json({ error: 'Không tìm thấy công việc.' });
+  if (!(await canTouchTask(context, req, task.id)).allowed) return res.status(403).json({ error: 'Bạn không thể đính kèm vào công việc này.' });
   const kind = attachmentKinds.includes(req.body.kind) ? req.body.kind : 'clarification';
   try {
     const created = await createAttachment(context, { taskId: task.id, userId: req.actor.id, kind, label: req.body.label, linkUrl: String(req.body.link_url || '').trim(), file: req.file });

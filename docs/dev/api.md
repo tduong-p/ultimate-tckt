@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.0
+version: 5.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-29
+updated: 2026-10-01
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -42,6 +42,10 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
 | GET | `/api/task-attachments/:id/content` | `tasks.js` |
+
+Ngày nghiệp vụ ("hôm nay", quá hạn, sắp đến hạn) luôn tính theo giờ Việt Nam qua `core/src/date-vn.js` (`dateInVietnam`), truyền vào SQL thay cho `CURDATE()`; không đặt `TZ` cho container.
+
+Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả 400 khi `kind` không hợp lệ, `attachment_url` không phải http(s) hoặc `task_id` không thuộc hoạt động, 403 khi `kind=review_note` mà người gọi không quản lý được hoạt động; `POST /api/tasks/:id/attachments` trả 403 nếu người gọi không quản lý tổ của task và không được giao task; `POST /api/activities/:id/volunteer` không hạ người đã `confirmed`.
 | GET/POST | `/api/teams` | `teams.js` |
 | PATCH/DELETE | `/api/teams/:id` | `teams.js` |
 | GET | `/api/teams/:id/{members,overview}` | `teams.js` |
@@ -471,3 +475,7 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 3.0 | 2026-09-29 | Thêm POST /api/session/unit vào bảng routing. Thêm section "Endpoint Details" với spec đầy đủ cho GET /api/session và POST /api/session/unit, bao gồm cấu trúc units và user.is_devops. | DYC |
 | 4.0 | 2026-09-29 | Thêm 3 endpoints `/api/platform/setting-locks*` vào bảng routing và section "Platform Settings & Locks" với spec đầy đủ (GET, POST, DELETE), logic lock, và hiệu ứng khi bị lock. | DYC |
 | 5.0 | 2026-09-29 | Thêm 4 endpoints `/api/units*` vào bảng routing và section "Unit Management" với spec đầy đủ (GET units, GET members, PUT member, DELETE member), permission matrix (DYC vs unit admin), validation, edge cases (last dyc_admin, TCKT role sync). | DYC |
+| 2.1 | 2026-09-30 | Quy tắc lỗi mới cho updates, attachments, volunteer (pilot PR 4) | DYC |
+| 2.2 | 2026-09-30 | Ngày nghiệp vụ theo giờ Việt Nam qua date-vn.js (pilot PR 6) | DYC |
+| 2.3 | 2026-09-30 | PR 8: bootstrap stats.openTasks đếm việc của chính người dùng; team overview và archive bỏ việc đã huỷ / chỉ đếm done | DYC |
+| 5.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

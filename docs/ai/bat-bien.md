@@ -1,11 +1,11 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 4.0
+version: 4.1
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-01
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
 ---
 
@@ -64,3 +64,5 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-29 | Thêm INV-AUTH-001 (quyền qua req.actor/req.unitRole) và INV-AUDIT-001 (audit DYC cross-unit read). Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |
 | 4.0 | 2026-09-30 | Thêm INV-LEAK-001: bất biến test rò rỉ units.leak.test.js — route GET nghiệp vụ phải 403 với outsider, không 403 với DYC | DYC |
+| 2.1 | 2026-09-30 | Phạm vi xem hoạt động và ranh giới quản lý tài khoản đổi theo pilot PR 4 (không đổi bất biến) | DYC |
+| 4.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

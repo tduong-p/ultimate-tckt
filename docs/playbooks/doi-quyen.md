@@ -1,11 +1,11 @@
 ---
 doc_id: PB-RBAC-001
 title: Playbook — đổi quyền
-version: 4.0
+version: 4.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-29
+updated: 2026-10-01
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/units.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -155,3 +155,5 @@ if (hasDycMembership(req.memberships) && !hasTcktMembership(req.memberships)) {
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.2 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-29 | Thêm mục "Checklist & Anti-patterns khi thêm route Điều hành mới". Cập nhật bước 1 với INV-AUTH-001 và INV-AUDIT-001. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | AI (Task 5) |
 | 4.0 | 2026-09-29 | Thêm section "Cấp quyền cho user" với hướng dẫn dùng API `/api/units/:id/members/:userId` thay vì sửa SQL. Cảnh báo không sửa `users.role` hoặc `unit_memberships` trực tiếp. Thêm `units.js` vào `related_code`. | DYC |
+| 2.1 | 2026-09-30 | Nhắc kiểm canManageUser khi đổi quyền quản lý tài khoản (pilot PR 4) | DYC |
+| 4.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

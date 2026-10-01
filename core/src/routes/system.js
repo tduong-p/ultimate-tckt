@@ -1,4 +1,5 @@
 const express = require('express');
+const { dateInVietnam } = require('../date-vn');
 const { findOrCreateHustAccount } = require('../auth/hust-account');
 const { classifyHustEmail, studentCohortFromEmail, withHustIdentity } = require('../auth/hust-identity');
 const { sessionView } = require('../middleware/unit-context');
@@ -45,30 +46,31 @@ router.post('/api/onboarding/student-class',auth,asyncRoute(async(req,res)=>{if(
 router.patch('/api/account',auth,asyncRoute(async(req,res)=>{const email=String(req.body.email||'').trim().toLowerCase(),phone=String(req.body.phone||'').trim(),avatarColor=String(req.body.avatar_color||'');if(!email||!/^#[0-9a-f]{6}$/i.test(avatarColor))return res.status(400).json({error:'A valid email and avatar color are required.'});const values=[email,phone||null,avatarColor],sets=['email=?','phone=?','avatar_color=?'];if(req.body.password){if(String(req.body.password).length<8)return res.status(400).json({error:'Password must contain at least 8 characters.'});sets.push('password_hash=?');values.push(await bcrypt.hash(String(req.body.password),10))}values.push(req.session.user.id);await db.execute(`UPDATE users SET ${sets.join(',')} WHERE id=?`,values);Object.assign(req.session.user,{email,phone:phone||null,avatar_color:avatarColor});res.json({user:withHustIdentity(req.session.user)})}));
 
 router.get('/api/bootstrap',auth,asyncRoute(async(req,res)=>{
-  const user=req.actor,s=activityScope(user);
+  const user=req.actor,s=activityScope(user),today=dateInVietnam();
   const taskScope=isExecutive(user)?'1=1':isLeadership(user)?`(EXISTS(SELECT 1 FROM user_teams x WHERE x.user_id=? AND x.team_id=t.team_id AND (x.is_lead=1 OR x.is_vice_lead=1)) OR EXISTS(SELECT 1 FROM task_assignees x WHERE x.task_id=t.id AND x.user_id=?))`:`EXISTS(SELECT 1 FROM task_assignees x WHERE x.task_id=t.id AND x.user_id=?)`;
   const taskParams=isExecutive(user)?[]:isLeadership(user)?[user.id,user.id]:[user.id];
-  const [[statRows],[upcoming],[tasks],[activity],[teams]]=await Promise.all([
-    db.execute(`SELECT COUNT(DISTINCT CASE WHEN a.status IN ('approved','active') THEN a.id END) activeActivities,COUNT(DISTINCT CASE WHEN t.status NOT IN ('done','cancelled') THEN t.id END) openTasks,COUNT(DISTINCT CASE WHEN t.status NOT IN ('done','cancelled') AND t.deadline<CURDATE() THEN t.id END) overdueTasks,COUNT(DISTINCT CASE WHEN t.status='done' AND MONTH(t.completed_at)=MONTH(CURDATE()) AND YEAR(t.completed_at)=YEAR(CURDATE()) THEN t.id END) completedMonth FROM activities a LEFT JOIN tasks t ON t.activity_id=a.id WHERE ${s.sql}`,s.params),
+  const [[statRows],[upcoming],[tasks],[activity],[teams],[myOpen]]=await Promise.all([
+    db.execute(`SELECT COUNT(DISTINCT CASE WHEN a.status IN ('approved','active') THEN a.id END) activeActivities,COUNT(DISTINCT CASE WHEN t.status NOT IN ('done','cancelled') THEN t.id END) openTasks,COUNT(DISTINCT CASE WHEN t.status NOT IN ('done','cancelled') AND t.deadline<'${today}' THEN t.id END) overdueTasks,COUNT(DISTINCT CASE WHEN t.status='done' AND MONTH(t.completed_at)=MONTH('${today}') AND YEAR(t.completed_at)=YEAR('${today}') THEN t.id END) completedMonth FROM activities a LEFT JOIN tasks t ON t.activity_id=a.id WHERE ${s.sql}`,s.params),
     db.execute(`SELECT a.*,te.name team_name,te.color team_color,GROUP_CONCAT(DISTINCT involved.name ORDER BY involved.name SEPARATOR ', ') team_names,COUNT(DISTINCT t.id) task_count,COUNT(DISTINCT CASE WHEN t.status='done' THEN t.id END) done_count,COUNT(DISTINCT p.user_id) participant_count FROM activities a JOIN teams te ON te.id=a.team_id JOIN activity_teams ats ON ats.activity_id=a.id JOIN teams involved ON involved.id=ats.team_id LEFT JOIN tasks t ON t.activity_id=a.id LEFT JOIN participants p ON p.activity_id=a.id AND p.state='confirmed' WHERE a.status IN ('proposed','approved','active') AND ${s.sql} GROUP BY a.id ORDER BY a.deadline LIMIT 5`,s.params),
     db.execute(`SELECT t.*,a.title activity_title,te.name team_name,GROUP_CONCAT(DISTINCT u.name ORDER BY u.name SEPARATOR ', ') assignee_name,GROUP_CONCAT(DISTINCT u.id ORDER BY u.id) assignee_ids FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN teams te ON te.id=t.team_id LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN users u ON u.id=ta.user_id WHERE ${taskScope} AND t.status NOT IN ('done','cancelled') GROUP BY t.id ORDER BY t.deadline LIMIT 100`,taskParams),
     db.execute(`SELECT n.body,n.kind,n.created_at,usr.name user_name,usr.avatar_color,a.title activity_title,a.id activity_id FROM updates n JOIN users usr ON usr.id=n.user_id JOIN activities a ON a.id=n.activity_id WHERE ${s.sql} ORDER BY n.created_at DESC LIMIT 7`,s.params),
-    db.execute(`SELECT t.*,EXISTS(SELECT 1 FROM user_teams ux WHERE ux.team_id=t.id AND ux.user_id=? AND (ux.is_lead=1 OR ux.is_vice_lead=1)) can_manage FROM teams t WHERE t.is_active=1 ORDER BY t.sort_order,t.name`,[user.id])
+    db.execute(`SELECT t.*,EXISTS(SELECT 1 FROM user_teams ux WHERE ux.team_id=t.id AND ux.user_id=? AND (ux.is_lead=1 OR ux.is_vice_lead=1)) can_manage FROM teams t WHERE t.is_active=1 ORDER BY t.sort_order,t.name`,[user.id]),
+    db.execute(`SELECT COUNT(DISTINCT t.id) openTasks FROM tasks t WHERE ${taskScope} AND t.status NOT IN ('done','cancelled')`,taskParams)
   ]);
-  res.json({stats:one(statRows),upcoming,tasks,activity,teams,capabilities:{canCreateActivity:isExecutive(user)||isLeadership(user),canCreateAccount:isExecutive(user)}})
+  res.json({stats:{...one(statRows),openTasks:myOpen[0].openTasks},upcoming,tasks,activity,teams,capabilities:{canCreateActivity:isExecutive(user)||isLeadership(user),canCreateAccount:isExecutive(user)}})
 }));
 
 router.get('/api/my-tasks-today', auth, asyncRoute(async (req, res) => {
-  const user = req.actor;
+  const user = req.actor, today = dateInVietnam();
   const [[dueToday], [overdue], [pendingMyReview]] = await Promise.all([
     db.execute(
       `SELECT t.*,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id
-       WHERE ta.user_id=? AND t.status NOT IN ('done','cancelled') AND DATE(t.deadline)=CURDATE() ORDER BY t.priority DESC`,
+       WHERE ta.user_id=? AND t.status NOT IN ('done','cancelled') AND DATE(t.deadline)='${today}' ORDER BY t.priority DESC`,
       [user.id]
     ),
     db.execute(
       `SELECT t.*,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id
-       WHERE ta.user_id=? AND t.status NOT IN ('done','cancelled') AND t.deadline<CURDATE() ORDER BY t.deadline`,
+       WHERE ta.user_id=? AND t.status NOT IN ('done','cancelled') AND t.deadline<'${today}' ORDER BY t.deadline`,
       [user.id]
     ),
     db.execute(

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.1
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-30
 related_code: [core/public/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -23,7 +23,8 @@ Không có build step, không framework: `app.js` (logic chính, SPA điều hư
 
 Đây là frontend **cũ**, không thêm tính năng mới vào đây — chỉ sửa lỗi hoặc theo kịp thay đổi API bắt buộc.
 `core/tests/frontend.contract.test.js` kiểm hợp đồng giữa `app.js` và API — sửa API mà làm test này đỏ nghĩa là
-đã phá tương thích ngược với frontend cũ.
+đã phá tương thích ngược với frontend cũ. Test này cũng chặn biến cục bộ che khuất helper cùng tên và việc
+`app.js` gọi nhầm helper chỉ tồn tại phía server.
 
 ## CTD — `services/ctd-api/frontend/` (React 18 + TypeScript + Vite)
 
@@ -61,3 +62,7 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-27 | Đồng bộ `main` = `staging`: code frontend theo bản `main` (bỏ phần GĐ1-A, lưu ở nhánh `archive/gd1a-staging`); nội dung tài liệu vẫn đúng | DYC |
+| 1.2 | 2026-09-30 | Bổ sung contract test chặn shadow helper và helper chỉ có phía server | DYC |
+| 1.3 | 2026-09-30 | Ẩn nút "Tình nguyện" với người đã tham gia (pilot PR 4) | DYC |
+| 1.4 | 2026-09-30 | Ngày mặc định của báo cáo theo giờ Việt Nam (pilot PR 6) | DYC |
+| 1.5 | 2026-09-30 | PR 8: nút Đề xuất hoạt động chỉ hiện cho quản lý; tên team chỉ là link khi có quyền xem tổng quan; bảng cuộn ngang và lịch co được trên 375px | DYC |

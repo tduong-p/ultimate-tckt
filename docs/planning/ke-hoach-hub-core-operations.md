@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.4
+version: 1.9
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-09-29
+updated: 2026-10-01
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -1270,4 +1270,9 @@ npm run docs:check         # Documentation validation
 | 1.2 | 2026-09-27 | Thêm core/src/config/migrate-units.js vào related_code - file migration đa đơn vị | DYC |
 | 1.3 | 2026-09-27 | Cập nhật file catalog và migration test | D2 |
 | 1.4 | 2026-09-29 | GĐ1-A: Hoàn thành Task 4 (unit context, session, auth) & Task 5 (legacy gate, audit cross-unit read, req.actor) | DYC |
-
+| 1.4 | 2026-09-30 | Ghi nhận Core thoát thay vì phục vụ trên schema migration lỗi | DYC |
+| 1.5 | 2026-09-30 | Ghi nhận pilot PR 4 sửa lỗi phân quyền Core | DYC |
+| 1.6 | 2026-09-30 | Ghi nhận pilot PR 6 sửa múi giờ Core | DYC |
+| 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
+| 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
+| 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
