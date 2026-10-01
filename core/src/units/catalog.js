@@ -64,7 +64,7 @@ const TCKT_CODE = 'TCKT';
  */
 const isValidRole = (kind, role) => {
   const validRoles = UNIT_ROLES[kind];
-  return validRoles && validRoles.includes(role);
+  return Boolean(validRoles && validRoles.includes(role));
 };
 
 /**
@@ -75,7 +75,8 @@ const isValidRole = (kind, role) => {
  */
 const isUnitAdmin = (kind, role) => {
   const adminRoles = UNIT_ADMIN_ROLES[kind];
-  return adminRoles && adminRoles.includes(role);
+  return Boolean(adminRoles && adminRoles.includes(role));
+return Boolean(adminRoles && adminRoles.includes(role));
 };
 
 module.exports = {
@@ -89,3 +90,5 @@ module.exports = {
   isValidRole,
   isUnitAdmin
 };
+
+

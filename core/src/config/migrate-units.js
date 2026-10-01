@@ -3,9 +3,20 @@
 const { SEED_UNITS, SEED_UNIT_MODULES, TCKT_CODE, BTV_CODE } = require('../units/catalog');
 
 // Marker đánh dấu đã chạy backfill (chạy một lần duy nhất)
+// Đây là marker "chính" cho toàn bộ quá trình backfill: seed units, modules, policies, memberships từ users.role
+// RERUN SAFETY: Migration kiểm tra marker này trước khi chạy backfill. Nếu đã có, skip backfill nhưng vẫn
+// chạy các migration phụ (DevOps, DYC bootstrap) để đảm bảo môi trường mới được cấu hình đầy đủ.
 const BACKFILL_MARKER = 'multi_unit_backfill_v1';
+
 // Marker riêng cho migration is_devops → DYC membership
+// RERUN SAFETY: Marker riêng cho phép GĐ2 xóa cột is_devops mà không ảnh hưởng tới backfill chính.
+// Nếu cột is_devops không còn tồn tại, migration này chỉ ghi marker và return (safe skip).
 const DEVOPS_MIGRATE_MARKER = 'devops_to_dyc_membership_v1';
+
+// Marker cho DYC bootstrap từ DEVOPS_EMAILS
+// RERUN SAFETY: Chạy một lần duy nhất khi môi trường mới khởi tạo. Nếu env var thay đổi sau này,
+// admin cần thêm membership thủ công (không tự động đồng bộ lại).
+const DYC_BOOTSTRAP_MARKER = 'dyc_bootstrap_from_env_v1';
 
 const T = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
 
@@ -149,6 +160,8 @@ const TABLES = [
 /**
  * Helper: thêm cột unit_id vào bảng và backfill về TCKT
  * Tránh lặp code giữa teams và activities
+ * 
+ * RERUN SAFETY: Kiểm tra tồn tại cột/index/FK trước khi tạo. Chạy nhiều lần không duplicate.
  */
 async function addUnitColumn(db, tableName, tcktId, h) {
   if (!(await h.columnExists(db, tableName, 'unit_id'))) {
@@ -177,6 +190,8 @@ async function addUnitColumn(db, tableName, tcktId, h) {
 /**
  * Migration is_devops → DYC membership (chạy riêng, có marker riêng)
  * Lý do marker riêng: nếu GĐ2 xóa cột is_devops thì migration này skip an toàn
+ * 
+ * RERUN SAFETY: Kiểm tra marker trước khi chạy. Nếu cột is_devops không còn, chỉ ghi marker và return.
  */
 async function migrateDevopsToMembership(db, dycId, h) {
   const [done] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [DEVOPS_MIGRATE_MARKER]);
@@ -199,7 +214,67 @@ async function migrateDevopsToMembership(db, dycId, h) {
 }
 
 /**
+ * Bootstrap DYC memberships từ DEVOPS_EMAILS env var
+ * Đọc danh sách email từ env var (ngăn cách bằng dấu phẩy), tạo membership DYC với role dyc_engineer.
+ * Chạy một lần duy nhất khi môi trường mới khởi tạo.
+ * 
+ * RERUN SAFETY: Kiểm tra marker trước khi chạy. INSERT IGNORE tránh duplicate nếu membership đã tồn tại.
+ * Nếu env var thay đổi sau khi marker đã ghi, không tự động đồng bộ lại (admin thêm thủ công).
+ */
+async function bootstrapDycFromEnv(db, dycId, h) {
+  const [done] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [DYC_BOOTSTRAP_MARKER]);
+  if (done.length) return;
+  
+  const devopsEmails = process.env.DEVOPS_EMAILS || '';
+  if (!devopsEmails.trim()) {
+    h.log('DEVOPS_EMAILS env var not set, skipping DYC bootstrap');
+    await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+    return;
+  }
+  
+  const emails = devopsEmails.split(',').map(e => e.trim()).filter(Boolean);
+  if (!emails.length) {
+    h.log('DEVOPS_EMAILS env var empty after parsing, skipping DYC bootstrap');
+    await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+    return;
+  }
+  
+  h.log(`Bootstrapping DYC memberships for ${emails.length} emails from DEVOPS_EMAILS`);
+  
+  for (const email of emails) {
+    // Tìm user theo email
+    const [userRows] = await db.execute('SELECT id FROM users WHERE email=?', [email]);
+    if (!userRows.length) {
+      h.log(`Warning: User with email ${email} not found, skipping`);
+      continue;
+    }
+    
+    const userId = userRows[0].id;
+    
+    // INSERT IGNORE: nếu đã có membership (từ migration khác), không duplicate
+    await db.execute(
+      'INSERT IGNORE INTO unit_memberships(user_id, unit_id, role) VALUES (?, ?, ?)',
+      [userId, dycId, 'dyc_engineer']
+    );
+  }
+  
+  await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+  h.log('DYC bootstrap completed');
+}
+
+/**
  * Migration chính: tạo bảng, seed, backfill
+ * 
+ * RERUN SAFETY: Toàn bộ migration được thiết kế để chạy idempotent:
+ * - Kiểm tra tồn tại bảng/cột/index/FK trước khi tạo
+ * - Dùng INSERT IGNORE để tránh duplicate
+ * - Backfill được bảo vệ bởi marker, chỉ chạy một lần
+ * - Transaction rollback nếu lỗi trong quá trình backfill
+ * 
+ * Có thể chạy lại nhiều lần an toàn. Nếu chạy giữa chừng bị gián đoạn:
+ * - Các bảng đã tạo sẽ bị skip (tableExists check)
+ * - Backfill sẽ chạy lại từ đầu (marker chưa ghi) hoặc skip (marker đã ghi)
+ * - DevOps và DYC bootstrap có marker riêng, chạy độc lập
  */
 async function migrateMultiUnit(db, helpers) {
   const { log, tableExists, columnExists, foreignKeyExists, indexExists } = helpers;
@@ -248,8 +323,9 @@ async function migrateMultiUnit(db, helpers) {
   // 6. One-time backfill: memberships, modules, policy
   const [applied] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [BACKFILL_MARKER]);
   if (applied.length) {
-    log('Backfill already applied, checking DevOps migration');
+    log('Backfill already applied, checking post-backfill migrations');
     await migrateDevopsToMembership(db, dycId, h);
+    await bootstrapDycFromEnv(db, dycId, h);
     return;
   }
   
@@ -298,12 +374,18 @@ async function migrateMultiUnit(db, helpers) {
     if (connection !== db) connection.release();
   }
   
-  // 6e. Chạy DevOps migration sau khi backfill chính xong
+  // 6e. Chạy các migration phụ sau khi backfill chính xong
   await migrateDevopsToMembership(db, dycId, h);
+  await bootstrapDycFromEnv(db, dycId, h);
 }
 
 module.exports = {
   migrateMultiUnit,
+  migrateDevopsToMembership,
+  bootstrapDycFromEnv,
   BACKFILL_MARKER,
-  DEVOPS_MIGRATE_MARKER
+  DEVOPS_MIGRATE_MARKER,
+  DYC_BOOTSTRAP_MARKER
 };
+
+
