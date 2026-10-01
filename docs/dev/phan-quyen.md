@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 3.1
+version: 6.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-30
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, services/ctd-api/backend/app/deps.py]
+updated: 2026-10-01
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
 # Phân quyền
@@ -28,13 +28,16 @@ Cơ chế trong code:
 - `isExecutive(user)` = role ∈ `['admin', 'vice_admin']`; `isLeadership(user)` = role ∈ `['leader', 'vice_leader']`
   (`core/src/middleware/auth.js`).
 - Middleware theo route: `auth` (đã đăng nhập), `admin` (executive), `manager` (executive hoặc leadership),
-  `devops` (executive **và** cờ devops — xem dưới), `managerOrEventLead` (executive/leadership, hoặc người được
+  `platformAdmin` (yêu cầu membership DYC), `managerOrEventLead` (executive/leadership, hoặc người được
   gán Event Lead của đúng hoạt động đang thao tác).
 - Phạm vi dữ liệu: `activityScope(user)` trong `core/src/policies/access.js` — executive thấy tất cả (`1=1`);
   người khác chỉ thấy hoạt động công khai, hoạt động của tổ mình (qua `activity_teams`/`user_teams`), hoặc hoạt động
   mà mình là Event Lead / người tạo / người tham gia (`participants`) dù không thuộc tổ nào của hoạt động.
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
+- **Platform Admin** (quyền cấu hình SMTP/Templates/Rules/Cron): yêu cầu người dùng phải có membership của đơn vị DYC (`kind = 'platform_owner'`).
+  Không phụ thuộc vào các role Điều hành (admin, leader, v.v.). Danh sách `DEVOPS_EMAILS` luôn được cấp membership này tự động lúc khởi động hệ thống và lúc đăng nhập.
+  Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `platformAdmin`.
 - **Ranh giới quản lý tài khoản** (`canManageUser`): tổ trưởng/tổ phó chỉ sửa/khoá được `member` mà **mọi** tổ của
   người đó đều do mình phụ trách; không được đổi mật khẩu hoặc email của người khác (chỉ executive). Thêm một
   `member` vào tổ mình không làm người đó trở thành "người của mình" nếu họ còn thuộc tổ khác.
@@ -66,11 +69,75 @@ vào mỗi request đã đăng nhập:
   Middleware **không trả 403** — việc chặn thuộc về middleware `auth` (Task 4).
 
 **`legacyRole(memberships, method)` — bridge cho route Điều hành cũ:**
-- GET/HEAD **và** có membership DYC (`kind = 'platform_owner'`) → `'admin'`
-- Có membership TCKT → role TCKT của user
-- Còn lại → `null`
-- **Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
-  nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
+
+| Điều kiện | Legacy Role |
+|-----------|-------------|
+| GET/HEAD + có membership DYC (`kind = 'platform_owner'`) | `'admin'` |
+| Có membership TCKT | Role TCKT của user |
+| Còn lại | `null` |
+
+**Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
+nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
+
+## Membership và `req.actor` — GĐ1-A Task 4 (đã code)
+
+### Nguồn Quyền
+
+Từ GĐ1-A, quyền được tính theo **membership** (`unit_memberships`), không còn chỉ dựa vào `users.role`.
+
+Middleware `loadUnitContext` gắn vào mọi request:
+- `req.memberships`: Mảng memberships của user (`[{unit_id, code, name, kind, role}]`)
+- `req.unit`: Đơn vị hiện tại user đang chọn (`{id, code, name, kind}`)
+- `req.unitRole`: Role trong đơn vị hiện tại (string)
+- `req.actor`: User với `role` = legacy role TCKT (để tương thích route cũ)
+
+### Middleware Auth Changes
+
+**`auth` middleware (`core/src/middleware/auth.js`):**
+- ✅ Kiểm tra `req.session.user` (401 nếu chưa đăng nhập)
+- ✅ Kiểm tra `req.memberships?.length` (403 nếu không thuộc đơn vị nào)
+  - Message: `"Tài khoản chưa thuộc đơn vị nào. Liên hệ quản trị đơn vị."`
+
+**`admin`, `manager`, `managerOrEventLead`:**
+- ✅ Đọc `req.actor` thay vì `req.session.user`
+
+### Current Unit Fallback
+
+- User có `current_unit_id` trong session → Ưu tiên chọn đơn vị đó
+- `current_unit_id` không còn trong memberships (gỡ membership / đơn vị bị tắt) → **Tự động fallback về membership đầu tiên**
+- Không có membership nào → 403 tất cả route bảo mật
+
+### API Session
+
+**GET /api/session** trả về:
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "...",
+    "role": "leader",  // ← Legacy role (computed via legacyRole)
+    "is_devops": 0     // ← 1 nếu có DYC membership
+  },
+  "units": {
+    "current": { "id": 1, "code": "TCKT", "name": "...", "kind": "department" },
+    "memberships": [
+      { "unit_id": 1, "code": "TCKT", "name": "...", "kind": "department", "role": "leader" }
+    ]
+  }
+}
+```
+
+**POST /api/session/unit** - Đổi đơn vị đang chọn:
+- Request: `{ "unit_id": 2 }`
+- Response: 200 (session view mới) | 403 (không thuộc đơn vị đó)
+
+### Role Sync
+
+Mọi đường ghi `users.role` tự động đồng bộ membership TCKT:
+- `POST /api/users` (tạo mới)
+- `POST /api/users/bulk-import` (import hàng loạt)
+- `PATCH /api/users/:id` (cập nhật)
+- SSO login lần đầu (`findOrCreateHustAccount`)
 
 ## CTD — role theo `services/ctd-api/backend/app/models/identity.py`
 
@@ -91,6 +158,75 @@ Hồ sơ ở trạng thái kết thúc (`TERMINAL_STATUSES`) thì không ai sử
 
 Xác thực CTD: JWT HS256 tự phát (`app/deps.py`), không liên quan trực tiếp tới session Core trừ khi đi qua JWT
 bridge mô tả ở `docs/dev/kien-truc.md`.
+
+## Legacy Gate — Bảo vệ route Điều hành cũ — GĐ1-A Task 5 (đã code)
+
+Middleware `createLegacyGate` (`core/src/middleware/legacy-gate.js`) bảo vệ 12 route prefix Điều hành cũ, chạy **sau** `loadUnitContext` và **trước** các route handler. Ráp vào pipeline qua `app.use(LEGACY_PREFIXES, createLegacyGate(db))`.
+
+### 12 Route Prefix được bảo vệ
+
+```javascript
+'/api/activities', '/api/documents', '/api/archive', '/api/reports', '/api/tasks',
+'/api/task-attachments', '/api/teams', '/api/people', '/api/users',
+'/api/bootstrap', '/api/my-tasks-today', '/api/weight-presets'
+```
+
+### Ma trận phân quyền
+
+| Trạng thái user | Unit có module dieu-hanh | TCKT membership | DYC membership | GET/HEAD | POST/PATCH/DELETE |
+|---|---|---|---|---|---|
+| Chưa login / Mồ côi | - | - | - | → `next()` (auth xử lý) | → `next()` (auth xử lý) |
+| Đơn vị có module | ✅ | - | - | ✅ Cho qua, không audit | ✅ Cho qua |
+| Thành viên TCKT | - | ✅ | - hoặc ✅ | ✅ Cho qua, không audit | ✅ Cho qua |
+| Chỉ DYC (không TCKT) | ❌ | ❌ | ✅ | ✅ Cho qua + **audit log** | ❌ 403 |
+| Outsider (VPD, LCĐ...) | ❌ | ❌ | ❌ | ❌ 403 | ❌ 403 |
+
+**Ưu tiên kiểm tra:** 1) Đơn vị hiện tại có module `dieu-hanh` → 2) TCKT membership → 3) DYC membership. Người có cả hai membership được coi là TCKT, không bị audit.
+
+**Đơn vị có module:** Kiểm tra bảng `unit_modules` xem `req.unit.id` có entry với `module_id='dieu-hanh'` không. Theo seed mặc định, TCKT và BTV có module này.
+
+### Audit Log Format
+
+Mỗi lần DYC đọc dữ liệu TCKT, một bản ghi được tạo trong `audit_logs`:
+
+```sql
+INSERT INTO audit_logs(
+  actor_id,           -- user.id của DYC
+  actor_unit_id,      -- unit_id của DYC
+  action,             -- 'cross_unit_read'
+  target_type,        -- 'http'
+  target_id,          -- 'GET /api/activities' (truncated to 191 chars)
+  owner_unit_id,      -- unit_id của TCKT
+  meta                -- NULL (có thể mở rộng sau)
+) VALUES (...)
+```
+
+Service: `core/src/services/audit.js` — hàm `recordAudit(db, entry)`.
+
+### Refactor req.session.user → req.actor
+
+Tất cả route Điều hành cũ (6 file + một phần system.js) đã chuyển sang đọc `req.actor` thay vì `req.session.user`:
+
+- ✅ `core/src/routes/activities.js` (toàn bộ)
+- ✅ `core/src/routes/tasks.js` (toàn bộ)
+- ✅ `core/src/routes/users.js` (toàn bộ)
+- ✅ `core/src/routes/teams.js` (toàn bộ)
+- ✅ `core/src/routes/documents.js` (toàn bộ)
+- ✅ `core/src/routes/reports.js` (toàn bộ)
+- ✅ `core/src/routes/system.js`: chỉ `/api/bootstrap`, `/api/my-tasks-today`
+- ⚠️ `core/src/routes/system.js`: GIỮ NGUYÊN `req.session.user` cho `/api/login`, `/api/logout`, `/auth/microsoft/*`, `/api/onboarding/*`, `/api/account`, `/api/email/test`
+
+### Test Coverage
+
+File `core/tests/units.legacy-gate.test.js` bao phủ 5 kịch bản:
+
+1. **Outsiders (VPD without module) get 403** — VPD không có module dieu-hanh bị chặn mọi route
+2. **DYC reads with audit, cannot write** — DYC GET thành công + audit log, POST/PATCH bị 403
+3. **TCKT không audit** — TCKT member truy cập bình thường, không tạo audit log
+4. **Dual user (TCKT + DYC)** — TCKT takes precedence, không audit, write được
+5. **Orphan user → auth 403** — User không membership nào bị auth chặn với message "chưa thuộc đơn vị"
+
+File `core/tests/units.visibility.test.js` kiểm tra cross-unit data visibility với `scopeFor` và `unit_visibility_policies`.
 
 ## Quyết định đã chốt nhưng CHƯA LÀM (theo `.kiro/specs/nen-tang-da-don-vi/`)
 
@@ -113,4 +249,8 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-28 | Thêm mục `loadUnitContext` middleware: `req.unit`, `req.unitRole`, `req.memberships`, `req.actor`, fallback logic, `legacyRole`. Thêm `unit-context.js` vào `related_code`. | NTMT |
+| 4.0 | 2026-09-29 | Thêm section "Membership và req.actor": auth middleware 403 check, bảng legacyRole mapping, API session structure, role sync. Thêm `system.js` vào `related_code`. | DYC |
+| 5.0 | 2026-09-29 | Thêm section "Legacy Gate": 12 route prefixes, ma trận phân quyền 5 trạng thái, audit log format, refactor req.actor, test coverage. Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |
+| 6.0 | 2026-09-29 | Cập nhật cấu trúc phân quyền cấu hình nền tảng thành platformAdmin thay thế devops. Thêm chi tiết về cơ chế bootstrap DYC membership. | DYC |
 | 3.1 | 2026-09-30 | Phạm vi hoạt động, ranh giới canManageUser, Event Lead, quy tắc bài cập nhật (pilot PR 4) | DYC |
+| 6.1 | 2026-10-01 | Cập nhật ma trận phân quyền Legacy Gate: thêm kiểm tra unit_modules (đơn vị có module dieu-hanh được truy cập). Cập nhật test coverage ghi nhận units.visibility.test.js | AI |

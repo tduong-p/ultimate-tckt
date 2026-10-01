@@ -143,4 +143,12 @@ async function ensureDycAdmins(db, emails) {
  */
 const hasDycMembership = memberships => (memberships || []).some(x => x.kind === 'platform_owner');
 
-module.exports = { unitIdByCode, getUnit, listMemberships, upsertMembership, removeMembership, syncTcktMembershipFromRole, setTcktRoleColumn, ensureDycAdmins, hasDycMembership };
+/**
+ * Check if a user has a membership in TCKT (code = 'TCKT').
+ * Pure function — no DB query.
+ * @param {Membership[]} memberships
+ * @returns {boolean}
+ */
+const hasTcktMembership = memberships => (memberships || []).some(x => x.code === TCKT_CODE);
+
+module.exports = { unitIdByCode, getUnit, listMemberships, upsertMembership, removeMembership, syncTcktMembershipFromRole, setTcktRoleColumn, ensureDycAdmins, hasDycMembership, hasTcktMembership };

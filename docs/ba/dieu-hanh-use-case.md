@@ -1,11 +1,11 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.3
+version: 2.4
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-01
 related_code: [core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/reports.js, core/src/routes/notifications.js]
 ---
 
@@ -19,6 +19,8 @@ Tài liệu này mô tả các luồng nghiệp vụ vận hành hoạt động/
 - **Tổ trưởng / Tổ phó** (`leader`/`vice_leader`) — lập đề án, giao việc, nghiệm thu trong phạm vi Tổ mình phụ trách.
 - **Thành viên** (`member`) — nhận việc, cập nhật checklist, nộp sản phẩm để nghiệm thu, tự ghi nhận việc phát sinh.
 - **Trưởng Ban Tổ chức hoạt động (Event Lead)** — vai trò theo ngữ cảnh từng hoạt động: dù tài khoản có role `member`, người được gắn làm Event Lead của một hoạt động vẫn được giao việc/nghiệm thu task thuộc hoạt động đó.
+
+> **Ghi chú bảo vệ dữ liệu (GĐ1-A)**: Toàn bộ các route Điều hành được bảo vệ bởi cổng `legacyGate` (chỉ dành riêng cho thành viên Ban TCKT; DYC chỉ đọc kèm nhật ký kiểm toán `cross_unit_read`). Quyền hạn người dùng trong các route được kiểm tra qua `req.actor` theo membership thay vì role tĩnh.
 
 ## 2. Luồng đề xuất & phê duyệt hoạt động — đã làm
 
@@ -86,6 +88,8 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-29 | Ghi nhận cổng legacyGate bảo vệ các route Điều hành và phân quyền qua req.actor (GĐ1-A Task 5) | DYC |
 | 2.1 | 2026-09-30 | Event Lead thêm task/người tham gia; người tạo/tham gia mở được hoạt động (pilot PR 4) | DYC |
 | 2.2 | 2026-09-30 | Ngày "hôm nay"/quá hạn tính theo giờ Việt Nam (pilot PR 6) | DYC |
 | 2.3 | 2026-09-30 | PR 8: báo cáo lưu trữ chỉ đếm việc done; số việc đang mở theo từng người | DYC |
+| 2.4 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

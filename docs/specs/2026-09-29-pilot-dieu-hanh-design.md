@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 1.8
+version: 1.9
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-01
 related_code: [core/src/**, core/public/**, services/ctd-api/backend/app/seeds/**, infra/**, tools/test-fixtures/**]
 ---
 
@@ -247,3 +247,4 @@ không chờ issue này.
 | 1.6 | 2026-09-30 | c4 đã sửa trong PR 6: dateInVietnam dùng chung, bỏ CURDATE() | DYC |
 | 1.7 | 2026-09-30 | PR 8 xong một phần c27 (nút đề xuất, link team), c26, c29 chỉ CSS; PR 5 tạm hoãn theo yêu cầu | DYC |
 | 1.8 | 2026-09-30 | Hotfix staging 502: migration ép unit_id UNSIGNED lệch org_units.id INT có dấu | DYC |
+| 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

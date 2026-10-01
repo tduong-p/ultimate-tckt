@@ -3,6 +3,8 @@ const logger = require('./logger');
 const push = require('./push');
 const { startDeadlineNotificationScheduler } = require('./services/deadline-notifications');
 const { migrateDatabase } = require('./config/migrate');
+const { ensureDycAdmins } = require('./units/memberships');
+const { devopsEmailAllowlist } = require('./middleware/auth');
 
 async function migrateOnStartup(application, options = {}) {
   if (options.autoMigrate === false || !application.config.hasConfiguredDatabase) return;

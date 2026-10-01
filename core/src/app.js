@@ -9,8 +9,10 @@ const config = require('./config/environment');
 const { createDatabase } = require('./config/database');
 const { createSessionMiddleware } = require('./config/session');
 const { createUnitContextMiddleware } = require('./middleware/unit-context');
+const { createLegacyGate, LEGACY_PREFIXES } = require('./middleware/legacy-gate');
+const { createSettingGuard } = require('./middleware/setting-guard');
 const { warnAboutConfiguration } = require('./config/validate');
-const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead } = require('./middleware/auth');
+const { auth, admin, manager, isLeadership, isExecutive, managerOrEventLead, platformAdmin, isPlatformAdmin } = require('./middleware/auth');
 const { createErrorHandler } = require('./middleware/errors');
 const { taskUpload, attachmentKinds, allowedExtensions } = require('./middleware/uploads');
 const { createAccessPolicies } = require('./policies/access');
@@ -52,17 +54,23 @@ function createApplication(options = {}) {
   app.use(createSessionMiddleware(runtimeConfig));
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(createUnitContextMiddleware(db));
+  app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
   // Test-only route for verifying unit context middleware (not exposed in production)
   if (!runtimeConfig.isProduction) {
     app.get('/test/unit-context', (req, res) => {
       res.json({ unit: req.unit, unitRole: req.unitRole, memberships: req.memberships, actor: req.actor });
     });
+    app.get('/test/platform-admin', auth, platformAdmin, (req, res) => {
+      res.json({ success: true, message: 'DYC platform admin access confirmed' });
+    });
   }
 
-  const policies = createAccessPolicies(db, isLeadership, isExecutive);
+  const audit = require('./services/audit');
+  const policies = createAccessPolicies(db, isLeadership, isExecutive, audit);
+  const settingGuard = createSettingGuard(db);
   const context = {
-    db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids,
+    db, auth, admin, manager, platformAdmin, settingGuard, isLeadership, isExecutive, isPlatformAdmin, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
     bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, mailer, push,

@@ -66,7 +66,12 @@ function createUnitContextMiddleware(db) {
 
       req.unit = { id: current.unit_id, code: current.code, name: current.name, kind: current.kind };
       req.unitRole = current.role;
-      req.actor = { ...user, role: legacyRole(memberships, req.method) };
+      req.actor = { 
+        ...user, 
+        role: legacyRole(memberships, req.method),
+        unitRole: current.role,
+        unit: req.unit
+      };
 
       next();
     } catch (err) {
@@ -75,7 +80,32 @@ function createUnitContextMiddleware(db) {
   };
 }
 
+/**
+ * Build session view object for API responses.
+ * Computes user.role (legacy TCKT role) and user.is_devops (DYC membership).
+ * @param {Object} req - Express request
+ * @returns {{ user: Object|null, units: { current: Object|null, memberships: Array } }}
+ */
+function sessionView(req) {
+  const user = req.session?.user;
+  if (!user) {
+    return { user: null, units: { current: null, memberships: [] } };
+  }
+  
+  return {
+    user: { 
+      ...user, 
+      role: legacyRole(req.memberships, 'GET') ?? user.role,
+      is_devops: hasDycMembership(req.memberships) ? 1 : 0 
+    },
+    units: { 
+      current: req.unit, 
+      memberships: req.memberships 
+    }
+  };
+}
+
 // Alias for convenience (SPEC uses both names)
 const createUnitContext = createUnitContextMiddleware;
 
-module.exports = { createUnitContext, createUnitContextMiddleware, legacyRole };
+module.exports = { createUnitContext, createUnitContextMiddleware, legacyRole, sessionView };
