@@ -49,3 +49,28 @@ test('deploy.sh exits non-zero when health check never returns 200', () => {
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /health/i);
 });
+
+test('deploy.sh staging noti pulls+ups both noti services and checks /v1/health on 8100', () => {
+  const sb = makeSandbox();
+  const r = sb.run('deploy.sh', ['staging', 'noti', 'abc123def456']);
+  assert.equal(r.status, 0, r.stderr);
+  const c = sb.calls();
+  assert.ok(c.some((l) => l.includes(' pull noti-api noti-worker')), c.join('\n'));
+  assert.ok(c.some((l) => l.includes(' up -d --no-deps noti-api noti-worker')), c.join('\n'));
+  assert.ok(c.some((l) => l.startsWith('curl ') && l.includes('127.0.0.1:8100/v1/health')));
+});
+
+test('deploy.sh production noti is refused before touching git (not configured for production yet)', () => {
+  const sb = makeSandbox();
+  const r = sb.run('deploy.sh', ['production', 'noti', 'abc']);
+  assert.notEqual(r.status, 0);
+  assert.ok(!sb.calls().some((l) => /^(git|docker) /.test(l)), sb.calls().join('\n'));
+});
+
+test('deploy.sh core still sets NOTI_IMAGE_TAG so the staging compose file interpolates', () => {
+  const sb = makeSandbox();
+  require('node:fs').writeFileSync(`${sb.bin}/docker`,
+    `#!/usr/bin/env bash\necho "docker $* NOTI=\${NOTI_IMAGE_TAG:-}" >> "${sb.logFile}"\n`, { mode: 0o755 });
+  sb.run('deploy.sh', ['staging', 'core', 'feedbeef0001']);
+  assert.ok(sb.calls().some((l) => l.includes('up -d --no-deps core') && !l.endsWith('NOTI=')), sb.calls().join('\n'));
+});

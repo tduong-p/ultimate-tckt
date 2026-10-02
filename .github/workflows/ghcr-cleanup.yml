@@ -9,7 +9,7 @@ jobs:
     permissions: { packages: write }
     strategy:
       matrix:
-        package: [ultimate-tckt-core, ultimate-tckt-ctd-api]
+        package: [ultimate-tckt-core, ultimate-tckt-ctd-api, ultimate-tckt-noti]
     steps:
       # Giữ 40 bản mới nhất mỗi package. staging và production dùng CHUNG package, nên tag production có thể
       # cũ hơn nhiều bản staging; 40 bản (build không provenance = 1 bản/lần build) đủ cho vài tuần staging

@@ -86,3 +86,16 @@ test('migrate-volumes.sh refuses when a target volume already has data', () => {
   assert.match(r.stderr, /already contains data/);
   assert.ok(!sb.calls().some((l) => l.includes('cp -a')));
 });
+
+test('apply-infra.sh staging also restarts noti services once noti has been deployed', () => {
+  const sb = makeSandbox({ dockerOut: { 'inspect --format {{.Config.Image}} ultimate-tckt-staging-noti-api-1': 'ghcr.io/x/ultimate-tckt-noti:abc' } });
+  const r = sb.run('apply-infra.sh', ['staging']);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(sb.calls().some((l) => l.includes('up -d --no-deps core ctd-api noti-api noti-worker')), sb.calls().join('\n'));
+});
+
+test('apply-infra.sh does not start noti before its first deploy', () => {
+  const sb = makeSandbox();
+  sb.run('apply-infra.sh', ['staging']);
+  assert.ok(!sb.calls().some((l) => l.includes('up -d') && l.includes('noti')), sb.calls().join('\n'));
+});

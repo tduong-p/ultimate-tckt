@@ -46,7 +46,7 @@ test('deploy.yml: production deploys need their own switch PROD_DEPLOY_ENABLED',
 
 test('deploy.yml: images built without provenance (no untagged child versions eating the GHCR keep window)', () => {
   const y = wf('deploy.yml');
-  assert.equal((y.match(/provenance: false/g) || []).length, 2);
+  assert.equal((y.match(/provenance: false/g) || []).length, 3);
 });
 
 test('ghcr-cleanup keeps 40 versions of both images weekly', () => {
@@ -55,6 +55,7 @@ test('ghcr-cleanup keeps 40 versions of both images weekly', () => {
   assert.match(y, /min-versions-to-keep: 40/);
   assert.match(y, /ultimate-tckt-core/);
   assert.match(y, /ultimate-tckt-ctd-api/);
+  assert.match(y, /ultimate-tckt-noti\b/);
 });
 
 test('docs.yml checks every PR/push and tags docs on main', () => {
@@ -66,4 +67,17 @@ test('docs.yml checks every PR/push and tags docs on main', () => {
   assert.match(y, /pandoc/);
   // Tác động code→tài liệu gác ở PR (ruleset bắt buộc PR); push chỉ kiểm frontmatter/bump.
   assert.match(y, /NO_DOCS: \$\{\{ github\.event_name == 'push' \|\| contains\(github\.event\.pull_request\.labels\.\*\.name, 'no-docs-needed'\) \}\}/);
+});
+
+test('deploy.yml: noti has test (real Postgres) -> build -> deploy, deploy only to staging for now', () => {
+  const y = wf('deploy.yml');
+  for (const j of ['test-noti', 'build-noti', 'deploy-noti']) assert.match(y, new RegExp(`^  ${j}:`, 'm'), j);
+  assert.match(y, /noti:\n\s+- 'services\/noti-api\/\*\*'/);
+  assert.match(y, /needs: \[changes, test-noti\]/);
+  assert.match(y, /NOTI_TEST_DATABASE_URL: postgresql\+psycopg:\/\/postgres:postgres@localhost:5432\/noti_test/);
+  assert.match(y, /ultimate-tckt-noti:\$\{\{ needs\.changes\.outputs\.tag \}\}/);
+  const start = y.indexOf('\n  deploy-noti:');
+  const job = y.slice(start, y.indexOf('\n    steps:', start)).replace(/\s+/g, ' ');
+  assert.ok(job.includes("vars.DEPLOY_ENABLED == 'true' && needs.changes.outputs.env == 'staging'"), job);
+  assert.match(y.slice(start), /deploy\.sh \$\{\{ needs\.changes\.outputs\.env \}\} noti /);
 });

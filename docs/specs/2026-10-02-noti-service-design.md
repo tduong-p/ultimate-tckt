@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -11,8 +11,8 @@ related_code: [services/noti-api/**]
 
 # Service Noti — thiết kế
 
-> Trạng thái: **active** — code theo PLAN-NOTI-001 nằm ở `services/noti-api/**`; **chưa chạy trên VM**, phần hạ tầng (§13)
-> chờ issue liên module. Core chưa gọi Noti.
+> Trạng thái: **active** — code theo PLAN-NOTI-001 nằm ở `services/noti-api/**`; chạy **chỉ ở staging** (driver `console`;
+> xem `docs/ops/moi-truong.md` §4a). Production, sao lưu và cảnh báo (§13) chưa làm. Core chưa gọi Noti.
 
 ## 1. Mục tiêu
 
@@ -292,6 +292,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 |---|---|---|---|
 | 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
 | 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
+| 1.5 | 2026-10-02 | Trạng thái: chạy ở staging | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |

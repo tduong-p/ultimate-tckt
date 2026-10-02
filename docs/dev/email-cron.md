@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 4.2
+version: 4.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -22,7 +22,7 @@ cron động và trang Setting email chỉ tồn tại ở nhánh `archive/gd1a-
 - `notifier.notify({ event, recipient: { id, name, email }, data, sourceKey })` là điểm duy nhất phát thông báo ra ngoài ứng dụng. Hiện **chưa có sender**
   nên không gửi gì; lỗi hoặc dữ liệu thiếu (không có email, thiếu `sourceKey`) bị bỏ qua và ghi log, không bao giờ ném lỗi hay làm treo request.
 - Service Noti (`services/noti-api/`, xem `docs/dev/noti.md` và `docs/specs/2026-10-02-noti-service-design.md`) đã có code
-  nhưng **chưa chạy trên VM** (chờ issue hạ tầng). Khi chạy, thân của facade đổi thành `POST /v1/notifications`; `event` là tên template, `sourceKey` là `dedupe_key`.
+  và chạy ở **staging** (chưa có production; driver `console`). Khi chạy, thân của facade đổi thành `POST /v1/notifications`; `event` là tên template, `sourceKey` là `dedupe_key`.
 
 ## Điểm tích hợp (event → nơi gọi)
 
@@ -64,4 +64,5 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 4.0 | 2026-10-02 | Gỡ module email cũ và OneSignal; viết lại theo hiện trạng staging; thêm bảng điểm tích hợp cho Noti | DYC |
 | 4.1 | 2026-10-02 | Noti service đã hoàn tất triển khai tại services/noti-api/ | DYC |
 | 4.2 | 2026-10-02 | Sửa: Noti mới có code, chưa chạy trên VM | DYC |
+| 4.3 | 2026-10-02 | Noti chạy ở staging | DYC |
 
