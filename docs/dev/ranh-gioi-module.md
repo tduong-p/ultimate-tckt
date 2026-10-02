@@ -63,3 +63,5 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | 1.2 | 2026-09-29 | Ghi nhận index.js đăng ký thêm routes của platform và units (GĐ1-A Task 7 & 8) | DYC |
 | 1.3 | 2026-09-29 | Làm rõ `core/src/settings/catalog.js` là hợp đồng dùng chung (thêm setting mới phải raise). Bổ sung `platform.js` vào danh sách hợp đồng. | DYC |
 | 1.4 | 2026-10-02 | Dòng "Email & Cron" đổi thành "Thông báo (Noti)": các file cũ không tồn tại trên staging; thêm service Noti (issue #41) | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->

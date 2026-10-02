@@ -614,3 +614,5 @@ trước khi tạo trên GitHub.
 | 1.6 | 2026-09-30 | PR 8 xong (c26, c27 một phần, c29 CSS); PR 5 thông báo tạm hoãn | DYC |
 | 1.7 | 2026-09-30 | Hotfix staging 502 (migrate unit_id) chèn trước PR 7 | DYC |
 | 1.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->

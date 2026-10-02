@@ -1276,3 +1276,5 @@ npm run docs:check         # Documentation validation
 | 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
 | 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->

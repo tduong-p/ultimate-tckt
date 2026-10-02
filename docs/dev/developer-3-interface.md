@@ -465,3 +465,5 @@ try {
 |---------|------|----------|-------|
 | 1.0 | 2026-09-30 | Tạo document interface cho Developer 3 | Developer 2 |
 | 1.1 | 2026-10-02 | Ví dụ thông báo dùng `notifier.notify` thay `mailer` | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->

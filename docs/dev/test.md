@@ -93,3 +93,5 @@ nào, kể cả mật khẩu mặc định.
 | 2.6 | 2026-09-30 | Thêm pilot.ui-numbers.test.js (c26 c27 c29) | DYC |
 | 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |
 | 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->

@@ -248,3 +248,5 @@ không chờ issue này.
 | 1.7 | 2026-09-30 | PR 8 xong một phần c27 (nút đề xuất, link team), c26, c29 chỉ CSS; PR 5 tạm hoãn theo yêu cầu | DYC |
 | 1.8 | 2026-09-30 | Hotfix staging 502: migration ép unit_id UNSIGNED lệch org_units.id INT có dấu | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+
+<!-- updated: 2026-10-02 dev3 routes -->
