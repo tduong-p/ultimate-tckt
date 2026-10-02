@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const mysql = require('mysql2/promise');
 const config = require('./environment');
@@ -44,7 +44,6 @@ async function foreignKeyExists(db, tableName, constraintName) {
   );
   return rows[0].count > 0;
 }
-
 async function indexExists(db, tableName, indexName) {
   const [rows] = await db.query(
     `SELECT COUNT(*) AS count
@@ -240,16 +239,17 @@ async function migrateDatabase(db, options = {}) {
     `);
     await db.query(`
       INSERT INTO weight_presets (id, label, points, description, is_active, sort_order) VALUES
-      (1, '0 — Tham gia / Hỗ trợ nhẹ', 0, 'Không tính điểm khối lượng', 1, 1),
-      (2, '1 — Tiêu chuẩn / Lặp lại', 1, 'Trực phòng làm việc, trực bàn sự kiện, chuẩn bị hậu cần', 1, 2),
-      (3, '2 — Trung bình / Có sản phẩm', 2, 'Thiết kế ấn phẩm, viết bài truyền thông, phụ trách kỹ thuật', 1, 3),
-      (4, '3 — Trọng trách / Đột xuất', 3, 'Xử lý sự cố gấp, quản lý khu vực sự kiện', 1, 4),
-      (5, '5 — Trọng điểm / Quy mô lớn', 5, 'Điều phối chính, phụ trách toàn bộ 1 mảng lớn', 1, 5)
+      (1, '0 â€” Tham gia / Há»— trá»£ nháº¹', 0, 'KhÃ´ng tÃ­nh Ä‘iá»ƒm khá»‘i lÆ°á»£ng', 1, 1),
+      (2, '1 â€” TiÃªu chuáº©n / Láº·p láº¡i', 1, 'Trá»±c phÃ²ng lÃ m viá»‡c, trá»±c bÃ n sá»± kiá»‡n, chuáº©n bá»‹ háº­u cáº§n', 1, 2),
+      (3, '2 â€” Trung bÃ¬nh / CÃ³ sáº£n pháº©m', 2, 'Thiáº¿t káº¿ áº¥n pháº©m, viáº¿t bÃ i truyá»n thÃ´ng, phá»¥ trÃ¡ch ká»¹ thuáº­t', 1, 3),
+      (4, '3 â€” Trá»ng trÃ¡ch / Äá»™t xuáº¥t', 3, 'Xá»­ lÃ½ sá»± cá»‘ gáº¥p, quáº£n lÃ½ khu vá»±c sá»± kiá»‡n', 1, 4),
+      (5, '5 â€” Trá»ng Ä‘iá»ƒm / Quy mÃ´ lá»›n', 5, 'Äiá»u phá»‘i chÃ­nh, phá»¥ trÃ¡ch toÃ n bá»™ 1 máº£ng lá»›n', 1, 5)
       ON DUPLICATE KEY UPDATE id=id
     `);
   }
 
-  // 11. Nền tảng đa đơn vị (GĐ1) — xem docs/specs/nen-tang-da-don-vi-design.md §5
+
+  // 9. Multi-unit platform (GĐ1) — see docs/specs/nen-tang-da-don-vi-design.md §5
   await migrateMultiUnit(db, { log, tableExists, columnExists, foreignKeyExists, indexExists });
 
   log('Database schema check and migration complete.');
@@ -277,6 +277,8 @@ module.exports = {
   columnExists,
   getColumnType,
   tableExists,
-  foreignKeyExists,
+  foreignKeyExists
+,
   indexExists
 };
+

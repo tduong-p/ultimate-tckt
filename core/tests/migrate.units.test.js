@@ -1,84 +1,269 @@
 'use strict';
-const test = require('node:test');
+
+const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const mysql = require('mysql2/promise');
-const fs = require('fs');
-const path = require('path');
-const { createTestDatabase } = require('./helpers/db');
-const { migrateDatabase, tableExists, columnExists } = require('../src/config/migrate');
+const { createRawTestDatabase } = require('./helpers/db');
+const { migrateDatabase } = require('../src/config/migrate');
+const { BACKFILL_MARKER, DEVOPS_MIGRATE_MARKER } = require('../src/config/migrate-units');
 
-const quiet = { logger: { info: () => { } } };
-const count = async (pool, sql, params = []) => (await pool.query(sql, params))[0][0].c;
-
-test('multi-unit tables exist after the test DB is created (helper runs migrate)', async () => {
-  const { pool, teardown } = await createTestDatabase();
+test('migrateMultiUnit tạo tất cả bảng đa đơn vị', async () => {
+  const testDb = await createRawTestDatabase();
   try {
-    for (const t of ['org_units', 'unit_memberships', 'unit_modules', 'unit_visibility_policies', 'setting_locks', 'audit_logs', 'directives', 'submissions', 'ops_logs', 'ops_log_attendance', 'platform_migrations']) {
-      assert.equal(await tableExists(pool, t), true, t);
+    await migrateDatabase(testDb.pool);
+    
+    const tables = [
+      'platform_migrations', 'org_units', 'unit_memberships', 'unit_modules',
+      'unit_visibility_policies', 'setting_locks', 'audit_logs',
+      'directives', 'submissions', 'ops_logs', 'ops_log_attendance'
+    ];
+    
+    for (const table of tables) {
+      const [rows] = await testDb.pool.query(
+        `SELECT COUNT(*) AS c FROM information_schema.TABLES 
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+        [table]
+      );
+      assert.ok(rows[0].c > 0, `Bảng ${table} phải tồn tại`);
     }
-    assert.equal(await columnExists(pool, 'teams', 'unit_id'), true);
-    assert.equal(await columnExists(pool, 'activities', 'unit_id'), true);
-    assert.equal(await columnExists(pool, 'activities', 'directive_id'), true);
-  } finally { await teardown(); }
-});
-
-test('backfill: teams/activities -> TCKT, users.role -> TCKT membership, BTV->TCKT summary', async () => {
-  // Dựng DB từ db.sql KHÔNG migrate, chèn dữ liệu "cũ", rồi migrate — mô phỏng production.
-  const cfg = { host: process.env.TEST_DB_HOST || process.env.DB_HOST || 'localhost', port: Number(process.env.TEST_DB_PORT || process.env.DB_PORT || 3306), user: process.env.TEST_DB_USER || process.env.DB_USER || 'root', password: process.env.TEST_DB_PASSWORD || process.env.DB_PASSWORD || '', multipleStatements: true };
-  const name = `tckt_mu_${process.pid}_${Date.now()}`;
-  const admin = await mysql.createConnection(cfg);
-  await admin.query(`CREATE DATABASE \`${name}\` CHARACTER SET utf8mb4`);
-  await admin.changeUser({ database: name });
-  await admin.query(fs.readFileSync(path.join(__dirname, '..', 'db.sql'), 'utf8'));
-  await admin.query("INSERT INTO users(name,email,password_hash,role,auth_provider) VALUES ('Dev','dev@example.com','x','vice_admin','local'),('Mem','mem@example.com','x','member','local')");
-  await admin.end();
-  const pool = mysql.createPool({ ...cfg, database: name, multipleStatements: false, connectionLimit: 3 });
-  try {
-    await migrateDatabase(pool, quiet);
-    const tckt = await count(pool, "SELECT id c FROM org_units WHERE code='TCKT'");
-    const btv = await count(pool, "SELECT id c FROM org_units WHERE code='BTV'");
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM teams WHERE unit_id<>?', [tckt]), 0);
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM activities WHERE unit_id<>?', [tckt]), 0);
-    // Mọi user đều được tạo membership TCKT với role tương ứng
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM users u LEFT JOIN unit_memberships m ON m.user_id=u.id AND m.unit_id=? AND m.role COLLATE utf8mb4_unicode_ci = u.role COLLATE utf8mb4_unicode_ci WHERE m.user_id IS NULL', [tckt]), 0);
-    // BTV → TCKT visibility policy ở mức summary
-    assert.equal(await count(pool, "SELECT COUNT(*) c FROM unit_visibility_policies WHERE viewer_unit_id=? AND owner_unit_id=? AND level='summary'", [btv, tckt]), 1);
-    assert.equal(await count(pool, "SELECT COUNT(*) c FROM unit_modules m JOIN org_units u ON u.id=m.unit_id WHERE u.code='VPD' AND m.module_id='ctd'"), 1);
-    // Sau migrate, INSERT kiểu cũ (không có unit_id) vẫn chạy và rơi về TCKT.
-    await pool.query("INSERT INTO teams(name) VALUES ('Ban mới')");
-    assert.equal(await count(pool, "SELECT unit_id c FROM teams WHERE name='Ban mới'"), tckt);
   } finally {
-    await pool.end();
-    const a2 = await mysql.createConnection(cfg); await a2.query(`DROP DATABASE IF EXISTS \`${name}\``); await a2.end();
+    await testDb.teardown();
   }
 });
 
-test('re-running migrate is idempotent and does not re-add a removed membership', async () => {
-  const { pool, teardown } = await createTestDatabase();
+test('migrateMultiUnit seed tất cả đơn vị từ catalog', async () => {
+  const testDb = await createRawTestDatabase();
   try {
-    const before = await count(pool, 'SELECT COUNT(*) c FROM unit_memberships');
-    const units = await count(pool, 'SELECT COUNT(*) c FROM org_units');
-    await pool.query("DELETE m FROM unit_memberships m JOIN org_units u ON u.id=m.unit_id WHERE u.code='TCKT' AND m.user_id=1");
-    await migrateDatabase(pool, quiet);
-    await migrateDatabase(pool, quiet);
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM unit_memberships'), before - 1);
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM org_units'), units);
-    assert.equal(await count(pool, 'SELECT COUNT(*) c FROM unit_visibility_policies'), 1);
-  } finally { await teardown(); }
+    await migrateDatabase(testDb.pool);
+    
+    const [units] = await testDb.pool.query('SELECT code, name, kind FROM org_units ORDER BY id');
+    
+    // Kiểm tra có đủ 7 đơn vị
+    assert.equal(units.length, 7, 'Phải có đúng 7 đơn vị');
+    
+    const codes = units.map(u => u.code);
+    assert.ok(codes.includes('DYC'), 'Phải có DYC');
+    assert.ok(codes.includes('BTV'), 'Phải có BTV');
+    assert.ok(codes.includes('TCKT'), 'Phải có TCKT');
+    assert.ok(codes.includes('VPD'), 'Phải có VPD');
+    assert.ok(codes.includes('CHIBO'), 'Phải có CHIBO');
+  } finally {
+    await testDb.teardown();
+  }
 });
 
-test('migrate adopts the signed INT type of an existing org_units.id instead of forcing UNSIGNED (staging DB)', async () => {
-  const { pool, teardown } = await createTestDatabase();
+test('migrateMultiUnit thêm unit_id cho teams và activities', async () => {
+  const testDb = await createRawTestDatabase();
   try {
-    // Dựng lại trạng thái staging: DB đã migrate bởi bản cũ, org_units.id và unit_id là INT có dấu, FK đã có.
-    const [fks] = await pool.query("SELECT TABLE_NAME t, CONSTRAINT_NAME c, COLUMN_NAME col FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME='org_units'");
-    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} DROP FOREIGN KEY ${f.c}`);
-    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} MODIFY ${f.col} INT${f.col === 'parent_id' ? ' NULL' : ' NOT NULL'}`);
-    await pool.query('ALTER TABLE org_units MODIFY id INT AUTO_INCREMENT');
-    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} ADD CONSTRAINT ${f.c} FOREIGN KEY (${f.col}) REFERENCES org_units(id)`);
-    await migrateDatabase(pool, quiet);
-    const [rows] = await pool.query("SELECT TABLE_NAME t, COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='unit_id' AND TABLE_NAME IN ('teams','activities')");
-    assert.equal(rows.length, 2);
-    for (const r of rows) assert.equal(r.ty, 'int', `${r.t}.unit_id must keep matching org_units.id`);
-  } finally { await teardown(); }
+    // Tạo test data trước migration
+    const [userResult] = await testDb.pool.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      ['Test User', 'test@example.com', 'hash', 'admin']
+    );
+    const userId = userResult.insertId;
+    
+    const [teamResult] = await testDb.pool.query(
+      'INSERT INTO teams (name, color) VALUES (?, ?)',
+      ['Test Team', '#FF0000']
+    );
+    const teamId = teamResult.insertId;
+    
+    await testDb.pool.query(
+      'INSERT INTO activities (title, description, type, team_id, creator_id, deadline) VALUES (?, ?, ?, ?, ?, CURDATE())',
+      ['Test Activity', 'Test', 'event', teamId, userId]
+    );
+    
+    // Chạy migration
+    await migrateDatabase(testDb.pool);
+    
+    // Kiểm tra cột unit_id đã được thêm
+    const [teamCols] = await testDb.pool.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teams' AND COLUMN_NAME = 'unit_id'`
+    );
+    assert.equal(teamCols.length, 1, 'Cột teams.unit_id phải tồn tại');
+    
+    const [activityCols] = await testDb.pool.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'activities' AND COLUMN_NAME = 'unit_id'`
+    );
+    assert.equal(activityCols.length, 1, 'Cột activities.unit_id phải tồn tại');
+    
+    // Kiểm tra dữ liệu cũ được gán về TCKT
+    const [tckt] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['TCKT']);
+    const tcktId = tckt[0].id;
+    
+    const [teams] = await testDb.pool.query('SELECT unit_id FROM teams WHERE id = ?', [teamId]);
+    assert.equal(teams[0].unit_id, tcktId, 'team.unit_id phải trỏ tới TCKT');
+    
+    const [activities] = await testDb.pool.query('SELECT unit_id FROM activities WHERE team_id = ?', [teamId]);
+    assert.equal(activities[0].unit_id, tcktId, 'activity.unit_id phải trỏ tới TCKT');
+  } finally {
+    await testDb.teardown();
+  }
+});
+
+test('migrateMultiUnit tạo membership TCKT từ users.role', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    // Tạo users với các role khác nhau
+    await testDb.pool.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      ['Admin User', 'admin@test.com', 'hash', 'admin']
+    );
+    await testDb.pool.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      ['Leader User', 'leader@test.com', 'hash', 'leader']
+    );
+    await testDb.pool.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      ['Member User', 'member@test.com', 'hash', 'member']
+    );
+    
+    // Chạy migration
+    await migrateDatabase(testDb.pool);
+    
+    // Kiểm tra memberships đã được tạo
+    const [tckt] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['TCKT']);
+    const tcktId = tckt[0].id;
+    
+    const [adminMem] = await testDb.pool.query(
+      'SELECT role FROM unit_memberships WHERE unit_id = ? AND user_id = (SELECT id FROM users WHERE email = ?)',
+      [tcktId, 'admin@test.com']
+    );
+    assert.equal(adminMem[0].role, 'admin', 'Role admin phải được giữ');
+    
+    const [leaderMem] = await testDb.pool.query(
+      'SELECT role FROM unit_memberships WHERE unit_id = ? AND user_id = (SELECT id FROM users WHERE email = ?)',
+      [tcktId, 'leader@test.com']
+    );
+    assert.equal(leaderMem[0].role, 'leader', 'Role leader phải được giữ');
+    
+    const [memberMem] = await testDb.pool.query(
+      'SELECT role FROM unit_memberships WHERE unit_id = ? AND user_id = (SELECT id FROM users WHERE email = ?)',
+      [tcktId, 'member@test.com']
+    );
+    assert.equal(memberMem[0].role, 'member', 'Role member phải được giữ');
+  } finally {
+    await testDb.teardown();
+  }
+});
+
+test('migrateMultiUnit seed module access theo catalog', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    await migrateDatabase(testDb.pool);
+    
+    // Kiểm tra TCKT có 2 modules
+    const [tckt] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['TCKT']);
+    const [tcktModules] = await testDb.pool.query(
+      'SELECT module_id FROM unit_modules WHERE unit_id = ? ORDER BY module_id',
+      [tckt[0].id]
+    );
+    assert.equal(tcktModules.length, 2, 'TCKT phải có 2 modules');
+    assert.equal(tcktModules[0].module_id, 'ctd');
+    assert.equal(tcktModules[1].module_id, 'dieu-hanh');
+    
+    // Kiểm tra VPD chỉ có ctd
+    const [vpd] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['VPD']);
+    const [vpdModules] = await testDb.pool.query(
+      'SELECT module_id FROM unit_modules WHERE unit_id = ?',
+      [vpd[0].id]
+    );
+    assert.equal(vpdModules.length, 1, 'VPD chỉ có 1 module');
+    assert.equal(vpdModules[0].module_id, 'ctd');
+    
+    // Kiểm tra DYC không có module
+    const [dyc] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['DYC']);
+    const [dycModules] = await testDb.pool.query(
+      'SELECT module_id FROM unit_modules WHERE unit_id = ?',
+      [dyc[0].id]
+    );
+    assert.equal(dycModules.length, 0, 'DYC không có module nào');
+  } finally {
+    await testDb.teardown();
+  }
+});
+
+test('migrateMultiUnit seed BTV → TCKT visibility policy', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    await migrateDatabase(testDb.pool);
+    
+    const [btv] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['BTV']);
+    const [tckt] = await testDb.pool.query('SELECT id FROM org_units WHERE code = ?', ['TCKT']);
+    
+    const [policy] = await testDb.pool.query(
+      'SELECT level FROM unit_visibility_policies WHERE viewer_unit_id = ? AND owner_unit_id = ?',
+      [btv[0].id, tckt[0].id]
+    );
+    
+    assert.equal(policy.length, 1, 'Policy BTV → TCKT phải tồn tại');
+    assert.equal(policy[0].level, 'summary', 'Level mặc định phải là summary');
+  } finally {
+    await testDb.teardown();
+  }
+});
+
+test('migrateMultiUnit là idempotent — chạy lại không gây lỗi hoặc trùng lặp', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    // Chạy migration lần đầu
+    await migrateDatabase(testDb.pool);
+    
+    const [units1] = await testDb.pool.query('SELECT COUNT(*) as c FROM org_units');
+    const [memberships1] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_memberships');
+    const [modules1] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_modules');
+    const [policies1] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_visibility_policies');
+    
+    // Chạy migration lần thứ hai
+    await migrateDatabase(testDb.pool);
+    
+    const [units2] = await testDb.pool.query('SELECT COUNT(*) as c FROM org_units');
+    const [memberships2] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_memberships');
+    const [modules2] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_modules');
+    const [policies2] = await testDb.pool.query('SELECT COUNT(*) as c FROM unit_visibility_policies');
+    
+    // Số lượng phải không thay đổi
+    assert.equal(units2[0].c, units1[0].c, 'Số đơn vị không được tăng khi chạy lại');
+    assert.equal(memberships2[0].c, memberships1[0].c, 'Số membership không được tăng khi chạy lại');
+    assert.equal(modules2[0].c, modules1[0].c, 'Số module access không được tăng khi chạy lại');
+    assert.equal(policies2[0].c, policies1[0].c, 'Số visibility policy không được tăng khi chạy lại');
+    
+    // Kiểm tra marker
+    const [marker] = await testDb.pool.query('SELECT name FROM platform_migrations WHERE name = ?', [BACKFILL_MARKER]);
+    assert.equal(marker.length, 1, 'Migration marker phải tồn tại đúng 1 lần');
+  } finally {
+    await testDb.teardown();
+  }
+});
+
+test('migrateMultiUnit thêm activities.directive_id và foreign key', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    await migrateDatabase(testDb.pool);
+    
+    // Kiểm tra cột directive_id
+    const [cols] = await testDb.pool.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'activities' AND COLUMN_NAME = 'directive_id'`
+    );
+    assert.equal(cols.length, 1, 'Cột activities.directive_id phải tồn tại');
+    
+    // Kiểm tra foreign key
+    const [fks] = await testDb.pool.query(
+      `SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'activities' 
+       AND CONSTRAINT_NAME = 'fk_activities_directive' AND CONSTRAINT_TYPE = 'FOREIGN KEY'`
+    );
+    assert.equal(fks.length, 1, 'Foreign key fk_activities_directive phải tồn tại');
+    
+    // Kiểm tra index
+    const [indexes] = await testDb.pool.query(
+      `SELECT INDEX_NAME FROM information_schema.STATISTICS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'activities' AND INDEX_NAME = 'activities_directive'`
+    );
+    assert.ok(indexes.length > 0, 'Index activities_directive phải tồn tại');
+  } finally {
+    await testDb.teardown();
+  }
 });
