@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-CUT-001
 title: Runbook chuyển đổi sang hạ tầng ultimate-tckt
-version: 1.3
+version: 1.4
 status: active
 audience: [ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: [infra/scripts/migrate-volumes.sh, infra/scripts/bootstrap-vm.sh]
 ---
 
@@ -70,6 +70,7 @@ bash /tmp/ut/infra/scripts/bootstrap-vm.sh production
 Kỳ vọng: in ra `Wrote /opt/ultimate-tckt/staging/infra/.env` và tương tự cho `production`. Chạy `docker ps` — container cũ `seee-ctd-*` vẫn đang chạy bình thường, chưa bị ảnh hưởng.
 
 Nếu script báo thiếu biến (exit 2): bổ sung biến còn thiếu vào `/opt/infra/.env.<env>` cũ rồi chạy lại — script không bao giờ ghi `.env` nửa vời.
+Biến `NOTI_*` không bị kiểm ở bước này (Noti có sau chuyển đổi, thêm tay theo `docs/ops/moi-truong.md` §4a).
 
 ## 2. Chuyển từng môi trường
 
@@ -214,3 +215,4 @@ Ghi ngày xoá thực tế vào bảng Nhật ký bên dưới (bump version tà
 | 1.1 | 2026-09-24 | Ghi nhật ký chuyển staging; thêm bước tạo `/opt/ultimate-tckt`, host alias deploy key, đếm mọi bảng, ngoại lệ seed admin CTD | DYC |
 | 1.2 | 2026-09-24 | Sửa lệnh đếm 2.6 (biến trong container), tag production phải build từ `main`, hai công tắc `DEPLOY_ENABLED`/`PROD_DEPLOY_ENABLED` | DYC |
 | 1.3 | 2026-09-24 | Ghi nhật ký chuyển production | DYC |
+| 1.4 | 2026-10-02 | bootstrap bỏ qua `NOTI_*` | DYC |

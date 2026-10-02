@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.4
+version: 1.5
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -72,6 +72,12 @@ tên `graph_tenant`), `.env.example` ghi sai tên biến (bị bỏ qua không b
 Test giờ dựng từng driver từ `Settings`, so `.env.example` với các trường của `Settings`, và kiểm link trong thư lấy từ `NOTI_APP_BASE_URL`.
 Khi thêm cấu hình hoặc driver mới: thêm test dựng nó từ `Settings`, đừng chỉ test lớp driver với tham số truyền tay.
 
+## `docs:check --base` ở local xanh nhưng CI đỏ vì tài liệu liên quan chưa sửa
+
+Kiểm tác động code→tài liệu so `git diff base...HEAD`, tức chỉ các **commit**. Chạy `docs:check` khi thay đổi `infra/**`
+còn chưa commit thì local báo `docs ok`, còn CI của PR báo hàng chục tài liệu có `related_code` trùng mà chưa sửa (PR #45).
+Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đổi `infra/**`/`.github/**` thì dự trù sửa nhiều tài liệu.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -81,3 +87,4 @@ Khi thêm cấu hình hoặc driver mới: thêm test dựng nó từ `Settings`
 | 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |
 | 1.3 | 2026-10-02 | Thêm bẫy mailer cũ gộp email và push; scheduler gắn thông báo ngoài vào `inserted` | DYC |
 | 1.4 | 2026-10-02 | Thêm bẫy Noti: test chỉ chạy driver console, lỗi cấu hình driver thật lọt qua | DYC |
+| 1.5 | 2026-10-02 | Thêm bẫy `docs:check --base` chỉ thấy file đã commit | DYC |
