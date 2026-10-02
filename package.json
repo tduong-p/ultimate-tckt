@@ -1,28 +1,10 @@
 {
-  "name": "tckt-activity-hub",
-  "version": "2.2.0",
+  "name": "ultimate-tckt-tooling",
   "private": true,
-  "description": "Internal activity and task tracking for TCKT",
-  "main": "app.js",
+  "engines": { "node": ">=22 <23" },
   "scripts": {
-    "dev": "node --watch app.js",
-    "start": "node app.js",
-    "migrate": "node src/config/migrate.js",
-    "test": "node --test --test-concurrency=1 tests/*.test.js tests/**/*.test.js"
-  },
-  "engines": {
-    "node": ">=22 <23"
-  },
-  "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^16.6.1",
-    "exceljs": "^4.4.0",
-    "express": "^5.1.0",
-    "express-mysql-session": "^3.0.3",
-    "express-session": "^1.18.2",
-    "helmet": "^8.1.0",
-    "multer": "^2.2.0",
-    "mysql2": "^3.14.3",
-    "nodemailer": "^9.0.5"
+    "test:tools": "node --test tools/tests/*.test.js",
+    "docs:check": "node tools/docs-check/cli.js check",
+    "docs:index": "node tools/docs-check/cli.js index"
   }
 }
