@@ -19,8 +19,7 @@ const { createAccessPolicies } = require('./policies/access');
 const { asyncRoute, validHttpUrl, one, ids } = require('./routes/utils');
 const { registerRoutes } = require('./routes');
 const logger = require('./logger');
-const mailer = require('./mailer');
-const push = require('./push');
+const { createNotifier } = require('./notifier');
 
 function createApplication(options = {}) {
   const runtimeConfig = options.config || config;
@@ -29,17 +28,17 @@ function createApplication(options = {}) {
   const attachmentRoot = path.join(__dirname, '..', 'storage', 'task-attachments');
   fs.mkdirSync(attachmentRoot, { recursive: true });
 
-  warnAboutConfiguration(runtimeConfig, { mailer, push });
+  warnAboutConfiguration(runtimeConfig);
   app.set('trust proxy', 1);
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.onesignal.com", "https://*.onesignal.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com", "https://unpkg.com", "data:"],
         imgSrc: ["'self'", "data:", "blob:", "https:"],
-        connectSrc: ["'self'", "https://cdn.onesignal.com", "https://*.onesignal.com", "https://onesignal.com"],
+        connectSrc: ["'self'"],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameAncestors: ["'self'"],
@@ -67,13 +66,14 @@ function createApplication(options = {}) {
   }
 
   const audit = require('./services/audit');
+  const notifier = createNotifier({ logger });
   const policies = createAccessPolicies(db, isLeadership, isExecutive, audit);
   const settingGuard = createSettingGuard(db);
   const context = {
     db, auth, admin, manager, platformAdmin, settingGuard, isLeadership, isExecutive, isPlatformAdmin, asyncRoute, validHttpUrl, one, ids,
     ...policies,
     managerOrEventLead: managerOrEventLead(policies.canManageActivity),
-    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, mailer, push,
+    bcrypt, ExcelJS, packageInfo: runtimeConfig.packageInfo, microsoftSso: runtimeConfig.microsoftSso, logger, notifier,
     taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto
   };
   registerRoutes(app, context);
@@ -82,7 +82,7 @@ function createApplication(options = {}) {
   app.get(/.*/, (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
   app.use(createErrorHandler(logger));
 
-  return { app, db, config: runtimeConfig };
+  return { app, db, config: runtimeConfig, notifier };
 }
 
 module.exports = { createApplication };

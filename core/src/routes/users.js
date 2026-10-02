@@ -2,7 +2,7 @@ const express = require('express');
 const { syncTcktMembershipFromRole } = require('../units/memberships');
 
 function createUserRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
+  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
   const router = express.Router();
 
 router.get('/api/people',auth,asyncRoute(async(req,res)=>{
