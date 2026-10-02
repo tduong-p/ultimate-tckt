@@ -33,13 +33,13 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
     const overdueStr = formatDate(overdueDate);
 
     const dueToday = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [todayStr, dueToday]);
+    await pool.execute('UPDATE tasks SET deadline=?, team_id=? WHERE id=?', [todayStr, teamId, dueToday]);
     
     const overdue = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [overdueStr, overdue]);
+    await pool.execute('UPDATE tasks SET deadline=?, team_id=? WHERE id=?', [overdueStr, teamId, overdue]);
     
     const inReview = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute("UPDATE tasks SET status='review', submitted_for_review_at=NOW(), deadline=? WHERE id=?", [todayStr, inReview]);
+    await pool.execute("UPDATE tasks SET status='review', submitted_for_review_at=NOW(), deadline=?, team_id=? WHERE id=?", [todayStr, teamId, inReview]);
 
     await client.login(member.email, member.password);
     const memberView = await client.request('GET', '/api/my-tasks-today');
