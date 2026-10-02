@@ -61,7 +61,13 @@ def main(argv=None):
             revoke_client(db, args.name)
             print(f"Client '{args.name}' đã bị thu hồi.")
         elif args.command == "purge":
-            print("Lệnh purge sẽ được hoàn thiện ở Task 6.")
+            from noti.queue import purge
+            stats = purge(db)
+            print(
+                f"Purge hoàn tất: {stats['cleared_sensitive']} thông báo nhạy cảm đã xoá data, "
+                f"{stats['cleared_regular']} thông báo thường đã xoá data, "
+                f"{stats['deleted']} thông báo cũ đã xoá hẳn."
+            )
     finally:
         db.close()
 

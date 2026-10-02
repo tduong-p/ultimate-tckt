@@ -54,5 +54,6 @@ class NotificationRecipient(Base):
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_error: Mapped[str | None] = mapped_column(Text)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     notification: Mapped[Notification] = relationship(back_populates="recipients")
     __table_args__ = (Index("ix_recipients_claim", "status", "next_attempt_at"),)

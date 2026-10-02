@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import json
 import logging
 from pathlib import Path
 import re
@@ -19,7 +20,8 @@ from noti.drivers import (
     TransientError,
     get_driver,
 )
-from noti.queue import claim_next, mark_failed, mark_retry, mark_sent
+from noti.queue import claim_next, mark_failed, mark_retry, mark_sent, metrics
+from noti.recipient_policy import apply_policy
 from noti.templating import Registry, TemplateError, get_registry
 
 logger = logging.getLogger(__name__)
@@ -70,34 +72,46 @@ def run_once(
             )
         except Exception as e:
             logger.error("Template rendering failed for notification %s recipient %s", item.notification_id, item.recipient_id)
-            mark_failed(db, item.recipient_id, scrub_error(f"Render error: {e}"))
+            mark_failed(db, item.recipient_id, scrub_error(f"Render error: {e}"), now=now)
             db.commit()
             continue
 
-        # 2. Prepare message
+        # 2. Check recipient staging policy (allowlist & redirect)
+        target_email = apply_policy(item.email, settings.recipient_allowlist, settings.redirect_to)
+        if target_email is None:
+            logger.info("Recipient %s dropped by allowlist", item.recipient_id)
+            mark_sent(db, item.recipient_id, error="dropped by allowlist", now=now)
+            db.commit()
+            continue
+
+        subject = rendered.subject
+        if target_email != item.email:
+            subject = f"[chuyển hướng từ {item.email}] {rendered.subject}"
+
+        # 3. Prepare message
         msg = Message(
-            to_email=item.email,
+            to_email=target_email,
             to_name=item.name,
             cc=item.cc,
             reply_to=item.reply_to,
-            subject=rendered.subject,
+            subject=subject,
             html=rendered.html,
             text=rendered.text,
         )
 
-        # 3. Send through driver
+        # 4. Send through driver
         try:
             driver.send(msg)
             mark_sent(db, item.recipient_id, now=now)
             db.commit()
         except PermanentError as e:
             logger.warning("Permanent error sending email for recipient %s", item.recipient_id)
-            mark_failed(db, item.recipient_id, scrub_error(str(e)))
+            mark_failed(db, item.recipient_id, scrub_error(str(e)), now=now)
             db.commit()
         except TransientError as e:
             if item.attempts >= MAX_ATTEMPTS:
                 logger.error("Max attempts (%d) reached for recipient %s (transient)", item.attempts, item.recipient_id)
-                mark_failed(db, item.recipient_id, scrub_error(f"Max attempts reached: {e}"))
+                mark_failed(db, item.recipient_id, scrub_error(f"Max attempts reached: {e}"), now=now)
             else:
                 delay = delay_for(item.attempts, e.retry_after)
                 logger.info("Retrying recipient %s in %d seconds (attempt %d)", item.recipient_id, delay, item.attempts)
@@ -106,7 +120,7 @@ def run_once(
         except Exception as e:
             if item.attempts >= MAX_ATTEMPTS:
                 logger.error("Max attempts (%d) reached for recipient %s (unexpected)", item.attempts, item.recipient_id)
-                mark_failed(db, item.recipient_id, scrub_error(f"Max attempts reached: {e}"))
+                mark_failed(db, item.recipient_id, scrub_error(f"Max attempts reached: {e}"), now=now)
             else:
                 delay = delay_for(item.attempts)
                 logger.info("Retrying recipient %s in %d seconds after unexpected error", item.recipient_id, delay)
@@ -141,10 +155,23 @@ def main() -> None:
     driver = get_driver(settings)
     rate = settings.send_rate_per_minute
     delay_between = 60.0 / rate if rate > 0 else 0.0
+    last_metrics_log = 0.0
 
     logger.info("Worker initialized with driver %s and rate %d/min", type(driver).__name__, rate)
     while True:
         try:
+            now_time = time.time()
+            if now_time - last_metrics_log >= 60:
+                with SessionLocal() as db:
+                    m = metrics(db)
+                    logger.info(
+                        '{"pending": %d, "failed": %d, "oldest_pending_age_s": %d}',
+                        m["pending"],
+                        m["failed"],
+                        m["oldest_pending_age_seconds"],
+                    )
+                last_metrics_log = now_time
+
             with SessionLocal() as db:
                 count = run_once(db, registry, driver, delay_between_sends=delay_between)
             if count == 0:

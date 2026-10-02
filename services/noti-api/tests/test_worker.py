@@ -247,3 +247,54 @@ def test_worker_crash_recovery_terminates_at_five_attempts(db, make_client):
     # Should no longer be claimable
     claimed = claim_next(db, limit=10, now=now)
     assert len(claimed) == 0
+
+
+def test_worker_recipient_policy_dropped(db, make_client, monkeypatch):
+    import noti.worker
+    monkeypatch.setattr(noti.worker.settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(noti.worker.settings, "redirect_to", None)
+
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    r = create_recipient(db, n.id, "external@gmail.com")
+    db.commit()
+
+    registry = get_registry()
+    driver = FakeDriver()
+    now = datetime.now(timezone.utc)
+
+    processed = run_once(db, registry, driver, now=now)
+    assert processed == 1
+    # Driver was NOT called
+    assert len(driver.sent_messages) == 0
+
+    db.refresh(r)
+    # Marked sent with last_error to prevent retry or false failure alert
+    assert r.status == "sent"
+    assert r.last_error == "dropped by allowlist"
+
+
+def test_worker_recipient_policy_redirected(db, make_client, monkeypatch):
+    import noti.worker
+    monkeypatch.setattr(noti.worker.settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(noti.worker.settings, "redirect_to", "qa@hust.edu.vn")
+
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    r = create_recipient(db, n.id, "student@gmail.com")
+    db.commit()
+
+    registry = get_registry()
+    driver = FakeDriver()
+    now = datetime.now(timezone.utc)
+
+    processed = run_once(db, registry, driver, now=now)
+    assert processed == 1
+    assert len(driver.sent_messages) == 1
+    sent = driver.sent_messages[0]
+    assert sent.to_email == "qa@hust.edu.vn"
+    assert "[chuyển hướng từ student@gmail.com]" in sent.subject
+
+    db.refresh(r)
+    assert r.status == "sent"
+
