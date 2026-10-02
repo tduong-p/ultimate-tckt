@@ -10,6 +10,9 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
   try {
     const teamId = await createTeam(pool);
     const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: true });
+    // Đảm bảo bảng user_teams ghi nhận rõ ràng quyền lead cho leader
+    await pool.execute('INSERT INTO user_teams(user_id, team_id, is_lead) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE is_lead=1', [leader.id, teamId]);
+
     const member = await createUser(pool, { role: 'member', team_id: teamId });
     const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved' });
     
