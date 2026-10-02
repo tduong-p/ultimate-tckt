@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-IDX-001
 title: Planning — Index
-version: 1.4
+version: 1.2
 status: active
 audience: [dev, ba, ops]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-09-24
 related_code: []
 ---
 
@@ -41,12 +41,6 @@ Tài liệu kế hoạch phát triển nền tảng đa đơn vị.
   - Code ownership để tránh conflict
   - Dependency management rõ ràng
   - Load balancing giữa các devs
-
-- **[phan-cong-3-devs-5-ngay.md](phan-cong-3-devs-5-ngay.md)** — Hướng dẫn nền tảng đa đơn vị cho 3 developers trong 5 ngày
-  - Migration và backfill dữ liệu hiện có
-  - Unit context, quyền truy cập và audit
-  - API giao việc BTV → TCKT và Trình báo cáo
-  - Mốc tích hợp từng ngày và Definition of Done
 
 ## Quick start
 
@@ -107,7 +101,6 @@ Tài liệu kế hoạch phát triển nền tảng đa đơn vị.
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
-| 1.4 | 2026-09-27 | Thêm hướng dẫn giao việc 3 developers trong 5 ngày; đồng bộ frontmatter version với lịch sử | DYC |
 | 1.3 | 2026-09-24 | Thêm phan-cong-6-devs.md (chi tiết 4 BE + 2 FE) | DYC |
 | 1.2 | 2026-09-24 | Thêm ke-hoach-hub-core-operations.md (Hub only, no CTD) | DYC |
 | 1.1 | 2026-09-24 | Thêm link đến ke-hoach-phat-trien.md và phan-nhom-dev.md | DYC |
