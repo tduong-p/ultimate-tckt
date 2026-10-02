@@ -54,7 +54,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unit = { id: 1, kind: 'standing_committee', modules: ['dieu-hanh'] };
       req.unitRole = 'btv_lead';
       next();
     });
@@ -83,7 +83,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unit = { id: 1, kind: 'standing_committee', modules: ['dieu-hanh'] };
       req.unitRole = 'btv_lead';
       req.user = { id: 99 };
       next();
@@ -103,7 +103,7 @@ describe('Directives & Submissions API Tests', () => {
   test('POST /api/directives trả về 403 nếu không phải BTV', async () => {
     const dbMock = { execute: async () => [[]] };
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 2, kind: 'department' };
+      req.unit = { id: 2, kind: 'department', modules: ['dieu-hanh'] };
       req.unitRole = 'member';
       next();
     });
@@ -138,7 +138,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 2, kind: 'department' };
+      req.unit = { id: 2, kind: 'department', modules: ['dieu-hanh'] };
       req.unitRole = 'admin';
       next();
     });
@@ -177,7 +177,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 2, kind: 'department' };
+      req.unit = { id: 2, kind: 'department', modules: ['dieu-hanh'] };
       req.unitRole = 'admin';
       next();
     });
@@ -211,7 +211,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 2, kind: 'department' };
+      req.unit = { id: 2, kind: 'department', modules: ['dieu-hanh'] };
       req.unitRole = 'admin';
       next();
     });
@@ -244,7 +244,7 @@ describe('Directives & Submissions API Tests', () => {
     };
 
     const app = createMockApp(dbMock, (req, res, next) => {
-      req.unit = { id: 1, kind: 'standing_committee' };
+      req.unit = { id: 1, kind: 'standing_committee', modules: ['dieu-hanh'] };
       req.unitRole = 'btv_lead';
       next();
     });
