@@ -12,8 +12,8 @@ function createMockApp(dbMock, customMiddleware = (req, res, next) => next()) {
   app.use(customMiddleware);
   
   const context = { asyncRoute, db: dbMock };
-  app.use('/api/directives', createDirectiveRoutes(context));
-  app.use('/api/submissions', createSubmissionRoutes(context));
+  app.use(createDirectiveRoutes(context));
+  app.use(createSubmissionRoutes(context));
   return app;
 }
 

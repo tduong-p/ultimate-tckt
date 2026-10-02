@@ -18,8 +18,8 @@ function registerRoutes(app, context) {
   app.use(createDocumentRoutes(context));
   app.use(createReportRoutes(context));
   app.use(createNotificationRoutes(context));
-  app.use('/api/directives', createDirectiveRoutes(context));
-  app.use('/api/submissions', createSubmissionRoutes(context));
+  app.use(createDirectiveRoutes(context));
+  app.use(createSubmissionRoutes(context));
 }
 
 module.exports = { registerRoutes };

@@ -5,26 +5,15 @@ function createDirectiveRoutes(context) {
   const router = express.Router();
 
   const authMiddleware = typeof auth === 'function' ? auth : (req, res, next) => next();
-  const isPlatformOwner = (unit) => unit && unit.kind === 'platform_owner';
-
-  router.use(authMiddleware, (req, res, next) => {
+  router.use('/api/directives', authMiddleware, (req, res, next) => {
     const actor = req.actor || req.user || {};
     const unit = req.unit || actor.unit;
-
-    if (isPlatformOwner(unit)) return next();
-
-    if (unit) {
-      const modules = unit.modules || [];
-      const hasDieuHanh = Array.isArray(modules)
-        ? modules.includes('dieu-hanh')
-        : (typeof modules === 'string' && modules.includes('dieu-hanh'));
-
-      if (!hasDieuHanh) {
-        return res.status(403).json({ error: 'Đơn vị chưa kích hoạt module điều hành.' });
-      }
-    } else {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+    if (unit && unit.kind === 'platform_owner') return next();
+    
+    const modules = unit?.modules || [];
+    const hasDieuHanh = Array.isArray(modules) ? modules.includes('dieu-hanh') : String(modules).includes('dieu-hanh');
+    
+    if (!unit || !hasDieuHanh) return res.status(403).json({ error: 'Forbidden' });
     next();
   });
 
@@ -33,7 +22,7 @@ function createDirectiveRoutes(context) {
   const isDyc = (unit) => unit && unit.kind === 'platform_owner';
 
   // GET /api/directives
-  router.get('/', asyncRoute(async (req, res) => {
+  router.get('/api/directives', asyncRoute(async (req, res) => {
     const unitId = req.unit ? req.unit.id : null;
     const [rows] = await db.execute(
       `SELECT * FROM directives WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
@@ -43,7 +32,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // POST /api/directives
-  router.post('/', asyncRoute(async (req, res) => {
+  router.post('/api/directives', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isBtv(unitRole) && !isDyc(req.unit)) {
       return res.status(403).json({ error: 'Chỉ BTV mới có quyền tạo chỉ đạo.' });
@@ -62,7 +51,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // GET /api/directives/:id
-  router.get('/:id', asyncRoute(async (req, res) => {
+  router.get('/api/directives/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
@@ -74,7 +63,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // POST /api/directives/:id/acknowledge
-  router.post('/:id/acknowledge', asyncRoute(async (req, res) => {
+  router.post('/api/directives/:id/acknowledge', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isTcktAdmin(unitRole) && !isDyc(req.unit)) {
       return res.status(403).json({ error: 'Chỉ cán bộ quản trị đơn vị nhận mới có quyền tiếp nhận.' });
@@ -95,7 +84,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // POST /api/directives/:id/link-activity
-  router.post('/:id/link-activity', asyncRoute(async (req, res) => {
+  router.post('/api/directives/:id/link-activity', asyncRoute(async (req, res) => {
     const { activity_id } = req.body;
     if (!activity_id) return res.status(400).json({ error: 'Thiếu activity_id.' });
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
@@ -111,7 +100,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // POST /api/directives/:id/submit
-  router.post('/:id/submit', asyncRoute(async (req, res) => {
+  router.post('/api/directives/:id/submit', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     const directive = rows[0];
@@ -132,7 +121,7 @@ function createDirectiveRoutes(context) {
   }));
 
   // POST /api/directives/:id/respond
-  router.post('/:id/respond', asyncRoute(async (req, res) => {
+  router.post('/api/directives/:id/respond', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isBtv(unitRole) && !isDyc(req.unit)) {
       return res.status(403).json({ error: 'Chỉ BTV hoặc DYC mới có quyền đánh giá kết quả.' });

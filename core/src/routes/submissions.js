@@ -5,26 +5,15 @@ function createSubmissionRoutes(context) {
   const router = express.Router();
 
   const authMiddleware = typeof auth === 'function' ? auth : (req, res, next) => next();
-  const isPlatformOwner = (unit) => unit && unit.kind === 'platform_owner';
-
-  router.use(authMiddleware, (req, res, next) => {
+  router.use('/api/submissions', authMiddleware, (req, res, next) => {
     const actor = req.actor || req.user || {};
     const unit = req.unit || actor.unit;
-
-    if (isPlatformOwner(unit)) return next();
-
-    if (unit) {
-      const modules = unit.modules || [];
-      const hasDieuHanh = Array.isArray(modules)
-        ? modules.includes('dieu-hanh')
-        : (typeof modules === 'string' && modules.includes('dieu-hanh'));
-
-      if (!hasDieuHanh) {
-        return res.status(403).json({ error: 'Đơn vị chưa kích hoạt module điều hành.' });
-      }
-    } else {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+    if (unit && unit.kind === 'platform_owner') return next();
+    
+    const modules = unit?.modules || [];
+    const hasDieuHanh = Array.isArray(modules) ? modules.includes('dieu-hanh') : String(modules).includes('dieu-hanh');
+    
+    if (!unit || !hasDieuHanh) return res.status(403).json({ error: 'Forbidden' });
     next();
   });
 
@@ -33,7 +22,7 @@ function createSubmissionRoutes(context) {
   const isDyc = (unit) => unit && unit.kind === 'platform_owner';
 
   // GET /api/submissions
-  router.get('/', asyncRoute(async (req, res) => {
+  router.get('/api/submissions', asyncRoute(async (req, res) => {
     const unitId = req.unit ? req.unit.id : null;
     const [rows] = await db.execute(
       `SELECT * FROM submissions WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
@@ -43,7 +32,7 @@ function createSubmissionRoutes(context) {
   }));
 
   // POST /api/submissions
-  router.post('/', asyncRoute(async (req, res) => {
+  router.post('/api/submissions', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isTcktAdmin(unitRole) && !isBtv(unitRole)) {
       return res.status(403).json({ error: 'Bạn không có quyền tạo submission.' });
@@ -62,14 +51,14 @@ function createSubmissionRoutes(context) {
   }));
 
   // GET /api/submissions/:id
-  router.get('/:id', asyncRoute(async (req, res) => {
+  router.get('/api/submissions/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
     res.json(rows[0]);
   }));
 
   // POST /api/submissions/:id/respond
-  router.post('/:id/respond', asyncRoute(async (req, res) => {
+  router.post('/api/submissions/:id/respond', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isBtv(unitRole) && !isDyc(req.unit)) {
       return res.status(403).json({ error: 'Chỉ BTV hoặc DYC mới có quyền phản hồi submission.' });
@@ -89,7 +78,7 @@ function createSubmissionRoutes(context) {
   }));
 
   // POST /api/submissions/:id/withdraw
-  router.post('/:id/withdraw', asyncRoute(async (req, res) => {
+  router.post('/api/submissions/:id/withdraw', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
     if (!isTcktAdmin(unitRole)) {
       return res.status(403).json({ error: 'Chỉ đơn vị gửi mới có quyền rút lại submission khi chưa phản hồi.' });
