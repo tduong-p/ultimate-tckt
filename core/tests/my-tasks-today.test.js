@@ -24,15 +24,16 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
 
     const todayStr = formatDate(now);
     
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(now.getDate() - 1);
-    const yesterdayStr = formatDate(yesterdayDate);
+    // Lùi về 3 ngày để đảm bảo chắc chắn là overdue và không bị lệch múi giờ
+    const overdueDate = new Date();
+    overdueDate.setDate(now.getDate() - 3);
+    const overdueStr = formatDate(overdueDate);
 
     const dueToday = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
     await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [todayStr, dueToday]);
     
     const overdue = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [yesterdayStr, overdue]);
+    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [overdueStr, overdue]);
     
     const inReview = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id, status: 'review' });
 
