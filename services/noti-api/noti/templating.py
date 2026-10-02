@@ -68,6 +68,9 @@ class Registry:
     def items(self):
         return self.templates.items()
 
+    def render(self, key: str, data: dict, recipient_name: str | None = None, base_url: str = "https://app.example") -> "Rendered":
+        return render(self, key, data, recipient_name, base_url)
+
 
 @dataclass
 class Rendered:
@@ -142,3 +145,11 @@ def render(registry: Registry, key: str, data: dict, recipient_name: str | None,
     except Exception as error:
         raise TemplateError(f"{key}: {error}") from error
     return Rendered(subject=subject, html=css_inline.inline(html), text=text)
+
+
+TEMPLATES_ROOT = Path(__file__).resolve().parent.parent / "templates"
+
+
+def get_registry(root: Path | None = None) -> Registry:
+    return load_registry(root or TEMPLATES_ROOT)
+
