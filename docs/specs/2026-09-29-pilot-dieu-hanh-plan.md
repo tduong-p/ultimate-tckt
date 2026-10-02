@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.9
+version: 1.10
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -28,6 +28,7 @@ vanilla SPA `core/public/app.js`.
 
 - Nhánh tính năng → PR vào `staging`. Không push thẳng `main`. Không viết lại lịch sử git.
 - Không ghi mật khẩu, token, giá trị `.env` vào repo, tài liệu, log, mô tả PR. Repo là public.
+- Hotfix 2026-10-02: `migrate-units.js` bị PR #44 làm mất bản sửa `330a27b` (unit_id theo kiểu `org_units.id`), đã khôi phục — xem `docs/ai/bay-da-gap.md`.
 - Thông báo phải có bản trong app; không dựa vào `mailer.notify*` hay push (đang tắt). Cập nhật 2026-10-02: `mailer.js` đã gỡ;
   email đi qua `notifier.notify` → Noti (`docs/dev/email-cron.md`), vẫn không thay cho thông báo trong app.
 - Không đổi dạng `/api/session`, schema, env, compose, nginx, CI trong các PR ở đây (liên module).
@@ -616,3 +617,4 @@ trước khi tạo trên GitHub.
 | 1.7 | 2026-09-30 | Hotfix staging 502 (migrate unit_id) chèn trước PR 7 | DYC |
 | 1.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 1.9 | 2026-10-02 | Ghi chú: email đi qua Noti, không còn `mailer.notify*` | DYC |
+| 1.10 | 2026-10-02 | Hotfix lần 2: khôi phục bản sửa unit_id bị PR #44 ghi đè | DYC |

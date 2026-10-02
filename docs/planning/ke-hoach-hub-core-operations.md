@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.10
+version: 1.11
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -798,6 +798,7 @@ export function scopeFor(user, resourceType) {
 
 **Critical indexes:**
 ```sql
+-- Lưu ý (2026-10-02): trên DB đã migrate, `unit_id` phải cùng kiểu với `org_units.id` (staging là INT có dấu), xem `migrate-units.js` `orgUnitIdType`.
 -- Memberships lookup (frequent)
 CREATE INDEX idx_memberships_user ON unit_memberships(user_id);
 CREATE INDEX idx_memberships_unit ON unit_memberships(unit_id);
@@ -1278,3 +1279,4 @@ npm run docs:check         # Documentation validation
 | 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
+| 1.11 | 2026-10-02 | Ghi chú: kiểu cột unit_id theo org_units.id của DB đã migrate | DYC |

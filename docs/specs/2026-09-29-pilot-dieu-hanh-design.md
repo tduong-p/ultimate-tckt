@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 1.11
+version: 1.12
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -250,3 +250,4 @@ không chờ issue này.
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 1.10 | 2026-10-02 | b1': staging có thêm service Noti cần xoay vòng log | DYC |
 | 1.11 | 2026-10-02 | b1': compose staging có thêm env Core → Noti | DYC |
+| 1.12 | 2026-10-02 | Ghi chú hotfix migrate unit_id lần 2 | DYC |

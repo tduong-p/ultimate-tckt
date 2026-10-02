@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.6
+version: 1.7
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -58,6 +58,14 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
   với mọi người trừ App `tckt-repobot`, nên nút "Delete branch" sau khi đóng PR bot bị từ chối. Dọn bằng cách tạm
   thêm mình vào bypass (xem `docs/ops/repobot.md`).
 
+## `unit_id` ép `INT UNSIGNED` làm Core staging crash-loop; viết lại file migration làm mất bản sửa cũ
+
+DB staging đã migrate bởi bản cũ có `org_units.id` là `INT` có dấu. Migration ép `unit_id INT UNSIGNED` rồi MySQL từ chối
+`fk_teams_unit` (`ER_FK_INCOMPATIBLE_COLUMNS`), container `core` restart mãi và job `deploy-core` đỏ ở bước health check. Bản sửa `330a27b`
+(đọc kiểu của `org_units.id` rồi dùng đúng kiểu đó) từng có, nhưng PR #44 viết lại `core/src/config/migrate-units.js` và làm mất nó; CI xanh vì
+DB test là DB mới (đã `UNSIGNED`). Bài học: sau khi merge file migration lớn, kiểm tra các bản sửa trước đó còn nguyên (`git log -p -- <file>`), và
+giữ test dựng lại trạng thái DB staging (`migrate.units.test.js`, "signed INT"). Deploy đỏ ở health check: đọc `docker logs` của container trước khi đoán.
+
 ## `mailer.notify*` cũ gửi cả email lẫn push; scheduler gắn thông báo ngoài vào `inserted`
 
 Hàm `notify*` của `mailer.js` cũ gọi cả Gmail lẫn OneSignal, nên xoá riêng một kênh dễ làm mất kênh kia. Ngoài ra scheduler nhắc hạn
@@ -104,3 +112,4 @@ Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đ
 | 1.4 | 2026-10-02 | Thêm bẫy Noti: test chỉ chạy driver console, lỗi cấu hình driver thật lọt qua | DYC |
 | 1.5 | 2026-10-02 | Thêm bẫy `docs:check --base` chỉ thấy file đã commit | DYC |
 | 1.6 | 2026-10-02 | Thêm bẫy: lần đầu đổi cả script VM và compose, job infra chạy script cũ; `AbortSignal.timeout` trên Node 22 | DYC |
+| 1.7 | 2026-10-02 | Thêm bẫy: unit_id phải theo kiểu org_units.id; merge viết lại file làm mất bản sửa cũ | DYC |
