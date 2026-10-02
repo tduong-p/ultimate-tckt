@@ -1,7 +1,7 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 2.2
+version: 2.3
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -56,6 +56,21 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Frontend — gọi API / theme | `services/ctd-api/frontend/src/lib/api.ts`, `src/theme/tokens.ts`, `src/components/ui.tsx` |
 | Test | `services/ctd-api/backend/tests/test_*.py` |
 
+## Noti (`services/noti-api/`, FastAPI/Postgres)
+
+| Cần gì | Xem ở đâu |
+|---|---|
+| API endpoint / App FastAPI | `services/noti-api/noti/api.py` |
+| Schema DB / Models | `services/noti-api/noti/models.py` |
+| Migration Alembic | `services/noti-api/alembic/versions/` |
+| Worker nền / gửi mail / retry | `services/noti-api/noti/worker.py` |
+| Hàng đợi / claim / recover / purge / metrics | `services/noti-api/noti/queue.py` |
+| Driver gửi mail (console, smtp, graph) | `services/noti-api/noti/drivers/` |
+| Template email & Registry render | `services/noti-api/templates/`, `services/noti-api/noti/templating.py` |
+| CLI quản trị (client, purge) | `services/noti-api/noti/cli.py` |
+| Hướng dẫn phát triển / vận hành | `docs/dev/noti.md`, `docs/specs/2026-10-02-noti-service-design.md` |
+| Test | `services/noti-api/tests/test_*.py` |
+
 ## Hạ tầng và CI
 
 | Cần gì | Xem ở đâu |
@@ -80,3 +95,5 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-30 | Thêm `set_password.py` vào hàng Seed dữ liệu | DYC |
 | 2.2 | 2026-10-02 | Gỡ email cũ và OneSignal: trỏ tới `notifier.js` và SPEC-NOTI-001 | DYC |
+| 2.3 | 2026-10-02 | Thêm mục tra cứu cho service Noti (services/noti-api/) | DYC |
+

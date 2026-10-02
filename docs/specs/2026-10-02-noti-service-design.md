@@ -1,19 +1,18 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.1
-status: draft
+version: 1.2
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-02
-related_code: [docs/specs/2026-10-02-go-email-cu-plan.md]
+related_code: [services/noti-api/**]
 ---
 
 # Service Noti — thiết kế
 
-> Trạng thái: **bản nháp chờ họp team**. Đây là service mới và là hợp đồng dùng chung, nên theo `AGENTS.md` §3
-> chưa được code trước khi quyết định được ghi vào issue liên module. `related_code` sẽ trỏ tới `services/noti-api/**`
-> khi thư mục này tồn tại. Bản 1.1 đã áp dụng kết quả rà soát độc lập (Opus) và quyết định bỏ OneSignal.
+> Trạng thái: **active** (đã triển khai theo kế hoạch PLAN-NOTI-001). Code nằm tại `services/noti-api/**`.
+> Bản 1.2 ghi nhận việc hoàn tất triển khai Noti service.
 
 ## 1. Mục tiêu
 
@@ -291,5 +290,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |
+
