@@ -1,13 +1,13 @@
-﻿'use strict';
+'use strict';
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createTestDatabase } = require('./helpers/db');
+const { createRawTestDatabase } = require('./helpers/db');
 const { migrateDatabase } = require('../src/config/migrate');
 const { BACKFILL_MARKER, DEVOPS_MIGRATE_MARKER } = require('../src/config/migrate-units');
 
 test('migrateMultiUnit tạo tất cả bảng đa đơn vị', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     
@@ -31,7 +31,7 @@ test('migrateMultiUnit tạo tất cả bảng đa đơn vị', async () => {
 });
 
 test('migrateMultiUnit seed tất cả đơn vị từ catalog', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     
@@ -52,7 +52,7 @@ test('migrateMultiUnit seed tất cả đơn vị từ catalog', async () => {
 });
 
 test('migrateMultiUnit thêm unit_id cho teams và activities', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     // Tạo test data trước migration
     const [userResult] = await testDb.pool.query(
@@ -103,7 +103,7 @@ test('migrateMultiUnit thêm unit_id cho teams và activities', async () => {
 });
 
 test('migrateMultiUnit tạo membership TCKT từ users.role', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     // Tạo users với các role khác nhau
     await testDb.pool.query(
@@ -149,7 +149,7 @@ test('migrateMultiUnit tạo membership TCKT từ users.role', async () => {
 });
 
 test('migrateMultiUnit seed module access theo catalog', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     
@@ -185,7 +185,7 @@ test('migrateMultiUnit seed module access theo catalog', async () => {
 });
 
 test('migrateMultiUnit seed BTV → TCKT visibility policy', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     
@@ -205,7 +205,7 @@ test('migrateMultiUnit seed BTV → TCKT visibility policy', async () => {
 });
 
 test('migrateMultiUnit là idempotent — chạy lại không gây lỗi hoặc trùng lặp', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     // Chạy migration lần đầu
     await migrateDatabase(testDb.pool);
@@ -238,7 +238,7 @@ test('migrateMultiUnit là idempotent — chạy lại không gây lỗi hoặc 
 });
 
 test('migrateMultiUnit thêm activities.directive_id và foreign key', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     

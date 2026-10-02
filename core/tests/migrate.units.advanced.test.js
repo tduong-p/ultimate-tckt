@@ -1,8 +1,8 @@
-﻿'use strict';
+'use strict';
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createTestDatabase } = require('./helpers/db');
+const { createRawTestDatabase } = require('./helpers/db');
 const { migrateDatabase } = require('../src/config/migrate');
 const { DEVOPS_MIGRATE_MARKER } = require('../src/config/migrate-units');
 const mysql = require('mysql2/promise');
@@ -16,7 +16,7 @@ const count = async (pool, sql, params = []) => {
 };
 
 test('migration handles database with complex TCKT data', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     const db = testDb.pool;
     
@@ -95,7 +95,7 @@ test('migration handles database with complex TCKT data', async () => {
 });
 
 test('DevOps migration creates DYC membership for is_devops users', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     const db = testDb.pool;
     
@@ -139,7 +139,7 @@ test('DevOps migration creates DYC membership for is_devops users', async () => 
 });
 
 test('migration handles empty database (fresh install)', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     // Database với schema từ db.sql (có 1 user mẫu)
     await migrateDatabase(testDb.pool);
@@ -176,7 +176,7 @@ test('migration handles empty database (fresh install)', async () => {
 });
 
 test('migration can be interrupted and resumed', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     const db = testDb.pool;
     
@@ -212,7 +212,7 @@ test('migration can be interrupted and resumed', async () => {
 });
 
 test('activities.directive_id column and FK are added', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     await migrateDatabase(testDb.pool);
     
@@ -235,7 +235,7 @@ test('activities.directive_id column and FK are added', async () => {
 });
 
 test('migration is idempotent', async () => {
-  const testDb = await createTestDatabase();
+  const testDb = await createRawTestDatabase();
   try {
     const db = testDb.pool;
     
