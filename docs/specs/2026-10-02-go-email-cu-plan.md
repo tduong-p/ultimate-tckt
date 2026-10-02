@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.2
+version: 2.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -18,6 +18,8 @@ related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/
 **Architecture:** `core/src/mailer.js` trộn gửi email (Gmail) với gửi push OneSignal trong cùng các hàm `notify*`. Plan xoá cả hai kênh. Mỗi điểm gọi cũ được thay bằng đúng một lời gọi `notifier.notify({ event, recipient, data, sourceKey })`; `event` trùng tên template của Noti (SPEC-NOTI-001 §9), `sourceKey` là chuỗi sẽ thành `dedupe_key`. Thông báo trong ứng dụng (bảng `notifications`, chuông) **không đổi**.
 
 **Tech Stack:** Node 20+, Express, MySQL, `node:test`.
+
+**Lưu ý:** `core/src/config/migrate-units.js` được sửa riêng (hotfix `unit_id` theo kiểu `org_units.id`, 2026-10-02), không thuộc plan này.
 
 **Spec:** `docs/specs/2026-10-02-noti-service-design.md` (SPEC-NOTI-001 v1.1, §9 và §17). Hiện trạng đối chiếu: `origin/staging` @ `88a859c`.
 
@@ -513,3 +515,4 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
 | 2.2 | 2026-10-02 | Facade nay đã có sender sang Noti (PLAN-NOTI-002); không cần đổi thân facade | DYC |
+| 2.3 | 2026-10-02 | Ghi chú: migration unit_id đã hotfix, không liên quan plan này | DYC |

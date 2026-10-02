@@ -163,17 +163,26 @@ const TABLES = [
  * 
  * RERUN SAFETY: Kiểm tra tồn tại cột/index/FK trước khi tạo. Chạy nhiều lần không duplicate.
  */
+// DB đã migrate bởi bản cũ có thể có org_units.id là INT có dấu; unit_id phải cùng kiểu với cột nó tham chiếu,
+// nếu không MySQL từ chối FK (ER_FK_INCOMPATIBLE_COLUMNS) và Core crash-loop khi khởi động (xem docs/ai/bay-da-gap.md).
+async function orgUnitIdType(db) {
+  const [rows] = await db.query("SELECT COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='org_units' AND COLUMN_NAME='id'");
+  const ty = String(rows[0]?.ty || 'int unsigned').toLowerCase();
+  return /^int(\(\d+\))?( unsigned)?$/.test(ty) ? ty.replace(/\(\d+\)/, '').toUpperCase() : 'INT UNSIGNED';
+}
+
 async function addUnitColumn(db, tableName, tcktId, h) {
+  const idType = await orgUnitIdType(db);
   if (!(await h.columnExists(db, tableName, 'unit_id'))) {
     h.log(`Adding ${tableName}.unit_id`);
-    await db.query(`ALTER TABLE ${tableName} ADD COLUMN unit_id INT UNSIGNED NULL`);
+    await db.query(`ALTER TABLE ${tableName} ADD COLUMN unit_id ${idType} NULL`);
   }
   
   // Backfill dữ liệu cũ về TCKT
   await db.query(`UPDATE ${tableName} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
   
   // Set NOT NULL với default
-  await db.query(`ALTER TABLE ${tableName} MODIFY unit_id INT UNSIGNED NOT NULL DEFAULT ${tcktId}`);
+  await db.query(`ALTER TABLE ${tableName} MODIFY unit_id ${idType} NOT NULL DEFAULT ${tcktId}`);
   
   // Thêm index nếu chưa có
   if (!(await h.indexExists(db, tableName, `${tableName}_unit`))) {

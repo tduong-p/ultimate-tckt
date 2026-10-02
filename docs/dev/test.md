@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.10
+version: 2.11
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -29,7 +29,7 @@ fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
-frontend cũ và API), `migrate.test.js` (migration idempotent), `units.context.test.js` (ngữ cảnh đơn vị và session view),
+frontend cũ và API), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (gồm ca `org_units.id` là INT có dấu như DB staging), `units.context.test.js` (ngữ cảnh đơn vị và session view),
 `units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị), `noti-sender.test.js` (payload gửi Noti đủ trường
 `required` của từng template trong `services/noti-api/templates/`, không cần MySQL).
 
@@ -107,3 +107,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 2.9 | 2026-10-02 | Thêm mục test Noti | DYC |
 | 2.10 | 2026-10-02 | Thêm `noti-sender.test.js` và test compose Core → Noti | DYC |
+| 2.11 | 2026-10-02 | Thêm test migrate với org_units.id INT có dấu (trạng thái staging) | DYC |
