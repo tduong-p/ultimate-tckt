@@ -1,0 +1,22 @@
+key: task.response
+subject: "[DYC] (TCKT-{{ task.id }}) Phản hồi công việc: {{ task.title }}"
+required:
+  - actor
+  - response.kind
+  - response.body
+  - task.id
+  - task.title
+  - task.path
+optional:
+  - activity.title
+data_example:
+  actor: "Trần Văn C"
+  response:
+    kind: "Bình luận"
+    body: "Đã hoàn thành bản thảo poster đầu tiên, mời xem qua."
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

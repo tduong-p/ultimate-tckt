@@ -1,0 +1,18 @@
+key: activity.participant_added
+subject: "[DYC] (ACT-{{ activity.id }}) Bạn được thêm vào hoạt động: {{ activity.title }}"
+required:
+  - actor
+  - responsibility
+  - activity.id
+  - activity.title
+  - activity.path
+optional:
+  - activity.deadline
+data_example:
+  actor: "Ban Tổ chức"
+  responsibility: "Thành viên ban truyền thông"
+  activity:
+    id: 15
+    title: "Chào tân sinh viên K69"
+    path: "/#activity/15"
+    deadline: "2026-10-30"

@@ -1,0 +1,16 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p><strong>{{ actor }}</strong> đã phản hồi về công việc ({{ response.kind }}):</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Công việc:</strong> (TCKT-{{ task.id }}) {{ task.title }}</p>
+  {% if activity is defined and activity.get('title') %}
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> {{ activity.title }}</p>
+  {% endif %}
+  <p style="margin: 0 0 8px 0;"><strong>Nội dung:</strong></p>
+  <blockquote style="margin: 0; padding: 8px 12px; background: #ffffff; border: 1px solid #d0d7de; border-radius: 4px;">{{ response.body }}</blockquote>
+</div>
+<p>
+  <a class="button" href="{{ base_url }}{{ task.path }}">Xem chi tiết phản hồi</a>
+</p>
+{% endblock %}

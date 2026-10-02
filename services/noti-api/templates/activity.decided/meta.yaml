@@ -1,0 +1,18 @@
+key: activity.decided
+subject: "[DYC] (ACT-{{ activity.id }}) Kết quả duyệt đề án: {{ activity.title }}"
+required:
+  - actor
+  - action
+  - activity.id
+  - activity.title
+optional:
+  - feedback
+  - activity.path
+data_example:
+  actor: "Đoàn trường"
+  action: "Đã phê duyệt"
+  feedback: "Đề án được thông qua, chuẩn bị triển khai theo kế hoạch."
+  activity:
+    id: 12
+    title: "Chiến dịch Mùa hè xanh 2026"
+    path: "/#activity/12"

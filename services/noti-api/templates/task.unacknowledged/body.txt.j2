@@ -1,0 +1,12 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+Thành viên {{ memberName }} vẫn chưa xác nhận nhận công việc sau:
+- Công việc: (TCKT-{{ task.id }}) {{ task.title }}
+{% if activity is defined and activity.get('title') %}
+- Hoạt động: {{ activity.title }}
+{% endif %}
+
+Vui lòng kiểm tra và nhắc nhở thành viên tiếp nhận công việc tại: {{ base_url }}{{ task.path }}
+{% endblock %}
