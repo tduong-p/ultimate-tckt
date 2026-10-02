@@ -64,16 +64,21 @@ function createNotiSender({ url, apiKey, fetchImpl = fetch, timeoutMs = 5000 }) 
   const endpoint = `${String(url).replace(/\/+$/, '')}/v1/notifications`;
   return async function sendToNoti(event) {
     let response;
+    // Không dùng AbortSignal.timeout: timer của nó không giữ event loop (Node 22), request treo có thể không bao giờ bị huỷ.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       response = await fetchImpl(endpoint, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(toNotiPayload(event)),
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: controller.signal,
       });
     } catch (error) {
       // Lỗi của fetch có thể chép nguyên header (kèm key) vào message; chỉ giữ tên lỗi.
       throw new Error(`Noti request failed: ${error && error.name}`);
+    } finally {
+      clearTimeout(timer);
     }
     if (response.status === 200 || response.status === 202) {
       await response.body?.cancel?.();
