@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.1
+version: 3.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -17,7 +17,7 @@ Tài liệu này giúp dev/AI hiểu nhanh cách hai app trong monorepo được
 
 - **Core** (`core/`): Node 22 + Express 5 + MySQL 8. Chứa module **Điều hành** (hoạt động, task/Kanban, đề án,
   nghiệm thu, báo cáo, Trình, quản lý team/người dùng) và hạ tầng dùng chung của mọi module loại A (session,
-  auth, policy, facade thông báo `notifier`, scheduler nhắc hạn). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
+  auth, policy, facade thông báo `notifier` — gửi sang Noti qua `noti-sender.js` khi có `NOTI_URL`/`NOTI_API_KEY` —, scheduler nhắc hạn). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
   → `core/src/app.js` (`createApplication`, dựng Express app theo pipeline:
   1. helmet CSP
   2. session middleware (express-session)
@@ -91,3 +91,4 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 | 2.1 | 2026-09-29 | Bổ sung middleware ngữ cảnh đa đơn vị createUnitContext và cổng legacyGate vào pipeline Express Core (GĐ1-A) | DYC |
 | 3.0 | 2026-09-30 | Làm rõ flow middleware đa đơn vị: pipeline 8 bước từ helmet→error handler, chi tiết loadUnitContext + legacyGate + req.actor | DYC |
 | 3.1 | 2026-10-02 | Core không còn email rule engine; có facade `notifier` | DYC |
+| 3.2 | 2026-10-02 | Facade `notifier` có sender HTTP sang Noti | DYC |

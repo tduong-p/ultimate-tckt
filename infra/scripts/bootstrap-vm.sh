@@ -31,7 +31,7 @@ fi
 
 missing=()
 while IFS= read -r key; do
-  [[ "$key" == "CORE_DEVOPS_EMAILS" ]] && continue   # tuỳ chọn
+  [[ "$key" == "CORE_DEVOPS_EMAILS" || "$key" == "CORE_NOTI_API_KEY" ]] && continue   # tuỳ chọn
   [[ "$key" == NOTI_* ]] && continue   # Noti có sau bootstrap: thêm tay theo docs/ops/moi-truong.md
   grep -Eq "^${key}=.+" "$TMP" || missing+=("$key")
 done < <(sed -nE 's/^([A-Z0-9_]+)=.*/\1/p' "$DIR/infra/.env.example")

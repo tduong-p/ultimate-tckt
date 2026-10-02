@@ -20,6 +20,7 @@ const { asyncRoute, validHttpUrl, one, ids } = require('./routes/utils');
 const { registerRoutes } = require('./routes');
 const logger = require('./logger');
 const { createNotifier } = require('./notifier');
+const { notiSenderFromEnv } = require('./noti-sender');
 
 function createApplication(options = {}) {
   const runtimeConfig = options.config || config;
@@ -66,7 +67,8 @@ function createApplication(options = {}) {
   }
 
   const audit = require('./services/audit');
-  const notifier = createNotifier({ logger });
+  const sender = options.notiSender !== undefined ? options.notiSender : notiSenderFromEnv(process.env);
+  const notifier = createNotifier({ logger, sender });
   const policies = createAccessPolicies(db, isLeadership, isExecutive, audit);
   const settingGuard = createSettingGuard(db);
   const context = {

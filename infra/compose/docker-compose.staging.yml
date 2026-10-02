@@ -33,6 +33,9 @@ services:
       APP_BASE_URL: https://tckt-hub-staging.duckdns.org
       APP_ENV: staging
       EMAIL_NOTIFICATIONS_ENABLED: "false"
+      # Thông báo đi qua Noti (docs/dev/email-cron.md). Chưa có key thì Core không gửi gì, vẫn chạy bình thường.
+      NOTI_URL: http://noti-api:8000
+      NOTI_API_KEY: ${CORE_NOTI_API_KEY:-}
     ports:
       - "127.0.0.1:3000:3000"
     volumes:

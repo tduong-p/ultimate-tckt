@@ -34,7 +34,8 @@ function makeClient(baseUrl) {
 }
 
 function startTestServer(db) {
-  const { app } = createApplication({ db, config: testConfig });
+  // notiSender: null — không bao giờ gửi sang Noti thật dù .env máy dev có NOTI_URL/NOTI_API_KEY.
+  const { app } = createApplication({ db, config: testConfig, notiSender: null });
   const server = http.createServer(app);
   return new Promise(resolve => {
     server.listen(0, '127.0.0.1', () => {

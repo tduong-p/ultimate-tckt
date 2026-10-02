@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.9
+version: 1.10
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -373,7 +373,8 @@ ops_log_attendance
 - Login flow (use existing session)
 - Unit switcher
 - Dynamic menu from API
-- Notification bell (OneSignal integration)
+- Notification bell (OneSignal integration) — *cập nhật 2026-10-02: OneSignal đã gỡ (ADR-0013); email đi qua service Noti
+  (`core/src/noti-sender.js`, `docs/dev/email-cron.md`), chuông dùng thông báo trong app*
 
 **Tech decisions:**
 - Router: React Router v6
@@ -1276,3 +1277,4 @@ npm run docs:check         # Documentation validation
 | 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
 | 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
