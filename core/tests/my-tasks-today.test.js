@@ -14,7 +14,8 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
     await pool.execute('INSERT INTO user_teams(user_id, team_id, is_lead) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE is_lead=1', [leader.id, teamId]);
 
     const member = await createUser(pool, { role: 'member', team_id: teamId });
-    const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved' });
+    const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved', event_lead_id: leader.id });
+    await pool.execute('UPDATE activities SET event_lead_id=? WHERE id=?', [leader.id, activityId]);
     
     // Tính toán ngày dạng YYYY-MM-DD theo giờ local để tránh lệch múi giờ trên CI (UTC)
     const now = new Date();
