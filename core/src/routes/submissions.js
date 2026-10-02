@@ -1,8 +1,32 @@
 const express = require('express');
 
 function createSubmissionRoutes(context) {
-  const { asyncRoute, db } = context;
+  const { asyncRoute, db, auth } = context;
   const router = express.Router();
+
+  const authMiddleware = typeof auth === 'function' ? auth : (req, res, next) => next();
+  const isPlatformOwner = (unit) => unit && unit.kind === 'platform_owner';
+
+  router.use(authMiddleware, (req, res, next) => {
+    const actor = req.actor || req.user || {};
+    const unit = req.unit || actor.unit;
+
+    if (isPlatformOwner(unit)) return next();
+
+    if (unit) {
+      const modules = unit.modules || [];
+      const hasDieuHanh = Array.isArray(modules)
+        ? modules.includes('dieu-hanh')
+        : (typeof modules === 'string' && modules.includes('dieu-hanh'));
+
+      if (!hasDieuHanh) {
+        return res.status(403).json({ error: 'Đơn vị chưa kích hoạt module điều hành.' });
+      }
+    } else {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  });
 
   const isBtv = (role) => ['btv_lead', 'btv_member'].includes(role);
   const isTcktAdmin = (role) => ['admin', 'vice_admin'].includes(role);
