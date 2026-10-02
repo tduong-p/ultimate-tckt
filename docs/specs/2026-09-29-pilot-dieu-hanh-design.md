@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 1.9
+version: 2.0
 status: draft
 audience: [dev, ai, ops]
 owner: DYC

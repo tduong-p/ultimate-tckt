@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.1
+version: 2.2
 status: active
 audience: [dev, ai]
 owner: DYC

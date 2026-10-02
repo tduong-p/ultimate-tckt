@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.8
+version: 1.9
 status: draft
 audience: [dev, ai]
 owner: DYC

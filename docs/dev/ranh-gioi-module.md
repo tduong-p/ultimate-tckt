@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC

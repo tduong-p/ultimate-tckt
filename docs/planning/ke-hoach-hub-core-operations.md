@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.9
+version: 2.0
 status: active
 audience: [dev, ba]
 owner: DYC

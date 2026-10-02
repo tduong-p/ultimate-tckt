@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-GUIDE-003
 title: Interface Guide for Developer 3 - Directives & Submissions API
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: Developer 2
