@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -18,7 +18,7 @@ Quyết định kiến trúc: [ADR-0014](../adr/0014-noti-service.md).
 
 > **Trạng thái:** chạy **chỉ ở staging** (compose, CI `test-noti`/`build-noti`/`deploy-noti`, driver `console`) —
 > cách dựng và biến môi trường: [`docs/ops/moi-truong.md`](../ops/moi-truong.md) mục 4a. Production và cảnh báo chưa làm.
-> Image chạy bằng user không phải root; worker tự purge mỗi giờ. Core vẫn chưa gọi Noti: facade `core/src/notifier.js` chưa có sender.
+> Image chạy bằng user không phải root; worker tự purge mỗi giờ. Core gọi Noti qua `core/src/noti-sender.js` (client `core`, key `CORE_NOTI_API_KEY`) — xem `docs/dev/email-cron.md`.
 
 ## 1. Cấu trúc thư mục
 
@@ -228,3 +228,4 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 | 1.2 | 2026-10-02 | Worker tự purge mỗi giờ; image chạy non-root | DYC |
 | 1.1 | 2026-10-02 | Sửa link tuyệt đối; ghi rõ chưa chạy trên VM; thêm mục cấu hình (graph, allowlist áp cho CC); `dedupe_key` là tuỳ chọn, trỏ về playbook; sửa mã 413 và mô tả 400 | DYC |
 | 1.0 | 2026-10-02 | Tài liệu ban đầu hướng dẫn phát triển và vận hành Noti service (PLAN-NOTI-001) | DYC |
+| 1.4 | 2026-10-02 | Core đã gọi Noti ở staging qua `core/src/noti-sender.js` | DYC |

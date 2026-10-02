@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.5
+version: 1.6
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -72,6 +72,14 @@ tên `graph_tenant`), `.env.example` ghi sai tên biến (bị bỏ qua không b
 Test giờ dựng từng driver từ `Settings`, so `.env.example` với các trường của `Settings`, và kiểm link trong thư lấy từ `NOTI_APP_BASE_URL`.
 Khi thêm cấu hình hoặc driver mới: thêm test dựng nó từ `Settings`, đừng chỉ test lớp driver với tham số truyền tay.
 
+## Đổi cùng lúc script VM và compose: job `infra` lần đầu chạy script cũ
+
+Job `infra` SSH vào VM và gọi `infra/scripts/apply-infra.sh` **đang có trên VM**; script này tự `git pull` rồi mới đọc compose
+mới. Khi PR #45 vừa thêm `${NOTI_IMAGE_TAG:?}` vào compose vừa sửa `apply-infra.sh` để export biến đó, lần chạy sau merge dùng
+script cũ với compose mới → `required variable NOTI_IMAGE_TAG is missing a value`. Script lúc đó đã được pull, nên chỉ cần
+`gh run rerun <id> --failed`. Thêm biến `:?` mới vào compose: hoặc cho script cũ vẫn chạy được (biến có `:-` ở bản đầu), hoặc
+dự trù rerun một lần.
+
 ## `docs:check --base` ở local xanh nhưng CI đỏ vì tài liệu liên quan chưa sửa
 
 Kiểm tác động code→tài liệu so `git diff base...HEAD`, tức chỉ các **commit**. Chạy `docs:check` khi thay đổi `infra/**`
@@ -88,3 +96,4 @@ Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đ
 | 1.3 | 2026-10-02 | Thêm bẫy mailer cũ gộp email và push; scheduler gắn thông báo ngoài vào `inserted` | DYC |
 | 1.4 | 2026-10-02 | Thêm bẫy Noti: test chỉ chạy driver console, lỗi cấu hình driver thật lọt qua | DYC |
 | 1.5 | 2026-10-02 | Thêm bẫy `docs:check --base` chỉ thấy file đã commit | DYC |
+| 1.6 | 2026-10-02 | Thêm bẫy: lần đầu đổi cả script VM và compose, job infra chạy script cũ | DYC |

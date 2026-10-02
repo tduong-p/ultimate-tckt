@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 1.10
+version: 1.11
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -74,7 +74,7 @@ sau trong họp team; spec chỉ cố định các bước của một đợt:
 | # | Việc | Module | Loại |
 |---|---|---|---|
 | b1 | `logger.js` ghi **JSON một dòng ra stdout** (`ts`, `level`, `msg`, `reqId`, `userId`, chi tiết đã redact) thay cho `core/log.md` trong container. Gỡ `console.*` rải rác ở route sang `logger`. | Core | Làm luôn |
-| b1' | Xoay vòng log Docker (`logging: json-file`, `max-size`, `max-file`) trong compose staging + production (staging nay có thêm `noti-api`, `noti-worker`). | Hạ tầng | **Liên module** |
+| b1' | Xoay vòng log Docker (`logging: json-file`, `max-size`, `max-file`) trong compose staging + production (staging nay có thêm `noti-api`, `noti-worker`; service `core` có thêm `NOTI_URL`/`NOTI_API_KEY`). | Hạ tầng | **Liên module** |
 | b2 | Middleware request id: đọc `X-Request-Id` từ nginx hoặc sinh mới, gắn `res.set('X-Request-Id')`, đưa vào mọi log. Lỗi 500 trả `{error, request_id}`; UI hiện "Mã lỗi: …" trong toast. | Core | Làm luôn |
 | b3 | `/api/version` trả SHA thật: Dockerfile `ARG BUILD_SHA` → `ENV`, CI truyền `build-args`. UI hiện version ở chân trang/menu tài khoản. | Core + CI | **Liên module** (phần CI) |
 | b4 | Nút "Báo lỗi" trong menu tài khoản: mở hộp thoại gồm mô tả + **khối thông tin tự điền** (version, URL hash, user id, request id gần nhất, thời điểm, user agent) có nút "Sao chép". Kênh nhận: link cấu hình trong frontend tới kênh nhóm pilot (Google Form/nhóm chat do anh/chị chọn). Không thêm bảng, không thêm env. | Core (frontend) | Làm luôn |
@@ -249,3 +249,4 @@ không chờ issue này.
 | 1.8 | 2026-09-30 | Hotfix staging 502: migration ép unit_id UNSIGNED lệch org_units.id INT có dấu | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 1.10 | 2026-10-02 | b1': staging có thêm service Noti cần xoay vòng log | DYC |
+| 1.11 | 2026-10-02 | b1': compose staging có thêm env Core → Noti | DYC |

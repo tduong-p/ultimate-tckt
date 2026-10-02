@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -46,6 +46,7 @@ File thật nằm ở `/opt/ultimate-tckt/<env>/infra/.env` (quyền 600), khôn
 ```
 CORE_MYSQL_ROOT_PASSWORD, CORE_DB_NAME, CORE_DB_USER, CORE_DB_PASSWORD,
 CORE_SESSION_SECRET, CORE_SETTINGS_ENCRYPTION_KEY, CORE_DEVOPS_EMAILS,
+CORE_NOTI_API_KEY (chỉ staging, tuỳ chọn),
 CTD_DB_NAME, CTD_DB_USER, CTD_DB_PASSWORD, CTD_JWT_SECRET
 # chỉ staging:
 NOTI_DB_NAME, NOTI_DB_USER, NOTI_DB_PASSWORD, NOTI_MAIL_DRIVER, NOTI_MAIL_FROM,
@@ -70,14 +71,20 @@ kể cả deploy Core):
 2. Thêm `NOTI_DB_NAME=noti`, `NOTI_DB_USER=noti`, `NOTI_DB_PASSWORD=…` vào `/opt/ultimate-tckt/staging/infra/.env`.
    Các biến `NOTI_MAIL_*`, `NOTI_SMTP_*`, `NOTI_GRAPH_*` để trống thì driver là `console` (chỉ ghi log).
 3. Sau deploy: tạo API key cho Core —
-   `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli create-client core` (key chỉ in một lần, lưu vào `.env` của Core khi làm Plan C).
+   `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli create-client core`. Key chỉ in một lần, Noti chỉ lưu hash.
+   Ghi key vào `/opt/ultimate-tckt/staging/infra/.env` thành `CORE_NOTI_API_KEY=…` và vào kho mật khẩu của nhóm; không dán
+   vào chat, issue hay log.
+4. Cho Core đọc key: `bash infra/scripts/apply-infra.sh staging` (tạo lại container `core` với env mới). Compose truyền
+   `NOTI_URL=http://noti-api:8000` và `NOTI_API_KEY=${CORE_NOTI_API_KEY:-}`; key trống thì Core vẫn chạy, chỉ không gửi.
+   Kiểm tra: làm một thao tác có thông báo (giao việc) rồi xem `docker logs ultimate-tckt-staging-noti-worker-1`.
+   Mất key hoặc lộ key: `python -m noti.cli revoke-client core` rồi tạo key mới.
 
 Bật gửi thật: đặt `NOTI_MAIL_DRIVER=graph` (hoặc `smtp`) cùng secret tương ứng và **luôn** đặt `NOTI_RECIPIENT_ALLOWLIST`
 trên staging, rồi chạy lại `deploy.sh staging noti <tag đang chạy>`.
 
 ## 5. Trạng thái email hiện tại
 
-- **core**: không còn module email và không còn OneSignal (đã gỡ, ADR-0013); biến `EMAIL_NOTIFICATIONS_ENABLED` trong compose không còn tác dụng. Email sẽ do service Noti đảm nhận (mục 4a); Core chưa gọi Noti.
+- **core**: không còn module email và không còn OneSignal (đã gỡ, ADR-0013); biến `EMAIL_NOTIFICATIONS_ENABLED` trong compose không còn tác dụng. Email do service Noti đảm nhận: ở staging Core gọi Noti khi có `CORE_NOTI_API_KEY` (mục 4a, `docs/dev/email-cron.md`).
 - **ctd-api**: `MAILER_DRIVER=console` — email được ghi ra console log thay vì gửi thật.
 
 Bật email thật thuộc điều kiện hoàn thành một giai đoạn sau (không nằm trong đợt gộp monorepo này).
@@ -101,3 +108,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-10-02 | Core không còn module email và OneSignal | DYC |
 | 1.2 | 2026-10-02 | Thêm Noti trên staging: cổng 8100, biến `NOTI_*`, việc làm tay một lần (mục 4a) | DYC |
+| 1.3 | 2026-10-02 | Thêm `CORE_NOTI_API_KEY`; mục 4a: cách tạo key cho Core và bật gửi | DYC |

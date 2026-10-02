@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.9
+version: 2.10
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -30,7 +30,8 @@ fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
 frontend cũ và API), `migrate.test.js` (migration idempotent), `units.context.test.js` (ngữ cảnh đơn vị và session view),
-`units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị).
+`units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị), `noti-sender.test.js` (payload gửi Noti đủ trường
+`required` của từng template trong `services/noti-api/templates/`, không cần MySQL).
 
 frontend cũ và API), `migrate.test.js` (migration idempotent), `runtime.startup.test.js` (lỗi migration khi
 khởi động phải làm Core thoát).
@@ -62,7 +63,7 @@ CI: job `test-noti`. Chi tiết: `docs/dev/noti.md`.
 
 ## Test hạ tầng và tooling — `tools/tests/`
 
-Script bash (`infra/scripts/*.sh`) được test bằng `node --test` (gồm `deploy.sh … noti`, compose staging có Noti) với các lệnh hệ thống (`docker`, `git`, `sudo`,
+Script bash (`infra/scripts/*.sh`) được test bằng `node --test` (gồm `deploy.sh … noti`, compose staging có Noti và env Core → Noti) với các lệnh hệ thống (`docker`, `git`, `sudo`,
 `nginx`, `curl`…) thay bằng stub ghi log, không đụng máy thật. Helper: `tools/tests/helpers/sandbox.js`
 (`makeSandbox`; tuỳ chọn `curlCode` giả lập health check, `dockerOut` giả lập output docker, `sudoFail` làm một lệnh `sudo` thất bại, vd `'nginx -t'`). Luật của docs-check (frontmatter, bump version, tác động code→tài liệu, link hỏng) có test riêng ở
 `tools/tests/docs-check.test.js` — sửa `tools/docs-check/` thì thêm test ở đó trước. Chạy toàn bộ tooling + docs-check:
@@ -105,3 +106,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |
 | 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 2.9 | 2026-10-02 | Thêm mục test Noti | DYC |
+| 2.10 | 2026-10-02 | Thêm `noti-sender.test.js` và test compose Core → Noti | DYC |
