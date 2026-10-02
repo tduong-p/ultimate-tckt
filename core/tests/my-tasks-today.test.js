@@ -36,7 +36,7 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
     await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [overdueStr, overdue]);
     
     const inReview = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute("UPDATE tasks SET status='review' WHERE id=?", [inReview]);
+    await pool.execute("UPDATE tasks SET status='pending_review' WHERE id=?", [inReview]);
 
     await client.login(member.email, member.password);
     const memberView = await client.request('GET', '/api/my-tasks-today');
