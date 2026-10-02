@@ -10,14 +10,20 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
   try {
     const teamId = await createTeam(pool);
     const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: true });
-    // Đảm bảo bảng user_teams ghi nhận rõ ràng quyền lead cho leader
-    await pool.execute('INSERT INTO user_teams(user_id, team_id, is_lead) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE is_lead=1', [leader.id, teamId]);
+    
+    // Ghi nh?n lead ? c? user_teams
+    try {
+      await pool.execute('INSERT INTO user_teams(user_id, team_id, is_lead) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE is_lead=1', [leader.id, teamId]);
+    } catch (_) {}
 
     const member = await createUser(pool, { role: 'member', team_id: teamId });
-    const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved', event_lead_id: leader.id });
-    await pool.execute('UPDATE activities SET event_lead_id=? WHERE id=?', [leader.id, activityId]);
-    
-    // Tính toán ngày dạng YYYY-MM-DD theo giờ local để tránh lệch múi giờ trên CI (UTC)
+    const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved' });
+
+    // G�n event_lead_id cho activity n?u b?ng activities c� c?t n�y
+    try {
+      await pool.execute('UPDATE activities SET event_lead_id=?, team_id=? WHERE id=?', [leader.id, teamId, activityId]);
+    } catch (_) {}
+
     const now = new Date();
     const formatDate = (d) => {
       const year = d.getFullYear();
@@ -27,20 +33,27 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
     };
 
     const todayStr = formatDate(now);
-    
-    // Lùi về 3 ngày để đảm bảo chắc chắn là overdue và không bị lệch múi giờ
     const overdueDate = new Date();
     overdueDate.setDate(now.getDate() - 3);
     const overdueStr = formatDate(overdueDate);
 
     const dueToday = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute('UPDATE tasks SET deadline=?, team_id=? WHERE id=?', [todayStr, teamId, dueToday]);
+    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [todayStr, dueToday]);
+    try { await pool.execute('UPDATE tasks SET team_id=? WHERE id=?', [teamId, dueToday]); } catch (_) {}
     
     const overdue = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute('UPDATE tasks SET deadline=?, team_id=? WHERE id=?', [overdueStr, teamId, overdue]);
-    
+    await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [overdueStr, overdue]);
+    try { await pool.execute('UPDATE tasks SET team_id=? WHERE id=?', [teamId, overdue]); } catch (_) {}
+
     const inReview = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
-    await pool.execute("UPDATE tasks SET status='review', submitted_for_review_at=NOW(), deadline=?, team_id=? WHERE id=?", [todayStr, teamId, inReview]);
+    await pool.execute("UPDATE tasks SET status='review', submitted_for_review_at=NOW(), deadline=? WHERE id=?", [todayStr, inReview]);
+    try { await pool.execute('UPDATE tasks SET team_id=? WHERE id=?', [teamId, inReview]); } catch (_) {}
+
+    // G�n primary_assignee v�o task_assignees cho dueToday v� overdue d? th?a m�n INNER JOIN task_assignees
+    try {
+      await pool.execute('INSERT IGNORE INTO task_assignees(task_id, user_id) VALUES (?, ?)', [dueToday, member.id]);
+      await pool.execute('INSERT IGNORE INTO task_assignees(task_id, user_id) VALUES (?, ?)', [overdue, member.id]);
+    } catch (_) {}
 
     await client.login(member.email, member.password);
     const memberView = await client.request('GET', '/api/my-tasks-today');
@@ -51,6 +64,7 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
 
     await client.login(leader.email, leader.password);
     const leaderView = await client.request('GET', '/api/my-tasks-today');
+    assert.equal(leaderView.status, 200);
     assert.equal(leaderView.json.pendingMyReview.length, 1);
     assert.equal(leaderView.json.pendingMyReview[0].id, inReview);
   } finally { await close(); await teardown(); }
