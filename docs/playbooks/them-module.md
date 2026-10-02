@@ -1,11 +1,11 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.2
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml]
 ---
 
@@ -40,9 +40,9 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 2. **Code**: tạo `services/<id>/` (backend riêng, có thể kèm `frontend/` build vào static của backend như `services/ctd-api/frontend` → `backend/static`).
 3. **Xác thực**: chỉ chấp nhận JWT bridge do Core ký (`HUB_BRIDGE_SECRET`, HS256, TTL 60 giây) — không tự viết luồng đăng nhập/mật khẩu riêng cho cán bộ.
 4. **API**: đi qua gateway với tiền tố `/m/<module>/api/v1/*`; đổi tương thích ngược thì lên `v2`, không sửa `v1` tại chỗ.
-5. **Compose**: thêm service mới vào **cả hai** file `infra/compose/docker-compose.staging.yml` và `docker-compose.production.yml` — service tên `<id>`, `<id>-db` nếu có DB riêng, volume riêng theo quy ước `<id>_<phần dữ liệu>` (xem ví dụ `ctd_postgres`, `ctd_documents`).
+5. **Compose**: (module gửi thông báo thì gọi Noti như Core: `NOTI_URL` + key riêng `<ID>_NOTI_API_KEY` dạng `${…:-}`, thiếu key chỉ tắt gửi — `docs/dev/email-cron.md`) thêm service mới vào **cả hai** file (ngoại lệ có chủ đích: Noti chạy staging trước, xem `docs/ops/moi-truong.md` §4a) `infra/compose/docker-compose.staging.yml` và `docker-compose.production.yml` — service tên `<id>`, `<id>-db` nếu có DB riêng, volume riêng theo quy ước `<id>_<phần dữ liệu>` (xem ví dụ `ctd_postgres`, `ctd_documents`).
 6. **Nginx/gateway**: thêm file cấu hình mới trong `infra/nginx/<env>/<id>.conf` cho cả `staging` và `production`, áp bằng `infra/scripts/apply-infra.sh <env>` (không sửa nginx trên VM bằng tay).
-7. **`lib.sh`**: thêm entry cho module mới vào `ut_app_service()` (map tên app → tên service compose) và `ut_app_port()` (map env + app → cổng host `127.0.0.1`) trong `infra/scripts/lib.sh`, theo đúng mẫu hai hàm này đang xử lý `core`/`ctd-api`.
+7. **`lib.sh`**: thêm entry cho module mới vào `ut_app_service()` (map tên app → tên service compose) và `ut_app_port()` (map env + app → cổng host `127.0.0.1`) trong `infra/scripts/lib.sh`, theo đúng mẫu hai hàm này đang xử lý `core`/`ctd-api`/`noti`. App gồm nhiều service (vd `noti` = `noti-api` + `noti-worker`) thì `ut_app_service` in nhiều tên; health path khác `/api/health` thì thêm vào `ut_app_health_path`; thêm biến `<ID>_IMAGE_TAG` vào phần giữ tag trong `deploy.sh` và `apply-infra.sh`.
 8. **CI (`deploy.yml`)**: thêm path filter mới cho `services/<id>/**` trong job `changes`, thêm job `test-<id>` (service DB thật nếu cần, không SQLite/mock DB), `build-<id>` (buildx `linux/arm64`, vì VM là Oracle Ampere arm64), `deploy-<id>` (SSH gọi `infra/scripts/deploy.sh <env> <id> <tag>`).
 9. **Image**: đặt tên `ghcr.io/tduong-p/ultimate-tckt-<id>:<sha12>`, biến tag `<ID>_IMAGE_TAG` theo mẫu `CORE_IMAGE_TAG`/`CTD_API_IMAGE_TAG`.
 10. **Docs**: viết tài liệu BA (`docs/ba/<id>-use-case.md`) và dev (`docs/dev/` nếu cần) cho module mới; thêm dòng vào bảng phân nhóm use case (`docs/ba/tong-quan-nen-tang.md` hoặc file tương ứng).
@@ -70,3 +70,5 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Công tắc production, không dùng concurrency group | DYC |
 | 1.2 | 2026-09-30 | Làm rõ bảo trì bên trong service cũ không phải thêm module | DYC |
+| 1.3 | 2026-10-02 | Bổ sung bước lib.sh cho app nhiều service/health path riêng (theo Noti) | DYC |
+| 1.4 | 2026-10-02 | Module gọi Noti: key riêng qua `.env`, thiếu key chỉ tắt gửi | DYC |

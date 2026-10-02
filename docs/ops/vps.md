@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-VPS-001
 title: VPS — cài đặt và bố cục
-version: 1.1
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-26
+updated: 2026-10-02
 related_code: [infra/scripts/setup-vm.sh, infra/scripts/bootstrap-vm.sh]
 ---
 
@@ -69,7 +69,7 @@ Sau bước này, VM đã sẵn sàng nhưng **chưa có checkout nào** — ch�
    git clone --filter=blob:none --sparse --branch <staging|main> git@github.com:tduong-p/ultimate-tckt.git /opt/ultimate-tckt/<env>
    git -C /opt/ultimate-tckt/<env> sparse-checkout set infra
    ```
-2. **Sinh `infra/.env`** từ file `.env.<env>` cũ (biến `UT_OLD_ENV_DIR`, mặc định `/opt/infra`): đổi tiền tố `TCKT_` → `CORE_`, tự sinh `CORE_SETTINGS_ENCRYPTION_KEY` bằng `openssl rand -base64 32` nếu thiếu/rỗng, rồi kiểm đủ mọi biến bắt buộc theo `infra/.env.example`.
+2. **Sinh `infra/.env`** từ file `.env.<env>` cũ (biến `UT_OLD_ENV_DIR`, mặc định `/opt/infra`): đổi tiền tố `TCKT_` → `CORE_`, tự sinh `CORE_SETTINGS_ENCRYPTION_KEY` bằng `openssl rand -base64 32` nếu thiếu/rỗng, rồi kiểm đủ mọi biến bắt buộc theo `infra/.env.example` (trừ `CORE_DEVOPS_EMAILS`, `CORE_NOTI_API_KEY` và `NOTI_*` — Noti thêm tay sau, `docs/ops/moi-truong.md` §4a).
    - Thiếu biến bắt buộc → in danh sách biến thiếu ra stderr, **exit 2**, không ghi file (không bao giờ tạo `.env` nửa vời).
    - `infra/.env` đã tồn tại → không bao giờ ghi đè, chỉ in thông báo và exit 0 — chạy lại script này an toàn.
    - File ghi ra có quyền `600`.
@@ -86,3 +86,5 @@ Chạy `infra/scripts/apply-infra.sh <env>` để cài nginx site và khởi đ�
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-26 | Trỏ tới hướng dẫn SSH cá nhân `ssh.md` | DYC |
+| 1.2 | 2026-10-02 | bootstrap bỏ qua `NOTI_*` | DYC |
+| 1.3 | 2026-10-02 | bootstrap coi `CORE_NOTI_API_KEY` là tuỳ chọn | DYC |

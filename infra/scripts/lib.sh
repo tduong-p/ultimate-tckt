@@ -14,24 +14,30 @@ ut_env_branch() {
   esac
 }
 
+# Tên service compose của app (noti: một image, hai service).
 ut_app_service() {
   case "${1:-}" in
     core) echo core ;;
     ctd-api) echo ctd-api ;;
-    *) ut_die "APP must be 'core' or 'ctd-api', got: '${1:-}'" ;;
+    noti) echo noti-api noti-worker ;;
+    *) ut_die "APP must be 'core', 'ctd-api' or 'noti', got: '${1:-}'" ;;
   esac
 }
 
 ut_app_tag_var() {
-  case "$1" in core) echo CORE_IMAGE_TAG ;; ctd-api) echo CTD_API_IMAGE_TAG ;; esac
+  case "$1" in core) echo CORE_IMAGE_TAG ;; ctd-api) echo CTD_API_IMAGE_TAG ;; noti) echo NOTI_IMAGE_TAG ;; esac
 }
 
 ut_app_port() {
   case "$1:$2" in
-    staging:core) echo 3000 ;; staging:ctd-api) echo 8000 ;;
+    staging:core) echo 3000 ;; staging:ctd-api) echo 8000 ;; staging:noti) echo 8100 ;;
     production:core) echo 3001 ;; production:ctd-api) echo 8001 ;;
     *) ut_die "no port for $1/$2" ;;
   esac
+}
+
+ut_app_health_path() {
+  case "$1" in noti) echo /v1/health ;; *) echo /api/health ;; esac
 }
 
 ut_env_dir() { echo "$UT_ROOT/$1"; }

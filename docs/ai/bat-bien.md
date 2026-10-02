@@ -1,11 +1,11 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 4.1
+version: 4.3
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
 ---
 
@@ -28,7 +28,9 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
    `infra/scripts/migrate-volumes.sh`.
 5. **DB container chỉ được restart qua `apply-infra.sh <env> true`.** Gọi trực tiếp `docker compose up -d` với
    service `core-db`/`ctd-db` ngoài quy trình này bỏ qua lock file (`ut_lock`) và có thể đụng độ với một deploy
-   khác đang chạy.
+   khác đang chạy. Ở staging, `ctd-db` còn chứa database `noti` của Noti: restart `ctd-db` làm Noti mất kết nối tạm thời.
+   Noti chết hay sai key không được làm lỗi Core: `NOTI_API_KEY` trống chỉ tắt gửi, lỗi gửi chỉ ghi log
+   (`core/src/notifier.js`). `CORE_NOTI_API_KEY` chỉ nằm trong `.env` trên VM.
 6. **Migration phải idempotent.** Core: `npm run migrate` (`core/src/config/migrate.js`) — mỗi thay đổi schema
    kiểm tồn tại trước khi `ALTER`/`CREATE`, chạy lại nhiều lần không lỗi. CTD: Alembic
    (`services/ctd-api/backend/alembic/`) — mỗi thay đổi là một revision mới, không sửa tay DB.
@@ -66,3 +68,5 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 | 4.0 | 2026-09-30 | Thêm INV-LEAK-001: bất biến test rò rỉ units.leak.test.js — route GET nghiệp vụ phải 403 với outsider, không 403 với DYC | DYC |
 | 2.1 | 2026-09-30 | Phạm vi xem hoạt động và ranh giới quản lý tài khoản đổi theo pilot PR 4 (không đổi bất biến) | DYC |
 | 4.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 4.2 | 2026-10-02 | Ghi chú `ctd-db` staging chứa database `noti` | DYC |
+| 4.3 | 2026-10-02 | Thông báo không được làm lỗi request; `CORE_NOTI_API_KEY` chỉ ở `.env` VM | DYC |

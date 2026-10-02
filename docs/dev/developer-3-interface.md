@@ -143,6 +143,7 @@ router.post('/api/directives', auth, asyncRoute(async (req, res) => {
 
 | Action | Khi nào | Owner Unit |
 |--------|---------|------------|
+| 1.2 | 2026-10-02 | C?p nh?t giao di?n di?u h�nh |
 | `directive.create` | BTV tạo directive mới | `to_unit_id` |
 | `directive.acknowledge` | TCKT tiếp nhận và chỉ định owner | `to_unit_id` |
 | `directive.link_activity` | TCKT gắn activity vào directive | `to_unit_id` |

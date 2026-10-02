@@ -1,0 +1,17 @@
+key: task.overdue
+subject: "[DYC] (TCKT-{{ task.id }}) Quá hạn: {{ task.title }}"
+required:
+  - task.id
+  - task.title
+  - task.path
+optional:
+  - task.deadline
+  - activity.title
+data_example:
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+    deadline: "2026-10-01 17:00"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

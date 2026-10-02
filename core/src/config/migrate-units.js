@@ -1,13 +1,31 @@
-'use strict';
-const { SEED_UNITS, SEED_UNIT_MODULES, TCKT_CODE, DYC_CODE } = require('../units/catalog');
+﻿'use strict';
 
+const { SEED_UNITS, SEED_UNIT_MODULES, TCKT_CODE, BTV_CODE } = require('../units/catalog');
+
+// Marker đánh dấu đã chạy backfill (chạy một lần duy nhất)
+// Đây là marker "chính" cho toàn bộ quá trình backfill: seed units, modules, policies, memberships từ users.role
+// RERUN SAFETY: Migration kiểm tra marker này trước khi chạy backfill. Nếu đã có, skip backfill nhưng vẫn
+// chạy các migration phụ (DevOps, DYC bootstrap) để đảm bảo môi trường mới được cấu hình đầy đủ.
 const BACKFILL_MARKER = 'multi_unit_backfill_v1';
+
+// Marker riêng cho migration is_devops → DYC membership
+// RERUN SAFETY: Marker riêng cho phép GĐ2 xóa cột is_devops mà không ảnh hưởng tới backfill chính.
+// Nếu cột is_devops không còn tồn tại, migration này chỉ ghi marker và return (safe skip).
+const DEVOPS_MIGRATE_MARKER = 'devops_to_dyc_membership_v1';
+
+// Marker cho DYC bootstrap từ DEVOPS_EMAILS
+// RERUN SAFETY: Chạy một lần duy nhất khi môi trường mới khởi tạo. Nếu env var thay đổi sau này,
+// admin cần thêm membership thủ công (không tự động đồng bộ lại).
+const DYC_BOOTSTRAP_MARKER = 'dyc_bootstrap_from_env_v1';
+
 const T = 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
 
+// Định nghĩa bảng theo design spec §5.1-5.3
 const TABLES = [
   ['platform_migrations', `CREATE TABLE platform_migrations (
     name VARCHAR(80) PRIMARY KEY,
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ${T}`],
+    
   ['org_units', `CREATE TABLE org_units (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(40) NOT NULL UNIQUE,
@@ -17,6 +35,7 @@ const TABLES = [
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_org_units_parent FOREIGN KEY (parent_id) REFERENCES org_units(id) ON DELETE SET NULL) ${T}`],
+    
   ['unit_memberships', `CREATE TABLE unit_memberships (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
     user_id INT UNSIGNED NOT NULL,
@@ -27,11 +46,13 @@ const TABLES = [
     INDEX unit_memberships_unit (unit_id, role),
     CONSTRAINT fk_unit_memberships_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_unit_memberships_unit FOREIGN KEY (unit_id) REFERENCES org_units(id) ON DELETE CASCADE) ${T}`],
+    
   ['unit_modules', `CREATE TABLE unit_modules (
     unit_id INT UNSIGNED NOT NULL,
     module_id VARCHAR(40) NOT NULL,
     PRIMARY KEY (unit_id, module_id),
     CONSTRAINT fk_unit_modules_unit FOREIGN KEY (unit_id) REFERENCES org_units(id) ON DELETE CASCADE) ${T}`],
+    
   ['unit_visibility_policies', `CREATE TABLE unit_visibility_policies (
     viewer_unit_id INT UNSIGNED NOT NULL,
     owner_unit_id INT UNSIGNED NOT NULL,
@@ -42,6 +63,7 @@ const TABLES = [
     CONSTRAINT fk_visibility_viewer FOREIGN KEY (viewer_unit_id) REFERENCES org_units(id) ON DELETE CASCADE,
     CONSTRAINT fk_visibility_owner FOREIGN KEY (owner_unit_id) REFERENCES org_units(id) ON DELETE CASCADE,
     CONSTRAINT fk_visibility_user FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL) ${T}`],
+    
   ['setting_locks', `CREATE TABLE setting_locks (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     setting_key VARCHAR(80) NOT NULL,
@@ -52,7 +74,8 @@ const TABLES = [
     INDEX setting_locks_key (setting_key, unit_id),
     CONSTRAINT fk_setting_locks_unit FOREIGN KEY (unit_id) REFERENCES org_units(id) ON DELETE CASCADE,
     CONSTRAINT fk_setting_locks_user FOREIGN KEY (locked_by) REFERENCES users(id) ON DELETE SET NULL) ${T}`],
-  // Không có FK: log phải sống sót khi user/đơn vị bị xoá.
+    
+  // audit_logs không có FK tới users/org_units: log phải sống sót khi user/đơn vị bị xóa
   ['audit_logs', `CREATE TABLE audit_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     actor_id INT UNSIGNED NULL,
@@ -65,6 +88,7 @@ const TABLES = [
     created_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
     INDEX audit_logs_owner (owner_unit_id, created_at),
     INDEX audit_logs_actor (actor_id, created_at)) ${T}`],
+    
   ['directives', `CREATE TABLE directives (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     from_unit_id INT UNSIGNED NOT NULL,
@@ -84,6 +108,7 @@ const TABLES = [
     CONSTRAINT fk_directives_to FOREIGN KEY (to_unit_id) REFERENCES org_units(id),
     CONSTRAINT fk_directives_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_directives_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL) ${T}`],
+    
   ['submissions', `CREATE TABLE submissions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     from_unit_id INT UNSIGNED NOT NULL,
@@ -106,6 +131,7 @@ const TABLES = [
     CONSTRAINT fk_submissions_directive FOREIGN KEY (directive_id) REFERENCES directives(id) ON DELETE SET NULL,
     CONSTRAINT fk_submissions_submitter FOREIGN KEY (submitted_by) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_submissions_responder FOREIGN KEY (responded_by) REFERENCES users(id) ON DELETE SET NULL) ${T}`],
+    
   ['ops_logs', `CREATE TABLE ops_logs (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     unit_id INT UNSIGNED NOT NULL,
@@ -120,6 +146,7 @@ const TABLES = [
     INDEX ops_logs_unit (unit_id, started_at),
     CONSTRAINT fk_ops_logs_unit FOREIGN KEY (unit_id) REFERENCES org_units(id),
     CONSTRAINT fk_ops_logs_recorder FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL) ${T}`],
+    
   ['ops_log_attendance', `CREATE TABLE ops_log_attendance (
     ops_log_id INT UNSIGNED NOT NULL,
     user_id INT UNSIGNED NOT NULL,
@@ -130,74 +157,244 @@ const TABLES = [
     CONSTRAINT fk_ops_attendance_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) ${T}`]
 ];
 
-// DB đã migrate bởi bản cũ có thể có org_units.id là INT có dấu; unit_id phải cùng kiểu với cột nó tham chiếu.
+/**
+ * Helper: thêm cột unit_id vào bảng và backfill về TCKT
+ * Tránh lặp code giữa teams và activities
+ * 
+ * RERUN SAFETY: Kiểm tra tồn tại cột/index/FK trước khi tạo. Chạy nhiều lần không duplicate.
+ */
+// DB đã migrate bởi bản cũ có thể có org_units.id là INT có dấu; unit_id phải cùng kiểu với cột nó tham chiếu,
+// nếu không MySQL từ chối FK (ER_FK_INCOMPATIBLE_COLUMNS) và Core crash-loop khi khởi động (xem docs/ai/bay-da-gap.md).
 async function orgUnitIdType(db) {
   const [rows] = await db.query("SELECT COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='org_units' AND COLUMN_NAME='id'");
   const ty = String(rows[0]?.ty || 'int unsigned').toLowerCase();
   return /^int(\(\d+\))?( unsigned)?$/.test(ty) ? ty.replace(/\(\d+\)/, '').toUpperCase() : 'INT UNSIGNED';
 }
 
-async function addUnitColumn(db, table, tcktId, h) {
+async function addUnitColumn(db, tableName, tcktId, h) {
   const idType = await orgUnitIdType(db);
-  if (!(await h.columnExists(db, table, 'unit_id'))) {
-    h.log(`Adding ${table}.unit_id`);
-    await db.query(`ALTER TABLE ${table} ADD COLUMN unit_id ${idType} NULL`);
+  if (!(await h.columnExists(db, tableName, 'unit_id'))) {
+    h.log(`Adding ${tableName}.unit_id`);
+    await db.query(`ALTER TABLE ${tableName} ADD COLUMN unit_id ${idType} NULL`);
   }
-  await db.query(`UPDATE ${table} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
-  // GĐ1: chỉ TCKT có module Điều hành, nên INSERT kiểu cũ (không truyền unit_id) rơi về TCKT.
-  await db.query(`ALTER TABLE ${table} MODIFY unit_id ${idType} NOT NULL DEFAULT ${Number(tcktId)}`);
-  if (!(await h.indexExists(db, table, `${table}_unit`))) await db.query(`ALTER TABLE ${table} ADD INDEX ${table}_unit (unit_id)`);
-  if (!(await h.foreignKeyExists(db, table, `fk_${table}_unit`))) {
-    await db.query(`ALTER TABLE ${table} ADD CONSTRAINT fk_${table}_unit FOREIGN KEY (unit_id) REFERENCES org_units(id)`);
+  
+  // Backfill dữ liệu cũ về TCKT
+  await db.query(`UPDATE ${tableName} SET unit_id=? WHERE unit_id IS NULL`, [tcktId]);
+  
+  // Set NOT NULL với default
+  await db.query(`ALTER TABLE ${tableName} MODIFY unit_id ${idType} NOT NULL DEFAULT ${tcktId}`);
+  
+  // Thêm index nếu chưa có
+  if (!(await h.indexExists(db, tableName, `${tableName}_unit`))) {
+    await db.query(`ALTER TABLE ${tableName} ADD INDEX ${tableName}_unit (unit_id)`);
+  }
+  
+  // Thêm FK nếu chưa có
+  const fkName = `fk_${tableName}_unit`;
+  if (!(await h.foreignKeyExists(db, tableName, fkName))) {
+    await db.query(`ALTER TABLE ${tableName} ADD CONSTRAINT ${fkName} FOREIGN KEY (unit_id) REFERENCES org_units(id)`);
   }
 }
 
-async function migrateMultiUnit(db, h) {
-  for (const [name, ddl] of TABLES) {
-    if (!(await h.tableExists(db, name))) { h.log(`Creating table ${name}`); await db.query(ddl); }
+/**
+ * Migration is_devops → DYC membership (chạy riêng, có marker riêng)
+ * Lý do marker riêng: nếu GĐ2 xóa cột is_devops thì migration này skip an toàn
+ * 
+ * RERUN SAFETY: Kiểm tra marker trước khi chạy. Nếu cột is_devops không còn, chỉ ghi marker và return.
+ */
+async function migrateDevopsToMembership(db, dycId, h) {
+  const [done] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [DEVOPS_MIGRATE_MARKER]);
+  if (done.length) return;
+  
+  // Kiểm tra cột is_devops còn tồn tại không (có thể đã bị xóa ở môi trường mới)
+  const hasIsDevops = await h.columnExists(db, 'users', 'is_devops');
+  
+  if (hasIsDevops) {
+    h.log('Migrating users.is_devops=1 → DYC dyc_engineer membership');
+    await db.execute(
+      'INSERT IGNORE INTO unit_memberships(user_id, unit_id, role) ' +
+      'SELECT id, ?, ? FROM users WHERE is_devops = 1',
+      [dycId, 'dyc_engineer']
+    );
   }
-  for (const u of SEED_UNITS) {
-    await db.execute('INSERT IGNORE INTO org_units(code,name,kind) VALUES (?,?,?)', [u.code, u.name, u.kind]);
-  }
-  const [unitRows] = await db.query('SELECT id, code FROM org_units');
-  const unitId = Object.fromEntries(unitRows.map(r => [r.code, Number(r.id)]));
-  const tcktId = unitId[TCKT_CODE];
-  if (!tcktId) throw new Error('TCKT unit seed is missing');
+  
+  await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DEVOPS_MIGRATE_MARKER]);
+  h.log('DevOps migration marker recorded');
+}
 
+/**
+ * Bootstrap DYC memberships từ DEVOPS_EMAILS env var
+ * Đọc danh sách email từ env var (ngăn cách bằng dấu phẩy), tạo membership DYC với role dyc_engineer.
+ * Chạy một lần duy nhất khi môi trường mới khởi tạo.
+ * 
+ * RERUN SAFETY: Kiểm tra marker trước khi chạy. INSERT IGNORE tránh duplicate nếu membership đã tồn tại.
+ * Nếu env var thay đổi sau khi marker đã ghi, không tự động đồng bộ lại (admin thêm thủ công).
+ */
+async function bootstrapDycFromEnv(db, dycId, h) {
+  const [done] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [DYC_BOOTSTRAP_MARKER]);
+  if (done.length) return;
+  
+  const devopsEmails = process.env.DEVOPS_EMAILS || '';
+  if (!devopsEmails.trim()) {
+    h.log('DEVOPS_EMAILS env var not set, skipping DYC bootstrap');
+    await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+    return;
+  }
+  
+  const emails = devopsEmails.split(',').map(e => e.trim()).filter(Boolean);
+  if (!emails.length) {
+    h.log('DEVOPS_EMAILS env var empty after parsing, skipping DYC bootstrap');
+    await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+    return;
+  }
+  
+  h.log(`Bootstrapping DYC memberships for ${emails.length} emails from DEVOPS_EMAILS`);
+  
+  for (const email of emails) {
+    // Tìm user theo email
+    const [userRows] = await db.execute('SELECT id FROM users WHERE email=?', [email]);
+    if (!userRows.length) {
+      h.log(`Warning: User with email ${email} not found, skipping`);
+      continue;
+    }
+    
+    const userId = userRows[0].id;
+    
+    // INSERT IGNORE: nếu đã có membership (từ migration khác), không duplicate
+    await db.execute(
+      'INSERT IGNORE INTO unit_memberships(user_id, unit_id, role) VALUES (?, ?, ?)',
+      [userId, dycId, 'dyc_engineer']
+    );
+  }
+  
+  await db.execute('INSERT INTO platform_migrations(name) VALUES (?)', [DYC_BOOTSTRAP_MARKER]);
+  h.log('DYC bootstrap completed');
+}
+
+/**
+ * Migration chính: tạo bảng, seed, backfill
+ * 
+ * RERUN SAFETY: Toàn bộ migration được thiết kế để chạy idempotent:
+ * - Kiểm tra tồn tại bảng/cột/index/FK trước khi tạo
+ * - Dùng INSERT IGNORE để tránh duplicate
+ * - Backfill được bảo vệ bởi marker, chỉ chạy một lần
+ * - Transaction rollback nếu lỗi trong quá trình backfill
+ * 
+ * Có thể chạy lại nhiều lần an toàn. Nếu chạy giữa chừng bị gián đoạn:
+ * - Các bảng đã tạo sẽ bị skip (tableExists check)
+ * - Backfill sẽ chạy lại từ đầu (marker chưa ghi) hoặc skip (marker đã ghi)
+ * - DevOps và DYC bootstrap có marker riêng, chạy độc lập
+ */
+async function migrateMultiUnit(db, helpers) {
+  const { log, tableExists, columnExists, foreignKeyExists, indexExists } = helpers;
+  const h = { log, columnExists, foreignKeyExists, indexExists };
+  
+  // 1. Tạo các bảng mới
+  for (const [name, ddl] of TABLES) {
+    if (!(await tableExists(db, name))) {
+      log(`Creating table ${name}`);
+      await db.query(ddl);
+    }
+  }
+  
+  // 2. Seed các đơn vị từ catalog
+  for (const [code, name, kind] of SEED_UNITS) {
+    await db.execute('INSERT IGNORE INTO org_units(code, name, kind) VALUES (?, ?, ?)', [code, name, kind]);
+  }
+  
+  // 3. Lấy unit IDs
+  const [unitRows] = await db.query('SELECT id, code FROM org_units');
+  const unitMap = Object.fromEntries(unitRows.map(row => [row.code, Number(row.id)]));
+  const tcktId = unitMap[TCKT_CODE];
+  const dycId = unitMap['DYC'];
+  const btvId = unitMap[BTV_CODE];
+  
+  if (!tcktId) throw new Error('TCKT unit seed missing');
+  if (!dycId) throw new Error('DYC unit seed missing');
+  if (!btvId) throw new Error('BTV unit seed missing');
+  
+  // 4. Thêm unit_id cho teams và activities
   await addUnitColumn(db, 'teams', tcktId, h);
   await addUnitColumn(db, 'activities', tcktId, h);
-  if (!(await h.columnExists(db, 'activities', 'directive_id'))) {
-    h.log('Adding activities.directive_id');
+  
+  // 5. Thêm activities.directive_id
+  if (!(await columnExists(db, 'activities', 'directive_id'))) {
+    log('Adding activities.directive_id');
     await db.query('ALTER TABLE activities ADD COLUMN directive_id INT UNSIGNED NULL');
   }
-  if (!(await h.foreignKeyExists(db, 'activities', 'fk_activities_directive'))) {
+  if (!(await foreignKeyExists(db, 'activities', 'fk_activities_directive'))) {
     await db.query('ALTER TABLE activities ADD CONSTRAINT fk_activities_directive FOREIGN KEY (directive_id) REFERENCES directives(id) ON DELETE SET NULL');
   }
-  if (!(await h.indexExists(db, 'activities', 'activities_directive'))) {
+  if (!(await indexExists(db, 'activities', 'activities_directive'))) {
     await db.query('ALTER TABLE activities ADD INDEX activities_directive (directive_id)');
   }
-
-  // Backfill chỉ chạy MỘT lần: sau đó membership/policy/module do người quản trị quyết định,
-  // migrate lại không được thêm lại thứ họ đã gỡ.
-  const [done] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [BACKFILL_MARKER]);
-  if (done.length) return;
-  h.log('Backfilling unit memberships, modules and visibility policies');
-  const conn = typeof db.getConnection === 'function' ? await db.getConnection() : db;
+  
+  // 6. One-time backfill: memberships, modules, policy
+  const [applied] = await db.execute('SELECT 1 FROM platform_migrations WHERE name=?', [BACKFILL_MARKER]);
+  if (applied.length) {
+    log('Backfill already applied, checking post-backfill migrations');
+    await migrateDevopsToMembership(db, dycId, h);
+    await bootstrapDycFromEnv(db, dycId, h);
+    return;
+  }
+  
+  log('Backfilling unit memberships, modules and visibility policies');
+  const connection = typeof db.getConnection === 'function' ? await db.getConnection() : db;
+  
   try {
-    await conn.beginTransaction();
-    await conn.execute('INSERT IGNORE INTO unit_memberships(user_id,unit_id,role) SELECT id, ?, role FROM users ORDER BY id', [tcktId]);
+    await connection.beginTransaction();
+    
+    // 6a. Tạo membership TCKT từ users.role (giữ nguyên role cũ)
+    await connection.execute(
+      'INSERT IGNORE INTO unit_memberships(user_id, unit_id, role) SELECT id, ?, role FROM users ORDER BY id',
+      [tcktId]
+    );
+    
+    // 6b. Seed module access theo catalog
     for (const [code, modules] of Object.entries(SEED_UNIT_MODULES)) {
-      for (const moduleId of modules) await conn.execute('INSERT IGNORE INTO unit_modules(unit_id,module_id) VALUES (?,?)', [unitId[code], moduleId]);
+      const unitId = unitMap[code];
+      if (!unitId) {
+        log(`Warning: Unit ${code} in SEED_UNIT_MODULES not found in org_units`);
+        continue;
+      }
+      for (const moduleId of modules) {
+        await connection.execute(
+          'INSERT IGNORE INTO unit_modules(unit_id, module_id) VALUES (?, ?)',
+          [unitId, moduleId]
+        );
+      }
     }
-    await conn.execute("INSERT IGNORE INTO unit_visibility_policies(viewer_unit_id,owner_unit_id,level) VALUES (?,?,'summary')", [unitId.BTV, unitId[TCKT_CODE]]);
-    await conn.execute('INSERT INTO platform_migrations(name) VALUES (?)', [BACKFILL_MARKER]);
-    await conn.commit();
+    
+    // 6c. Seed BTV → TCKT visibility policy = summary
+    await connection.execute(
+      "INSERT IGNORE INTO unit_visibility_policies(viewer_unit_id, owner_unit_id, level) VALUES (?, ?, 'summary')",
+      [btvId, tcktId]
+    );
+    
+    // 6d. Đánh dấu hoàn thành backfill chính
+    await connection.execute('INSERT INTO platform_migrations(name) VALUES (?)', [BACKFILL_MARKER]);
+    
+    await connection.commit();
+    log('Backfill completed successfully');
   } catch (error) {
-    await conn.rollback();
+    await connection.rollback();
     throw error;
   } finally {
-    if (conn !== db) conn.release();
+    if (connection !== db) connection.release();
   }
+  
+  // 6e. Chạy các migration phụ sau khi backfill chính xong
+  await migrateDevopsToMembership(db, dycId, h);
+  await bootstrapDycFromEnv(db, dycId, h);
 }
 
-module.exports = { migrateMultiUnit, BACKFILL_MARKER };
+module.exports = {
+  migrateMultiUnit,
+  migrateDevopsToMembership,
+  bootstrapDycFromEnv,
+  BACKFILL_MARKER,
+  DEVOPS_MIGRATE_MARKER,
+  DYC_BOOTSTRAP_MARKER
+};
+
+

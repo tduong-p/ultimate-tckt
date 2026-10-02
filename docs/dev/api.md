@@ -22,6 +22,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 
 | Method | Path | File |
 |---|---|---|
+| 5.3 | 2026-10-02 | Chu?n h�a route directives v� submissions |
 | GET | `/api/session` | `system.js` |
 | POST | `/api/session/unit` | `system.js` |
 | GET | `/auth/microsoft`, `/auth/microsoft/callback` | `system.js` |

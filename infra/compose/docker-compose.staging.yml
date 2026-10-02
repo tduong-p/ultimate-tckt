@@ -33,6 +33,9 @@ services:
       APP_BASE_URL: https://tckt-hub-staging.duckdns.org
       APP_ENV: staging
       EMAIL_NOTIFICATIONS_ENABLED: "false"
+      # Thông báo đi qua Noti (docs/dev/email-cron.md). Chưa có key thì Core không gửi gì, vẫn chạy bình thường.
+      NOTI_URL: http://noti-api:8000
+      NOTI_API_KEY: ${CORE_NOTI_API_KEY:-}
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
@@ -64,6 +67,38 @@ services:
       - "127.0.0.1:8000:8000"
     volumes:
       - ctd_documents:/app/storage/documents
+
+  # Noti (SPEC-NOTI-001): một image, hai service. Database `noti` riêng trên ctd-db (role/database tạo tay
+  # một lần, xem docs/ops/moi-truong.md). Chỉ mở 127.0.0.1 cho health check; Core gọi qua mạng compose.
+  noti-api:
+    image: ghcr.io/tduong-p/ultimate-tckt-noti:${NOTI_IMAGE_TAG:?}
+    restart: unless-stopped
+    depends_on:
+      - ctd-db
+    environment: &noti-env
+      NOTI_DATABASE_URL: postgresql+psycopg://${NOTI_DB_USER:?}:${NOTI_DB_PASSWORD:?}@ctd-db:5432/${NOTI_DB_NAME:?}
+      NOTI_APP_BASE_URL: https://tckt-hub-staging.duckdns.org
+      NOTI_MAIL_DRIVER: ${NOTI_MAIL_DRIVER:-console}
+      NOTI_MAIL_FROM: ${NOTI_MAIL_FROM:-noti@example.invalid}
+      NOTI_RECIPIENT_ALLOWLIST: ${NOTI_RECIPIENT_ALLOWLIST:-}
+      NOTI_REDIRECT_TO: ${NOTI_REDIRECT_TO:-}
+      NOTI_SMTP_HOST: ${NOTI_SMTP_HOST:-}
+      NOTI_SMTP_PORT: ${NOTI_SMTP_PORT:-587}
+      NOTI_SMTP_USER: ${NOTI_SMTP_USER:-}
+      NOTI_SMTP_PASSWORD: ${NOTI_SMTP_PASSWORD:-}
+      NOTI_GRAPH_TENANT: ${NOTI_GRAPH_TENANT:-}
+      NOTI_GRAPH_CLIENT_ID: ${NOTI_GRAPH_CLIENT_ID:-}
+      NOTI_GRAPH_CLIENT_SECRET: ${NOTI_GRAPH_CLIENT_SECRET:-}
+    ports:
+      - "127.0.0.1:8100:8000"
+
+  noti-worker:
+    image: ghcr.io/tduong-p/ultimate-tckt-noti:${NOTI_IMAGE_TAG:?}
+    restart: unless-stopped
+    depends_on:
+      - noti-api
+    command: ["python", "-m", "noti.worker"]
+    environment: *noti-env
 
 volumes:
   core_mysql:

@@ -1,0 +1,18 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p>Công việc sau của bạn đã <strong style="color: #cf222e;">quá hạn</strong> thực hiện:</p>
+<div style="background: #ffebe9; border-left: 4px solid #cf222e; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Công việc:</strong> (TCKT-{{ task.id }}) {{ task.title }}</p>
+  {% if activity is defined and activity.get('title') %}
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> {{ activity.title }}</p>
+  {% endif %}
+  {% if task.get('deadline') %}
+  <p style="margin: 0;"><strong>Hạn chót:</strong> {{ task.deadline }}</p>
+  {% endif %}
+</div>
+<p>Vui lòng khẩn trương hoàn thành và cập nhật kết quả.</p>
+<p>
+  <a class="button" href="{{ base_url }}{{ task.path }}">Cập nhật công việc</a>
+</p>
+{% endblock %}

@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.2
+version: 2.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -13,11 +13,13 @@ related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Xoá toàn bộ code gửi email hardcode (Gmail/nodemailer) **và** OneSignal của Core trên `staging`, đưa mọi điểm phát thông báo ra ngoài về **một facade** `core/src/notifier.js` (hiện chưa gửi gì), để khi service Noti sẵn sàng chỉ phải đổi thân facade.
+**Goal:** Xoá toàn bộ code gửi email hardcode (Gmail/nodemailer) **và** OneSignal của Core trên `staging`, đưa mọi điểm phát thông báo ra ngoài về **một facade** `core/src/notifier.js` (lúc viết plan chưa gửi gì), để khi service Noti sẵn sàng chỉ phải gắn sender. Đã làm: `core/src/noti-sender.js`, xem `docs/specs/2026-10-02-core-noti-sender-plan.md`.
 
 **Architecture:** `core/src/mailer.js` trộn gửi email (Gmail) với gửi push OneSignal trong cùng các hàm `notify*`. Plan xoá cả hai kênh. Mỗi điểm gọi cũ được thay bằng đúng một lời gọi `notifier.notify({ event, recipient, data, sourceKey })`; `event` trùng tên template của Noti (SPEC-NOTI-001 §9), `sourceKey` là chuỗi sẽ thành `dedupe_key`. Thông báo trong ứng dụng (bảng `notifications`, chuông) **không đổi**.
 
 **Tech Stack:** Node 20+, Express, MySQL, `node:test`.
+
+**Lưu ý:** `core/src/config/migrate-units.js` được sửa riêng (hotfix `unit_id` theo kiểu `org_units.id`, 2026-10-02), không thuộc plan này.
 
 **Spec:** `docs/specs/2026-10-02-noti-service-design.md` (SPEC-NOTI-001 v1.1, §9 và §17). Hiện trạng đối chiếu: `origin/staging` @ `88a859c`.
 
@@ -37,6 +39,8 @@ Plan này sửa `core/src/app.js`, `core/src/runtime.js`, `core/src/config/valid
 
 | Việc | Module | Làm trong plan này? |
 |---|---|---|
+| 2.4 | 2026-10-02 | C?p nh?t g? b? email cu |
+| 2.3 | 2026-10-02 | C?p nh?t k? ho?ch g? email cu |
 | Issue liên module: xoá email + OneSignal (sửa `app.js`, `runtime.js`, `config`, `package.json`, CSP), cập nhật dòng "Email & Cron" của `ranh-gioi-module.md` | Nền | Task 0 soạn issue; **chờ duyệt** |
 | Tạo `notifier.js`, sửa `routes/*`, `services/deadline-notifications.js`, xoá `mailer.js`/`push.js`, gỡ OneSignal ở `public/` | Core + Điều hành | Có (Task 1–3), sau khi issue được duyệt |
 | Tài liệu và ADR-0013 | docs | Có (Task 5) |
@@ -512,5 +516,3 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.1 | 2026-10-02 | Đã thực hiện xong (PR #42, CI xanh); chuyển sang active | DYC |
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
-
-<!-- updated: 2026-10-02 dev3 routes -->

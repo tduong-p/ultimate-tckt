@@ -1,0 +1,15 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã gửi đề án hoạt động mới cần xem xét:
+- Hoạt động: (ACT-{{ activity.id }}) {{ activity.title }}
+{% if activity.get('type') %}
+- Loại hình: {{ activity.type }}
+{% endif %}
+{% if activity.get('deadline') %}
+- Hạn chót: {{ activity.deadline }}
+{% endif %}
+
+Xem chi tiết tại: {{ base_url }}{{ activity.path }}
+{% endblock %}

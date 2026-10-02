@@ -1,11 +1,15 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
+<<<<<<< HEAD
 version: 2.0
+=======
+version: 1.12
+>>>>>>> origin/staging
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -61,6 +65,7 @@ Tài liệu này là kế hoạch chi tiết phát triển **Hub system** (Core 
 
 | Tuần | Focus | Deliverables |
 |------|-------|-------------|
+| 1.12 | 2026-10-02 | C?p nh?t k? ho?ch tri?n khai |
 | 1 | Backend foundation | Migration, middleware, DYC admin, audit |
 | 2 | Operations features | Directives, submissions, visibility, ops logs |
 | 3 | Frontend shell + migration | React shell, migrate old UI, new screens |
@@ -373,7 +378,8 @@ ops_log_attendance
 - Login flow (use existing session)
 - Unit switcher
 - Dynamic menu from API
-- Notification bell (OneSignal integration)
+- Notification bell (OneSignal integration) — *cập nhật 2026-10-02: OneSignal đã gỡ (ADR-0013); email đi qua service Noti
+  (`core/src/noti-sender.js`, `docs/dev/email-cron.md`), chuông dùng thông báo trong app*
 
 **Tech decisions:**
 - Router: React Router v6
@@ -797,6 +803,7 @@ export function scopeFor(user, resourceType) {
 
 **Critical indexes:**
 ```sql
+-- Lưu ý (2026-10-02): trên DB đã migrate, `unit_id` phải cùng kiểu với `org_units.id` (staging là INT có dấu), xem `migrate-units.js` `orgUnitIdType`.
 -- Memberships lookup (frequent)
 CREATE INDEX idx_memberships_user ON unit_memberships(user_id);
 CREATE INDEX idx_memberships_unit ON unit_memberships(unit_id);
@@ -1276,5 +1283,10 @@ npm run docs:check         # Documentation validation
 | 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
 | 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+<<<<<<< HEAD
 
 <!-- updated: 2026-10-02 dev3 routes -->
+=======
+| 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
+| 1.11 | 2026-10-02 | Ghi chú: kiểu cột unit_id theo org_units.id của DB đã migrate | DYC |
+>>>>>>> origin/staging

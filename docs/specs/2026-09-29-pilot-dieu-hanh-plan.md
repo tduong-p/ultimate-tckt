@@ -1,11 +1,15 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
+<<<<<<< HEAD
 version: 1.9
+=======
+version: 1.11
+>>>>>>> origin/staging
 status: draft
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/src/**, core/public/**, core/tests/**, core/app.js, services/ctd-api/backend/app/seeds/**, services/ctd-api/backend/tests/**, tools/test-fixtures/**]
 ---
 
@@ -28,7 +32,9 @@ vanilla SPA `core/public/app.js`.
 
 - Nhánh tính năng → PR vào `staging`. Không push thẳng `main`. Không viết lại lịch sử git.
 - Không ghi mật khẩu, token, giá trị `.env` vào repo, tài liệu, log, mô tả PR. Repo là public.
-- Thông báo phải có bản trong app; không dựa vào `mailer.notify*` hay push (đang tắt).
+- Hotfix 2026-10-02: `migrate-units.js` bị PR #44 làm mất bản sửa `330a27b` (unit_id theo kiểu `org_units.id`), đã khôi phục — xem `docs/ai/bay-da-gap.md`.
+- Thông báo phải có bản trong app; không dựa vào `mailer.notify*` hay push (đang tắt). Cập nhật 2026-10-02: `mailer.js` đã gỡ;
+  email đi qua `notifier.notify` → Noti (`docs/dev/email-cron.md`), vẫn không thay cho thông báo trong app.
 - Không đổi dạng `/api/session`, schema, env, compose, nginx, CI trong các PR ở đây (liên module).
 - Mỗi PR cập nhật tài liệu liên quan (bump `version`, `updated`, dòng lịch sử) và chạy
   `npm run docs:index && npm run docs:check -- --base origin/staging`.
@@ -61,6 +67,7 @@ ngay trước khi làm (code thay đổi sau mỗi PR nên số dòng/đoạn tr
 
 | PR | Nhánh | Mục spec | Module | Plan |
 |---|---|---|---|---|
+| 1.11 | 2026-10-02 | C?p nh?t k? ho?ch pilot |
 | 0 | `docs/pilot-dieu-hanh-spec` | Spec + plan này | Tài liệu | — |
 | 1 | `chore/pilot-a1-remove-dump` | a1 | Tài liệu & tooling | Task 1 |
 | 2 | `fix/pilot-a2-ctd-admin-seed` | a2 | CTD | Task 2 |
@@ -614,5 +621,10 @@ trước khi tạo trên GitHub.
 | 1.6 | 2026-09-30 | PR 8 xong (c26, c27 một phần, c29 CSS); PR 5 thông báo tạm hoãn | DYC |
 | 1.7 | 2026-09-30 | Hotfix staging 502 (migrate unit_id) chèn trước PR 7 | DYC |
 | 1.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+<<<<<<< HEAD
 
 <!-- updated: 2026-10-02 dev3 routes -->
+=======
+| 1.9 | 2026-10-02 | Ghi chú: email đi qua Noti, không còn `mailer.notify*` | DYC |
+| 1.10 | 2026-10-02 | Hotfix lần 2: khôi phục bản sửa unit_id bị PR #44 ghi đè | DYC |
+>>>>>>> origin/staging

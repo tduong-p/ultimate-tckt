@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-02
 related_code: [.github/**]
 ---
 
@@ -53,12 +53,13 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 
 ## 6. GHCR (GitHub Container Registry)
 
-- Hai package: `ultimate-tckt-core`, `ultimate-tckt-ctd-api` — đặt **Private**, không public.
+- Ba package: `ultimate-tckt-core`, `ultimate-tckt-ctd-api`, `ultimate-tckt-noti` — đặt **Private**, không public. Package mới
+  do CI tạo ở lần build đầu (`ultimate-tckt-noti` sau khi Noti merge vào `staging`); kiểm lại quyền ngay sau lần đầu đó.
 - Workflow `ghcr-cleanup.yml` chạy định kỳ hàng tuần, giữ lại 40 phiên bản mới nhất mỗi package (`min-versions-to-keep: 40`), xoá bản cũ hơn. Staging và production dùng chung package nên phải giữ đủ nhiều để tag production (và tag trước đó để rollback) không bị xoá; image build với `provenance: false` để mỗi lần build chỉ tạo một phiên bản.
 
 ## 7. Kiểm tra sau khi cấu hình xong
 
-- Push thử một commit nhỏ vào `staging` → CI chạy `test-core`/`test-ctd` (tuỳ path filter), build image nếu liên quan, deploy nếu `DEPLOY_ENABLED=true`.
+- Push thử một commit nhỏ vào `staging` → CI chạy `test-core`/`test-ctd`/`test-noti` (tuỳ path filter), build image nếu liên quan, deploy nếu `DEPLOY_ENABLED=true`.
 - Thử tạo PR vào `main` không đủ check → bị chặn merge.
 - Thử push thẳng vào `main` → bị từ chối bởi ruleset.
 
@@ -84,3 +85,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.4 | 2026-09-24 | Thêm nhãn `cross-module` và mẫu issue đề xuất thay đổi liên module | DYC |
 | 1.5 | 2026-09-27 | Thêm mục 8: GitHub App và ruleset `bot-branches` cho bot repobot | DYC |
 | 1.6 | 2026-09-27 | Mục 8: App đọc PR/diff/commit cho kênh thông báo, không thêm quyền | DYC (soạn cùng Claude) |
+| 1.7 | 2026-10-02 | Thêm package `ultimate-tckt-noti` và job `test-noti` | DYC |

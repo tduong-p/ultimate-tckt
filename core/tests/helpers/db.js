@@ -38,4 +38,30 @@ async function createTestDatabase() {
   };
 }
 
-module.exports = { createTestDatabase };
+/**
+ * Tạo test DB với schema từ db.sql nhưng KHÔNG chạy migrate.
+ * Dùng cho các test cần kiểm tra chính hàm migration:
+ * - Test insert dữ liệu trước, rồi tự gọi migrateDatabase()
+ * - Tránh vấn đề backfill marker đã bị ghi bởi createTestDatabase()
+ */
+async function createRawTestDatabase() {
+  const dbName = (process.env.TEST_DB_NAME ? `${process.env.TEST_DB_NAME}_` : 'tckt_test_') +
+    `raw_${process.pid}_${crypto.randomBytes(4).toString('hex')}`;
+  const admin = await mysql.createConnection(rootConfig);
+  await admin.query(`CREATE DATABASE \`${dbName}\` CHARACTER SET utf8mb4`);
+  await admin.changeUser({ database: dbName });
+  await admin.query(schemaSql);
+  await admin.end();
+  const pool = mysql.createPool({ ...rootConfig, database: dbName, multipleStatements: false, waitForConnections: true, connectionLimit: 5 });
+  return {
+    pool,
+    async teardown() {
+      await pool.end();
+      const admin2 = await mysql.createConnection(rootConfig);
+      await admin2.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
+      await admin2.end();
+    }
+  };
+}
+
+module.exports = { createTestDatabase, createRawTestDatabase };
