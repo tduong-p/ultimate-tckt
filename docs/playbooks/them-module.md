@@ -1,11 +1,11 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-30
 related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml]
 ---
 
@@ -16,6 +16,9 @@ Tài liệu này giúp dev và AI agent quyết định **loại module** (A hay
 ## Khi nào dùng
 
 Khi có một nhóm use case mới đủ lớn để cân nhắc tách thành module riêng thay vì chỉ thêm route vào module đã có (ví dụ: kiểm tra cơ sở, thi đua khen thưởng — xem `.kiro/specs/nen-tang-da-don-vi/design.md` §4.4 mục "Ứng viên").
+
+Bảo trì code bên trong một module đã có (ví dụ seed tài khoản CTD) không phải là thêm module;
+lúc đó theo tài liệu dev/playbook của thay đổi cụ thể.
 
 ## Các bước
 
@@ -66,3 +69,4 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Công tắc production, không dùng concurrency group | DYC |
+| 1.2 | 2026-09-30 | Làm rõ bảo trì bên trong service cũ không phải thêm module | DYC |

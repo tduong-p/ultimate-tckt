@@ -1,12 +1,12 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 1.1
+version: 4.1
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-24
-related_code: [core/src/policies/**, core/src/middleware/auth.js, infra/**]
+updated: 2026-10-01
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
 ---
 
 # Bất biến — điều không được phá
@@ -41,6 +41,19 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
    lần reload/khởi động lại sau đó chết cả staging lẫn production. `apply-infra.sh` gỡ/khôi phục site mới khi `nginx -t` lỗi.
 10. **Mật khẩu DB không bao giờ đi qua dòng lệnh trên host** (`ps` thấy được): dump/restore chạy `sh -c '…$MYSQL_…/$POSTGRES_…'`
    trong container (xem `infra/scripts/backup.sh`). Dump Postgres luôn có `--clean --if-exists` để restore đè được.
+11. **INV-AUTH-001: Quyền hạn phải đọc qua `req.actor`/`req.unitRole`, cấm dùng `users.role`.** Từ GĐ1-A Task 5, 
+   route Điều hành cũ đọc `req.actor` (không `req.session.user`) để tính quyền theo membership. Route mới (module 
+   loại A) phải dùng `req.unitRole` + `req.unit`. Đọc trực tiếp `users.role` hoặc `req.session.user.role` bỏ qua 
+   logic membership và gây lỗ hổng bảo mật.
+12. **INV-AUDIT-001: Mọi thao tác DYC đọc dữ liệu TCKT phải có bản ghi trong `audit_logs`.** Legacy Gate 
+   (`core/src/middleware/legacy-gate.js`) tự động ghi audit khi DYC GET/HEAD route Điều hành. Khi thêm route mới 
+   cho phép DYC đọc dữ liệu đơn vị khác, phải gọi `recordAudit(db, {...})` (`core/src/services/audit.js`) với 
+   `action='cross_unit_read'`. Không audit = vi phạm yêu cầu truy xuất nguồn.
+13. **INV-LEAK-001: Route GET nghiệp vụ phải pass test `units.leak.test.js`.** Mọi route GET trả về dữ liệu 
+   nghiệp vụ (không nằm trong whitelist `OUTSIDER_ALLOW` của test) phải thỏa mãn: (1) người thuộc đơn vị ngoài 
+   (BTV) nhận 403; (2) DYC (platform admin) không bị chặn 403 (nhưng có audit). Test chạy tự động trong CI và 
+   chặn merge khi phát hiện rò rỉ. Không được bỏ qua test này bằng cách thêm route mới vào whitelist trừ khi 
+   route đó thực sự là public (như `/api/health`, `/api/session`).
 
 ## Lịch sử phiên bản
 
@@ -48,3 +61,8 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bất biến 9 (nginx hỏng) và 10 (mật khẩu DB không qua dòng lệnh host) | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 3.0 | 2026-09-29 | Thêm INV-AUTH-001 (quyền qua req.actor/req.unitRole) và INV-AUDIT-001 (audit DYC cross-unit read). Thêm `legacy-gate.js` và `audit.js` vào `related_code`. | DYC |
+| 4.0 | 2026-09-30 | Thêm INV-LEAK-001: bất biến test rò rỉ units.leak.test.js — route GET nghiệp vụ phải 403 với outsider, không 403 với DYC | DYC |
+| 2.1 | 2026-09-30 | Phạm vi xem hoạt động và ranh giới quản lý tài khoản đổi theo pilot PR 4 (không đổi bất biến) | DYC |
+| 4.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |

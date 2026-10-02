@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-LOCAL-001
 title: Chạy dự án ở máy local
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai, onboarding]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-09-30
 related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json]
 ---
 
@@ -44,8 +44,12 @@ python3.12 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
 .venv/bin/alembic upgrade head
 .venv/bin/python -m app.seeds        # dữ liệu mẫu (nếu cần)
+.venv/bin/python -m app.seeds.set_password tckt.dtn@hust.edu.vn   # đặt mật khẩu admin (bắt buộc ngoài APP_ENV=dev)
 .venv/bin/uvicorn app.main:app --reload --port 8000
 ```
+
+Seed admin không bao giờ đổi mật khẩu tài khoản đã có; ngoài `APP_ENV=dev` tài khoản mới được
+tạo **không có** mật khẩu cho tới khi chạy `set_password`.
 
 Ở `APP_ENV=dev`, mã OTP đăng nhập cố định là `123456` (xem `app/infra/otp.py`) — chỉ dùng được khi `APP_ENV=dev`,
 bị chặn ở mọi giá trị khác. Test cần một DB Postgres test riêng:
@@ -78,3 +82,4 @@ docker run -d --name dev-postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres pos
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-09-30 | Lệnh `set_password`; seed admin không ghi đè mật khẩu | DYC |

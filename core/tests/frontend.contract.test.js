@@ -310,3 +310,23 @@ test('translation function t is never shadowed by local variables or parameters 
   assert.doesNotMatch(app, /,\s*t\s*=\s*d\.task/, 'taskDetailModal must not shadow t with d.task');
 });
 
+test('app.js never declares a local that calls a same-named helper (TDZ crash)', () => {
+  const shadowing = [...assets['app.js'].matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*\1\s*\(/g)]
+    .map(match => match[1]);
+  assert.deepEqual(shadowing, []);
+});
+
+test('app.js does not call server-only role helpers', () => {
+  for (const helper of ['isLeadership', 'isExecutive', 'managerOrEventLead']) {
+    assert.doesNotMatch(assets['app.js'], new RegExp(`\\b${helper}\\s*\\(`), `${helper} only exists on the server`);
+  }
+});
+
+test('the frontend no longer ships OneSignal or the legacy test-email UI', () => {
+  const app = fs.readFileSync(path.join(publicDir, 'app.js'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+  for (const text of ['OneSignal', 'setupPushNotifications', 'testEmailModal', 'api/email/test']) {
+    assert.equal(app.includes(text) || html.includes(text), false, `${text} must be gone`);
+  }
+  assert.equal(fs.existsSync(path.join(publicDir, 'OneSignalSDKWorker.js')), false);
+});

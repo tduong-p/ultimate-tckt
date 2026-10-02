@@ -1,0 +1,176 @@
+
+> tckt-activity-hub@2.2.0 test
+> node --test --test-concurrency=1 tests/**/*.test.js
+
+✔ a designated event lead can manage an activity even without a team-lead role (16724.433ms)
+✔ a leader who does not lead any team on the activity cannot manage it (6940.0669ms)
+✔ GET /api/activities and GET /api/activities/:id include event_lead_name (6579.5161ms)
+✔ full proposal workflow: request changes, resubmit, approve (7039.6343ms)
+✔ a leader from an unrelated team cannot submit someone else's activity (17405.7807ms)
+✔ approving an activity that is not in the pending-review status is rejected (7204.8504ms)
+✔ non-admin team leads cannot bypass the approval workflow via PATCH /api/activities/:id (7328.1558ms)
+✔ non-admin team leads keep the ability to edit other allowed fields via PATCH /api/activities/:id (17803.5542ms)
+✔ one root token block supplies every shared visual foundation (4.2493ms)
+✔ the effective shared button and panel styles inherit their foundation tokens (4.8192ms)
+✔ no CSS rule competes with itself for the active font family (3.4435ms)
+✔ keyboard focus has a high-contrast ring instead of an invisible reset (1.1386ms)
+✔ reduced-motion users receive bounded animation, transition, and scroll overrides (0.3497ms)
+✔ mobile layouts reveal navigation and wide data instead of clipping either (0.7421ms)
+✔ foundation CSS does not generate text glyphs as substitute icons (6.9011ms)
+✔ the shared shell uses accessible Phosphor icons instead of text-symbol controls (0.4922ms)
+✔ the application shell exposes stable landmarks, labelled controls, and a mobile drawer (0.642ms)
+✔ shared render primitives and new-tab links preserve safe, reusable contracts (1.4074ms)
+✔ authentication and onboarding provide accessible form states, live errors, and dialog semantics (0.6418ms)
+✔ personal workflows (#my-tasks-today, #my-tasks, task detail) use shared primitives, accessible controls, and no raw emoji (1.018ms)
+✔ activity and calendar workflows (#calendar, #activities, Kanban) use accessible controls, Phosphor icons, and shared headers (1.1132ms)
+✔ organization workflows (#teams, #people, #team/:id) use shared headers and accessible modal confirmations instead of native confirm (0.6539ms)
+✔ knowledge, reporting and notification surfaces (#documents, #reports, #archive, notifications) use shared primitives and Phosphor icons (1.0209ms)
+✔ translation function t is never shadowed by local variables or parameters in app.js (1.9196ms)
+✔ createUser without an email override returns the email actually stored in the database (6635.1749ms)
+✔ legacyRole: DYC reads as admin, TCKT role otherwise, null for outsiders (1.1284ms)
+✔ unauthenticated request gets null/empty defaults (not 500) (6681.494ms)
+✔ user with valid membership gets correct unit context and actor (6939.8341ms)
+✔ session with stale current_unit_id falls back to first membership (17238.2809ms)
+✔ user without any membership gets empty memberships and null unit (6365.7783ms)
+✔ inactive unit is excluded and middleware falls back (6764.7038ms)
+✔ migrateDatabase is idempotent and ensures all required tables and columns exist (17170.1803ms)
+✔ multi-unit tables exist after the test DB is created (helper runs migrate) (6953.1822ms)
+✔ backfill: teams/activities -> TCKT, users.role -> TCKT membership, BTV->TCKT summary (6839.0066ms)
+✔ re-running migrate is idempotent and does not re-add a removed membership (6623.491ms)
+✔ my-tasks-today separates due-today, overdue, and (for leads) pending review (18491.8241ms)
+✔ vice_admin has executive powers to approve activities and bypass self-review (6913.7744ms)
+✔ team leader can bypass anti-self-review for tasks in their own team (7338.0227ms)
+✔ regular member CANNOT bypass anti-self-review (strictly forbidden) (17144.4153ms)
+✔ vice_leader can propose activities and bypass anti-self-review in their own team, but cannot approve activities (7404.327ms)
+✔ overdue and unacknowledged tasks each produce one notification, idempotently (7899.1368ms)
+✔ GET /api/health returns ok against the seeded schema (16402.8097ms)
+✔ assignee can add and toggle checklist items; outsider cannot (7161.3046ms)
+✔ creating a task requires a primary assignee who belongs to the team (7281.4051ms)
+✔ a member can acknowledge and move todo -> in_progress, but cannot jump to review or done (17742.8635ms)
+✔ submitting for review without a link or file is rejected (7488.6481ms)
+✔ submit with a link moves the task to review; member cannot review their own task (6810.0373ms)
+✔ lead approval marks the task done; rejection sends it back with feedback (6708.5964ms)
+✔ a co-assignee (non-primary) who is also the team lead can review their task (leadership bypass) (17357.879ms)
+✔ member can self-log work with weight and evidence into an active activity (7476.0914ms)
+✔ self-log validation rules: outsider rejected, invalid weight rejected, self-log without evidence accepted (7677.7566ms)
+✔ self-log boundary weights: accepts weight=0 and weight=10 (17799.7585ms)
+✔ reviewer can reject/cancel self-logged task with decision=cancel and feedback (6654.5215ms)
+✔ member can cancel/withdraw their own self-logged task before completion (7602.1548ms)
+✔ admin can delete an empty team (17172.916ms)
+✔ vice_admin can delete an empty team (7222.9452ms)
+✔ cannot delete a team that has active activities (7328.8697ms)
+✔ cannot delete a team that has uncompleted tasks (16900.046ms)
+✔ team leader and regular member cannot delete a team (6832.6163ms)
+✔ team leader can remove a regular member from their team (6872.3586ms)
+✔ team leader cannot remove another leader from the team (6910.2461ms)
+✔ regular member cannot remove anyone from a team (17001.2882ms)
+✔ removing a leader from their only leadership team reverts role to member (7172.8129ms)
+✔ role validity is checked against the unit kind (1.504ms)
+✔ unit admins are dyc_admin, btv_lead and TCKT admin/vice_admin only (0.2416ms)
+✔ seed units cover every kind, codes are unique, grassroots are marked fake (0.557ms)
+✔ legacyRole: DYC reads as admin, TCKT role otherwise, null for outsiders (1.0057ms)
+✔ session exposes units; a user without memberships is refused with 403 (7304.2572ms)
+✔ switching unit: members only; stale current unit falls back to the first membership (17849.8079ms)
+✔ role changes through the old user API keep the TCKT membership in sync (7547.2106ms)
+✔ a first-time SSO account becomes a TCKT member (6417.3792ms)
+▶ Task 6 - DYC Bootstrap and platformAdmin
+  ▶ devopsEmailAllowlist
+    ✔ returns empty array when no env vars are set (3.2029ms)
+    ✔ parses DEVOPS_EMAILS properly (0.8135ms)
+    ✔ parses CORE_DEVOPS_EMAILS properly (0.7317ms)
+    ✔ prioritizes DEVOPS_EMAILS over CORE_DEVOPS_EMAILS (0.7782ms)
+  ✔ devopsEmailAllowlist (7.5318ms)
+  ▶ platformAdmin and isPlatformAdmin
+    ✔ isPlatformAdmin returns true if user has platform_owner kind (0.8107ms)
+    ✔ platformAdmin middleware calls next if platform admin (1.4815ms)
+    ✔ platformAdmin middleware returns 403 if not platform admin (0.822ms)
+  ✔ platformAdmin and isPlatformAdmin (4.2744ms)
+  ▶ ensureDycAdmins
+    ✔ does nothing if email list is empty (0.7567ms)
+    ✔ upserts membership for found users (1.0046ms)
+  ✔ ensureDycAdmins (2.5973ms)
+✔ Task 6 - DYC Bootstrap and platformAdmin (16.2064ms)
+
+📊 Route scan results:
+   Total GET routes: 25
+   Public routes (whitelisted): 7
+   Business routes (to test): 18
+
+❌ DATA LEAK DETECTED:
+   The following routes are accessible to outsiders (BTV):
+   - /auth/microsoft → 503
+   - /auth/microsoft/callback → 400
+✖ Data leak regression test: outsiders get 403, platform admins do not (8211.181ms)
+✔ outsiders (BTV only) get 403 on Điều hành routes (15698.8493ms)
+✔ DYC reads private TCKT data with an audit row per request, and cannot write (7203.9164ms)
+✔ TCKT members are not audited and permission follows the membership, not users.role (6985.2154ms)
+✔ a user in both TCKT and DYC writes with the TCKT role and reads without audit (17158.3601ms)
+✔ user without any membership hits auth 403 (unorphaned check preserved) (6899.1619ms)
+✔ fixture user gets a TCKT membership equal to its role; units override replaces it (7454.3668ms)
+✔ listMemberships keeps insertion order and hides inactive units (7673.9993ms)
+✔ upsertMembership rejects a role that does not fit the unit kind with status 400 (17574.8714ms)
+✔ TCKT role sync works both ways (7017.5554ms)
+✔ ensureDycAdmins grants (or upgrades to) dyc_admin for existing emails only, idempotently (6590.0565ms)
+✔ GET /api/units - DYC sees all active units (17361.5989ms)
+✔ GET /api/units - regular user only sees their units (6246.6193ms)
+✔ GET /api/units/:id/members - returns members list (6765.2786ms)
+✔ PUT /api/units/:id/members/:userId - dyc_admin can manage DYC members (6873.5285ms)
+✔ PUT /api/units/:id/members/:userId - dyc_engineer CANNOT manage DYC members (17099.7981ms)
+✔ PUT /api/units/:id/members/:userId - dyc_engineer CAN manage other units (6926.6934ms)
+✔ PUT /api/units/:id/members/:userId - TCKT admin can manage TCKT (6861.6532ms)
+✔ PUT /api/units/:id/members/:userId - TCKT admin CANNOT manage other units (17542.8261ms)
+✔ PUT /api/units/:id/members/:userId - validates role for unit kind (7486.597ms)
+✔ PUT /api/units/:id/members/:userId - validates user exists and is active (5993.74ms)
+✔ DELETE /api/units/:id/members/:userId - removes membership (6717.0252ms)
+✔ DELETE /api/units/:id/members/:userId - prevents removing last dyc_admin (16469.1837ms)
+✔ DELETE /api/units/:id/members/:userId - allows removing non-last dyc_admin (6589.1572ms)
+✔ Unit routes require authentication (6288.9764ms)
+✔ GET /api/units/:id/members - permission check (5955.7891ms)
+✔ DYC can modify both platform and unit settings (6191.5581ms)
+✔ TCKT admin can modify unit-level settings (6144.0927ms)
+✔ TCKT vice_admin can modify unit-level settings (16515.2765ms)
+✔ TCKT leader cannot modify unit-level settings (not admin) (6752.2569ms)
+✔ TCKT member cannot modify unit-level settings (5966.028ms)
+✔ Lock prevents TCKT admin from modifying, but not DYC (7608.9486ms)
+✔ GET /api/platform/setting-locks returns all locks (auth only) (7406.8564ms)
+✔ Cannot lock platform-level settings (6720.3959ms)
+✔ Cannot lock with invalid setting_key (6255.166ms)
+✔ Cannot lock without reason (6204.4003ms)
+✔ DELETE non-existent lock returns 404 (15787.713ms)
+✔ Only platformAdmin can create/delete locks (5525.2634ms)
+✔ Lock with specific unit_id only blocks that unit (5683.6685ms)
+✔ admin can create a local account with a password (6554.1509ms)
+✔ admin can pre-provision an SSO-only account without a password (6667.5785ms)
+✔ bulk import creates multiple SSO stub accounts and skips existing emails (6899.9218ms)
+✔ GET /api/people returns user list with auth_provider and can_manage flags (6500.0027ms)
+✔ admin can update user and delete/deactivate user (16743.0519ms)
+✔ GET /api/weight-presets returns active presets for authenticated user (5892.4571ms)
+✔ executive can create, update, and delete weight presets; validates points 0-10 (6765.0648ms)
+ℹ tests 130
+ℹ suites 0
+ℹ pass 129
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 934076.7815
+
+✖ failing tests:
+
+test at tests\units.leak.test.js:89:1
+✖ Data leak regression test: outsiders get 403, platform admins do not (8211.181ms)
+  AssertionError [ERR_ASSERTION]: Found 2 data leak(s). Outsiders should get 403 on all business routes.
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (C:\Users\Admin\Documents\GitHub\ultimate-tckt\core\tests\units.leak.test.js:178:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

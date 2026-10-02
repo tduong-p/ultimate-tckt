@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-TEST-001
 title: Setup database test trên VPS
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops]
 owner: DYC
@@ -719,3 +719,4 @@ cd /opt/ultimate-tckt/test-repo/services/ctd-api/backend && .venv/bin/alembic up
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu tiên - Setup DB test trên VPS | DYC |
+| 1.1 | 2026-09-27 | Cập nhật tham chiếu script migrate (GĐ1-A) | D2 |

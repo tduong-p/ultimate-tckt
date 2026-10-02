@@ -1206,7 +1206,7 @@ dialog {
 }
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   background: var(--line, #e2e8f0);
   gap: 1px;
   border: 1px solid var(--line, #e2e8f0);
@@ -2586,7 +2586,7 @@ dialog {
 .notion-table-container {
   border: 1px solid #dcd9d0;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }

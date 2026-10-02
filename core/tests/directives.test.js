@@ -119,16 +119,19 @@ describe('Directives & Submissions API Tests', () => {
   });
 
   test('POST /api/directives/:id/acknowledge tiếp nhận thành công khi là TCKT admin', async () => {
+    let callCount = 0;
     const dbMock = {
       execute: async (sql, params) => {
         if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-          return [[{ id: 1, status: 'sent' }]];
+          callCount++;
+          if (callCount === 1) {
+            return [[{ id: 1, status: 'sent' }]];
+          } else {
+            return [[{ id: 1, status: 'acknowledged' }]];
+          }
         }
         if (sql.includes('UPDATE directives SET status = \'acknowledged\'')) {
           return [{ affectedRows: 1 }];
-        }
-        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-          return [[{ id: 1, status: 'acknowledged' }]];
         }
         return [[]];
       }
@@ -152,10 +155,16 @@ describe('Directives & Submissions API Tests', () => {
   });
 
   test('POST /api/directives/:id/link-activity liên kết hoạt động thành công', async () => {
+    let callCount = 0;
     const dbMock = {
       execute: async (sql, params) => {
         if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
-          return [[{ id: 1, status: 'acknowledged' }]];
+          callCount++;
+          if (callCount === 1) {
+            return [[{ id: 1, status: 'acknowledged' }]];
+          } else {
+            return [[{ id: 1, status: 'in_progress' }]];
+          }
         }
         if (sql.includes('UPDATE activities SET directive_id = ?')) {
           return [{ affectedRows: 1 }];
@@ -185,6 +194,7 @@ describe('Directives & Submissions API Tests', () => {
   });
 
   test('POST /api/directives/:id/submit trình kết quả thành công', async () => {
+    let callCount = 0;
     const dbMock = {
       execute: async (sql, params) => {
         if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
@@ -225,6 +235,9 @@ describe('Directives & Submissions API Tests', () => {
         }
         if (sql.includes('UPDATE submissions SET response = ?')) {
           return [{ affectedRows: 1 }];
+        }
+        if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
+          return [[{ id: 20, response: 'accepted' }]];
         }
         return [[]];
       }

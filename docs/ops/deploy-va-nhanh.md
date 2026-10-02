@@ -1,12 +1,12 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 1.2
+version: 3.0
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
-related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh]
+updated: 2026-09-30
+related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh]
 ---
 
 # Deploy và nhánh git
@@ -85,6 +85,101 @@ cd /opt/ultimate-tckt/<staging|production>
 docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/docker-compose.<env>.yml logs -f core
 ```
 
+## 7. Deploy GĐ1-A Nền tảng đa đơn vị
+
+**Checklist trước khi merge GĐ1-A vào `main`:**
+
+1. **Backup DB production** trước khi merge:
+   ```bash
+   ssh ubuntu@168.107.68.32
+   bash /opt/ultimate-tckt/production/infra/scripts/backup.sh production
+   # File backup lưu ở /opt/ultimate-tckt/production/backups/
+   ```
+
+2. **Chạy test rò rỉ trên staging** để đảm bảo không có lỗ hổng:
+   ```bash
+   # Trên máy dev (cần kết nối DB staging)
+   cd core
+   node --test tests/units.leak.test.js
+   ```
+
+3. **Verify migration thành công** sau khi deploy staging:
+   ```bash
+   ssh ubuntu@168.107.68.32
+   cd /opt/ultimate-tckt/staging
+   
+   # Kiểm tra số lượng membership >= số user
+   docker compose -p ultimate-tckt-staging --env-file infra/.env \
+     -f infra/compose/docker-compose.staging.yml \
+     exec core-db mysql -u root -p ultimate_tckt_staging -e \
+     "SELECT 'users' AS tbl, COUNT(*) AS cnt FROM users
+      UNION ALL
+      SELECT 'unit_memberships', COUNT(*) FROM unit_memberships;"
+   
+   # Kết quả kỳ vọng: unit_memberships >= users
+   # (Vì user cũ được gán membership TCKT + devops được gán thêm DYC)
+   
+   # Kiểm tra bảng đa đơn vị đã tạo
+   docker compose -p ultimate-tckt-staging --env-file infra/.env \
+     -f infra/compose/docker-compose.staging.yml \
+     exec core-db mysql -u root -p ultimate_tckt_staging -e \
+     "SHOW TABLES LIKE 'org_units'; 
+      SELECT code, name FROM org_units;"
+   ```
+
+4. **Test đăng nhập thử** trên staging:
+   - Vào `https://staging.tckt.hust.edu.vn` (hoặc domain staging)
+   - Đăng nhập bằng tài khoản TCKT bình thường → phải vào được
+   - Đăng nhập bằng tài khoản DYC (email trong `DEVOPS_EMAILS`) → phải vào được và thấy toàn bộ dữ liệu
+
+5. **Kiểm tra log không có lỗi** sau deploy staging:
+   ```bash
+   docker compose -p ultimate-tckt-staging --env-file infra/.env \
+     -f infra/compose/docker-compose.staging.yml logs core --tail=100
+   ```
+
+**Rollback plan nếu migration lỗi:**
+
+Nếu sau khi merge vào `main` và deploy production, phát hiện lỗi nghiêm trọng (app crash, quyền sai, dữ liệu mất):
+
+1. **Restore DB từ backup:**
+   ```bash
+   ssh ubuntu@168.107.68.32
+   cd /opt/ultimate-tckt/production/backups
+   # Tìm file backup mới nhất trước khi deploy GĐ1-A
+   ls -lht | head -10
+   
+   # Restore (thay <backup-file> bằng tên file thực tế)
+   docker compose -p ultimate-tckt-production --env-file ../infra/.env \
+     -f ../infra/compose/docker-compose.production.yml \
+     exec -T core-db sh -c 'mysql -u root -p"$MYSQL_ROOT_PASSWORD" ultimate_tckt' \
+     < <backup-file>
+   ```
+
+2. **Revert code về commit trước GĐ1-A:**
+   ```bash
+   cd /opt/ultimate-tckt/production
+   
+   # Tìm commit trước khi merge GĐ1-A
+   git log --oneline main | head -20
+   
+   # Revert về commit cũ (thay <commit-hash>)
+   git reset --hard <commit-hash>
+   ```
+
+3. **Re-deploy service:**
+   ```bash
+   bash /opt/ultimate-tckt/production/infra/scripts/deploy.sh production core <tag-cu>
+   ```
+
+4. **Verify app hoạt động:**
+   ```bash
+   curl -I http://127.0.0.1:3000/api/health
+   # Phải trả về 200 OK
+   ```
+
+**Lưu ý:** Migration GĐ1-A idempotent (chạy lại không lỗi), nhưng rollback DB sẽ mất dữ liệu membership/audit logs được tạo sau khi deploy. Chỉ rollback khi thực sự cần thiết (app không chạy được hoặc rò rỉ dữ liệu nghiêm trọng).
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -92,3 +187,5 @@ docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/doc
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Staging: thay đổi đi qua PR vì ruleset bắt buộc check | DYC |
 | 1.2 | 2026-09-24 | Bỏ concurrency group (flock trên VM), thêm công tắc `PROD_DEPLOY_ENABLED` | DYC |
+| 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 3.0 | 2026-09-30 | Thêm mục 7: Runbook deploy GĐ1-A (backup DB, verify migration, test đăng nhập, rollback plan) | DYC |
