@@ -1,5 +1,5 @@
 from email.message import EmailMessage
-from email.utils import formataddr
+from email.utils import formataddr, formatdate, make_msgid
 import smtplib
 from typing import Optional
 
@@ -36,6 +36,8 @@ class SmtpDriver(Driver):
         if message.reply_to:
             msg["Reply-To"] = message.reply_to
         msg["Subject"] = message.subject
+        msg["Date"] = formatdate(localtime=True)
+        msg["Message-ID"] = make_msgid(domain=self.mail_from.rsplit("@", 1)[-1])
 
         msg.set_content(message.text)
         msg.add_alternative(message.html, subtype="html")

@@ -197,3 +197,31 @@ def test_concurrent_same_key_creates_one_row(make_client):
     count = check_db.query(Notification).filter_by(dedupe_key="concurrent-key-1").count()
     check_db.close()
     assert count == 1
+
+
+@pytest.mark.parametrize("override", [
+    {"recipients": ["an@example.com"]},
+    {"recipients": [{"email": "khong-phai-email"}]},
+    {"recipients": [{"email": "an@example.com", "name": 5}]},
+    {"cc": ["b@example.com\r\nBcc: x@evil.example"]},
+    {"reply_to": "not-an-email"},
+    {"expires_at": "ngày mai"},
+    {"expires_at": "2026-10-03T08:00:00"},
+    {"priority": "urgent"},
+    {"data": ["không phải object"]},
+    {"dedupe_key": 123},
+    {"source_ref": "x" * 256},
+])
+def test_malformed_fields_are_400_not_500(client, make_client, override):
+    _, key = make_client()
+    r = client.post("/v1/notifications", json=body(**override), headers=auth(key))
+    assert r.status_code == 400, r.text
+    assert r.json()["error"] == "validation_error"
+
+
+def test_undeclared_recipient_variables_are_not_stored(client, db, make_client):
+    _, key = make_client()
+    b = body(recipients=[{"email": "an@example.com", "variables": {"actor": "Riêng", "secret": "x"}}])
+    assert client.post("/v1/notifications", json=b, headers=auth(key)).status_code == 202
+    rec = db.query(NotificationRecipient).one()
+    assert rec.variables == {"actor": "Riêng"}

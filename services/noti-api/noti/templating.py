@@ -68,7 +68,7 @@ class Registry:
     def items(self):
         return self.templates.items()
 
-    def render(self, key: str, data: dict, recipient_name: str | None = None, base_url: str = "https://app.example") -> "Rendered":
+    def render(self, key: str, data: dict, recipient_name: str | None, base_url: str) -> "Rendered":
         return render(self, key, data, recipient_name, base_url)
 
 

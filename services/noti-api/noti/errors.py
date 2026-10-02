@@ -2,6 +2,8 @@ from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from noti.schemas import format_errors
+
 
 class NotiError(Exception):
     def __init__(self, status: int, code: str, details: list | None = None, extra: dict | None = None):
@@ -22,11 +24,7 @@ async def noti_error_handler(request: Request, exc: NotiError) -> JSONResponse:
 
 
 async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    details = []
-    for err in exc.errors():
-        loc = ".".join(str(x) for x in err.get("loc", []) if x not in ("body",))
-        msg = err.get("msg", "")
-        details.append(f"{loc}: {msg}" if loc else msg)
+    details = format_errors(exc.errors())
     return JSONResponse(
         status_code=400,
         content={"error": "validation_error", "details": details},

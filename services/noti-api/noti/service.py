@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 import uuid
 
+from pydantic import ValidationError
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 from noti.config import settings
 from noti.errors import NotiError
 from noti.hashing import payload_hash
+from noti.schemas import NotificationIn, format_errors
 from noti.models import ApiClient, Notification, NotificationRecipient
 from noti.status import overall_status
 from noti.templating import Registry, render
@@ -39,10 +41,12 @@ def create_notification(
     payload_data: dict,
     registry: Registry,
 ) -> dict:
-    template_name = payload_data.get("template")
-    if not template_name:
-        raise NotiError(400, "validation_error", details=["Trường 'template' là bắt buộc"])
+    try:
+        body = NotificationIn.model_validate(payload_data)
+    except ValidationError as error:
+        raise NotiError(400, "validation_error", details=format_errors(error.errors()))
 
+    template_name = body.template
     if client.allowed_templates and template_name not in client.allowed_templates:
         raise NotiError(400, "validation_error", details=[f"Template '{template_name}' không được phép với client này"])
 
@@ -50,72 +54,42 @@ def create_notification(
     if template is None:
         raise NotiError(400, "validation_error", details=[f"Template '{template_name}' không tồn tại"])
 
-    raw_recipients = payload_data.get("recipients")
-    if not raw_recipients or not isinstance(raw_recipients, list):
-        raise NotiError(400, "validation_error", details=["Danh sách 'recipients' không được rỗng"])
-    if len(raw_recipients) > 50:
-        raise NotiError(400, "validation_error", details=["Số lượng người nhận tối đa là 50"])
-
-    raw_data = payload_data.get("data") or {}
-    missing = template.missing(raw_data)
+    missing = template.missing(body.data)
     if missing:
         raise NotiError(400, "validation_error", details=[f"Thiếu trường bắt buộc: {f}" for f in missing])
 
-    pruned_data = template.prune(raw_data)
+    pruned_data = template.prune(body.data)
     _validate_paths(pruned_data)
 
-    # Normalize recipients: lowercase email, deduplicate
+    # Chuẩn hoá người nhận: email chữ thường, loại trùng; biến riêng cũng chỉ giữ biến đã khai (§9)
     seen_emails = set()
     recipients = []
-    for r in raw_recipients:
-        email = (r.get("email") or "").strip().lower()
-        if not email or "@" not in email:
-            raise NotiError(400, "validation_error", details=[f"Địa chỉ email '{email}' không hợp lệ"])
-        if email not in seen_emails:
-            seen_emails.add(email)
-            recipients.append({
-                "email": email,
-                "name": (r.get("name") or "").strip() or None,
-                "variables": r.get("variables") or {},
-            })
+    for r in body.recipients:
+        email = str(r.email).lower()
+        if email in seen_emails:
+            continue
+        seen_emails.add(email)
+        variables = template.prune(r.variables)
+        _validate_paths(variables)
+        recipients.append({"email": email, "name": (r.name or "").strip() or None, "variables": variables})
 
-    # Try test render with first recipient
-    first_rec = recipients[0]
-    test_context_data = {**pruned_data, **(first_rec.get("variables") or {})}
-    try:
-        render(registry, template_name, test_context_data, first_rec.get("name"), settings.app_base_url)
-    except Exception as e:
-        raise NotiError(400, "validation_error", details=[f"Lỗi render template: {str(e)}"])
+    # Thử render với từng người nhận để bắt lỗi ngay lúc nhận yêu cầu
+    for rec in recipients:
+        try:
+            render(registry, template_name, {**pruned_data, **rec["variables"]}, rec["name"], settings.app_base_url)
+        except Exception as e:
+            raise NotiError(400, "validation_error", details=[f"Lỗi render template: {str(e)}"])
 
-    raw_cc = payload_data.get("cc") or []
-    seen_cc = set()
-    cc_list = []
-    for c in raw_cc:
-        c_lower = c.strip().lower()
-        if c_lower and "@" in c_lower and c_lower not in seen_cc:
-            seen_cc.add(c_lower)
-            cc_list.append(c_lower)
+    cc_list = list(dict.fromkeys(str(c).lower() for c in body.cc))
+    reply_to = str(body.reply_to).lower() if body.reply_to else None
+    priority_val = PRIORITY_MAP[body.priority]
 
-    reply_to = payload_data.get("reply_to")
-    if reply_to:
-        reply_to = reply_to.strip().lower()
-
-    priority_str = payload_data.get("priority", "normal")
-    priority_val = PRIORITY_MAP.get(priority_str, 1)
-
-    expires_at = payload_data.get("expires_at")
-    if expires_at and isinstance(expires_at, str):
-        expires_at = datetime.fromisoformat(expires_at)
-    elif not expires_at and template.ttl:
+    expires_at = body.expires_at
+    if expires_at is None and template.ttl:
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=template.ttl)
 
-    dedupe_key = payload_data.get("dedupe_key")
-    if dedupe_key and len(dedupe_key) > 255:
-        raise NotiError(400, "validation_error", details=["'dedupe_key' không được vượt quá 255 ký tự"])
-
-    source_ref = payload_data.get("source_ref")
-    if source_ref and len(source_ref) > 255:
-        raise NotiError(400, "validation_error", details=["'source_ref' không được vượt quá 255 ký tự"])
+    dedupe_key = body.dedupe_key
+    source_ref = body.source_ref
 
     h = payload_hash(template_name, recipients, cc_list, reply_to, pruned_data)
 

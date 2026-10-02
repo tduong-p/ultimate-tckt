@@ -1,21 +1,19 @@
+from collections import deque
 import logging
-from typing import ClassVar
+
 from noti.drivers.base import Driver, Message
 
 logger = logging.getLogger(__name__)
 
 
 class ConsoleDriver(Driver):
-    outbox: ClassVar[list[Message]] = []
+    """Không gửi thật. Giữ vài thư gần nhất trong bộ nhớ để test/kiểm tra tay; log không chứa nội dung (§12)."""
+
+    MAX_OUTBOX = 100
 
     def __init__(self):
-        # Allow instance-level access to outbox while keeping class-level shared
-        pass
+        self.outbox: deque[Message] = deque(maxlen=self.MAX_OUTBOX)
 
     def send(self, message: Message) -> None:
-        logger.info(
-            "ConsoleDriver: dispatched email subject='%s' (recipients_count=%d)",
-            message.subject,
-            1 + len(message.cc),
-        )
+        logger.info("ConsoleDriver: email not sent (console driver), recipients_count=%d", 1 + len(message.cc))
         self.outbox.append(message)

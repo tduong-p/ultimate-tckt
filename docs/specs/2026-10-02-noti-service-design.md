@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -11,8 +11,8 @@ related_code: [services/noti-api/**]
 
 # Service Noti — thiết kế
 
-> Trạng thái: **active** (đã triển khai theo kế hoạch PLAN-NOTI-001). Code nằm tại `services/noti-api/**`.
-> Bản 1.2 ghi nhận việc hoàn tất triển khai Noti service.
+> Trạng thái: **active** — code theo PLAN-NOTI-001 nằm ở `services/noti-api/**`; **chưa chạy trên VM**, phần hạ tầng (§13)
+> chờ issue liên module. Core chưa gọi Noti.
 
 ## 1. Mục tiêu
 
@@ -212,7 +212,7 @@ templates/
 - Basic auth SMTP của Exchange Online đang bị Microsoft tắt dần (mặc định tắt cuối 12/2026 cho tenant hiện có; mốc có thể đổi), nên không xây trên đó. `graph` dùng OAuth và cần **admin trường cấp quyền `Mail.Send` kiểu application**. Việc xin quyền chạy song song, không chặn code vì `console` và `smtp` đủ để phát triển và kiểm thử.
 - **Yêu cầu khi xin quyền:** `Mail.Send` kiểu application mặc định cho phép gửi **từ mọi hộp thư** trong tenant. Phải xin IT **giới hạn phạm vi theo hộp thư gửi duy nhất** (Exchange *RBAC for Applications* hoặc application access policy) và dùng một **hộp thư chung riêng cho Noti**, không dùng hộp thư cá nhân.
 - Ưu tiên **chứng chỉ** thay cho client secret; secret nếu dùng phải có lịch xoay vòng (≤ 12 tháng) và người chịu trách nhiệm.
-- **Staging không được gửi cho người thật** trừ khi có danh sách cho phép: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ); thư tới địa chỉ ngoài danh sách bị chuyển hướng về `NOTI_REDIRECT_TO` (một hộp thư thử) hoặc bỏ. Production để trống danh sách (gửi thẳng).
+- **Staging không được gửi cho người thật** trừ khi có danh sách cho phép: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ); thư tới địa chỉ ngoài danh sách bị chuyển hướng về `NOTI_REDIRECT_TO` (một hộp thư thử) hoặc bỏ; địa chỉ CC ngoài danh sách luôn bị bỏ. Production để trống danh sách (gửi thẳng).
 - Mọi secret chỉ qua biến môi trường, không vào repo hay log.
 
 ## 11. Xác thực
@@ -290,6 +290,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |

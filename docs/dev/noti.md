@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -13,8 +13,11 @@ related_code: [services/noti-api/**]
 
 Service **Noti** (`services/noti-api/`) là dịch vụ thông báo độc lập cho hệ thống `ultimate-tckt`. Noti cung cấp HTTP API để nhận yêu cầu gửi email từ các module khác (Core, CTD, …), render template an toàn (Jinja2 + autoescape + inlined CSS), xếp hàng đợi trong database Postgres (`noti`), và worker xử lý gửi qua 3 driver: `console`, `smtp`, `graph` (Microsoft 365).
 
-Tài liệu thiết kế chi tiết: [SPEC-NOTI-001](file:///Users/duongpt/Developer/ultimate-tckt/docs/specs/2026-10-02-noti-service-design.md).
-Quyết định kiến trúc: [ADR-0014](file:///Users/duongpt/Developer/ultimate-tckt/docs/adr/0014-noti-service.md).
+Tài liệu thiết kế chi tiết: [SPEC-NOTI-001](../specs/2026-10-02-noti-service-design.md).
+Quyết định kiến trúc: [ADR-0014](../adr/0014-noti-service.md).
+
+> **Trạng thái:** code và test đã có trong repo, **chưa chạy trên VM**. Compose, CI, env/secret trên VM, lịch `purge`
+> và cảnh báo đang chờ issue liên module (spec §13). Core vẫn chưa gọi Noti: facade `core/src/notifier.js` chưa có sender.
 
 ## 1. Cấu trúc thư mục
 
@@ -90,6 +93,19 @@ python -m noti.worker
 ```bash
 pytest
 ```
+
+### 2.6. Cấu hình
+
+Mọi biến môi trường có tiền tố `NOTI_` và được liệt kê đầy đủ trong `services/noti-api/.env.example`
+(test `test_env_example_matches_settings_fields` bắt lệch giữa file này và `noti/config.py`). Điểm cần nhớ:
+
+- `NOTI_MAIL_DRIVER` mặc định `console`: không gửi thật, chỉ giữ 100 thư gần nhất trong bộ nhớ, log không chứa nội dung.
+- `NOTI_APP_BASE_URL` là gốc của mọi liên kết trong email; người gọi chỉ gửi đường dẫn tương đối.
+- Driver `graph`: `NOTI_GRAPH_TENANT`, `NOTI_GRAPH_CLIENT_ID`, và chứng chỉ (`NOTI_GRAPH_CERTIFICATE_PATH` +
+  `NOTI_GRAPH_CERTIFICATE_THUMBPRINT`, ưu tiên) hoặc `NOTI_GRAPH_CLIENT_SECRET`; `NOTI_MAIL_FROM` là hộp thư chung gửi đi.
+- Staging: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ, phân tách bằng dấu phẩy). Người nhận ngoài danh sách được
+  chuyển về `NOTI_REDIRECT_TO` (hoặc bỏ nếu trống); **CC ngoài danh sách luôn bị bỏ**, không chuyển hướng.
+  Production để trống danh sách.
 
 ## 3. Quản lý client và API key (CLI)
 
@@ -189,22 +205,21 @@ curl http://localhost:8000/v1/templates \
 
 | Mã HTTP | Mã lỗi (`error`) | Ý nghĩa |
 |---|---|---|
-| `400` | `validation_error` | Thiếu biến bắt buộc, đường dẫn tuyệt đối trong path, quá 50 người nhận, template không tồn tại hoặc ngoài quyền cho phép của client. |
+| `400` | `validation_error` | Thân sai kiểu (email không hợp lệ, `expires_at` thiếu múi giờ, `priority` lạ…), thiếu biến bắt buộc, đường dẫn tuyệt đối trong path, 0 hoặc quá 50 người nhận, template không tồn tại hoặc ngoài quyền của client. |
 | `401` | `unauthorized` | Thiếu hoặc sai API key, hoặc key đã bị thu hồi. |
 | `404` | `not_found` | Không tìm thấy thông báo hoặc thông báo thuộc về client khác. |
 | `409` | `dedupe_key_conflict` | Cùng `dedupe_key` nhưng payload đã bị thay đổi so với lần gọi trước. |
-| `413` | `request_entity_too_large` | Kích thước payload vượt quá giới hạn cấu hình (mặc định 64KB). |
+| `413` | — (thân rỗng) | Kích thước payload vượt quá giới hạn cấu hình (mặc định 64 KB). |
 
 ## 7. Quy ước `dedupe_key`
 
-`dedupe_key` là bắt buộc để chống gửi lặp sự kiện. Quy ước đặt key:
-- Giao việc: `task-assigned:<taskId>:<userId>`
-- Nghiệm thu: `task-review:<taskId>:<reviewerId>:<thời điểm request>`
-- Nhắc hạn scheduler: `task-deadline-<4h|24h>:<taskId>:<userId>:<ngày YYYY-MM-DD>`
-- Phản hồi: `task-response:<updateId>:<userId>`
+`dedupe_key` là **tuỳ chọn**: không gửi thì Noti không chống trùng (spec §8). Core sẽ gửi đúng `sourceKey` mà facade
+`core/src/notifier.js` nhận ở mỗi điểm gọi (bảng sự kiện trong `docs/specs/2026-10-02-go-email-cu-plan.md`).
+Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`.
 
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.1 | 2026-10-02 | Sửa link tuyệt đối; ghi rõ chưa chạy trên VM; thêm mục cấu hình (graph, allowlist áp cho CC); `dedupe_key` là tuỳ chọn, trỏ về playbook; sửa mã 413 và mô tả 400 | DYC |
 | 1.0 | 2026-10-02 | Tài liệu ban đầu hướng dẫn phát triển và vận hành Noti service (PLAN-NOTI-001) | DYC |

@@ -12,6 +12,7 @@ class GraphDriver(Driver):
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
         certificate_path: Optional[str] = None,
+        certificate_thumbprint: Optional[str] = None,
         mail_from: Optional[str] = None,
         timeout: int = 30,
         transport: Optional[httpx.BaseTransport] = None,
@@ -20,25 +21,28 @@ class GraphDriver(Driver):
         self.client_id = client_id or ""
         self.client_secret = client_secret or ""
         self.certificate_path = certificate_path
+        self.certificate_thumbprint = certificate_thumbprint or ""
         self.mail_from = mail_from or "noreply@hust.edu.vn"
         self.timeout = timeout
         self.transport = transport
+        self._app = None  # MSAL tự cache token trong app; tạo một lần cho mỗi driver
+
+    def _msal_app(self):
+        if self._app is None:
+            if self.certificate_path:
+                with open(self.certificate_path, "r", encoding="utf-8") as f:
+                    credential = {"private_key": f.read(), "thumbprint": self.certificate_thumbprint}
+            else:
+                credential = self.client_secret
+            self._app = msal.ConfidentialClientApplication(
+                self.client_id,
+                authority=f"https://login.microsoftonline.com/{self.tenant_id}",
+                client_credential=credential,
+            )
+        return self._app
 
     def _get_token(self) -> str:
-        authority = f"https://login.microsoftonline.com/{self.tenant_id}"
-        if self.certificate_path:
-            with open(self.certificate_path, "r", encoding="utf-8") as f:
-                cert_content = f.read()
-            credential = {"private_key": cert_content}
-        else:
-            credential = self.client_secret
-
-        app = msal.ConfidentialClientApplication(
-            self.client_id,
-            authority=authority,
-            client_credential=credential,
-        )
-        result = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+        result = self._msal_app().acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
         if "access_token" not in result:
             err = result.get("error_description", result.get("error", "Unknown MSAL auth failure"))
             raise PermanentError(f"MSAL authentication failed: {err}")
@@ -68,7 +72,7 @@ class GraphDriver(Driver):
                     {"emailAddress": {"address": cc_email}} for cc_email in message.cc
                 ],
             },
-            "saveToSentItems": "false",
+            "saveToSentItems": False,
         }
 
         if message.reply_to:

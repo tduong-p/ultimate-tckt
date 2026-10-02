@@ -149,12 +149,14 @@ def metrics(db: Session, now: Optional[datetime] = None) -> dict[str, Any]:
     SELECT
       count(*) FILTER (WHERE r.status IN ('pending', 'sending')) AS pending_count,
       count(*) FILTER (WHERE r.status = 'failed') AS failed_count,
-      min(n.created_at) FILTER (WHERE r.status IN ('pending', 'sending')) AS oldest_pending_created_at
+      min(r.next_attempt_at) FILTER (
+        WHERE r.status = 'sending' OR (r.status = 'pending' AND r.next_attempt_at <= :now)
+      ) AS oldest_ready_at
     FROM notification_recipients r
-    JOIN notifications n ON n.id = r.notification_id
     """)
-    row = db.execute(sql).mappings().one()
-    oldest_dt = row["oldest_pending_created_at"]
+    # Tuổi = đã đến lượt gửi bao lâu mà chưa gửi được; dòng đang chờ backoff không tính (tránh cảnh báo nhầm).
+    row = db.execute(sql, {"now": now}).mappings().one()
+    oldest_dt = row["oldest_ready_at"]
     age_seconds = 0
     if oldest_dt is not None:
         age_seconds = max(0, int((now - oldest_dt).total_seconds()))

@@ -19,10 +19,11 @@ def get_driver(settings: Settings) -> Driver:
         )
     elif driver_name == "graph":
         return GraphDriver(
-            tenant_id=settings.graph_tenant_id,
+            tenant_id=settings.graph_tenant,
             client_id=settings.graph_client_id,
             client_secret=settings.graph_client_secret,
             certificate_path=settings.graph_certificate_path,
+            certificate_thumbprint=settings.graph_certificate_thumbprint,
             mail_from=settings.mail_from,
         )
     else:

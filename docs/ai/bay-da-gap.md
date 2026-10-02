@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.3
+version: 1.4
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -65,6 +65,13 @@ từng chỉ gửi khi `insertNotificationOnce` chèn được dòng mới: nế
 thông báo đi qua `notifier.notify({ event, recipient, data, sourceKey })`; scheduler gọi cho mọi mục tìm thấy, `sourceKey` là khoá chống
 trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8).
 
+## Noti: test chỉ chạy driver `console` nên lỗi của driver thật và cấu hình lọt qua
+
+Bản đầu của `services/noti-api` xanh 57/57 test nhưng driver `graph` sập ngay khi khởi động (đọc `settings.graph_tenant_id`, config
+tên `graph_tenant`), `.env.example` ghi sai tên biến (bị bỏ qua không báo), và worker gán cứng `base_url` nên mọi link trong email sai.
+Test giờ dựng từng driver từ `Settings`, so `.env.example` với các trường của `Settings`, và kiểm link trong thư lấy từ `NOTI_APP_BASE_URL`.
+Khi thêm cấu hình hoặc driver mới: thêm test dựng nó từ `Settings`, đừng chỉ test lớp driver với tham số truyền tay.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -73,3 +80,4 @@ trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8).
 | 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
 | 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |
 | 1.3 | 2026-10-02 | Thêm bẫy mailer cũ gộp email và push; scheduler gắn thông báo ngoài vào `inserted` | DYC |
+| 1.4 | 2026-10-02 | Thêm bẫy Noti: test chỉ chạy driver console, lỗi cấu hình driver thật lọt qua | DYC |

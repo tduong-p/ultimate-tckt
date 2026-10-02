@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 BACKOFF = [60, 300, 1800, 7200, 43200]
 MAX_ATTEMPTS = 5
+LOCK_SECONDS = 300
+DRIVER_TIMEOUT_SECONDS = 30
 EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
 
@@ -37,6 +39,11 @@ def delay_for(attempts: int, retry_after: Optional[int] = None) -> int:
     if retry_after is not None and retry_after > backoff:
         return retry_after
     return backoff
+
+
+def batch_size_for(delay_between_sends: float) -> int:
+    """Cả lô phải gửi xong trước khi khoá hết hạn, kể cả khi mọi thư chạm timeout driver (§7)."""
+    return max(1, int(LOCK_SECONDS // (DRIVER_TIMEOUT_SECONDS + delay_between_sends)))
 
 
 def scrub_error(error: str) -> str:
@@ -49,8 +56,9 @@ def run_once(
     driver: Driver,
     now: Optional[datetime] = None,
     delay_between_sends: float = 0.0,
+    batch_size: int = 10,
 ) -> int:
-    claimed_items = claim_next(db, limit=10, now=now)
+    claimed_items = claim_next(db, limit=batch_size, now=now)
     if not claimed_items:
         return 0
 
@@ -68,7 +76,7 @@ def run_once(
                 item.template,
                 merged_data,
                 recipient_name=item.name,
-                base_url="https://app.example",
+                base_url=settings.app_base_url,
             )
         except Exception as e:
             logger.error("Template rendering failed for notification %s recipient %s", item.notification_id, item.recipient_id)
@@ -84,6 +92,9 @@ def run_once(
             db.commit()
             continue
 
+        # CC cũng phải qua allowlist: địa chỉ ngoài danh sách bị bỏ (không chuyển hướng để tránh nhận trùng)
+        cc = [c for c in item.cc if apply_policy(c, settings.recipient_allowlist, None) is not None]
+
         subject = rendered.subject
         if target_email != item.email:
             subject = f"[chuyển hướng từ {item.email}] {rendered.subject}"
@@ -92,7 +103,7 @@ def run_once(
         msg = Message(
             to_email=target_email,
             to_name=item.name,
-            cc=item.cc,
+            cc=cc,
             reply_to=item.reply_to,
             subject=subject,
             html=rendered.html,
@@ -156,6 +167,7 @@ def main() -> None:
     rate = settings.send_rate_per_minute
     delay_between = 60.0 / rate if rate > 0 else 0.0
     last_metrics_log = 0.0
+    batch_size = batch_size_for(delay_between)
 
     logger.info("Worker initialized with driver %s and rate %d/min", type(driver).__name__, rate)
     while True:
@@ -173,7 +185,7 @@ def main() -> None:
                 last_metrics_log = now_time
 
             with SessionLocal() as db:
-                count = run_once(db, registry, driver, delay_between_sends=delay_between)
+                count = run_once(db, registry, driver, delay_between_sends=delay_between, batch_size=batch_size)
             if count == 0:
                 time.sleep(2)
         except KeyboardInterrupt:

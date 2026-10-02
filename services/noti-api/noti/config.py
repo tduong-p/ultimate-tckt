@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     graph_client_id: str = ""
     graph_client_secret: str = ""
     graph_certificate_path: str = ""
+    graph_certificate_thumbprint: str = ""
 
     @field_validator("recipient_allowlist", mode="before")
     @classmethod

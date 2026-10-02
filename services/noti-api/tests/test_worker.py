@@ -6,7 +6,7 @@ from noti.drivers.base import Driver, Message, PermanentError, TransientError
 from noti.models import Notification, NotificationRecipient
 from noti.status import overall_status
 from noti.templating import get_registry
-from noti.worker import BACKOFF, MAX_ATTEMPTS, delay_for, run_once, scrub_error
+from noti.worker import BACKOFF, MAX_ATTEMPTS, batch_size_for, delay_for, run_once, scrub_error
 
 
 class FakeDriver(Driver):
@@ -298,3 +298,42 @@ def test_worker_recipient_policy_redirected(db, make_client, monkeypatch):
     db.refresh(r)
     assert r.status == "sent"
 
+
+
+def test_worker_links_use_configured_app_base_url(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "app_base_url", "https://dyc.test/")
+    c, _ = make_client()
+    data = {"actor": "B", "task": {"id": 7, "title": "Poster", "path": "/#activity/3"}}
+    n = create_notification(db, c.id, template="task.assigned", data=data)
+    create_recipient(db, n.id, "user@example.com")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    msg = driver.sent_messages[0]
+    assert "https://dyc.test/#activity/3" in msg.html
+    assert "https://dyc.test/#activity/3" in msg.text
+    assert "app.example" not in msg.html
+
+
+def test_worker_allowlist_also_filters_cc(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(settings, "redirect_to", None)
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    n.cc = ["outsider@gmail.com", "b@hust.edu.vn"]
+    create_recipient(db, n.id, "a@hust.edu.vn")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    assert driver.sent_messages[0].cc == ["b@hust.edu.vn"]
+
+
+def test_batch_fits_inside_lock_even_if_every_send_times_out():
+    for delay in (0.0, 2.0, 60.0, 400.0):
+        size = batch_size_for(delay)
+        assert size >= 1
+        assert size == 1 or size * (30 + delay) <= 300
