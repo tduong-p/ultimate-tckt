@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createNotifier } = require('../src/notifier');
 
-const logger = { debug: () => {}, warn: () => {}, error: () => {}, info: () => {} };
+const logger = { warn: () => {}, error: () => {}, info: () => {} };
 const valid = { event: 'task.assigned', recipient: { id: 7, name: 'An', email: 'an@hust.edu.vn' }, data: { task: { id: 1 } }, sourceKey: 'task-assigned:1:7' };
 
 test('without a sender nothing is delivered and nothing throws', async () => {

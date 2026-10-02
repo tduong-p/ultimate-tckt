@@ -11,7 +11,7 @@ function createNotifier({ logger, sender = null, timeoutMs = 5000 }) {
       return { delivered: false, reason: 'invalid-event' };
     }
     if (!sender) {
-      logger.debug(`Notification ${event.event} (${event.sourceKey}) not sent: no sender configured.`);
+      logger.info(`Notification ${event.event} (${event.sourceKey}) not sent: no sender configured.`);
       return { delivered: false, reason: 'no-sender' };
     }
     let timer;
