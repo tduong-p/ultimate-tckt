@@ -20,6 +20,7 @@
 | [ADR-0011-001](adr/0011-doi-ten-seee-sang-ultimate-tckt.md) | Đổi tên hạ tầng seee → ultimate-tckt-*, chuyển volume | 1.0 | active | dev, ai |
 | [ADR-0012-001](adr/0012-he-thong-tai-lieu-markdown-version-ci.md) | Hệ thống tài liệu Markdown có version, kiểm bằng CI | 1.0 | active | dev, ai |
 | [ADR-0013-001](adr/0013-go-email-cu-va-onesignal.md) | Gỡ module email cũ và OneSignal khỏi Core | 1.0 | active | dev, ai |
+| [ADR-0014-001](adr/0014-noti-service.md) | Service Noti — gửi thông báo email theo template qua HTTP API | 1.0 | active | dev, ai |
 
 ## ai
 
@@ -55,7 +56,7 @@
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.1 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.1 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
-| [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.4 | active | dev, ai |
+| [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.5 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 2.8 | active | dev, ai |
 
 ## onboarding
