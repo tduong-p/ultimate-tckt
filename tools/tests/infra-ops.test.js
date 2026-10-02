@@ -50,8 +50,9 @@ test('backup.sh writes both dumps under backups/', () => {
   assert.match(c, /exec -T ctd-db sh -c pg_dump .*\$POSTGRES_USER/);
   // Dump tự DROP trước khi tạo lại → restore đè lên DB đang có dữ liệu không bị lỗi "already exists".
   assert.match(c, /pg_dump --clean --if-exists/);
-  // Không bao giờ đưa mật khẩu từ host vào dòng lệnh.
-  assert.doesNotMatch(c, /-p[^"$ ]/);
+  // Không bao giờ đưa mật khẩu từ host vào dòng lệnh. Chỉ khớp tham số `-p…` đứng riêng: thư mục tạm
+  // ngẫu nhiên kiểu /tmp/ut-pXXXX từng làm test đỏ ngẫu nhiên.
+  assert.doesNotMatch(c, /(^|\s)-p[^"$ ]/m);
   const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-core\.sql\.gz$/.test(f)), files.join(','));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-ctd\.sql\.gz$/.test(f)), files.join(','));
