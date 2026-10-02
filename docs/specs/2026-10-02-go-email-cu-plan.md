@@ -1,8 +1,8 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.0
-status: draft
+version: 2.1
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-02
@@ -509,5 +509,6 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 2.1 | 2026-10-02 | Đã thực hiện xong (PR #42, CI xanh); chuyển sang active | DYC |
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
