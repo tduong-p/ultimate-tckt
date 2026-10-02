@@ -4,7 +4,7 @@ const { toSummaryView } = require('../serializers/summary');
 const { dateInVietnam } = require('../date-vn');
 
 function createActivityRoutes(context) {
-  const { db, auth, admin, manager, managerOrEventLead, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
+  const { db, auth, admin, manager, managerOrEventLead, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
   const router = express.Router();
 
   async function canAssignToTeam(user, activityId, teamId) {
@@ -55,7 +55,7 @@ router.get('/api/activities',auth,asyncRoute(async(req,res)=>{
   res.json(formattedRows);
 }));
 
-router.post('/api/activities',auth,manager,asyncRoute(async(req,res)=>{const {title,description,type,start_date,deadline,priority,requested_by,location,event_lead_id}=req.body,proposalDocumentUrl=String(req.body.proposal_document_url||'').trim(),publicImageUrl=String(req.body.public_image_url||'').trim(),isPublic=req.body.is_public===true||req.body.is_public==='true'||req.body.is_public==='on';const teamIds=ids(req.body.team_ids?.length?req.body.team_ids:req.body.team_id),primary=Number(req.body.team_id||teamIds[0]);if(!title||!description||!deadline||!teamIds.length||!teamIds.includes(primary)||!['event','assigned'].includes(type))return res.status(400).json({error:'Complete all required fields and select at least one team.'});if(!validHttpUrl(proposalDocumentUrl))return res.status(400).json({error:'The activity proposal document must be a valid http:// or https:// link.'});if(!validHttpUrl(publicImageUrl))return res.status(400).json({error:'The public image must be a valid http:// or https:// link.'});if(isLeadership(req.actor)){for(const teamId of teamIds)if(!(await leadsTeam(req.actor.id,teamId)))return res.status(403).json({error:'Team leaders and vice leaders may only propose work for teams they lead.'})}const conn=await db.getConnection();try{await conn.beginTransaction();const [result]=await conn.execute('INSERT INTO activities(title,description,is_public,public_image_url,proposal_document_url,type,team_id,creator_id,start_date,deadline,priority,requested_by,location,event_lead_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[title,description,isPublic,publicImageUrl||null,proposalDocumentUrl||null,type,primary,req.actor.id,start_date||null,deadline,priority||'medium',requested_by||null,location||null,Number(req.body.event_lead_id)||null]);for(const teamId of teamIds)await conn.execute('INSERT INTO activity_teams(activity_id,team_id,role,responsibility) VALUES(?,?,?,?)',[result.insertId,teamId,teamId===primary?'primary':'supporting',teamId===primary?'Coordinates the activity':'Supports the activity']);await conn.commit();res.status(201).json({id:result.insertId});try{const [admins]=await db.execute("SELECT id,name,email FROM users WHERE role='admin' AND is_active=1");const activity={id:result.insertId,title,type,start_date,deadline,priority:priority||'medium'};for(const adminUser of admins)mailer.notifyActivityProposed(adminUser,activity,req.actor.name)}catch(error){logger.error(`Unable to prepare activity ${result.insertId} proposal email notifications.`,error)}}catch(e){await conn.rollback();throw e}finally{conn.release()}}));
+router.post('/api/activities',auth,manager,asyncRoute(async(req,res)=>{const {title,description,type,start_date,deadline,priority,requested_by,location,event_lead_id}=req.body,proposalDocumentUrl=String(req.body.proposal_document_url||'').trim(),publicImageUrl=String(req.body.public_image_url||'').trim(),isPublic=req.body.is_public===true||req.body.is_public==='true'||req.body.is_public==='on';const teamIds=ids(req.body.team_ids?.length?req.body.team_ids:req.body.team_id),primary=Number(req.body.team_id||teamIds[0]);if(!title||!description||!deadline||!teamIds.length||!teamIds.includes(primary)||!['event','assigned'].includes(type))return res.status(400).json({error:'Complete all required fields and select at least one team.'});if(!validHttpUrl(proposalDocumentUrl))return res.status(400).json({error:'The activity proposal document must be a valid http:// or https:// link.'});if(!validHttpUrl(publicImageUrl))return res.status(400).json({error:'The public image must be a valid http:// or https:// link.'});if(isLeadership(req.actor)){for(const teamId of teamIds)if(!(await leadsTeam(req.actor.id,teamId)))return res.status(403).json({error:'Team leaders and vice leaders may only propose work for teams they lead.'})}const conn=await db.getConnection();try{await conn.beginTransaction();const [result]=await conn.execute('INSERT INTO activities(title,description,is_public,public_image_url,proposal_document_url,type,team_id,creator_id,start_date,deadline,priority,requested_by,location,event_lead_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[title,description,isPublic,publicImageUrl||null,proposalDocumentUrl||null,type,primary,req.actor.id,start_date||null,deadline,priority||'medium',requested_by||null,location||null,Number(req.body.event_lead_id)||null]);for(const teamId of teamIds)await conn.execute('INSERT INTO activity_teams(activity_id,team_id,role,responsibility) VALUES(?,?,?,?)',[result.insertId,teamId,teamId===primary?'primary':'supporting',teamId===primary?'Coordinates the activity':'Supports the activity']);await conn.commit();res.status(201).json({id:result.insertId});try{const [admins]=await db.execute("SELECT id,name,email FROM users WHERE role='admin' AND is_active=1");for(const adminUser of admins)notifier.notify({event:'activity.proposed',recipient:adminUser,data:{actor:req.actor.name,activity:{id:result.insertId,title,path:`/#activity/${result.insertId}`}},sourceKey:`activity-proposed:${result.insertId}:${adminUser.id}:create`})}catch(error){logger.error(`Unable to prepare activity ${result.insertId} proposal email notifications.`,error)}}catch(e){await conn.rollback();throw e}finally{conn.release()}}));
 
 router.post('/api/activities/:id/submit', auth, managerOrEventLead, asyncRoute(async (req, res) => {
   const [rows] = await db.execute('SELECT id,status,title FROM activities WHERE id=?', [req.params.id]);
@@ -64,11 +64,11 @@ router.post('/api/activities/:id/submit', auth, managerOrEventLead, asyncRoute(a
   if (!(await canManageActivity(req.actor, req.params.id))) return res.status(403).json({ error: 'Bạn không có quyền thực hiện thao tác này.' });
   if (!['proposed', 'changes_requested'].includes(activity.status)) return res.status(409).json({ error: 'Chỉ có thể nộp đề án ở trạng thái chờ nộp hoặc yêu cầu sửa đổi.' });
   await db.execute("UPDATE activities SET status='proposed' WHERE id=?", [req.params.id]);
-  await db.execute('INSERT INTO activity_proposals(activity_id,submitted_by,action) VALUES(?,?,\'submit\')', [req.params.id, req.actor.id]);
+  const [proposal] = await db.execute('INSERT INTO activity_proposals(activity_id,submitted_by,action) VALUES(?,?,\'submit\')', [req.params.id, req.actor.id]);
   res.json({ ok: true });
   try {
     const [admins] = await db.execute("SELECT id,name,email FROM users WHERE role IN ('admin','vice_admin') AND is_active=1");
-    for (const adminUser of admins) mailer.notifyActivityProposed(adminUser, activity, req.actor.name);
+    for (const adminUser of admins) notifier.notify({ event: 'activity.proposed', recipient: adminUser, data: { actor: req.actor.name, activity: { id: activity.id, title: activity.title, path: `/#activity/${activity.id}` } }, sourceKey: `activity-proposed:${activity.id}:${adminUser.id}:${proposal.insertId}` });
   } catch (error) { logger.error(`Unable to prepare activity ${req.params.id} resubmission emails.`, error); }
 }));
 
@@ -105,7 +105,7 @@ router.delete('/api/activities/:id',auth,admin,asyncRoute(async(req,res)=>{
   res.json({ok:true,id:activityId,title:activity.title});
 }));
 router.post('/api/activities/:id/volunteer',auth,asyncRoute(async(req,res)=>{if(!(await visibleActivity(req.actor,req.params.id)))return res.status(404).json({error:'Activity not found.'});await db.execute("INSERT INTO participants(activity_id,user_id,state) VALUES(?,?,'volunteered') ON DUPLICATE KEY UPDATE state=IF(state='confirmed','confirmed','volunteered')",[req.params.id,req.actor.id]);res.json({ok:true})}));
-router.post('/api/activities/:id/participants',auth,managerOrEventLead,asyncRoute(async(req,res)=>{if(!(await canManageActivity(req.actor,req.params.id)))return res.status(403).json({error:'You cannot manage participants for this activity.'});const userIds=ids(req.body.user_ids);if(!userIds.length)return res.status(400).json({error:'Select at least one member.'});for(const userId of userIds){let sql='SELECT 1 FROM users WHERE id=? AND is_active=1',params=[userId];if(isLeadership(req.actor)){sql='SELECT 1 FROM users u JOIN user_teams member_team ON member_team.user_id=u.id JOIN user_teams leader_team ON leader_team.team_id=member_team.team_id AND leader_team.user_id=? AND (leader_team.is_lead=1 OR leader_team.is_vice_lead=1) JOIN activity_teams at ON at.team_id=member_team.team_id AND at.activity_id=? WHERE u.id=? AND u.is_active=1 LIMIT 1';params=[req.actor.id,req.params.id,userId]}else if(!isExecutive(req.actor)){sql='SELECT 1 FROM users u JOIN user_teams ut ON ut.user_id=u.id JOIN activity_teams at ON at.team_id=ut.team_id AND at.activity_id=? WHERE u.id=? AND u.is_active=1 LIMIT 1';params=[req.params.id,userId]}const [eligible]=await db.execute(sql,params);if(!eligible.length)return res.status(403).json({error:'You may only add active members from teams you lead or teams on this activity.'})}const responsibility=String(req.body.responsibility||'Activity participant').trim().slice(0,255);const marks=userIds.map(()=>'?').join(',');const [[existing],[users],[activities]]=await Promise.all([db.query(`SELECT user_id,state FROM participants WHERE activity_id=? AND user_id IN (${marks})`,[req.params.id,...userIds]),db.query(`SELECT id,name,email FROM users WHERE id IN (${marks})`,userIds),db.execute('SELECT id,title,deadline FROM activities WHERE id=?',[req.params.id])]);for(const userId of userIds)await db.execute("INSERT INTO participants(activity_id,user_id,state,responsibility) VALUES(?,?,'confirmed',?) ON DUPLICATE KEY UPDATE state='confirmed',responsibility=VALUES(responsibility)",[req.params.id,userId,responsibility]);res.status(201).json({ok:true});const confirmed=new Set(existing.filter(item=>item.state==='confirmed').map(item=>Number(item.user_id)));for(const user of users)if(!confirmed.has(Number(user.id)))mailer.notifyActivityRegistration(user,activities[0],responsibility,req.actor.name)}));
+router.post('/api/activities/:id/participants',auth,managerOrEventLead,asyncRoute(async(req,res)=>{if(!(await canManageActivity(req.actor,req.params.id)))return res.status(403).json({error:'You cannot manage participants for this activity.'});const userIds=ids(req.body.user_ids);if(!userIds.length)return res.status(400).json({error:'Select at least one member.'});for(const userId of userIds){let sql='SELECT 1 FROM users WHERE id=? AND is_active=1',params=[userId];if(isLeadership(req.actor)){sql='SELECT 1 FROM users u JOIN user_teams member_team ON member_team.user_id=u.id JOIN user_teams leader_team ON leader_team.team_id=member_team.team_id AND leader_team.user_id=? AND (leader_team.is_lead=1 OR leader_team.is_vice_lead=1) JOIN activity_teams at ON at.team_id=member_team.team_id AND at.activity_id=? WHERE u.id=? AND u.is_active=1 LIMIT 1';params=[req.actor.id,req.params.id,userId]}else if(!isExecutive(req.actor)){sql='SELECT 1 FROM users u JOIN user_teams ut ON ut.user_id=u.id JOIN activity_teams at ON at.team_id=ut.team_id AND at.activity_id=? WHERE u.id=? AND u.is_active=1 LIMIT 1';params=[req.params.id,userId]}const [eligible]=await db.execute(sql,params);if(!eligible.length)return res.status(403).json({error:'You may only add active members from teams you lead or teams on this activity.'})}const responsibility=String(req.body.responsibility||'Activity participant').trim().slice(0,255);const marks=userIds.map(()=>'?').join(',');const [[existing],[users],[activities]]=await Promise.all([db.query(`SELECT user_id,state FROM participants WHERE activity_id=? AND user_id IN (${marks})`,[req.params.id,...userIds]),db.query(`SELECT id,name,email FROM users WHERE id IN (${marks})`,userIds),db.execute('SELECT id,title,deadline FROM activities WHERE id=?',[req.params.id])]);for(const userId of userIds)await db.execute("INSERT INTO participants(activity_id,user_id,state,responsibility) VALUES(?,?,'confirmed',?) ON DUPLICATE KEY UPDATE state='confirmed',responsibility=VALUES(responsibility)",[req.params.id,userId,responsibility]);res.status(201).json({ok:true});const confirmed=new Set(existing.filter(item=>item.state==='confirmed').map(item=>Number(item.user_id)));for(const user of users)if(!confirmed.has(Number(user.id)))notifier.notify({event:'activity.participant_added',recipient:user,data:{actor:req.actor.name,responsibility,activity:{id:activities[0].id,title:activities[0].title,path:`/#activity/${activities[0].id}`,deadline:activities[0].deadline}},sourceKey:`activity-participant:${activities[0].id}:${user.id}`})}));
 router.post('/api/activities/:id/updates',auth,asyncRoute(async(req,res)=>{
   if(!(await visibleActivity(req.actor,req.params.id)))return res.status(404).json({error:'Activity not found.'});
   const body=String(req.body.body||'').trim(),taskId=Number(req.body.task_id)||null,kind=req.body.kind||'comment';
@@ -135,24 +135,21 @@ router.post('/api/activities/:id/updates',auth,asyncRoute(async(req,res)=>{
       await conn.execute('INSERT INTO update_tagged_users(update_id,user_id) VALUES(?,?)',[updateId,user.id]);
       await conn.execute(`INSERT INTO notifications(user_id,activity_id,task_id,kind,title,body,url,source_key,expires_at) VALUES(?,?,?,?,?,?,?,?,DATE_ADD(NOW(),INTERVAL 7 DAY))`,[user.id,req.params.id,taskId,'comment_tag','You were tagged in a comment',`${req.actor.name} tagged you in “${activity.title}”.`,`/#activity/${req.params.id}`,`comment-tag:${updateId}:${user.id}`]);
     }
-    if(taskId)await conn.execute(`INSERT INTO notifications(user_id,activity_id,task_id,kind,title,body,url,source_key,email_status,push_status,expires_at)
-      SELECT t.assigned_by,t.activity_id,t.id,'task_response','New task response',CONCAT(?, ' responded to “', t.title, '”.'),?,CONCAT('task-response:',?,':',t.assigned_by),'pending','pending',DATE_ADD(NOW(),INTERVAL 7 DAY)
+    if(taskId)await conn.execute(`INSERT INTO notifications(user_id,activity_id,task_id,kind,title,body,url,source_key,expires_at)
+      SELECT t.assigned_by,t.activity_id,t.id,'task_response','New task response',CONCAT(?, ' responded to “', t.title, '”.'),?,CONCAT('task-response:',?,':',t.assigned_by),DATE_ADD(NOW(),INTERVAL 7 DAY)
       FROM tasks t JOIN users giver ON giver.id=t.assigned_by AND giver.is_active=1
       WHERE t.id=? AND t.activity_id=? AND t.assigned_by!=?`,[req.actor.name,`/#activity/${req.params.id}`,updateId,taskId,req.params.id,req.actor.id]);
     await conn.commit();
   }catch(error){await conn.rollback();throw error}finally{conn.release()}
   res.status(201).json({ok:true,id:updateId});
-  for(const user of taggedUsers)push.queuePush(`comment tag ${updateId} to user ${user.id}`,{userId:user.id,title:'You were tagged in a comment',message:`${req.actor.name} tagged you in ${activity.title}`,url:process.env.APP_BASE_URL?`${String(process.env.APP_BASE_URL).replace(/\/$/,'')}/#activity/${req.params.id}`:undefined});
   if(taskId)try{
     const [[tasks],[owners]]=await Promise.all([
       db.execute('SELECT t.id,t.title,t.activity_id,t.assigned_by,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id WHERE t.id=? AND t.activity_id=?',[taskId,req.params.id]),
       db.execute('SELECT DISTINCT u.id,u.name,u.email FROM users u JOIN tasks t ON t.id=? LEFT JOIN task_assignees ta ON ta.task_id=t.id AND ta.user_id=u.id WHERE u.is_active=1 AND u.id!=? AND (ta.user_id IS NOT NULL OR u.id=t.assigned_by)',[taskId,req.actor.id])
     ]);
-    const task=tasks[0],sourceKey=task&&`task-response:${updateId}:${task.assigned_by}`;
+    const task=tasks[0];
     if(task)for(const owner of owners){
-      const tracksDelivery=Number(owner.id)===Number(task.assigned_by);
-      const recordStatus=channel=>status=>db.execute(`UPDATE notifications SET ${channel}_status=? WHERE user_id=? AND source_key=?`,[status,owner.id,sourceKey]);
-      mailer.notifyTaskResponse(owner,task,req.actor.name,{body,kind},tracksDelivery?{email:recordStatus('email'),push:recordStatus('push')}:{});
+      notifier.notify({event:'task.response',recipient:owner,data:{actor:req.actor.name,response:{kind,body},task:{id:task.id,title:task.title,path:`/#activity/${req.params.id}`},activity:{title:task.activity_title}},sourceKey:`task-response:${updateId}:${owner.id}`});
     }
   }catch(error){logger.error(`Unable to prepare task ${taskId} response notifications.`,error)}
 }));
@@ -195,7 +192,7 @@ router.post('/api/activities/:id/tasks', auth, managerOrEventLead, asyncRoute(as
     ]);
     const task = { id: taskId, activity_id: Number(req.params.id), activity_title: activities[0]?.title || 'Hoạt động', title, deadline, priority: priority || 'medium', deliverable };
     for (const assignedUser of users) {
-      mailer.notifyTaskAssigned(assignedUser, task, req.actor.name);
+      notifier.notify({ event: 'task.assigned', recipient: assignedUser, data: { actor: req.actor.name, task: { id: taskId, title, path: `/#activity/${req.params.id}`, deadline }, activity: { title: task.activity_title } }, sourceKey: `task-assigned:${taskId}:${assignedUser.id}` });
       await db.execute(
         `INSERT INTO notifications(user_id,activity_id,task_id,kind,title,body,url,source_key,expires_at) VALUES(?,?,?,'task_assigned',?,?,?,?,DATE_ADD(NOW(),INTERVAL 7 DAY))`,
         [assignedUser.id, req.params.id, taskId, 'Công việc mới', `Bạn được giao: ${title}`, `/#activity/${req.params.id}`, `task-assigned:${taskId}:${assignedUser.id}`]
@@ -214,17 +211,19 @@ router.post('/api/activities/:id/tasks', auth, managerOrEventLead, asyncRoute(as
     const activity = one(rows);
     if (!activity) return res.status(404).json({ error: 'Không tìm thấy hoạt động.' });
     if (activity.status !== 'proposed') return res.status(409).json({ error: 'Đề án không ở trạng thái chờ duyệt.' });
+    let decisionRef = 'deleted';
     if (nextStatus === 'cancelled') {
       await hardDeleteActivity(req.params.id, req.actor.id, `proposal ${action}`);
       res.json({ ok: true, deleted: true });
     } else {
       await db.execute('UPDATE activities SET status=? WHERE id=?', [nextStatus, req.params.id]);
-      await db.execute('INSERT INTO activity_proposals(activity_id,submitted_by,action,reviewer_id,feedback_notes) VALUES(?,?,?,?,?)', [req.params.id, activity.creator_id, action, req.actor.id, feedback || null]);
+      const [decision] = await db.execute('INSERT INTO activity_proposals(activity_id,submitted_by,action,reviewer_id,feedback_notes) VALUES(?,?,?,?,?)', [req.params.id, activity.creator_id, action, req.actor.id, feedback || null]);
+      decisionRef = String(decision.insertId);
       res.json({ ok: true });
     }
     try {
       const [[creator]] = await db.query('SELECT id,name,email FROM users WHERE id=?', [activity.creator_id]);
-      if (creator) mailer.notifyActivityDecision(creator, activity, action, feedback, req.actor.name);
+      if (creator) notifier.notify({ event: 'activity.decided', recipient: creator, data: { actor: req.actor.name, action, feedback, activity: { id: activity.id, title: activity.title, path: `/#activity/${activity.id}` } }, sourceKey: `activity-decided:${activity.id}:${decisionRef}:${creator.id}` });
     } catch (error) { logger.error(`Unable to prepare activity ${req.params.id} decision emails.`, error); }
   }
 
@@ -324,9 +323,9 @@ router.post('/api/activities/:id/log-task', auth, taskUpload.single('file'), asy
       'SELECT DISTINCT u.id, u.name, u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1) AND u.is_active=1',
       [teamId]
     );
-    const taskObj = { id: taskId, activity_id: activityId, activity_title: activity.title, title, deadline, priority: 'medium', weight };
+    const taskObj = { id: taskId, activity_id: activityId, activity_title: activity.title, title, deadline, priority: 'medium', weight, submittedAt: Date.now() };
     for (const reviewer of reviewers) {
-      mailer.notifyTaskSubmittedForReview(reviewer, taskObj, req.actor.name);
+      notifier.notify({ event: 'task.review_requested', recipient: reviewer, data: { actor: req.actor.name, task: { id: taskId, title, path: `/#activity/${activityId}` }, activity: { title: activity.title } }, sourceKey: `task-review:${taskId}:${reviewer.id}:${taskObj.submittedAt}` });
       await db.execute(
         `INSERT INTO notifications(user_id, activity_id, task_id, kind, title, body, url, source_key, expires_at)
          VALUES(?, ?, ?, 'task_review', ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,

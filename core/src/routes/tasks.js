@@ -2,7 +2,7 @@ const express = require('express');
 const { createAttachment } = require('../services/task-attachments');
 
 function createTaskRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
+  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
   const router = express.Router();
 
   async function canTouchTask(context, req, taskId) {
@@ -101,10 +101,12 @@ router.post('/api/tasks/:id/submit-review', auth, taskUpload.single('file'), asy
     const created = await createAttachment(context, { taskId: task.id, userId: req.actor.id, kind: 'deliverable', label: req.body.notes, linkUrl: String(req.body.link_url || '').trim(), file: req.file });
     await db.execute("UPDATE tasks SET status='review',submitted_for_review_at=NOW() WHERE id=?", [req.params.id]);
     try {
-      const [[reviewers]] = await Promise.all([
-        db.query("SELECT DISTINCT u.id,u.name,u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1)", [task.team_id])
+      const submittedAt = Date.now();
+      const [[reviewers], [[activityRow]]] = await Promise.all([
+        db.query("SELECT DISTINCT u.id,u.name,u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1) AND u.is_active=1", [task.team_id]),
+        db.query('SELECT title FROM activities WHERE id=?', [task.activity_id])
       ]);
-      for (const reviewer of reviewers) mailer.notifyTaskSubmittedForReview(reviewer, task, req.actor.name);
+      for (const reviewer of reviewers) notifier.notify({ event: 'task.review_requested', recipient: reviewer, data: { actor: req.actor.name, task: { id: task.id, title: task.title, path: `/#activity/${task.activity_id}` }, activity: { title: activityRow?.title } }, sourceKey: `task-review:${task.id}:${reviewer.id}:${submittedAt}` });
     } catch (error) { logger.error(`Unable to prepare task ${req.params.id} review notifications.`, error); }
     res.status(201).json(created);
   } catch (error) {
@@ -137,8 +139,9 @@ router.post('/api/tasks/:id/review', auth, asyncRoute(async (req, res) => {
     [task.activity_id, task.id, req.actor.id, actionText]
   );
   try {
-    const [assignees] = await db.query('SELECT u.id,u.name,u.email FROM task_assignees ta JOIN users u ON u.id=ta.user_id WHERE ta.task_id=?', [req.params.id]);
-    for (const assignedUser of assignees) mailer.notifyTaskReviewed(assignedUser, task, decision, feedback, req.actor.name);
+    const [assignees] = await db.query('SELECT u.id,u.name,u.email FROM task_assignees ta JOIN users u ON u.id=ta.user_id WHERE ta.task_id=? AND u.is_active=1', [req.params.id]);
+    const reviewedAt = Date.now();
+    for (const assignedUser of assignees) notifier.notify({ event: 'task.reviewed', recipient: assignedUser, data: { actor: req.actor.name, decision, feedback, task: { id: task.id, title: task.title, path: `/#activity/${task.activity_id}` } }, sourceKey: `task-reviewed:${task.id}:${assignedUser.id}:${decision}:${reviewedAt}` });
   } catch (error) { logger.error(`Unable to prepare task ${req.params.id} review-result notifications.`, error); }
   res.json({ ok: true, status: nextStatus });
 }));

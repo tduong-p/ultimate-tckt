@@ -2,7 +2,7 @@ const express = require('express');
 const { dateInVietnam } = require('../date-vn');
 
 function createTeamRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
+  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
   const router = express.Router();
 
 router.get('/api/teams',auth,asyncRoute(async(req,res)=>{const s=await scopeFor(req.actor,'teams',{alias:'t'});const [rows]=await db.execute(`SELECT t.*,COUNT(DISTINCT ut.user_id) member_count,COUNT(DISTINCT CASE WHEN a.status IN ('approved','active') THEN ats.activity_id END) active_count,EXISTS(SELECT 1 FROM user_teams mine WHERE mine.team_id=t.id AND mine.user_id=? AND (mine.is_lead=1 OR mine.is_vice_lead=1)) can_manage FROM teams t LEFT JOIN user_teams ut ON ut.team_id=t.id LEFT JOIN activity_teams ats ON ats.team_id=t.id LEFT JOIN activities a ON a.id=ats.activity_id WHERE ${s.sql} AND t.is_active=1 GROUP BY t.id ORDER BY t.sort_order,t.name`,[...s.params,req.actor.id]);res.json(rows)}));

@@ -321,3 +321,12 @@ test('app.js does not call server-only role helpers', () => {
     assert.doesNotMatch(assets['app.js'], new RegExp(`\\b${helper}\\s*\\(`), `${helper} only exists on the server`);
   }
 });
+
+test('the frontend no longer ships OneSignal or the legacy test-email UI', () => {
+  const app = fs.readFileSync(path.join(publicDir, 'app.js'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+  for (const text of ['OneSignal', 'setupPushNotifications', 'testEmailModal', 'api/email/test']) {
+    assert.equal(app.includes(text) || html.includes(text), false, `${text} must be gone`);
+  }
+  assert.equal(fs.existsSync(path.join(publicDir, 'OneSignalSDKWorker.js')), false);
+});

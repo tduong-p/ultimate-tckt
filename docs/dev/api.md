@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.1
+version: 5.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -25,9 +25,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET | `/api/session` | `system.js` |
 | POST | `/api/session/unit` | `system.js` |
 | GET | `/auth/microsoft`, `/auth/microsoft/callback` | `system.js` |
-| GET | `/api/push/config` | `system.js` |
 | GET | `/api/version`, `/api/health` | `system.js` |
-| POST | `/api/email/test` | `system.js` |
 | POST | `/api/login`, `/api/logout` | `system.js` |
 | POST | `/api/onboarding/faculty-notice`, `/api/onboarding/student-class` | `system.js` |
 | PATCH | `/api/account` | `system.js` |
@@ -57,8 +55,6 @@ Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả
 | GET/POST/DELETE | `/api/platform/setting-locks[/:id]` | `platform.js` |
 | GET | `/api/units`, `/api/units/:id/members` | `units.js` |
 | PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
-| GET/PUT/POST | `/api/admin/email/{settings,settings/test-send,events,templates,rules,deliveries}` | `settings-email.js` |
-| PUT/DELETE/PATCH | `/api/admin/email/templates/:id`, `/api/admin/email/rules/:id[/activate\|deactivate\|simulate]` | `settings-email.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
 
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
@@ -479,3 +475,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 2.2 | 2026-09-30 | Ngày nghiệp vụ theo giờ Việt Nam qua date-vn.js (pilot PR 6) | DYC |
 | 2.3 | 2026-09-30 | PR 8: bootstrap stats.openTasks đếm việc của chính người dùng; team overview và archive bỏ việc đã huỷ / chỉ đếm done | DYC |
 | 5.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 5.2 | 2026-10-02 | Bỏ `/api/push/config`, `/api/email/test` và nhóm `/api/admin/email/*` (không còn trong code) | DYC |

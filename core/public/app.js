@@ -133,43 +133,11 @@ const empty=(title,text)=>emptyState({title,detail:text});
 const badge=(v,customLabel)=>`<span class="badge ${esc(v)}"><span class="badge-dot"></span>${esc(customLabel||t(String(v).replace(/_/g,' ')))}</span>`;
 const avatar=(name,color='#1E3A8A')=>`<span class="avatar" style="background:${esc(color)}">${initials(name)}</span>`;
 
-async function setupPushNotifications(){
-  const config=await api('/api/push/config');
-  if(!config.enabled||!config.appId)return;
-  window.OneSignalDeferred=window.OneSignalDeferred||[];
-  return new Promise((resolve,reject)=>window.OneSignalDeferred.push(async OneSignal=>{
-    try{
-      await OneSignal.init({appId:config.appId,notifyButton:{enable:true},allowLocalhostAsSecureOrigin:['localhost','127.0.0.1'].includes(location.hostname)});
-      const identify=()=>OneSignal.login(String(state.user.id));
-      OneSignal.User.PushSubscription.addEventListener('change',event=>{
-        if(event.current.optedIn&&event.current.token)identify().catch(error=>console.warn('Push user identification failed.',error));
-      });
-      if(OneSignal.User.PushSubscription.optedIn&&OneSignal.User.PushSubscription.token)await identify();
-      resolve();
-    }
-    catch(error){reject(error)}
-  }));
-}
-
-function logoutPushUser(){
-  if(!window.OneSignalDeferred)return Promise.resolve();
-  return new Promise(resolve=>window.OneSignalDeferred.push(async OneSignal=>{
-    try{if(OneSignal.User.externalId)await OneSignal.logout()}catch(error){console.warn('Push notification logout failed.',error)}finally{resolve()}
-  }));
-}
-
-async function logoutPushUserWithTimeout(){
-  await Promise.race([
-    logoutPushUser(),
-    new Promise(resolve=>setTimeout(resolve,1500))
-  ]);
-}
-
-async function init(){const s=await api('/api/session');const v=await api('/api/version').catch(()=>null);if(v&&$('#app-version'))$('#app-version').textContent=`v${v.version} · ${v.build}`;if(!s.user){$('#login').classList.remove('hidden');return}state.user=s.user;setupPushNotifications().catch(error=>console.warn('Push notification setup failed.',error));document.body.dataset.role=s.user.role;if(!canManage())$$('[data-manager-only]').forEach(x=>x.remove());if(!isExec())$$('[data-admin-only]').forEach(x=>x.remove());$('#app').classList.remove('hidden');const sUser=$('#sidebar-user');if(sUser){sUser.innerHTML=`${avatar(s.user.name,s.user.avatar_color)}<span><strong>${esc(s.user.name)}</strong><small>${esc(t(s.user.role))} · ${t('Edit account')}</small></span>`;sUser.onclick=selfAccountModal;sUser.title=t('Edit account');}const sideSearch=$('#sidebar-search');if(sideSearch){sideSearch.onkeydown=e=>{if(e.key==='Enter'&&sideSearch.value.trim()){location.hash='activities';setTimeout(()=>{const actSearch=$('#activity-search');if(actSearch){actSearch.value=sideSearch.value.trim();actSearch.dispatchEvent(new Event('input'))}},100)}};}window.addEventListener('hashchange',route);route();showHustOnboarding()}
+async function init(){const s=await api('/api/session');const v=await api('/api/version').catch(()=>null);if(v&&$('#app-version'))$('#app-version').textContent=`v${v.version} · ${v.build}`;if(!s.user){$('#login').classList.remove('hidden');return}state.user=s.user;document.body.dataset.role=s.user.role;if(!canManage())$$('[data-manager-only]').forEach(x=>x.remove());if(!isExec())$$('[data-admin-only]').forEach(x=>x.remove());$('#app').classList.remove('hidden');const sUser=$('#sidebar-user');if(sUser){sUser.innerHTML=`${avatar(s.user.name,s.user.avatar_color)}<span><strong>${esc(s.user.name)}</strong><small>${esc(t(s.user.role))} · ${t('Edit account')}</small></span>`;sUser.onclick=selfAccountModal;sUser.title=t('Edit account');}const sideSearch=$('#sidebar-search');if(sideSearch){sideSearch.onkeydown=e=>{if(e.key==='Enter'&&sideSearch.value.trim()){location.hash='activities';setTimeout(()=>{const actSearch=$('#activity-search');if(actSearch){actSearch.value=sideSearch.value.trim();actSearch.dispatchEvent(new Event('input'))}},100)}};}window.addEventListener('hashchange',route);route();showHustOnboarding()}
 
 function showHustOnboarding(){const onboarding=state.user?.onboarding;if(!onboarding?.required)return;const dialog=$('#onboarding-modal'),content=$('#onboarding-content');dialog.addEventListener('cancel',event=>event.preventDefault());if(onboarding.type==='faculty_notice'){content.innerHTML=`<span class="eyebrow green">HUST STAFF / FACULTY</span><h2 id="onboarding-title">Welcome to TCKT Activity Hub</h2><p class="muted">For access, responsibilities, or more information, please contact an administrator or email <a href="mailto:van.nguyendinh@hust.edu.vn">van.nguyendinh@hust.edu.vn</a>.</p><button class="btn primary wide" id="faculty-notice-confirm">I understand</button>`;$('#faculty-notice-confirm').onclick=async event=>{event.currentTarget.disabled=true;try{const result=await api('/api/onboarding/faculty-notice',{method:'POST'});state.user=result.user;dialog.close()}catch(error){toast(error.message);event.currentTarget.disabled=false}}}else{content.innerHTML=`<span class="eyebrow green">STUDENT INFORMATION</span><h2 id="onboarding-title">Tell us your class</h2><p class="muted">Please declare your class number. You will be asked again after each sign-in until this is completed.</p><div class="cohort-card"><strong>${esc(state.user.cohort||'Cohort unavailable')}</strong><small>${state.user.entrance_year?`Entrance year ${esc(state.user.entrance_year)}`:'Inferred from your HUST student email'}</small></div><form id="student-class-form" class="form"><label>Class number<input name="class_number" maxlength="100" placeholder="e.g. Điện 1, Điện tử 2" autocomplete="organization-title" required autofocus></label><button class="btn primary wide">Save and continue</button></form>`;$('#student-class-form').onsubmit=async event=>{event.preventDefault();const button=$('button',event.currentTarget);button.disabled=true;try{const classNumber=String(new FormData(event.currentTarget).get('class_number')||'').trim(),result=await api('/api/onboarding/student-class',{method:'POST',body:JSON.stringify({class_number:classNumber})});state.user=result.user;dialog.close();toast('Student information saved')}catch(error){toast(error.message);button.disabled=false}}}dialog.showModal()}
 $('#login-form')?.addEventListener('submit',async e=>{e.preventDefault();const form=e.target,btn=$('button[type="submit"]',form),errorEl=$('#login-error');if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.classList.add('busy')}if(errorEl){errorEl.classList.add('hidden');errorEl.textContent=''}try{await api('/api/login',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(form)))});location.reload()}catch(err){const msg=err.message||t('Login failed');if(errorEl){errorEl.textContent=msg;errorEl.classList.remove('hidden')}toast(msg);if(btn){btn.disabled=false;btn.removeAttribute('aria-busy');btn.classList.remove('busy')}}});
-$('#logout')?.addEventListener('click',async()=>{await logoutPushUserWithTimeout();await api('/api/logout',{method:'POST'});location.reload()});
+$('#logout')?.addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.reload()});
 const sidebarMedia=window.matchMedia('(max-width: 760px)');
 const setSidebarOpen=open=>{const sidebar=$('#sidebar'),menu=$('#mobile-menu'),overlay=$('#sidebar-overlay'),isOpen=Boolean(open)&&sidebarMedia.matches;if(!sidebar)return;sidebar.classList.toggle('open',isOpen);sidebar.dataset.open=String(isOpen);sidebar.setAttribute('aria-hidden',String(sidebarMedia.matches&&!isOpen));menu?.setAttribute('aria-expanded',String(isOpen));if(overlay)overlay.hidden=!isOpen;document.body.classList.toggle('sidebar-open',isOpen)};
 sidebarMedia.addEventListener('change',()=>setSidebarOpen(false));
@@ -1401,6 +1369,5 @@ document.addEventListener('click',e=>{
   if(done)taskDetailModal(done.dataset.taskDone,true);
 });
 const renderPeoplePage=people;
-function testEmailModal(){openModal('<span class="eyebrow green">EMAIL NOTIFICATION</span><h2>Gửi email kiểm tra</h2><p class="muted">Nhập địa chỉ sẽ nhận email kiểm tra từ Gmail đã cấu hình.</p><form id="test-email-form" class="form"><label>Địa chỉ email<input type="email" name="to" autocomplete="email" placeholder="name@example.com" required></label><button class="btn primary wide">Gửi email kiểm tra</button></form>');$('#test-email-form').onsubmit=async event=>{event.preventDefault();const button=$('button',event.currentTarget),to=String(new FormData(event.currentTarget).get('to')||'').trim();button.disabled=true;button.textContent='Đang gửi…';try{const result=await api('/api/email/test',{method:'POST',body:JSON.stringify({to})});$('#modal').close();toast(`Đã gửi email kiểm tra đến ${result.to}`)}catch(error){toast(error.message);button.disabled=false;button.textContent='Gửi email kiểm tra'}}}
-people=async function(){await renderPeoplePage();if(!isExec())return;const header=$('.page-head');header.insertAdjacentHTML('beforeend',`<button class="btn" id="test-email">${icon('envelope')} Test email</button>`);$('#test-email').onclick=testEmailModal};
+people=async function(){await renderPeoplePage()};
 translateDOM(document);secureExternalLinks(document);init().catch(e=>{console.error(e);$('#login').classList.remove('hidden');toast(lang==='vi'?'Không thể kết nối đến máy chủ':'Could not connect to the server')});

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.0
+version: 3.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js]
 ---
 
@@ -17,7 +17,7 @@ Tài liệu này giúp dev/AI hiểu nhanh cách hai app trong monorepo được
 
 - **Core** (`core/`): Node 22 + Express 5 + MySQL 8. Chứa module **Điều hành** (hoạt động, task/Kanban, đề án,
   nghiệm thu, báo cáo, Trình, quản lý team/người dùng) và hạ tầng dùng chung của mọi module loại A (session,
-  auth, policy, email rule engine, cron runner). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
+  auth, policy, facade thông báo `notifier`, scheduler nhắc hạn). Entry point: `core/app.js` → `core/src/server.js` (`runtime.js`)
   → `core/src/app.js` (`createApplication`, dựng Express app theo pipeline:
   1. helmet CSP
   2. session middleware (express-session)
@@ -90,3 +90,4 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.2 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-29 | Bổ sung middleware ngữ cảnh đa đơn vị createUnitContext và cổng legacyGate vào pipeline Express Core (GĐ1-A) | DYC |
 | 3.0 | 2026-09-30 | Làm rõ flow middleware đa đơn vị: pipeline 8 bước từ helmet→error handler, chi tiết loadUnitContext + legacyGate + req.actor | DYC |
+| 3.1 | 2026-10-02 | Core không còn email rule engine; có facade `notifier` | DYC |

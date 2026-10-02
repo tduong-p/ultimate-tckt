@@ -1,7 +1,7 @@
 const express = require('express');
 
 function createReportRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, mailer, push, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
+  const { db, auth, admin, manager, isLeadership, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
   const router = express.Router();
 
 const { toSummaryView } = require('../serializers/summary');

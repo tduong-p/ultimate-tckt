@@ -19,7 +19,6 @@ const OUTSIDER_ALLOW = [
   /^\/api\/session$/,
   /^\/api\/version$/,
   /^\/api\/health$/,
-  /^\/api\/push\/config$/,
   /^\/api\/notifications($|\/)/,  // All notification endpoints are public
   /^\/api\/units$/,               // List of units (for login/role selection)
   /^\/api\/units\/[^/]+\/roles$/, // Unit roles (for login)

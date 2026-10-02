@@ -1,6 +1,5 @@
 const { createApplication } = require('./app');
 const logger = require('./logger');
-const push = require('./push');
 const { startDeadlineNotificationScheduler } = require('./services/deadline-notifications');
 const { migrateDatabase } = require('./config/migrate');
 const { ensureDycAdmins } = require('./units/memberships');
@@ -27,8 +26,7 @@ async function start(options = {}) {
     logger.info(`TCKT Activity Hub v${application.config.packageInfo.version} started on port ${port}.`);
     console.log(`TCKT Activity Hub running on port ${port}`);
   });
-  const mailer = require('./mailer');
-  const stopDeadlineNotifications = startDeadlineNotificationScheduler({ db: application.db, push, mailer, logger });
+  const stopDeadlineNotifications = startDeadlineNotificationScheduler({ db: application.db, notifier: application.notifier, logger });
 
   server.on('error', error => {
     logger.error(`HTTP server could not start on port ${port}.`, error);
