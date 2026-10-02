@@ -1,0 +1,14 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã phản hồi về công việc ({{ response.kind }}):
+- Công việc: (TCKT-{{ task.id }}) {{ task.title }}
+{% if activity is defined and activity.get('title') %}
+- Hoạt động: {{ activity.title }}
+{% endif %}
+- Nội dung:
+{{ response.body }}
+
+Xem chi tiết tại: {{ base_url }}{{ task.path }}
+{% endblock %}

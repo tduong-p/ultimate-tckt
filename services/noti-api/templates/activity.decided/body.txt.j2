@@ -1,0 +1,15 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã đưa ra quyết định đối với đề án hoạt động:
+- Hoạt động: (ACT-{{ activity.id }}) {{ activity.title }}
+- Quyết định: {{ action }}
+{% if feedback is defined and feedback %}
+- Ý kiến phản hồi: {{ feedback }}
+{% endif %}
+
+{% if activity.get('path') %}
+Xem hoạt động tại: {{ base_url }}{{ activity.path }}
+{% endif %}
+{% endblock %}

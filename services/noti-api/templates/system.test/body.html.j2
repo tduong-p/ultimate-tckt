@@ -1,0 +1,12 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p>Đây là thư kiểm tra cấu hình gửi email từ hệ thống Noti.</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Thông điệp:</strong> {{ message }}</p>
+  {% if tested_at is defined and tested_at %}
+  <p style="margin: 0;"><strong>Thời gian thử nghiệm:</strong> {{ tested_at }}</p>
+  {% endif %}
+</div>
+<p>Nếu bạn nhận được email này, cấu hình gửi email đang hoạt động bình thường.</p>
+{% endblock %}

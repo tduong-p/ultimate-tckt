@@ -1,0 +1,13 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã thêm bạn vào hoạt động với vai trò: {{ responsibility }}.
+- Hoạt động: (ACT-{{ activity.id }}) {{ activity.title }}
+- Nhiệm vụ: {{ responsibility }}
+{% if activity.get('deadline') %}
+- Hạn chót: {{ activity.deadline }}
+{% endif %}
+
+Xem hoạt động tại: {{ base_url }}{{ activity.path }}
+{% endblock %}

@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.6
+version: 1.7
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
@@ -23,6 +23,9 @@ cd core && npm test
 # CTD (FastAPI/Postgres) — cần Postgres local, DB ctd_test đã tồn tại
 cd services/ctd-api/backend && TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test .venv/bin/pytest
 
+# Noti (FastAPI/Postgres) — cần Postgres local, DB noti_test đã tồn tại
+cd services/noti-api && NOTI_TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/noti_test .venv/bin/pytest
+
 # Script hạ tầng (bash, stub docker/git/sudo…) + tooling docs-check
 npm run test:tools
 
@@ -32,6 +35,8 @@ npm run docs:check
 
 Chỉ sửa một phần (ví dụ chỉ route Core) vẫn nên chạy cả `npm run test:tools` nếu có đụng tới `infra/**` hoặc
 `tools/**`, và luôn chạy `docs:check` nếu có đổi bất kỳ file `.md` nào trong `docs/`.
+`docs:check --base` chỉ so các **commit** (`base...HEAD`): commit trước rồi mới chạy, nếu không phần kiểm tác động
+code→tài liệu bỏ sót file chưa commit (xem `docs/ai/bay-da-gap.md`).
 
 ## Chạy local (khi cần MySQL/Postgres)
 
@@ -52,7 +57,7 @@ staging/production để chạy test.
 ## Cách đọc CI
 
 Workflow `.github/workflows/deploy.yml`: lọc theo đường dẫn thay đổi (`dorny/paths-filter`) → chạy
-`test-core` (MySQL 8 service) và/hoặc `test-ctd` (Postgres 16 service) tương ứng → nếu xanh mới build arm64
+`test-core` (MySQL 8 service), `test-ctd` và/hoặc `test-noti` (Postgres 16 service) tương ứng → nếu xanh mới build arm64
 (buildx + QEMU) → deploy qua SSH chỉ khi biến repo `DEPLOY_ENABLED == 'true'` (production cần thêm `PROD_DEPLOY_ENABLED == 'true'`). Đổi gì trong `infra/**` sẽ kích
 hoạt `apply-infra.sh` thay vì `deploy.sh`. PR đỏ ở bước nào thì sửa đúng phần đó trước, không bỏ qua.
 
@@ -82,3 +87,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.4 | 2026-09-26 | Thêm database inspection tools trong `tools/database-inspecs/` | DYC |
 | 1.5 | 2026-09-27 | Thêm `tools/test-fixtures/` — backup DB và script restore cho local dev | DYC |
 | 1.6 | 2026-09-30 | Dump MySQL chỉ để ở máy (git-ignore), gỡ `backup_current.sql` khỏi repo | DYC |
+| 1.7 | 2026-10-02 | Thêm lệnh test Noti, `test-noti` trong CI; `docs:check --base` chỉ thấy file đã commit | DYC |

@@ -1,0 +1,21 @@
+key: task.reviewed
+subject: "[DYC] (TCKT-{{ task.id }}) Kết quả nghiệm thu: {{ task.title }}"
+required:
+  - actor
+  - decision
+  - task.id
+  - task.title
+  - task.path
+optional:
+  - feedback
+  - activity.title
+data_example:
+  actor: "Nguyễn Văn B"
+  decision: "Đã nghiệm thu đạt"
+  feedback: "Poster thiết kế đẹp, đúng màu sắc nhận diện."
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

@@ -1,0 +1,20 @@
+key: activity.proposed
+subject: "[DYC] (ACT-{{ activity.id }}) Đề án hoạt động: {{ activity.title }}"
+required:
+  - actor
+  - activity.id
+  - activity.title
+  - activity.path
+optional:
+  - activity.type
+  - activity.deadline
+  - activity.priority
+data_example:
+  actor: "Ban Tổ chức"
+  activity:
+    id: 12
+    title: "Chiến dịch Mùa hè xanh 2026"
+    path: "/#activity/12"
+    type: "Tình nguyện"
+    deadline: "2026-07-20"
+    priority: "high"

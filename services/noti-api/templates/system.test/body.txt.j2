@@ -1,0 +1,12 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+Đây là thư kiểm tra cấu hình gửi email từ hệ thống Noti.
+- Thông điệp: {{ message }}
+{% if tested_at is defined and tested_at %}
+- Thời gian thử nghiệm: {{ tested_at }}
+{% endif %}
+
+Nếu bạn nhận được email này, cấu hình gửi email đang hoạt động bình thường.
+{% endblock %}

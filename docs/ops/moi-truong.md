@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -35,6 +35,7 @@ Nginx định tuyến theo `Host` header/SNI. Site config: `ultimate-tckt-<env>-
 | core (app) | 3000 | 3001 |
 | ctd-api (app) | 8000 | 8001 |
 | core-db (MySQL) | 3306 | 3307 |
+| noti-api (Noti) | 8100 | — (chưa chạy) |
 
 `ctd-db` (Postgres) không map port ra host, chỉ truy cập qua mạng nội bộ Docker (hoặc SSH tunnel + user riêng nếu cần — hiện chưa có script tạo user chỉ đọc cho Postgres, xem `docs/ops/truy-cap-db.md`).
 
@@ -46,15 +47,37 @@ File thật nằm ở `/opt/ultimate-tckt/<env>/infra/.env` (quyền 600), khôn
 CORE_MYSQL_ROOT_PASSWORD, CORE_DB_NAME, CORE_DB_USER, CORE_DB_PASSWORD,
 CORE_SESSION_SECRET, CORE_SETTINGS_ENCRYPTION_KEY, CORE_DEVOPS_EMAILS,
 CTD_DB_NAME, CTD_DB_USER, CTD_DB_PASSWORD, CTD_JWT_SECRET
+# chỉ staging:
+NOTI_DB_NAME, NOTI_DB_USER, NOTI_DB_PASSWORD, NOTI_MAIL_DRIVER, NOTI_MAIL_FROM,
+NOTI_RECIPIENT_ALLOWLIST, NOTI_REDIRECT_TO, NOTI_SMTP_*, NOTI_GRAPH_*
 ```
 
 Tiền tố `CORE_*` thay cho `TCKT_*` cũ (giá trị giữ nguyên khi chuyển đổi, xem `docs/ops/chuyen-doi-ultimate-tckt.md`). Tiền tố `CTD_*` giữ nguyên. Không ghi giá trị thật vào bất kỳ tài liệu nào — chỉ ghi tên biến và nơi lưu.
 
 **Lưu ý về `CORE_SETTINGS_ENCRYPTION_KEY`:** compose cũ (trước khi gộp monorepo) không khai báo biến này, nên trang **Setting → SMTP** trên core bị lỗi khi lưu cấu hình (khoá mã hoá không tồn tại). Compose mới (`infra/compose/docker-compose.<env>.yml`) đã thêm biến này bắt buộc (`${CORE_SETTINGS_ENCRYPTION_KEY:?}`) — thiếu biến thì container `core` không khởi động được thay vì âm thầm lỗi khi người dùng bấm Lưu. `bootstrap-vm.sh` tự sinh giá trị này (`openssl rand -base64 32`) nếu `.env` cũ chưa có. Mất khoá này = mất khả năng đọc lại cấu hình SMTP đã lưu trước đó (xem `docs/ai/bat-bien.md`).
 
+## 4a. Noti trên staging
+
+Service Noti (`docs/dev/noti.md`) chạy **chỉ ở staging**: `noti-api` (cổng host `127.0.0.1:8100`, health `/v1/health`) và
+`noti-worker` dùng chung image `ghcr.io/tduong-p/ultimate-tckt-noti`. Không có domain/nginx: Core gọi qua mạng compose
+(`http://noti-api:8000`). Database `noti` riêng nằm trên `ctd-db` của staging (không chung database với CTD).
+
+Việc làm tay một lần trên VM, **trước** lần deploy đầu (compose đòi `NOTI_DB_*`, thiếu thì mọi lệnh compose của staging lỗi,
+kể cả deploy Core):
+
+1. Tạo role và database trong `ultimate-tckt-staging-ctd-db-1`, mật khẩu sinh bằng `openssl rand -hex 24` ngay trên VM:
+   `CREATE ROLE noti LOGIN PASSWORD '…'; CREATE DATABASE noti OWNER noti;`
+2. Thêm `NOTI_DB_NAME=noti`, `NOTI_DB_USER=noti`, `NOTI_DB_PASSWORD=…` vào `/opt/ultimate-tckt/staging/infra/.env`.
+   Các biến `NOTI_MAIL_*`, `NOTI_SMTP_*`, `NOTI_GRAPH_*` để trống thì driver là `console` (chỉ ghi log).
+3. Sau deploy: tạo API key cho Core —
+   `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli create-client core` (key chỉ in một lần, lưu vào `.env` của Core khi làm Plan C).
+
+Bật gửi thật: đặt `NOTI_MAIL_DRIVER=graph` (hoặc `smtp`) cùng secret tương ứng và **luôn** đặt `NOTI_RECIPIENT_ALLOWLIST`
+trên staging, rồi chạy lại `deploy.sh staging noti <tag đang chạy>`.
+
 ## 5. Trạng thái email hiện tại
 
-- **core**: không còn module email và không còn OneSignal (đã gỡ, ADR-0013); biến `EMAIL_NOTIFICATIONS_ENABLED` trong compose không còn tác dụng. Email sẽ do service Noti đảm nhận (`docs/specs/2026-10-02-noti-service-design.md`).
+- **core**: không còn module email và không còn OneSignal (đã gỡ, ADR-0013); biến `EMAIL_NOTIFICATIONS_ENABLED` trong compose không còn tác dụng. Email sẽ do service Noti đảm nhận (mục 4a); Core chưa gọi Noti.
 - **ctd-api**: `MAILER_DRIVER=console` — email được ghi ra console log thay vì gửi thật.
 
 Bật email thật thuộc điều kiện hoàn thành một giai đoạn sau (không nằm trong đợt gộp monorepo này).
@@ -77,3 +100,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-10-02 | Core không còn module email và OneSignal | DYC |
+| 1.2 | 2026-10-02 | Thêm Noti trên staging: cổng 8100, biến `NOTI_*`, việc làm tay một lần (mục 4a) | DYC |

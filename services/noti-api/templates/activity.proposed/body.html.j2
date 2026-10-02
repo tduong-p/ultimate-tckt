@@ -1,0 +1,17 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p><strong>{{ actor }}</strong> đã gửi đề án hoạt động mới cần xem xét:</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> (ACT-{{ activity.id }}) {{ activity.title }}</p>
+  {% if activity.get('type') %}
+  <p style="margin: 0 0 8px 0;"><strong>Loại hình:</strong> {{ activity.type }}</p>
+  {% endif %}
+  {% if activity.get('deadline') %}
+  <p style="margin: 0;"><strong>Hạn chót:</strong> {{ activity.deadline }}</p>
+  {% endif %}
+</div>
+<p>
+  <a class="button" href="{{ base_url }}{{ activity.path }}">Xem chi tiết đề án</a>
+</p>
+{% endblock %}

@@ -1,12 +1,12 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 3.0
+version: 3.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-30
-related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh]
+updated: 2026-10-02
+related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh, infra/scripts/lib.sh]
 ---
 
 # Deploy và nhánh git
@@ -34,14 +34,16 @@ Không có bước duyệt thủ công riêng cho deploy — mỗi push (sau khi
 
 Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
 
-1. **`changes`** — dùng `dorny/paths-filter@v3` để biết PR/commit này đụng vào `core/` (+ `web/`), `services/ctd-api/`, hay `infra/`; tính `tag` (12 ký tự đầu của SHA) và `env` (`staging` hoặc `production` theo nhánh).
+1. **`changes`** — dùng `dorny/paths-filter@v3` để biết PR/commit này đụng vào `core/` (+ `web/`), `services/ctd-api/`, `services/noti-api/`, hay `infra/`; tính `tag` (12 ký tự đầu của SHA) và `env` (`staging` hoặc `production` theo nhánh).
 2. **`test-core`** — chạy nếu `core/**` hoặc `web/**` đổi: dựng service MySQL 8, `cd core && npm ci && npm test`.
 3. **`test-ctd`** — chạy nếu `services/ctd-api/**` đổi: dựng service Postgres 16, `pytest -q` trong `services/ctd-api/backend`.
-4. **`build-core`** / **`build-ctd-api`** — chỉ chạy khi push (không chạy trên PR) và test tương ứng xanh: build image arm64 (buildx + QEMU vì runner là amd64, VM là Oracle Ampere arm64) và push lên GHCR với tag `ghcr.io/tduong-p/ultimate-tckt-core:<sha12>` / `ultimate-tckt-ctd-api:<sha12>`.
+   **`test-noti`** — tương tự cho `services/noti-api/**` (Postgres 16, database `noti_test`).
+4. **`build-core`** / **`build-ctd-api`** / **`build-noti`** — chỉ chạy khi push (không chạy trên PR) và test tương ứng xanh: build image arm64 (buildx + QEMU vì runner là amd64, VM là Oracle Ampere arm64) và push lên GHCR với tag `ghcr.io/tduong-p/ultimate-tckt-core:<sha12>` / `ultimate-tckt-ctd-api:<sha12>` / `ultimate-tckt-noti:<sha12>`.
 5. **`deploy-core`** / **`deploy-ctd-api`** — chỉ chạy khi push và biến repo `DEPLOY_ENABLED == 'true'`: SSH vào VM (`appleboy/ssh-action@v1.2.0`, dùng GitHub Environment tương ứng `staging`/`production`) và chạy:
    ```bash
    bash /opt/ultimate-tckt/<env>/infra/scripts/deploy.sh <env> <core|ctd-api> <tag>
    ```
+   **`deploy-noti`** chỉ chạy cho **staging** (production chưa có Noti trong compose), gọi `deploy.sh staging noti <tag>`.
 6. **`infra`** — chạy khi `infra/**` đổi (push) hoặc chạy tay (`workflow_dispatch`), cũng cần `DEPLOY_ENABLED == 'true'`: SSH chạy `infra/scripts/apply-infra.sh <env> [apply_db]`. Tick `apply_db` khi kích hoạt thủ công để đồng thời cập nhật `core-db`/`ctd-db` (mặc định false — không đụng database).
 
 Các job deploy/infra **không** dùng concurrency group của GitHub (GitHub huỷ job đang chờ khi job mới vào cùng group — deploy sẽ bị bỏ âm thầm). Việc tuần tự do `flock` trên VM đảm nhận (`/tmp/ultimate-tckt-<env>-deploy.lock`, chờ tối đa 180 giây). Thứ tự giữa `infra` và `deploy-*` khi cùng đổi trong một push không được đảm bảo (chấp nhận được vì cả hai đều `git pull` trước khi chạy).
@@ -50,12 +52,12 @@ Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitH
 
 ## 3. `deploy.sh` làm gì
 
-`infra/scripts/deploy.sh <staging|production> <core|ctd-api> <tag>` (nguồn dùng chung ở `infra/scripts/lib.sh`):
+`infra/scripts/deploy.sh <staging|production> <core|ctd-api|noti> <tag>` (nguồn dùng chung ở `infra/scripts/lib.sh`):
 
 1. Lấy khoá `flock` của môi trường (`/tmp/ultimate-tckt-<env>-deploy.lock`) — tránh hai deploy chạy chồng.
 2. `git pull --ff-only` đúng nhánh của môi trường đó (`staging` hoặc `main`).
-3. `docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/docker-compose.<env>.yml pull <service>` rồi `up -d --no-deps <service>` — chỉ đụng đúng một service, service còn lại giữ tag đang chạy.
-4. Kiểm tra `http://127.0.0.1:<port>/api/health` trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công.
+3. `docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/docker-compose.<env>.yml pull <service>` rồi `up -d --no-deps <service>` — chỉ đụng service của app đó (`noti` = `noti-api` + `noti-worker`), các app khác giữ tag đang chạy.
+4. Kiểm tra `http://127.0.0.1:<port>/api/health` (Noti: `/v1/health` cổng 8100) trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công.
 
 ## 4. Bật/tắt deploy tự động
 
@@ -189,3 +191,4 @@ Nếu sau khi merge vào `main` và deploy production, phát hiện lỗi nghiê
 | 1.2 | 2026-09-24 | Bỏ concurrency group (flock trên VM), thêm công tắc `PROD_DEPLOY_ENABLED` | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.4 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 3.0 | 2026-09-30 | Thêm mục 7: Runbook deploy GĐ1-A (backup DB, verify migration, test đăng nhập, rollback plan) | DYC |
+| 3.1 | 2026-10-02 | Thêm Noti vào pipeline: `test-noti`/`build-noti`/`deploy-noti` (chỉ staging), `deploy.sh … noti` | DYC |

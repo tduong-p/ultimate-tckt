@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -20,7 +20,7 @@ trong **một module** thì làm luôn; việc chạm **module khác** hoặc **
 |---|---|---|
 | **Nền (Core platform)** | `core/src/units/**`, `core/src/middleware/**`, `core/src/settings/**`, `core/src/config/**`, `core/src/auth/**`, `core/src/services/audit.js`, `core/src/routes/{units,platform,index,utils}.js`, phần session/đăng nhập/tài khoản trong `core/src/routes/system.js`, `core/src/app.js`, `core/src/runtime.js`, `core/src/server.js`, `core/db.sql` | Toàn bộ module Nền là **hợp đồng dùng chung** — xem mục dưới. Thêm setting mới vào `core/src/settings/catalog.js` phải raise họp team (ảnh hưởng quyền). |
 | **Điều hành** (TCKT) | `core/src/routes/{activities,tasks,teams,documents,reports,users,notifications}.js`, phần bootstrap/my-tasks/weight-presets trong `core/src/routes/system.js`, `core/src/policies/**`, `core/src/services/{task-attachments,deadline-notifications}.js`, `core/public/**` (frontend cũ) | |
-| **Thông báo (Noti)** | `core/src/notifier.js` (facade phía Core), `core/src/services/deadline-notifications.js`; service `services/noti-api/**` (chưa tạo, SPEC-NOTI-001) | Hợp đồng API Noti là hợp đồng dùng chung |
+| **Thông báo (Noti)** | `core/src/notifier.js` (facade phía Core), `core/src/services/deadline-notifications.js`; service `services/noti-api/**` (SPEC-NOTI-001) | Hợp đồng API Noti là hợp đồng dùng chung |
 | **CTD** (Công tác Đảng) | `services/ctd-api/**` (backend + frontend) | |
 | **Web** (frontend chung) | `web/**` (chưa tạo) | |
 | **Hạ tầng & CI** | `infra/**`, `.github/**` | Luôn là hợp đồng dùng chung. |
@@ -63,3 +63,4 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | 1.2 | 2026-09-29 | Ghi nhận index.js đăng ký thêm routes của platform và units (GĐ1-A Task 7 & 8) | DYC |
 | 1.3 | 2026-09-29 | Làm rõ `core/src/settings/catalog.js` là hợp đồng dùng chung (thêm setting mới phải raise). Bổ sung `platform.js` vào danh sách hợp đồng. | DYC |
 | 1.4 | 2026-10-02 | Dòng "Email & Cron" đổi thành "Thông báo (Noti)": các file cũ không tồn tại trên staging; thêm service Noti (issue #41) | DYC |
+| 1.5 | 2026-10-02 | Ghi nhận service Noti tại services/noti-api/** theo ADR-0014 và SPEC-NOTI-001 | DYC |

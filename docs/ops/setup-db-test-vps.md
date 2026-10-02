@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-TEST-001
 title: Setup database test trên VPS
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: [infra/scripts/**, core/src/config/migrate.js]
 ---
 
@@ -27,6 +27,7 @@ Hướng dẫn tạo database riêng cho testing trên VPS (Oracle ARM VM), trá
 **Không nên:**
 - ❌ Test trên staging/production database (risk cao)
 - ❌ Dùng chung database test với staging (data pollution)
+- ❌ Dùng database `noti` trên `ctd-db` staging để test — đó là dữ liệu của Noti staging (`docs/ops/moi-truong.md` §4a)
 - ❌ Test trực tiếp trên production (nguy hiểm)
 
 ### 1.2 Chiến lược
@@ -720,3 +721,4 @@ cd /opt/ultimate-tckt/test-repo/services/ctd-api/backend && .venv/bin/alembic up
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu tiên - Setup DB test trên VPS | DYC |
 | 1.1 | 2026-09-27 | Cập nhật tham chiếu script migrate (GĐ1-A) | D2 |
+| 1.2 | 2026-10-02 | Không dùng database `noti` staging để test | DYC |

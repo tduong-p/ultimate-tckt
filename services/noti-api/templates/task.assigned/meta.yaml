@@ -1,0 +1,19 @@
+key: task.assigned
+subject: "[DYC] (TCKT-{{ task.id }}) {{ task.title }}"
+required:
+  - actor
+  - task.id
+  - task.title
+  - task.path
+optional:
+  - task.deadline
+  - activity.title
+data_example:
+  actor: "Nguyễn Văn B"
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+    deadline: "2026-10-15"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

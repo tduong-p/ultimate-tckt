@@ -1,11 +1,11 @@
 ---
 doc_id: PB-RB-001
 title: Playbook — rollback
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: [infra/scripts/deploy.sh]
 ---
 
@@ -19,15 +19,15 @@ Khi một bản deploy gây lỗi trên staging/production và cách nhanh nhấ
 
 ## Các bước
 
-### 1. Rollback image ứng dụng (`core` hoặc `ctd-api`)
+### 1. Rollback image ứng dụng (`core`, `ctd-api` hoặc `noti`)
 
 Tìm tag image chạy tốt trước đó (12 ký tự đầu SHA commit, xem lịch sử Actions hoặc tag trên GHCR), rồi:
 
 ```bash
-infra/scripts/deploy.sh <staging|production> <core|ctd-api> <tag-cu>
+infra/scripts/deploy.sh <staging|production> <core|ctd-api|noti> <tag-cu>   # noti: chỉ staging
 ```
 
-`deploy.sh` tự pull đúng tag, `up -d --no-deps` chỉ service đó, và chạy health check `http://127.0.0.1:<port>/api/health` — script tự thoát với exit code khác 0 nếu health check thất bại, không âm thầm coi là thành công.
+`deploy.sh` tự pull đúng tag, `up -d --no-deps` chỉ service của app đó (`noti` = `noti-api` + `noti-worker`), và chạy health check `http://127.0.0.1:<port>/api/health` (Noti: `:8100/v1/health`) — script tự thoát với exit code khác 0 nếu health check thất bại, không âm thầm coi là thành công.
 
 ### 2. Rollback cấu hình infra (compose/nginx)
 
@@ -62,3 +62,4 @@ Chỉ khi rollback image/infra không đủ (dữ liệu đã bị hỏng bởi 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-10-02 | Rollback Noti (staging) | DYC |
