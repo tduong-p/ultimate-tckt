@@ -32,11 +32,14 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 
 - Mỗi `notify` là một `POST {NOTI_URL}/v1/notifications` với `Authorization: Bearer <key>`, body
   `{ template: event, recipients: [{ email, name }], data, dedupe_key: sourceKey }`.
-- `200`/`202` là thành công. Mã khác (`400 validation_error`, `401`, `409 dedupe_key_conflict`, `5xx`) và timeout chỉ ghi log
-  `Noti responded <status> <error>`; log không chứa key.
+- `200`/`202` là thành công. `409 dedupe_key_conflict` cũng coi là đã gửi: scheduler gửi lại mỗi 15 phút, cùng `sourceKey` mà
+  nội dung đổi (đổi tên task, dời hạn, đổi tên người nhận) nghĩa là thư đã đi với nội dung cũ.
+- Mã khác (`400 validation_error`, `401`, `409 data_purged`, `413`, `5xx`) ghi log `Noti responded <status> <error>`; mạng lỗi ghi
+  `Noti request failed: <tên lỗi>`; quá 5 s ghi `timeout`. Log không chứa key (lỗi của `fetch` bị bỏ message vì có thể chứa header).
 - `toNotiPayload` sửa dữ liệu trước khi gửi: mã thô thành chữ (`activity.decided.action`: `approve`/`reject`/`request_changes`;
   `task.reviewed.decision`: `approve`/`reject`/`cancel`; `task.response.response.kind`), `Date` của mysql2 thành `YYYY-MM-DD`
-  (thêm ` HH:mm` nếu có giờ), bỏ giá trị `null`/`undefined`/chuỗi rỗng. Mã lạ giữ nguyên.
+  (thêm ` HH:mm` nếu có giờ), bỏ giá trị `null`/`undefined`/chuỗi rỗng, cắt `response.body` còn 4000 ký tự (Noti từ chối
+  body > 64 KB). Mã lạ giữ nguyên.
 - `core/tests/noti-sender.test.js` đọc `required` trong `services/noti-api/templates/<event>/meta.yaml`: thêm event hay đổi
   template mà thiếu trường thì test này đỏ.
 
@@ -63,6 +66,8 @@ Với `sourceKey` có "thời điểm request" thì khoá chỉ chống gọi l�
 - Cột `notifications.email_status` và `push_status` còn trong schema nhưng luôn `NULL` (đổi schema là việc liên module).
 - Push thẻ tên trong bình luận đã bỏ cùng OneSignal; chưa có template email tương ứng.
 - Driver Noti trên staging là `console`: thư chỉ ra log `noti-worker`, chưa tới hộp thư thật.
+- Scheduler bắn mọi `notify` cùng lúc, không chờ, và `task.overdue` gửi lại mỗi ngày cho mọi task quá hạn chưa xong. Trước khi
+  bật mail thật cần quyết: giới hạn số request đồng thời và có nên nhắc quá hạn hằng ngày không.
 - `ctd-api` có mailer riêng (`services/ctd-api/backend/app/infra/mailer.py`), nằm ngoài phạm vi tài liệu này.
 
 ## Biến `DEVOPS_EMAILS`

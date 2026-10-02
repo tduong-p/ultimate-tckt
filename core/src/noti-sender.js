@@ -9,6 +9,9 @@ const LABELS = {
   'task.response': { field: ['response', 'kind'], values: { comment: 'Bình luận', progress: 'Cập nhật tiến độ', evidence: 'Minh chứng', issue: 'Vướng mắc', review_note: 'Ghi chú nghiệm thu' } },
 };
 
+// Noti từ chối body > 64 KB (413, thân rỗng); bình luận dài bị cắt để thư vẫn đi.
+const MAX_RESPONSE_BODY = 4000;
+
 const pad = n => String(n).padStart(2, '0');
 
 // mysql2 trả cột DATE thành nửa đêm theo giờ máy chủ, nên đọc lại bằng giờ máy chủ để không lệch ngày.
@@ -40,13 +43,19 @@ function applyLabels(eventName, data) {
   return data;
 }
 
+function truncateResponseBody(data) {
+  const body = data.response && data.response.body;
+  if (typeof body === 'string' && body.length > MAX_RESPONSE_BODY) data.response.body = `${body.slice(0, MAX_RESPONSE_BODY - 1)}…`;
+  return data;
+}
+
 function toNotiPayload(event) {
   const recipient = { email: event.recipient.email };
   if (event.recipient.name) recipient.name = event.recipient.name;
   return {
     template: event.event,
     recipients: [recipient],
-    data: applyLabels(event.event, clean(event.data || {})),
+    data: truncateResponseBody(applyLabels(event.event, clean(event.data || {}))),
     dedupe_key: event.sourceKey,
   };
 }
@@ -54,15 +63,26 @@ function toNotiPayload(event) {
 function createNotiSender({ url, apiKey, fetchImpl = fetch, timeoutMs = 5000 }) {
   const endpoint = `${String(url).replace(/\/+$/, '')}/v1/notifications`;
   return async function sendToNoti(event) {
-    const response = await fetchImpl(endpoint, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(toNotiPayload(event)),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (response.status === 200 || response.status === 202) return;
+    let response;
+    try {
+      response = await fetchImpl(endpoint, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(toNotiPayload(event)),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (error) {
+      // Lỗi của fetch có thể chép nguyên header (kèm key) vào message; chỉ giữ tên lỗi.
+      throw new Error(`Noti request failed: ${error && error.name}`);
+    }
+    if (response.status === 200 || response.status === 202) {
+      await response.body?.cancel?.();
+      return;
+    }
     let code = '';
     try { code = (await response.json())?.error || ''; } catch { /* thân rỗng, ví dụ 413 */ }
+    // Scheduler gửi lại mỗi 15 phút; cùng khoá nhưng nội dung đã đổi (đổi tên, dời hạn) nghĩa là thư đã gửi rồi.
+    if (response.status === 409 && code === 'dedupe_key_conflict') return;
     throw new Error(`Noti responded ${response.status}${code ? ` ${code}` : ''}`);
   };
 }

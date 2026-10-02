@@ -35,7 +35,7 @@ và `createNotiSender({ url, apiKey })` (gọi HTTP). `app.js` gắn sender khi 
 - Mã thô (`approve`, `reject`, `request_changes`, `cancel`, kind phản hồi) phải ra chữ tiếng Việt trong thư, không hiện mã.
 - Hạn chót là `Date` của mysql2 (cột `DATE`) → in `YYYY-MM-DD`, không in chuỗi ISO có múi giờ.
 - `null`/`undefined` ở trường tuỳ chọn (feedback rỗng, activity.title thiếu) không làm Noti trả 400.
-- Noti trả 409 (`dedupe_key_conflict`) hay 401 → log có mã lỗi, không có API key.
+- Noti trả 409 `dedupe_key_conflict` (scheduler gửi lại, nội dung đã đổi) → coi là đã gửi; 401/409 `data_purged`/413 → log có mã lỗi, không có API key.
 - Payload của mọi event có đủ trường `required` trong `services/noti-api/templates/<event>/meta.yaml`.
 
 ## Task 1: `noti-sender.js` (TDD)

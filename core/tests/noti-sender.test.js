@@ -78,7 +78,8 @@ function fakeFetch(response) {
   fn.calls = calls;
   return fn;
 }
-const reply = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+const reply = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body, body: { cancel: async () => { reply.cancelled += 1; } } });
+reply.cancelled = 0;
 const event = { ...callSites[3], recipient };
 
 test('sender POSTs the payload with the bearer key and accepts 202 and 200', async () => {
@@ -95,15 +96,41 @@ test('sender POSTs the payload with the bearer key and accepts 202 and 200', asy
 });
 
 test('sender rejects on 4xx/5xx with status and Noti error code, never the key', async () => {
-  for (const [status, body] of [[409, { error: 'dedupe_key_conflict' }], [401, { error: 'unauthorized' }], [400, { error: 'validation_error', details: [{ field: 'actor' }] }], [503, null]]) {
+  for (const [status, body] of [[409, { error: 'data_purged' }], [401, { error: 'unauthorized' }], [400, { error: 'validation_error', details: [{ field: 'actor' }] }], [503, null]]) {
     const fetchImpl = fakeFetch({ ok: false, status, json: async () => { if (!body) throw new Error('no json'); return body; } });
     await assert.rejects(createNotiSender({ url: 'http://n', apiKey: 'secret-key', fetchImpl })(event), error => {
       assert.match(error.message, new RegExp(String(status)));
       if (body) assert.match(error.message, new RegExp(body.error));
-      assert.doesNotMatch(error.message + JSON.stringify(error), /secret-key/);
+      assert.doesNotMatch(`${error.message} ${error.stack}`, /secret-key/);
       return true;
     });
   }
+});
+
+test('sender treats 409 dedupe_key_conflict as already sent (scheduler resends every 15 min)', async () => {
+  const fetchImpl = fakeFetch(reply(409, { error: 'dedupe_key_conflict' }));
+  await createNotiSender({ url: 'http://n', apiKey: 'k', fetchImpl })(event);
+});
+
+test('sender releases the response body on success', async () => {
+  const before = reply.cancelled;
+  await createNotiSender({ url: 'http://n', apiKey: 'k', fetchImpl: fakeFetch(reply(202, {})) })(event);
+  assert.equal(reply.cancelled, before + 1);
+});
+
+test('a fetch failure is rethrown without the request (header value would carry the key)', async () => {
+  const fetchImpl = async () => { throw new TypeError('Headers.append: "Bearer secret-key\n" is an invalid header value.'); };
+  await assert.rejects(createNotiSender({ url: 'http://n', apiKey: 'secret-key', fetchImpl })(event), error => {
+    assert.doesNotMatch(`${error.message} ${error.stack}`, /secret-key/);
+    assert.match(error.message, /TypeError/);
+    return true;
+  });
+});
+
+test('a long task response body is cut so Noti does not reject it (64 KB limit)', () => {
+  const { data } = toNotiPayload({ event: 'task.response', recipient, sourceKey: 'k', data: { response: { kind: 'comment', body: 'ả'.repeat(10000) } } });
+  assert.ok(data.response.body.length <= 4000);
+  assert.ok(data.response.body.endsWith('…'));
 });
 
 test('sender passes an abort signal so a hung request is cancelled', async () => {

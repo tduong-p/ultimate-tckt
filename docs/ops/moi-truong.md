@@ -77,7 +77,9 @@ kể cả deploy Core):
 4. Cho Core đọc key: `bash infra/scripts/apply-infra.sh staging` (tạo lại container `core` với env mới). Compose truyền
    `NOTI_URL=http://noti-api:8000` và `NOTI_API_KEY=${CORE_NOTI_API_KEY:-}`; key trống thì Core vẫn chạy, chỉ không gửi.
    Kiểm tra: làm một thao tác có thông báo (giao việc) rồi xem `docker logs ultimate-tckt-staging-noti-worker-1`.
-   Mất key hoặc lộ key: `python -m noti.cli revoke-client core` rồi tạo key mới.
+   Mất key hoặc lộ key: CLI không cho tạo lại tên `core` sau khi thu hồi, nên tạo client tên mới rồi mới thu hồi tên cũ —
+   `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli create-client core-<yyyymm>`, thay `CORE_NOTI_API_KEY`,
+   chạy lại apply-infra, rồi `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli revoke-client core`.
 
 Bật gửi thật: đặt `NOTI_MAIL_DRIVER=graph` (hoặc `smtp`) cùng secret tương ứng và **luôn** đặt `NOTI_RECIPIENT_ALLOWLIST`
 trên staging, rồi chạy lại `deploy.sh staging noti <tag đang chạy>`.
