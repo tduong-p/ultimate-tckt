@@ -267,3 +267,25 @@ test('migrateMultiUnit thêm activities.directive_id và foreign key', async () 
     await testDb.teardown();
   }
 });
+
+test('migrate adopts the signed INT type of an existing org_units.id instead of forcing UNSIGNED (staging DB)', async () => {
+  const testDb = await createRawTestDatabase();
+  try {
+    const { pool } = testDb;
+    await migrateDatabase(pool);
+    // Dựng lại trạng thái staging: DB đã migrate bởi bản cũ, org_units.id và các cột tham chiếu là INT có dấu, FK đã có.
+    const [fks] = await pool.query("SELECT TABLE_NAME t, CONSTRAINT_NAME c, COLUMN_NAME col FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME='org_units'");
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} DROP FOREIGN KEY ${f.c}`);
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} MODIFY ${f.col} INT NULL`);
+    await pool.query('ALTER TABLE org_units MODIFY id INT AUTO_INCREMENT');
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} ADD CONSTRAINT ${f.c} FOREIGN KEY (${f.col}) REFERENCES org_units(id)`);
+    await pool.query('ALTER TABLE teams DROP FOREIGN KEY fk_teams_unit').catch(() => {});
+    await pool.query('ALTER TABLE teams MODIFY unit_id INT NULL');
+    await migrateDatabase(pool);
+    const [rows] = await pool.query("SELECT TABLE_NAME t, COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='unit_id' AND TABLE_NAME IN ('teams','activities')");
+    assert.equal(rows.length, 2);
+    for (const r of rows) assert.equal(r.ty, 'int', `${r.t}.unit_id must keep matching org_units.id`);
+  } finally {
+    await testDb.teardown();
+  }
+});
