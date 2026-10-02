@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-GUIDE-003
 title: Interface Guide for Developer 3 - Directives & Submissions API
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: Developer 2
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: [core/src/routes/directives.js, core/src/routes/submissions.js, core/src/policies/access.js, core/src/services/audit.js, core/src/serializers/summary.js]
 ---
 
@@ -402,7 +402,7 @@ function createDirectiveRoutes(context) {
     asyncRoute,   // async error wrapper
     scopeFor,     // scope generator function
     logger,       // logger instance
-    mailer        // email sender (optional)
+    notifier      // facade phát thông báo ra ngoài (notifier.notify)
   } = context;
   
   const router = express.Router();
@@ -432,12 +432,11 @@ Khi viết tests cho directives/submissions:
 
 ## 11. Workflow Events (Optional cho GĐ1)
 
-Nếu cần gửi thông báo email:
+Nếu cần phát thông báo ra ngoài (email do Noti đảm nhận sau):
 
 ```javascript
 // Sau khi commit transaction thành công
 try {
-  // Find users to notify
   const [tcktAdmins] = await db.execute(
     `SELECT u.id, u.name, u.email
      FROM unit_memberships m
@@ -445,13 +444,18 @@ try {
      WHERE m.unit_id = ? AND m.role IN ('admin', 'vice_admin')`,
     [tcktUnitId]
   );
-  
+
   for (const admin of tcktAdmins) {
-    mailer.notifyDirectiveReceived(admin, directive, req.actor.name);
+    notifier.notify({
+      event: 'directive.received',            // trùng tên template của Noti
+      recipient: admin,                       // { id, name, email }
+      data: { actor: req.actor.name, directive: { id: directive.id, title: directive.title } },
+      sourceKey: `directive-received:${directive.id}:${admin.id}`  // sẽ là dedupe_key
+    });
   }
 } catch (error) {
-  // Email failure không được rollback transaction đã commit
-  logger.error('Failed to send directive notification emails', error);
+  // Thông báo lỗi không được rollback transaction đã commit
+  logger.error('Failed to send directive notifications', error);
 }
 ```
 
@@ -460,3 +464,4 @@ try {
 | Version | Ngày | Thay đổi | Người |
 |---------|------|----------|-------|
 | 1.0 | 2026-09-30 | Tạo document interface cho Developer 3 | Developer 2 |
+| 1.1 | 2026-10-02 | Ví dụ thông báo dùng `notifier.notify` thay `mailer` | DYC |

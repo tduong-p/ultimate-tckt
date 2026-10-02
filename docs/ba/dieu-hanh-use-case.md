@@ -1,11 +1,11 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.4
+version: 2.5
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-02
 related_code: [core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/reports.js, core/src/routes/notifications.js]
 ---
 
@@ -27,7 +27,7 @@ Tài liệu này mô tả các luồng nghiệp vụ vận hành hoạt động/
 ![Vòng đời hoạt động](images/activity-lifecycle.png)
 
 1. Trưởng ban/Phó ban tạo đề án (`POST /api/activities`): tên, mô tả, loại (`event`/`assigned`), Tổ chủ trì + Tổ phối hợp, thời gian, người yêu cầu, địa điểm, Event Lead. Trạng thái ban đầu `proposed`.
-2. Hệ thống phát sự kiện `activity.proposed` — Rule Engine gửi thông báo tới nhóm điều hành (`admin`, `vice_admin`).
+2. Hệ thống phát sự kiện `activity.proposed` qua `notifier` tới nhóm điều hành (`admin`, `vice_admin`); thông báo email sẽ do service Noti gửi sau.
 3. Ban điều hành thao tác trên đề án qua 3 route riêng biệt:
    - `POST /api/activities/:id/approve` → `approved`.
    - `POST /api/activities/:id/reject` → `cancelled`/từ chối.
@@ -68,7 +68,7 @@ Task đi qua 4 cột: `todo` → `in_progress` → `review` → `done`.
 
 ## 6. Thông báo — đã làm
 
-Toàn bộ sự kiện nghiệp vụ (đề án mới/duyệt/từ chối/yêu cầu sửa, giao task, phản hồi task, nộp nghiệm thu, kết quả nghiệm thu, sắp đến hạn, quá hạn, chưa xác nhận nhận việc) được emit qua Rule Engine (`emailEvents.emit`, xem `core/src/config/migrate.js` mục seed template/rule mặc định) — gửi cả kênh in-app và email, thay thế toàn bộ hệ thống mailer cũ.
+Toàn bộ sự kiện nghiệp vụ (đề án mới/duyệt/từ chối/yêu cầu sửa, giao task, phản hồi task, nộp nghiệm thu, kết quả nghiệm thu, sắp đến hạn, quá hạn, chưa xác nhận nhận việc) tạo thông báo trong ứng dụng và phát qua facade `notifier` (`core/src/notifier.js`). Email là hạng mục sắp làm bằng service Noti (SPEC-NOTI-001); hệ thống mailer và OneSignal cũ đã gỡ (ADR-0013).
 
 ## 7. Giao việc liên đơn vị (directive) và Trình (submission) — kế hoạch, chưa có code
 
@@ -93,3 +93,4 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 | 2.2 | 2026-09-30 | Ngày "hôm nay"/quá hạn tính theo giờ Việt Nam (pilot PR 6) | DYC |
 | 2.3 | 2026-09-30 | PR 8: báo cáo lưu trữ chỉ đếm việc done; số việc đang mở theo từng người | DYC |
 | 2.4 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 2.5 | 2026-10-02 | Email không còn do Rule Engine; thông báo ngoài app đi qua `notifier` và sẽ do Noti đảm nhận | DYC |

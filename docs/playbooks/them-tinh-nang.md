@@ -1,11 +1,11 @@
 ---
 doc_id: PB-FEAT-001
 title: Playbook — thêm tính năng
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: []
 ---
 
@@ -23,7 +23,7 @@ Khi thêm một khả năng nghiệp vụ mới cho một module đã tồn tạ
 2. **Xác nhận phạm vi dữ liệu (scope)**: nếu tính năng đọc/ghi dữ liệu liên đơn vị hoặc liên Tổ, phải đi qua `activityScope`/`scopeFor` (Core, `core/src/policies/access.js`) hoặc `visible_cases`/whitelist theo `transition_def.allowed_roles` (CTD) — không tự viết điều kiện quyền rải rác trong route.
 3. **Viết test trước (TDD)** khi có thể — test đỏ trước, code sau. Core: `core/tests/*.test.js` (xem `docs/dev/test.md`). CTD: `services/ctd-api/backend/tests/test_*.py`.
 4. **Đổi schema nếu cần** theo [`doi-schema.md`](doi-schema.md) — không sửa DB bằng tay.
-5. **Cài đặt tính năng**: route/service ở Core (`core/src/routes/`, `core/src/services/`) hoặc router/service ở CTD (`app/api/`, `app/services/`). Nếu tính năng phát sinh sự kiện nghiệp vụ mới (thông báo), đăng ký vào Rule Engine — xem `docs/dev/email-cron.md`, không tự viết gửi mail rời rạc.
+5. **Cài đặt tính năng**: route/service ở Core (`core/src/routes/`, `core/src/services/`) hoặc router/service ở CTD (`app/api/`, `app/services/`). Nếu tính năng phát sinh sự kiện nghiệp vụ mới (thông báo), gọi `notifier.notify` (xem `docs/dev/email-cron.md`), không tự viết gửi mail/push rời rạc.
 6. **Chạy test cục bộ đến khi xanh**:
    ```bash
    cd core && npm test
@@ -39,7 +39,7 @@ Khi thêm một khả năng nghiệp vụ mới cho một module đã tồn tạ
 - [ ] `cd core && npm test` và `cd services/ctd-api/backend && .venv/bin/pytest` đều xanh.
 - [ ] Không có điều kiện quyền viết tay ngoài `access.js`/`scopeFor`/whitelist CTD.
 - [ ] `npm run docs:check` (từ thư mục gốc repo) exit 0.
-- [ ] Nếu tính năng phát sinh sự kiện thông báo mới: đã đăng ký vào Rule Engine, không gọi mailer trực tiếp.
+- [ ] Nếu tính năng phát sinh sự kiện thông báo mới: đã gọi `notifier.notify` kèm `event` và `sourceKey`; không tự gửi mail/push trực tiếp.
 
 ## Tài liệu phải cập nhật
 
@@ -53,3 +53,4 @@ Khi thêm một khả năng nghiệp vụ mới cho một module đã tồn tạ
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-10-02 | Thông báo mới đi qua `notifier`, không còn Rule Engine/mailer | DYC |

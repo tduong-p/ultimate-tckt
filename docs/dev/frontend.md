@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: [core/public/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -17,8 +17,7 @@ Repo có **hai frontend riêng biệt hiện tại**, cộng một frontend chun
 ## Core — `core/public/` (JavaScript thuần, chỉ bảo trì)
 
 Không có build step, không framework: `app.js` (logic chính, SPA điều hướng bằng tay), `index.html`,
-`styles.css` + `components.css`, `settings.js` (trang Setting: SMTP/Templates/Rules/Cron, chỉ hiện với quyền
-`devops`), `notifications.js` (push OneSignal). Core phục vụ trực tiếp thư mục này qua `express.static`
+`styles.css` + `components.css`, `notifications.js` (chuông thông báo trong ứng dụng). Core phục vụ trực tiếp thư mục này qua `express.static`
 (`core/src/app.js`).
 
 Đây là frontend **cũ**, không thêm tính năng mới vào đây — chỉ sửa lỗi hoặc theo kịp thay đổi API bắt buộc.
@@ -66,3 +65,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.3 | 2026-09-30 | Ẩn nút "Tình nguyện" với người đã tham gia (pilot PR 4) | DYC |
 | 1.4 | 2026-09-30 | Ngày mặc định của báo cáo theo giờ Việt Nam (pilot PR 6) | DYC |
 | 1.5 | 2026-09-30 | PR 8: nút Đề xuất hoạt động chỉ hiện cho quản lý; tên team chỉ là link khi có quyền xem tổng quan; bảng cuộn ngang và lịch co được trên 375px | DYC |
+| 1.6 | 2026-10-02 | `notifications.js` là chuông trong ứng dụng; bỏ OneSignal và trang Setting email | DYC |

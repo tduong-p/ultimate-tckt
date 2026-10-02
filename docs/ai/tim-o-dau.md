@@ -1,11 +1,11 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 2.1
+version: 2.2
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-30
+updated: 2026-10-02
 related_code: []
 ---
 
@@ -18,9 +18,9 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 
 | Cần gì | Xem ở đâu |
 |---|---|
-| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `settings-email.js`, `settings-cron.js`, `system.js`; đăng ký ở `core/src/routes/index.js` |
+| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `system.js`; đăng ký ở `core/src/routes/index.js` |
 | Phân quyền / phạm vi dữ liệu | `core/src/policies/access.js` (`activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`…); middleware role ở `core/src/middleware/auth.js` (`auth`, `admin`, `manager`, `devops`) |
-| Gửi email / rule engine | `core/src/services/email-events.js` (registry sự kiện + gửi), `core/src/services/email-condition-evaluator.js` (ma trận điều kiện), `core/src/services/email-settings.js` (cấu hình SMTP mã hoá) |
+| Phát thông báo ra ngoài (email/push sau này) | `core/src/notifier.js` (facade, hiện chưa gửi gì; email sẽ do service Noti đảm nhận — `docs/specs/2026-10-02-noti-service-design.md`) |
 | Cron job | `core/src/services/cron-runner.js` (registry handler + chạy job), route quản trị ở `core/src/routes/settings-cron.js` |
 | Schema DB / migration | `core/db.sql` (schema gốc), `core/src/config/migrate.js` (migration idempotent chạy bằng `npm run migrate`) |
 | Cấu hình môi trường | `core/src/config/environment.js`, `core/src/config/validate.js`, mẫu biến ở `core/.env.example` |
@@ -30,7 +30,6 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Upload file đính kèm task | `core/src/middleware/uploads.js`, `core/src/services/task-attachments.js` |
 | Thông báo hạn chót | `core/src/services/deadline-notifications.js` |
 | Frontend cũ (chỉ bảo trì) | `core/public/app.js` (logic chính), `core/public/index.html`, `core/public/styles.css` + `components.css`, `core/public/settings.js` (trang Setting), `core/public/notifications.js` |
-| Push notification (OneSignal) | `core/src/push.js`, `core/public/OneSignalSDKWorker.js` |
 | Entry point / server | `core/src/app.js` (khởi tạo Express + middleware + routes), `core/src/server.js` (lắng nghe cổng + lifecycle cron), `core/app.js` (điểm chạy `npm start`) |
 | Test | `core/tests/*.test.js`, fixture/helper dùng chung ở `core/tests/helpers/` |
 
@@ -80,3 +79,4 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-30 | Thêm `set_password.py` vào hàng Seed dữ liệu | DYC |
+| 2.2 | 2026-10-02 | Gỡ email cũ và OneSignal: trỏ tới `notifier.js` và SPEC-NOTI-001 | DYC |

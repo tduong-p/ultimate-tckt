@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.2
+version: 1.3
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-02
 related_code: []
 ---
 
@@ -58,6 +58,13 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
   với mọi người trừ App `tckt-repobot`, nên nút "Delete branch" sau khi đóng PR bot bị từ chối. Dọn bằng cách tạm
   thêm mình vào bypass (xem `docs/ops/repobot.md`).
 
+## `mailer.notify*` cũ gửi cả email lẫn push; scheduler gắn thông báo ngoài vào `inserted`
+
+Hàm `notify*` của `mailer.js` cũ gọi cả Gmail lẫn OneSignal, nên xoá riêng một kênh dễ làm mất kênh kia. Ngoài ra scheduler nhắc hạn
+từng chỉ gửi khi `insertNotificationOnce` chèn được dòng mới: nếu gửi lỗi lúc đó thì thư không bao giờ được gửi lại. Hiện mọi điểm phát
+thông báo đi qua `notifier.notify({ event, recipient, data, sourceKey })`; scheduler gọi cho mọi mục tìm thấy, `sourceKey` là khoá chống
+trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8).
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -65,3 +72,4 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
 | 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |
+| 1.3 | 2026-10-02 | Thêm bẫy mailer cũ gộp email và push; scheduler gắn thông báo ngoài vào `inserted` | DYC |
