@@ -6,7 +6,16 @@ from noti.drivers.base import Driver, Message, PermanentError, TransientError
 from noti.models import Notification, NotificationRecipient
 from noti.status import overall_status
 from noti.templating import get_registry
-from noti.worker import BACKOFF, MAX_ATTEMPTS, batch_size_for, delay_for, run_once, scrub_error
+from noti.worker import (
+    BACKOFF,
+    MAX_ATTEMPTS,
+    PURGE_INTERVAL_SECONDS,
+    batch_size_for,
+    delay_for,
+    maybe_purge,
+    run_once,
+    scrub_error,
+)
 
 
 class FakeDriver(Driver):
@@ -330,6 +339,16 @@ def test_worker_allowlist_also_filters_cc(db, make_client, monkeypatch):
     driver = FakeDriver()
     run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
     assert driver.sent_messages[0].cc == ["b@hust.edu.vn"]
+
+
+def test_maybe_purge_runs_once_per_interval(monkeypatch):
+    import noti.worker
+    calls = []
+    monkeypatch.setattr(noti.worker, "_purge_now", lambda: calls.append(1))
+    assert maybe_purge(0.0, 10.0) == 10.0  # lần đầu: chạy ngay
+    assert maybe_purge(10.0, 10.0 + PURGE_INTERVAL_SECONDS - 1) == 10.0  # chưa tới hạn
+    assert maybe_purge(10.0, 10.0 + PURGE_INTERVAL_SECONDS) == 10.0 + PURGE_INTERVAL_SECONDS
+    assert len(calls) == 2
 
 
 def test_batch_fits_inside_lock_even_if_every_send_times_out():

@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -226,7 +226,7 @@ templates/
 
 - `data` chứa email và tên người: **không ghi `data` vào log**; log chỉ có `id`, `template`, `client`, trạng thái. `last_error` được lọc bỏ địa chỉ email và nội dung thư trước khi lưu.
 - **Giảm lưu giữ:** `data` và `variables` được xoá (đặt null) **7 ngày sau khi thông báo đạt trạng thái cuối**; template có `sensitive: true` thì xoá **ngay khi đạt trạng thái cuối**. Dòng metadata (không có nội dung) giữ **90 ngày** rồi bị xoá hẳn, kèm người nhận.
-- Dọn bằng lệnh `python -m noti.cli purge`, chạy định kỳ do `infra/`.
+- Worker tự chạy purge mỗi giờ; chạy tay bằng `python -m noti.cli purge`.
 - Chỉ số tối thiểu qua log có cấu trúc: số `pending`, số `failed`, tuổi dòng `pending` lâu nhất. Cần **cảnh báo** khi tuổi này vượt ngưỡng (ví dụ 15 phút) hoặc `failed` tăng bất thường; cách phát cảnh báo do `infra/` quyết định.
 - Phiên bản schema qua Alembic; migration chạy dưới **advisory lock** để API và worker khởi động đồng thời không chạy đua; worker kiểm schema khi khởi động.
 - **Sao lưu:** database `noti` nằm trong lịch sao lưu Postgres chung (§13).
@@ -291,6 +291,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
+| 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |

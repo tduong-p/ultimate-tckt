@@ -30,6 +30,8 @@ BACKOFF = [60, 300, 1800, 7200, 43200]
 MAX_ATTEMPTS = 5
 LOCK_SECONDS = 300
 DRIVER_TIMEOUT_SECONDS = 30
+# Worker tự chạy purge định kỳ, không cần cron trên VM (SPEC-NOTI-001 §11).
+PURGE_INTERVAL_SECONDS = 3600
 EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
 
@@ -157,6 +159,25 @@ def check_schema_synced() -> None:
         )
 
 
+def _purge_now() -> None:
+    from noti.queue import purge
+
+    with SessionLocal() as db:
+        stats = purge(db)
+    logger.info("purge: %s", json.dumps(stats))
+
+
+def maybe_purge(last_run: float, now_time: float) -> float:
+    """Chạy purge nếu đã quá PURGE_INTERVAL_SECONDS; trả thời điểm chạy gần nhất."""
+    if last_run and now_time - last_run < PURGE_INTERVAL_SECONDS:
+        return last_run
+    try:
+        _purge_now()
+    except Exception:
+        logger.exception("purge failed")
+    return now_time
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     logger.info("Starting noti worker...")
@@ -167,6 +188,7 @@ def main() -> None:
     rate = settings.send_rate_per_minute
     delay_between = 60.0 / rate if rate > 0 else 0.0
     last_metrics_log = 0.0
+    last_purge = 0.0
     batch_size = batch_size_for(delay_between)
 
     logger.info("Worker initialized with driver %s and rate %d/min", type(driver).__name__, rate)
@@ -183,6 +205,7 @@ def main() -> None:
                         m["oldest_pending_age_seconds"],
                     )
                 last_metrics_log = now_time
+            last_purge = maybe_purge(last_purge, now_time)
 
             with SessionLocal() as db:
                 count = run_once(db, registry, driver, delay_between_sends=delay_between, batch_size=batch_size)

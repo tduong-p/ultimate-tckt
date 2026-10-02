@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -16,8 +16,8 @@ Service **Noti** (`services/noti-api/`) là dịch vụ thông báo độc lập
 Tài liệu thiết kế chi tiết: [SPEC-NOTI-001](../specs/2026-10-02-noti-service-design.md).
 Quyết định kiến trúc: [ADR-0014](../adr/0014-noti-service.md).
 
-> **Trạng thái:** code và test đã có trong repo, **chưa chạy trên VM**. Compose, CI, env/secret trên VM, lịch `purge`
-> và cảnh báo đang chờ issue liên module (spec §13). Core vẫn chưa gọi Noti: facade `core/src/notifier.js` chưa có sender.
+> **Trạng thái:** code và test đã có trong repo, **chưa chạy trên VM**. Compose, CI, env/secret trên VM
+> và cảnh báo chưa làm (spec §13). Image chạy bằng user không phải root; worker tự purge mỗi giờ. Core vẫn chưa gọi Noti: facade `core/src/notifier.js` chưa có sender.
 
 ## 1. Cấu trúc thư mục
 
@@ -127,11 +127,13 @@ python -m noti.cli revoke-client core
 
 ### Dọn dẹp dữ liệu (Purge):
 
+Worker tự chạy purge lúc khởi động và sau đó mỗi giờ (`PURGE_INTERVAL_SECONDS`), nên không cần cron. Chạy tay khi cần:
+
 ```bash
 python -m noti.cli purge
 ```
 
-Lệnh purge thực hiện:
+Purge thực hiện:
 - Xoá `data` và `variables` của thông báo nhạy cảm ngay khi hoàn tất.
 - Xoá `data` và `variables` của thông báo thường sau 7 ngày kể từ khi hoàn tất.
 - Xoá vĩnh viễn (hard delete) các thông báo đã hoàn tất cũ hơn 90 ngày.
@@ -221,5 +223,6 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.2 | 2026-10-02 | Worker tự purge mỗi giờ; image chạy non-root | DYC |
 | 1.1 | 2026-10-02 | Sửa link tuyệt đối; ghi rõ chưa chạy trên VM; thêm mục cấu hình (graph, allowlist áp cho CC); `dedupe_key` là tuỳ chọn, trỏ về playbook; sửa mã 413 và mô tả 400 | DYC |
 | 1.0 | 2026-10-02 | Tài liệu ban đầu hướng dẫn phát triển và vận hành Noti service (PLAN-NOTI-001) | DYC |
