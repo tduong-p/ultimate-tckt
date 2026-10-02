@@ -274,13 +274,20 @@ test('migrate adopts the signed INT type of an existing org_units.id instead of 
     const { pool } = testDb;
     await migrateDatabase(pool);
     // Dựng lại trạng thái staging: DB đã migrate bởi bản cũ, org_units.id và các cột tham chiếu là INT có dấu, FK đã có.
-    const [fks] = await pool.query("SELECT TABLE_NAME t, CONSTRAINT_NAME c, COLUMN_NAME col FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME='org_units'");
+    const [fks] = await pool.query(`SELECT k.TABLE_NAME t, k.CONSTRAINT_NAME c, k.COLUMN_NAME col, c.IS_NULLABLE nullable
+      FROM information_schema.KEY_COLUMN_USAGE k JOIN information_schema.COLUMNS c
+        ON c.TABLE_SCHEMA=k.TABLE_SCHEMA AND c.TABLE_NAME=k.TABLE_NAME AND c.COLUMN_NAME=k.COLUMN_NAME
+      WHERE k.TABLE_SCHEMA=DATABASE() AND k.REFERENCED_TABLE_NAME='org_units'`);
+    // Giữ nguyên NULL/NOT NULL: có cột tham chiếu nằm trong khoá chính.
+    const intType = f => `INT ${f.nullable === 'YES' ? 'NULL' : 'NOT NULL'}`;
     for (const f of fks) await pool.query(`ALTER TABLE ${f.t} DROP FOREIGN KEY ${f.c}`);
-    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} MODIFY ${f.col} INT NULL`);
+    for (const f of fks) await pool.query(`ALTER TABLE ${f.t} MODIFY ${f.col} ${intType(f)}`);
     await pool.query('ALTER TABLE org_units MODIFY id INT AUTO_INCREMENT');
     for (const f of fks) await pool.query(`ALTER TABLE ${f.t} ADD CONSTRAINT ${f.c} FOREIGN KEY (${f.col}) REFERENCES org_units(id)`);
+    // Staging hỏng đúng ở chỗ teams chưa có fk_teams_unit: bỏ FK này để migrate phải thêm lại.
+    const teamsUnit = fks.find(f => f.t === 'teams' && f.col === 'unit_id') || { nullable: 'YES' };
     await pool.query('ALTER TABLE teams DROP FOREIGN KEY fk_teams_unit').catch(() => {});
-    await pool.query('ALTER TABLE teams MODIFY unit_id INT NULL');
+    await pool.query(`ALTER TABLE teams MODIFY unit_id ${intType(teamsUnit)}`);
     await migrateDatabase(pool);
     const [rows] = await pool.query("SELECT TABLE_NAME t, COLUMN_TYPE ty FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME='unit_id' AND TABLE_NAME IN ('teams','activities')");
     assert.equal(rows.length, 2);
