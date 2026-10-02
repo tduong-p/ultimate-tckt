@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: [infra/compose/**, infra/nginx/**, infra/.env.example]
 ---
 
@@ -54,7 +54,7 @@ Tiền tố `CORE_*` thay cho `TCKT_*` cũ (giá trị giữ nguyên khi chuyể
 
 ## 5. Trạng thái email hiện tại
 
-- **core**: `EMAIL_NOTIFICATIONS_ENABLED=false` trên cả staging và production — hệ thống hiện **không gửi email** thông báo nào, dù Rule Engine đã có sẵn.
+- **core**: không còn module email và không còn OneSignal (đã gỡ, ADR-0013); biến `EMAIL_NOTIFICATIONS_ENABLED` trong compose không còn tác dụng. Email sẽ do service Noti đảm nhận (`docs/specs/2026-10-02-noti-service-design.md`).
 - **ctd-api**: `MAILER_DRIVER=console` — email được ghi ra console log thay vì gửi thật.
 
 Bật email thật thuộc điều kiện hoàn thành một giai đoạn sau (không nằm trong đợt gộp monorepo này).
@@ -76,3 +76,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-10-02 | Core không còn module email và OneSignal | DYC |

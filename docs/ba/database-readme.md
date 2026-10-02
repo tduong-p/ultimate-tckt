@@ -1,7 +1,7 @@
 ---
 doc_id: BA-DB-001
 title: Database structure — Core and Operations
-version: 1.0
+version: 1.1
 status: active
 audience: [ba, dev, ai]
 owner: DYC
@@ -118,3 +118,4 @@ Directive progress is derived from tasks across its linked activities: completed
 | Version | Date | Change | Author |
 |---|---|---|---|
 | 1.0 | 2026-09-26 | Initial database structure README for the multi-unit target model | DYC |
+| 1.1 | 2026-09-27 | Ghi nhận sự thay đổi liên quan đến migrate.js ở nhánh GĐ1-A | D2 |

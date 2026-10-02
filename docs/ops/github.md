@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -66,6 +66,8 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 
 - GitHub App `tckt-repobot`: không webhook; quyền Contents (read & write), Pull requests (read & write), Metadata
   (read); chỉ cài cho repo `ultimate-tckt`. Private key nằm trên VM (`docs/ops/repobot.md`), không ở đâu khác.
+- Kênh thông báo của bot chỉ **đọc** qua App: danh sách PR, file và diff của PR, PR gắn với một commit — nằm trong
+  quyền Pull requests/Contents ở trên, không cần thêm quyền hay webhook.
 - Ruleset `bot-branches` (target `refs/heads/bot/**`): chặn tạo, cập nhật, xoá và force-push; bypass chỉ App
   `tckt-repobot` — người và agent khác không đẩy hay xoá được nhánh `bot/*`.
 - App không nằm trong bypass của `protect-main`/`protect-staging`: bot chỉ mở PR vào `staging`, không push thẳng
@@ -81,3 +83,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.3 | 2026-09-24 | Thêm `PROD_DEPLOY_ENABLED`; GHCR giữ 40 bản, build không provenance | DYC |
 | 1.4 | 2026-09-24 | Thêm nhãn `cross-module` và mẫu issue đề xuất thay đổi liên module | DYC |
 | 1.5 | 2026-09-27 | Thêm mục 8: GitHub App và ruleset `bot-branches` cho bot repobot | DYC |
+| 1.6 | 2026-09-27 | Mục 8: App đọc PR/diff/commit cho kênh thông báo, không thêm quyền | DYC (soạn cùng Claude) |
