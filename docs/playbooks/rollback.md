@@ -1,7 +1,7 @@
 ---
 doc_id: PB-RB-001
 title: Playbook — rollback
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -31,7 +31,7 @@ bash /opt/ultimate-tckt/<staging|production>/infra/scripts/deploy.sh <staging|pr
 
 `deploy.sh` tự pull đúng tag, `up -d --no-deps` chỉ service của app đó (`noti` = `noti-api` + `noti-worker`), và chạy health check `http://127.0.0.1:<port>/api/health` (Noti: `:8100/v1/health`) — script tự thoát với exit code khác 0 nếu health check thất bại, không âm thầm coi là thành công. Nó **không** tự lùi khi health check lỗi: container lỗi vẫn nằm đó cho tới khi bạn deploy lại một tag tốt.
 
-**Lùi image không lùi dữ liệu.** Theo luật pilot (SPEC-PILOT-001 §9.3) migration của Core chỉ thêm bảng/cột nên bản Core cũ chạy được trên DB đã migrate; không cần restore DB chỉ vì lùi image (trừ khi migration của bản đó phá luật này). Lùi `ctd-api` về bản trước khi sửa seed admin (#54) thì mỗi lần khởi động seed lại đặt mật khẩu admin CTD về mật khẩu mặc định công khai: chỉ lùi khi thật cần, rồi đặt lại mật khẩu bằng `python -m app.seeds.set_password` (xem mục 7.5 và 7.6 của tài liệu trên). Nếu `main` vẫn chứa bản lỗi, lần push sau lên `main` sẽ deploy lại bản lỗi: tạm tắt biến repo `PROD_DEPLOY_ENABLED` hoặc sửa tiến theo [`hotfix-production.md`](hotfix-production.md).
+**Lùi image không lùi dữ liệu.** Theo luật pilot (SPEC-PILOT-001 §9.3) migration của Core chỉ thêm bảng/cột nên bản Core cũ chạy được trên DB đã migrate; không cần restore DB chỉ vì lùi image (trừ khi migration của bản đó phá luật này). Lùi `ctd-api` về image **trước** bản sửa seed admin (#54) vừa không an toàn vừa không có công cụ: image đó không chứa `app.seeds.set_password` (chỉ có từ hotfix #57) và seed cũ đặt mật khẩu admin CTD về mật khẩu mặc định công khai ở **mỗi lần khởi động** container. Vì vậy kiểm image đích trước khi lùi (lệnh `docker run … find_spec` ở [`../ops/deploy-va-nhanh.md`](../ops/deploy-va-nhanh.md) mục 7.6); nếu nó là bản trước #54 thì sửa tiến, hoặc `ut_compose <env> stop ctd-api` cho tới khi có bản sửa, thay vì chạy bản cũ. Không có lệnh `set_password` để chạy sau khi lùi: lối thoát cuối cùng và điều kiện phê duyệt nằm ở mục 7.6 đó. Nếu `main` vẫn chứa bản lỗi, lần push sau lên `main` sẽ deploy lại bản lỗi: tạm tắt biến repo `PROD_DEPLOY_ENABLED` hoặc sửa tiến theo [`hotfix-production.md`](hotfix-production.md).
 
 ### 2. Rollback cấu hình infra (compose/nginx)
 
@@ -70,3 +70,4 @@ Chỉ khi rollback image/infra không đủ (dữ liệu đã bị hỏng bởi 
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-10-02 | Rollback Noti (staging) | DYC |
 | 1.2 | 2026-10-03 | Lệnh dùng đường dẫn tuyệt đối trên VM; lùi image không lùi dữ liệu; cảnh báo `infra/` bị sửa tay; restore vào DB sạch khi DB đã migrate | DYC |
+| 1.3 | 2026-10-03 | Lùi `ctd-api` về image trước #54: không có `set_password` và đặt lại mật khẩu mặc định mỗi lần khởi động; kiểm image trước khi lùi | DYC |

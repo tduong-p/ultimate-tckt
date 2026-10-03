@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 4.0
+version: 4.1
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -136,9 +136,13 @@ Chỉ mở PR `staging → main` khi **mọi** dòng dưới đây đã đạt (
 | G4 | Mục 7 này đã có trên `staging` và phần "Trước khi merge" (7.2) đã chạy xong | 7.2 |
 | G5 | Checklist smoke (7.4) xanh trên **staging** | 7.2 bước 9 |
 | G6 | PR merge bằng **merge commit** (không squash, không rebase) | 7.3, 7.5 bước 1 |
+| O1 | #55: dump đã gỡ khỏi `main`, `CORE_SESSION_SECRET` đã xoay và Core đã khởi động lại **sau** khi xoay, không tài khoản đang hoạt động nào còn hash bị lộ | 7.2 bước 4 (4a, 4b) |
+| O2 | #54: bản sửa seed đã chạy trên production, mật khẩu admin CTD đã đặt, mật khẩu mặc định bị từ chối kể cả sau khi khởi động lại container | 7.2 bước 4 (4c) |
 
 Vì sao G3: sau phát hành quyền đọc từ membership. Không có DYC, BTV hay đơn vị khác thì các lỗ hổng phân quyền đã biết (R2–R9 của
 SPEC-REL-001) không có ai để khai thác; migration chỉ tạo membership DYC khi `DEVOPS_EMAILS` có giá trị hoặc có `users.is_devops = 1`.
+O1 và O2 là **việc vận hành trên VM**, không phải việc merge PR: PR #57 (CTD) và #58 (dump) chỉ đưa mã lên `main`, và phải ghi `Refs #54`/`Refs #55`,
+không `Closes`, để GitHub không tự đóng issue khi việc ở VM chưa xong. Chỉ đóng #54, #55 khi đã có comment bằng chứng theo 7.2 bước 4.
 Vì sao G6: squash/rebase tạo commit trên `main` mà `staging` không có, nên lần `staging → main` sau sẽ hiện lại toàn bộ diff cũ.
 
 ### 7.2 Trước khi merge (G1–G5)
@@ -156,21 +160,67 @@ Vì sao G6: squash/rebase tạo commit trên `main` mà `staging` không có, n�
    `../playbooks/hotfix-production.md` bước 7 trước.
 2. G1: bản sửa R1 đã vào `staging` và CI của `staging` xanh (tab Actions, lần chạy `deploy` mới nhất):
    ```bash
-   git grep -n 'syncTcktMembershipFromRole' "$STAGING_SHA" -- core/src/routes/teams.js   # phải có kết quả
+   gh api "repos/tduong-p/ultimate-tckt/commits/$STAGING_SHA/check-runs" --jq '.check_runs[] | select(.name=="test-core") | .conclusion'   # phải là success
+   git grep -n 'does not recreate a removed TCKT membership' "$STAGING_SHA" -- core/tests/teams.mgmt.test.js | wc -l   # phải >= 4
    ```
-   Nếu cuộc họp chọn cách sửa khác `syncTcktMembershipFromRole` (SPEC-REL-001 §5), bằng chứng là test của PLAN-REL-001 Task 1 xanh
-   trong CI `staging`.
+   Bằng chứng là `test-core` xanh trên đúng `STAGING_SHA` kèm các test hồi quy của PLAN-REL-001 Task 1 (đồng bộ role/membership **và** không hồi sinh
+   membership TCKT đã gỡ). Tìm thấy tên hàm trong `teams.js` không chứng minh hành vi và không còn được coi là bằng chứng G1.
 3. G2: kiểm tài liệu so với `main` trên đúng commit sẽ merge:
    ```bash
    git switch --detach "$STAGING_SHA"
    npm run docs:check -- --base origin/main     # phải in "docs ok"
    git switch -
    ```
-4. #54 & #55: Bản sửa seed admin CTD (#54) và gỡ dump khỏi main (#55) phải được xử lý và kiểm chứng xong TRƯỚC release:
-   ```bash
-   git show "$STAGING_SHA:services/ctd-api/backend/app/seeds/admin_seed.py" | grep -c MOI_TRUONG_DEV   # phải >= 1
-   ```
-   Tuyệt đối không phát hành khi #54 chưa xong vì seed cũ trên `main` đặt lại mật khẩu admin CTD về mật khẩu mặc định công khai ở **mỗi lần khởi động**; bản mới không bao giờ đổi mật khẩu của tài khoản đã có. Đợt này mang bản sửa lên production, và 7.5 bước 6 chạy `set_password` đặt mật khẩu mạnh cho admin CTD ngay sau deploy. #54 và #55 (dump DB nằm trong git) là hai điều kiện tiên quyết, phải hoàn tất trước khi phát hành.
+4. O1, O2 (#54, #55). Mã lên `main` bằng hai PR hotfix riêng; **mỗi merge vào `main` là một lần deploy production** (#57 đổi `services/ctd-api/**` nên
+   build và deploy `ctd-api`; #58 không đổi gì được build). Ngay sau khi merge #57 phải làm 4c, không để cách đêm: bản `ctd-api` cũ trên production
+   đặt mật khẩu admin CTD về mật khẩu mặc định công khai ở mỗi lần khởi động, và bản mới không đặt lại mật khẩu cho tới khi bạn đặt.
+   - **4a. Mã trên `main`** (máy dev):
+     ```bash
+     git fetch origin
+     git ls-tree origin/main -- tools/test-fixtures/sql/mysql/backup_current.sql | wc -l                  # phải là 0
+     git show origin/main:services/ctd-api/backend/app/seeds/set_password.py > /dev/null && echo "có set_password"
+     git show origin/main:services/ctd-api/backend/app/seeds/admin_seed.py | grep -c MOI_TRUONG_DEV      # phải >= 1
+     ```
+     Lịch sử git của repo public vẫn chứa dump: gỡ khỏi cây `main` không thu hồi được gì đã lộ, nên 4b mới là biện pháp thật.
+   - **4b. Dump (#55): xoay session secret và vô hiệu hash bị lộ.** Trên VM, sao lưu `.env`, đặt `CORE_SESSION_SECRET` mới (chuỗi ngẫu nhiên, không dán vào đâu),
+     khởi động lại Core bằng `deploy.sh` với tag đang chạy hoặc `ut_compose production up -d --no-deps core`, rồi nghiệm thu:
+     ```bash
+     E=/opt/ultimate-tckt/production/infra/.env
+     stat -c 'env sửa lúc: %y' "$E"
+     docker inspect -f 'core khởi động lúc: {{.State.StartedAt}}' ultimate-tckt-production-core-1    # phải SAU thời điểm env sửa
+     printf %s "$(sed -n 's/^CORE_SESSION_SECRET=//p' "$E" | tail -n 1)" | sha256sum | cut -c1-8      # tám ký tự đầu: ghi vào issue, phải khác tám ký tự đã ghi trước khi xoay
+     ```
+     Chạy dòng `sha256sum` cả **trước** khi sửa `.env` để có dấu vân tay cũ mà so. Session cũ phải mất hiệu lực: dùng trình duyệt đã đăng nhập
+     trước khi xoay, tải lại trang, phải bị đưa về màn hình đăng nhập.
+     Rồi kiểm không tài khoản đang hoạt động nào còn hash bị lộ. **Trên máy dev**, gom hash từ mọi phiên bản của file dump trong lịch sử (hash trong repo public không phải bí mật):
+     ```bash
+     F=tools/test-fixtures/sql/mysql/backup_current.sql
+     for c in $(git log --format=%H origin/main -- "$F"); do git show "$c:$F" 2>/dev/null; done \
+       | grep -oE '\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}' | sort -u > hashes.txt
+     wc -l < hashes.txt                                   # số hash lộ; ghi vào issue
+     sed "s/.*/'&'/" hashes.txt | paste -sd, - > hashes.in
+     scp hashes.in ubuntu@168.107.68.32:/tmp/hashes.in    # rồi xoá hashes.txt, hashes.in ở máy dev
+     ```
+     **Trên VM** (đã `ut_tags production`):
+     ```bash
+     core_sql production "SELECT COUNT(*) AS con_hash_lo_dang_hoat_dong FROM users WHERE is_active = 1 AND password_hash IN ($(cat /tmp/hashes.in));"
+     rm -f /tmp/hashes.in
+     ```
+     Kết quả phải là `0`. Khác 0: các tài khoản đó vẫn đăng nhập được bằng mật khẩu mà ai cũng thử bật được ngoại tuyến; khoá hoặc đổi mật khẩu từng tài khoản qua
+     giao diện quản trị Core (không `UPDATE` tay), chạy lại truy vấn. Cũng phải đạt `tai_khoan_mau = 0` (bước 6 dưới đây).
+   - **4c. Admin CTD (#54).** Sau khi #57 đã deploy, trên VM:
+     ```bash
+     ut_current_tag production ctd-api                      # phải bằng 12 ký tự đầu SHA merge của #57
+     docker exec ultimate-tckt-production-ctd-api-1 python -c "import app.seeds.set_password" && echo "có set_password"
+     CTD_ADMIN_EMAIL="$(sed -n 's/^ADMIN_EMAIL = "\(.*\)"$/\1/p' /opt/ultimate-tckt/production/services/ctd-api/backend/app/seeds/admin_seed.py)"
+     docker exec -it ultimate-tckt-production-ctd-api-1 python -m app.seeds.set_password "$CTD_ADMIN_EMAIL"
+     ```
+     Nhập mật khẩu mới tại dấu nhắc, lưu vào kho mật khẩu của nhóm. Nghiệm thu (cả ba phải đạt): (1) đăng nhập CTD bằng mật khẩu mới thành công; (2) đăng nhập bằng
+     giá trị `ADMIN_PASSWORD_DEFAULT` trong `admin_seed.py` bị từ chối; (3) `docker restart ultimate-tckt-production-ctd-api-1`, chờ `health` 200, rồi (1) và (2) vẫn
+     đúng, chứng tỏ seed không đặt lại mật khẩu mỗi lần khởi động. Nếu `import` ở dòng hai lỗi `ModuleNotFoundError` thì container đang chạy image trước bản sửa:
+     dừng, deploy lại tag có bản sửa, không tiếp tục.
+   - **Ghi nhận.** Comment vào #54 và #55: thời điểm, người thực hiện, kết quả từng lệnh trên (số, không phải giá trị bí mật), và tám ký tự đầu của dấu vân tay secret.
+     Không dán mật khẩu, hash hay email người dùng thật. Chỉ khi đủ bằng chứng mới đóng issue; các rủi ro còn lại (dữ liệu vẫn nằm trong lịch sử git public) ghi rõ trong comment.
 
 **Trên VM** (SSH, nạp công cụ ở 7.0, rồi `ut_tags production`):
 
@@ -283,11 +333,20 @@ curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hos
    git rev-list --parents -n 1 origin/main | wc -w        # 3 = một commit merge (commit + hai cha)
    git rev-parse --short=12 origin/main                   # = MERGE12
    ```
-   **Trên VM:** cả hai tag phải bằng `MERGE12` (đợt này đổi cả Core lẫn CTD):
+   Tag image là 12 ký tự đầu SHA của commit push, và chỉ dịch vụ nào có đường dẫn đổi trong lần push đó mới được build lại (bộ lọc `changes`, mục 2).
+   Vì vậy **không** mặc định cả hai tag đều bằng `MERGE12`: #57 đã đưa `ctd-api` lên trước, nên sau khi staging và main đã đồng bộ, lần phát hành này có thể
+   không đổi `ctd-api`. Xác định dịch vụ nào đổi (máy dev), rồi so với tag thật trên VM:
+   ```bash
+   git diff --quiet origin/main^1 origin/main -- core web && echo "core: KHÔNG đổi, tag giữ nguyên bản trước" || echo "core: ĐỔI, tag phải = MERGE12"
+   git diff --quiet origin/main^1 origin/main -- services/ctd-api && echo "ctd-api: KHÔNG đổi, tag giữ nguyên (tag của lần deploy #57)" || echo "ctd-api: ĐỔI, tag phải = MERGE12"
+   ```
+   **Trên VM:**
    ```bash
    ut_current_tag production core
    ut_current_tag production ctd-api
    ```
+   Dịch vụ "ĐỔI" mà tag khác `MERGE12`: job build/deploy của nó chưa xong hoặc đỏ, xem tab Actions, chưa sang bước sau. Dịch vụ "KHÔNG đổi": tag phải trùng
+   tag trước phát hành (đã ghi ở 7.2 bước 5, hoặc tag deploy của #57 với `ctd-api`).
 2. Container và log khởi động:
    ```bash
    docker ps --filter name=ultimate-tckt-production --format '{{.Names}}  {{.Status}}'
@@ -307,14 +366,12 @@ curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hos
    `devops_to_dyc_membership_v1`, `dyc_bootstrap_from_env_v1`, `multi_unit_backfill_v1`; `DEVOPS_EMAILS` rỗng. `membership_ngoai_TCKT` khác 0 nghĩa là
    G3 bị phá: dừng mọi thao tác thêm thành viên, báo họp, xem 7.6.
 5. Chạy checklist 7.4 trên **production**.
-6. Đặt mật khẩu admin CTD ngay (#54). Cho tới lúc này mật khẩu admin CTD vẫn là mật khẩu mặc định công khai do seed cũ đặt ở lần khởi
-   động trước:
+6. Xác nhận lại O2 sau phát hành (mật khẩu admin CTD đã đặt ở 7.2 bước 4c, không đặt lại ở đây): đăng nhập CTD bằng mật khẩu mới phải thành công, bằng
+   mật khẩu mặc định phải bị từ chối, và container có `python -c "import app.seeds.set_password"` chạy được:
    ```bash
-   CTD_ADMIN_EMAIL="$(sed -n 's/^ADMIN_EMAIL = "\(.*\)"$/\1/p' /opt/ultimate-tckt/production/services/ctd-api/backend/app/seeds/admin_seed.py)"
-   docker exec -it ultimate-tckt-production-ctd-api-1 python -m app.seeds.set_password "$CTD_ADMIN_EMAIL"
+   docker exec ultimate-tckt-production-ctd-api-1 python -c "import app.seeds.set_password" && echo "ctd-api có bản sửa #54"
    ```
-   Nhập mật khẩu mới tại dấu nhắc (không hiện ra, không vào lịch sử shell); lưu vào kho mật khẩu của nhóm. Sau đó thử đăng nhập CTD bằng
-   mật khẩu mặc định cũ: phải bị từ chối.
+   Bước 4c chưa làm thì **dừng phát hành**, làm ngay 7.2 bước 4c.
 7. Đồng bộ ngược bằng PR `main → staging` (`../playbooks/hotfix-production.md` bước 7) để `git log origin/staging..origin/main` về rỗng. Lưu ý: ngay sau khi merge commit `staging → main`, nhánh `origin/staging` chưa chứa commit merge này, do đó `main` CHƯA phải là tổ tiên của `staging`. Chỉ sau khi merge PR đồng bộ ngược `main → staging` thì hai nhánh mới hoàn toàn khớp lịch sử (`main` trở thành tổ tiên của `staging`).
 8. Ghi kết quả vào issue phát hành: thời điểm, `MERGE12`, kết quả bước 1–6. Không dán secret, không dán email người dùng thật.
 
@@ -349,8 +406,23 @@ ut_health http://127.0.0.1:3001/api/health && echo "Core đã lên"
 
 - Bản Core cũ chạy được trên DB đã migrate: migration chỉ thêm bảng/cột (luật pilot, SPEC-PILOT-001 §9.3) và `unit_id` có mặc định TCKT.
   Lùi image không cần restore DB.
-- Lùi `ctd-api` (cùng lệnh `deploy.sh`, đổi `core` thành `ctd-api` và `$OLD_CORE_TAG` thành `$OLD_CTD_TAG`) chạy lại seed cũ: **mật khẩu admin CTD bị đặt về mật khẩu mặc định công khai (#54)** ở
-  mỗi lần khởi động. Chỉ lùi `ctd-api` khi thật cần và chạy lại 7.5 bước 6 ngay sau đó. Đợt này không có migration Alembic.
+- Lùi `ctd-api` cần kiểm trước, vì image **trước #54** vừa thiếu công cụ vừa không an toàn: nó **không có** `app.seeds.set_password` (module chỉ vào `main` qua #57,
+  nên chạy lệnh đó sau khi lùi sẽ báo `No module named`), và seed cũ đặt mật khẩu admin CTD về mật khẩu mặc định công khai **ở mỗi lần container khởi động**
+  (restart, khởi động lại máy, `deploy.sh`), nên mật khẩu đặt tay cũng bị xoá ở lần khởi động kế tiếp. Kiểm image đích **trước** khi lùi (image phải còn trên VM):
+  ```bash
+  T=/opt/ultimate-tckt/backups/keep-production-pre-release1-tags.txt
+  OLD_CTD_TAG="$(sed -n 's/^ctd-api=//p' "$T")"
+  docker run --rm "ghcr.io/tduong-p/ultimate-tckt-ctd-api:$OLD_CTD_TAG" python -c "import importlib.util as u,sys;sys.exit(0 if u.find_spec('app.seeds.set_password') else 1)" \
+    && echo "image có bản sửa #54, lùi được" || echo "image TRƯỚC #54: KHÔNG lùi, xem dưới"
+  ```
+  Tag trong file được ghi **sau** 7.2 bước 4c nên bình thường đã có bản sửa. Nếu kiểm ra "TRƯỚC #54", thứ tự xử lý: (1) sửa tiến, `deploy.sh production ctd-api <tag của lần
+  deploy #57 hoặc mới hơn>`; (2) chưa có bản sửa tiến thì `ut_compose production stop ctd-api` (CTD tạm ngừng, Core không bị ảnh hưởng) thay vì chạy bản cũ; (3) chỉ khi
+  Trưởng nhóm phê duyệt bằng văn bản mới chạy bản cũ, và ngay sau đó đặt mật khẩu bằng lệnh một dòng dưới đây (mật khẩu nhập tại dấu nhắc, không vào lịch sử shell),
+  chấp nhận rằng nó chỉ có hiệu lực tới lần khởi động kế tiếp và phải kiểm lại sau **mỗi** lần container khởi động lại:
+  ```bash
+  docker exec -it ultimate-tckt-production-ctd-api-1 python -c 'import getpass,sys;from app.db import SessionLocal;from app.infra.password import hash_password;from app.models.identity import User;p=getpass.getpass("Mat khau moi: ");assert len(p)>=8;db=SessionLocal();u=db.query(User).filter_by(email=sys.argv[1]).one();u.password_hash=hash_password(p);db.commit();print("da dat")' "$CTD_ADMIN_EMAIL"
+  ```
+  Đợt này không có migration Alembic.
 - `main` vẫn chứa bản lỗi: push kế tiếp lên `main` sẽ deploy lại nó. Trước khi lùi, nhờ người có quyền admin repo đặt biến
   `PROD_DEPLOY_ENABLED` = `false` (GitHub → Settings → Variables), sửa tiến bằng hotfix (`../playbooks/hotfix-production.md`), rồi bật lại
   ngay trước khi merge hotfix.
@@ -399,3 +471,4 @@ kiểm kết quả giữa các bước. CTD không cần restore (không có mig
 | 3.0 | 2026-09-30 | Thêm mục 7: Runbook deploy GĐ1-A (backup DB, verify migration, test đăng nhập, rollback plan) | DYC |
 | 3.1 | 2026-10-02 | Thêm Noti vào pipeline: `test-noti`/`build-noti`/`deploy-noti` (chỉ staging), `deploy.sh … noti` | DYC |
 | 4.0 | 2026-10-03 | Viết lại mục 7 thành runbook phát hành đợt 1 (cổng G1–G6, backup/restore đúng đường dẫn và vào DB sạch, cổng/tên miền đúng, smoke, rollback không dùng `git reset`); mục 1–2: job `infra` không chờ test; mục 6: log Core nằm trong container | DYC |
+| 4.1 | 2026-10-03 | Thêm O1/O2: nghiệm thu vận hành #55 (xoay secret, hash lộ) và #54 (set_password, kiểm sau restart); G1 dùng CI + test hồi quy; tag sau phát hành theo từng dịch vụ; rollback `ctd-api` kiểm image trước #54 | DYC |

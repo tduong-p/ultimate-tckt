@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-REL-001
 title: Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -38,11 +38,14 @@ Hai vấn đề an ninh khẩn đã được tách thành issue riêng và phả
    - Tài khoản quản trị cao nhất của CTD production (`tckt.dtn@hust.edu.vn`) có nguy cơ bị gán mật khẩu mặc định công khai mỗi khi container khởi động lại, đồng thời seed ép `is_active = True` đảo ngược việc khóa tài khoản.
    - Giải pháp: Thực hiện hotfix CTD (`services/ctd-api/backend/app/seeds/admin_seed.py` và `set_password.py`), viết test ngăn chặn và mở PR hotfix theo `docs/playbooks/hotfix-production.md`.
    - Ngay sau deploy hotfix, thực hiện chạy lệnh đổi mật khẩu an toàn (`python -m app.seeds.set_password`) trước khi coi production là sẵn sàng hoạt động.
+   - Nghiệm thu (O2) bằng bằng chứng vận hành, không bằng việc merge PR: đăng nhập bằng mật khẩu mới được, mật khẩu mặc định bị từ chối, và vẫn đúng sau khi khởi động lại container (OPS-DEPLOY-001 §7.2 bước 4c). PR hotfix dùng `Refs #54`, không `Closes #54`.
+   - Rollback `ctd-api` về image trước #54 không có `set_password` và đặt lại mật khẩu mặc định ở mỗi lần khởi động: xem OPS-DEPLOY-001 §7.6.
 
 2. **Issue #55 (Dump DB Production trên main & Lịch sử git)**:
    - Nhánh `main` chứa file dump MySQL cũ `tools/test-fixtures/sql/mysql/backup_current.sql` gồm 65 email và bcrypt hash.
    - Giải pháp: Gỡ bỏ file dump khỏi cây thư mục `main` qua luồng PR phát hành đợt 1.
    - Chuẩn bị phương án khóa/đặt lại mật khẩu cho các tài khoản bị ảnh hưởng, và xoay `CORE_SESSION_SECRET` trên VM production để hủy toàn bộ phiên làm việc cũ.
+   - Nghiệm thu (O1) bằng bằng chứng vận hành (OPS-DEPLOY-001 §7.2 bước 4b): Core khởi động lại sau khi xoay secret, session cũ mất hiệu lực, và không tài khoản đang hoạt động nào còn hash trong dump (đếm bằng truy vấn, kết quả `0`). PR gỡ dump dùng `Refs #55`, không `Closes #55`; chỉ đóng issue khi có comment bằng chứng.
    - Ghi nhận rõ: Dữ liệu dump vẫn tồn tại trong lịch sử commit public của git; theo quyết định kiến trúc, **không rewrite lịch sử git** và **không tự ý thay đổi visibility** của repository để tránh gián đoạn các thiết lập CI/CD và rulesets.
 
 ## 3. Cổng phát hành đợt 1
@@ -142,3 +145,4 @@ Các quyết định chính thức đã được ghi trực tiếp vào GitHub i
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu: kết quả rà soát trước đợt 1, cổng phát hành, 26 phát hiện, ánh xạ sang PLAN-REL-001/002/003 | DYC |
 | 1.1 | 2026-10-03 | Cập nhật theo quyết định văn bản chốt cho #48, #49, #50, #54, #55; siết chặt điều kiện nghiệm thu G1-G6; thiết kế lại Task 4 GHCR; giữ SETTINGS_ENCRYPTION_KEY; phân định rõ pilot vs backlog | DYC |
+| 1.2 | 2026-10-03 | Thêm điều kiện nghiệm thu vận hành O1 (#55) và O2 (#54); PR hotfix dùng `Refs`, không tự đóng issue; cảnh báo rollback `ctd-api` về image trước #54 | DYC |

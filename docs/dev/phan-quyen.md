@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.2
+version: 6.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -139,6 +139,10 @@ Mọi đường ghi `users.role` tự động đồng bộ membership TCKT:
 - `PATCH /api/users/:id` (cập nhật)
 - SSO login lần đầu (`findOrCreateHustAccount`)
 
+Bốn route của `teams.js` đổi role/cờ lead (`POST` và `PATCH`/`DELETE` `/api/teams/:id/members[/:userId]`, `DELETE /api/teams/:id`) chỉ **cập nhật** membership TCKT đang có
+(`syncTcktMembershipFromRole(db, userId, { createIfMissing: false })`). Chúng không tạo lại membership đã bị gỡ qua `DELETE /api/units/:id/members/:userId`; các đường tạo user mới ở trên dùng mặc định `createIfMissing: true`.
+Gỡ membership TCKT hiện chưa dọn `user_teams` của người đó (PLAN-REL-001 Task 6, R7).
+
 ## CTD — role theo `services/ctd-api/backend/app/models/identity.py`
 
 | Role (`Role` enum) | Ý nghĩa |
@@ -255,3 +259,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 3.1 | 2026-09-30 | Phạm vi hoạt động, ranh giới canManageUser, Event Lead, quy tắc bài cập nhật (pilot PR 4) | DYC |
 | 6.1 | 2026-10-01 | Cập nhật ma trận phân quyền Legacy Gate: thêm kiểm tra unit_modules (đơn vị có module dieu-hanh được truy cập). Cập nhật test coverage ghi nhận units.visibility.test.js | AI |
 | 6.2 | 2026-10-03 | Đồng bộ hai chiều users.role ↔ unit_memberships (TCKT) trên cả 4 route teams.js (R1, G1) | DYC |
+| 6.3 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (`createIfMissing: false`) | DYC |

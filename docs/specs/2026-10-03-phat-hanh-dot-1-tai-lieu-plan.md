@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-REL-003
 title: Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -26,6 +26,11 @@ khối `section-7`, không gõ lại.
 Task 1–5; chỉ bước diễn tập tuỳ chọn ở Task 3 cần SSH.
 
 **Spec:** SPEC-REL-001 (`docs/specs/2026-10-03-phat-hanh-dot-1-design.md`) — §3 cổng G2–G6, §4.3 phát hiện R21–R26.
+
+> **Đính chính v1.2 (đọc trước khi dùng các khối `section-7` và `t5-rb-*` bên dưới):** các khối này là bản đã thực thi ở Task 3 và Task 5, nay **lỗi thời ở ba điểm**; nguồn đúng là `docs/ops/deploy-va-nhanh.md` (OPS-DEPLOY-001 4.1) và `docs/playbooks/rollback.md`, không chép lại từ plan.
+> 1. Sau #57 `main` có `set_password`, nhưng image `ctd-api` **trước** #54 không có và đặt lại mật khẩu mặc định mỗi lần khởi động; rollback `ctd-api` phải kiểm image trước (§7.6).
+> 2. Tag image là SHA của commit push và chỉ dịch vụ có đường dẫn đổi mới được build lại; không giả định cả tag Core và CTD đều bằng `MERGE12` (§7.5 bước 1).
+> 3. #54/#55 chỉ nghiệm thu bằng bằng chứng vận hành (O1, O2, §7.2 bước 4); PR #57/#58 dùng `Refs`, không `Closes`.
 
 ## Global Constraints
 
@@ -1367,4 +1372,4 @@ Kỳ vọng: `CLOSED <thời điểm>`. Không có `--delete-branch`. Báo lại
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu: sáu task (PB-DEP-001 cho G2, sửa chín dòng lịch sử lỗi mã hoá, runbook phát hành đợt 1 trong OPS-DEPLOY-001 4.0, dọn `test-output.txt`, sửa bốn tài liệu vận hành sai, đóng PR #43) | DYC |
 | 1.1 | 2026-10-03 | Cập nhật runbook §7: #54 và #55 là điều kiện tiên quyết trước release; quy trình đồng bộ PR `main → staging` sau merge commit; cảnh báo cấm chạy restore DB có `DROP DATABASE` như kiểm thử | DYC |
-
+| 1.2 | 2026-10-03 | Đính chính: khối runbook §7 và rollback trong plan lỗi thời so với OPS-DEPLOY-001 4.1 (rollback `ctd-api` trước #54, tag theo từng dịch vụ, nghiệm thu O1/O2) | DYC |

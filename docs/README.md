@@ -47,7 +47,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [DEV-API-001](dev/api.md) | API | 5.5 | active | dev, ai |
+| [DEV-API-001](dev/api.md) | API | 5.6 | active | dev, ai |
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.1 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.3 | active | dev, ai |
@@ -55,10 +55,10 @@
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.7 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.2 | active | dev, ai |
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.4 | active | dev, ai |
-| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.2 | active | dev, ai |
+| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.15 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.16 | active | dev, ai |
 
 ## onboarding
 
@@ -75,7 +75,7 @@
 | [OPS-BAK-001](ops/backup-restore.md) | Backup và restore database | 1.2 | active | dev, ops, ai |
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.5 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.1 | active | ops, ba |
-| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.0 | active | dev, ops, ai |
+| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.1 | active | dev, ops, ai |
 | [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.7 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.4 | active | dev, ops, ai |
 | [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.1 | active | ops, dev |
@@ -106,7 +106,7 @@
 | [PB-SCH-001](playbooks/doi-schema.md) | Playbook — đổi schema | 2.1 | active | dev, ai |
 | [PB-HOT-001](playbooks/hotfix-production.md) | Playbook — hotfix production | 1.3 | active | dev, ai |
 | [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.2 | active | dev, ai |
-| [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.2 | active | dev, ai |
+| [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.3 | active | dev, ai |
 | [PB-FIX-001](playbooks/sua-loi.md) | Playbook — sửa lỗi | 1.0 | active | dev, ai |
 | [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.4 | active | dev, ai |
 | [PB-FEAT-001](playbooks/them-tinh-nang.md) | Playbook — thêm tính năng | 1.1 | active | dev, ai |
@@ -133,10 +133,10 @@
 | [PLAN-NOTI-001](specs/2026-10-02-noti-service-plan.md) | Kế hoạch xây service Noti (services/noti-api) | 1.0 | draft | dev, ai |
 | [SPEC-SOON-001](specs/2026-10-03-core-coming-soon-design.md) | Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy | 1.2 | active | dev, ai |
 | [PLAN-SOON-001](specs/2026-10-03-core-coming-soon-plan.md) | Plan — màn hình "Đang phát triển" cho UI Core legacy | 1.0 | active | dev, ai |
-| [PLAN-REL-001](specs/2026-10-03-phat-hanh-dot-1-core-plan.md) | Plan — sửa quyền, phạm vi dữ liệu và lỗi Core trước pilot | 1.1 | active | dev, ai |
-| [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.1 | active | dev, ops, ai |
+| [PLAN-REL-001](specs/2026-10-03-phat-hanh-dot-1-core-plan.md) | Plan — sửa quyền, phạm vi dữ liệu và lỗi Core trước pilot | 1.2 | active | dev, ai |
+| [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.2 | active | dev, ops, ai |
 | [PLAN-REL-002](specs/2026-10-03-phat-hanh-dot-1-ha-tang-plan.md) | Plan — sửa hạ tầng và CI sau rà soát phát hành đợt 1 | 1.1 | active | dev, ops, ai |
-| [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.1 | active | dev, ops, ai |
+| [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.2 | active | dev, ops, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |

@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-REL-001
 title: Plan — sửa quyền, phạm vi dữ liệu và lỗi Core trước pilot
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -53,7 +53,7 @@ Ngày 2026-10-03, các quyết định bằng văn bản chính thức đã đư
 
 | Task | R | File code/test chính | Nghiệm thu tối thiểu | Cổng |
 |---|---|---|---|---|
-| 1. Đồng bộ vai trò tổ và membership TCKT | R1 | `core/src/routes/teams.js`, `core/tests/teams.mgmt.test.js` | Test cả 4 route team (`/teams`, `/teams/:id`, `/teams/:id/members`, `/teams/:id/members/:userId`); role và membership TCKT cập nhật đồng bộ hai chiều; cờ lead/vice-lead chính xác. | C48-A (G1) |
+| 1. Đồng bộ vai trò tổ và membership TCKT | R1 | `core/src/routes/teams.js`, `core/tests/teams.mgmt.test.js` | Test cả 4 route thật sự đổi role/cờ lead: `POST /api/teams/:id/members`, `PATCH /api/teams/:id/members/:userId`, `DELETE /api/teams/:id/members/:userId`, `DELETE /api/teams/:id`; role và membership TCKT **đã có** cập nhật đồng bộ; cờ lead/vice-lead chính xác; thao tác tổ **không tạo lại** membership TCKT đã bị gỡ. | C48-A (G1) |
 | 2. Chặn quản lý tài khoản chéo đơn vị và tái tạo membership | R2–R3 | `core/src/policies/access.js`, `core/src/routes/users.js`, `core/src/units/memberships.js`, `core/tests/users.test.js`, `core/tests/units.memberships-repo.test.js` | Admin TCKT chỉ sửa/xóa user TCKT, nhận 403 với DYC/BTV/platform_owner; sửa profile không hồi sinh membership TCKT đã chủ động gỡ. | C48-B |
 | 3. Chặn tự đổi email | R4 | `core/src/routes/system.js`, `core/tests/account.test.js` | `PATCH /api/account` trả 403 khi gửi email mới; ô email frontend chỉ đọc; không thể chiếm allowlist. | C48-B |
 | 4. Ngắt routes directives/submissions chưa hoàn thiện | R5 | `core/src/routes/index.js`, `core/tests/routes.mount.test.js`; giữ unit tests trong `core/tests/directives.test.js` | Endpoint directives và submissions trả 404; không ảnh hưởng các route Điều hành khác. | C48-B / SPEC §9.1 |
@@ -70,11 +70,13 @@ Ngày 2026-10-03, các quyết định bằng văn bản chính thức đã đư
 
 ## Task 1 — Đồng bộ role tổ với membership TCKT (R1, G1)
 
-**Mục tiêu:** Khôi phục hành vi đồng bộ hai chiều giữa `users.role` và `unit_memberships` (TCKT) cho cả 4 route trong `core/src/routes/teams.js`:
-1. `POST /api/teams`: Tạo tổ mới (gắn `unit_id`, nếu gán trưởng tổ thì cập nhật role và membership).
-2. `PATCH /api/teams/:id`: Đổi trưởng tổ (người cũ về member, người mới lên lead).
-3. `POST /api/teams/:id/members`: Thêm thành viên vào tổ (nếu cờ `is_lead` thì đồng bộ role/membership).
-4. `DELETE /api/teams/:id/members/:userId`: Xóa thành viên khỏi tổ (nếu là leader thì hạ role và đồng bộ membership).
+**Mục tiêu:** Giữ `users.role` và membership TCKT nhất quán khi thao tác tổ đổi vai trò, **mà không hồi sinh quyền đã bị chủ động gỡ**. Bốn route trong `core/src/routes/teams.js` thật sự đổi role/cờ lead (`POST /api/teams` và `PATCH /api/teams/:id` chỉ tạo tổ và đổi tên/màu, không đổi role nên không thuộc task này):
+1. `POST /api/teams/:id/members`: thêm thành viên vào tổ (nếu là leader/vice_leader thì nâng `users.role`).
+2. `PATCH /api/teams/:id/members/:userId`: đổi vai trò trong tổ (lên/xuống leader, vice_leader, member).
+3. `DELETE /api/teams/:id/members/:userId`: xóa thành viên khỏi tổ (hạ role nếu hết làm leader/vice_leader).
+4. `DELETE /api/teams/:id`: xóa/vô hiệu hóa tổ (hạ role của mọi thành viên không còn giữ chức vụ nào).
+
+**Thiết kế (đã có từ commit `45b77b9`, sửa lại ở đây):** `syncTcktMembershipFromRole` upsert vô điều kiện, nên gọi nó sau thao tác tổ **tạo lại** membership TCKT cho người đã bị gỡ qua `DELETE /api/units/:id/members/:userId` (route này chỉ xóa membership và đặt `users.role='member'`, để nguyên `user_teams`). Cách sửa: thêm tùy chọn `{ createIfMissing }` (mặc định `true`, giữ nguyên hành vi cho nơi tạo user mới) và `teams.js` truyền `createIfMissing: false`; chỉ cập nhật membership TCKT đang tồn tại. Việc dọn `user_teams` khi gỡ membership TCKT vẫn thuộc Task 6 (R7), không làm ở đây.
 
 **Files:**
 - Modify: `core/src/routes/teams.js`
@@ -83,7 +85,7 @@ Ngày 2026-10-03, các quyết định bằng văn bản chính thức đã đư
 
 **Thực hiện TDD:**
 1. Viết bộ test hồi quy trong `core/tests/teams.mgmt.test.js` bao phủ đầy đủ cả 4 route nêu trên. Kiểm tra `users.role`, `unit_memberships.role`, và cờ `is_lead`/`is_vice_lead`.
-2. Kiểm tra trường hợp: Người dùng đã bị chủ động gỡ membership TCKT thì khi thao tác tổ không được tự ý tái sinh membership nếu không hợp lệ.
+2. Với **từng** route trên: người dùng không có membership TCKT (fixture `units: []`, và một ca đi qua `DELETE /api/units/:id/members/:userId`) thì sau thao tác tổ vẫn không có membership TCKT.
 3. Chạy test, xác nhận đỏ.
 4. Cập nhật `core/src/routes/teams.js` gọi `syncTcktMembershipFromRole` và xử lý cờ leader nhất quán.
 5. Chạy test mục tiêu xanh, chạy toàn bộ `cd core && npm test`.
@@ -254,3 +256,4 @@ npm run docs:check -- --base origin/main
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu: task, test, tài liệu, cổng quyết định và lộ trình cho R1–R12 của SPEC-REL-001 | DYC |
 | 1.1 | 2026-10-03 | Cập nhật theo quyết định văn bản #48/#49; bổ sung chi tiết test 4 route team, /api/session, is_lead, unit_id, user_teams sau khi gỡ membership, rate-limit audit GET; lập kiểm kê độc lập cho #49 | DYC |
+| 1.2 | 2026-10-03 | Task 1: sửa danh sách route (4 route đổi role thật, không phải `/api/teams` và `PATCH /api/teams/:id`); thêm yêu cầu và thiết kế không hồi sinh membership TCKT đã gỡ (`createIfMissing`) | DYC |
