@@ -380,3 +380,13 @@ test('the coming-soon screen honours reduced motion and exposes an accessible me
   assert.match(assets['app.js'], /start=30\+Math\.floor\(Math\.random\(\)\*41\)/);
   assert.match(assets['app.js'], /Math\.min\(99,/);
 });
+
+test('unfinished actions open the coming-soon modal instead of failing', () => {
+  const app = assets['app.js'];
+  assert.match(app, /if\(!SSO_READY\)\$\('#login \.btn\.microsoft'\)\?\.setAttribute\('data-soon','sso'\)/);
+  assert.match(app, /const trigger=e\.target\.closest\('\[data-soon\]'\);if\(!trigger\)return;e\.preventDefault\(\);/);
+  assert.match(app, /comingSoonModal\(trigger\.dataset\.soon,back\?\(\)=>taskDetailModal\(back\):null\)/);
+  const detail = app.slice(app.indexOf('async function taskDetailModal('));
+  assert.match(detail, /\$\{manages\?`<button type="button" class="btn small" data-soon="task-edit" data-soon-task="\$\{tk\.id\}">/);
+  assert.match(detail, /class="checklist-remove" data-soon="task-edit" data-soon-task="\$\{tk\.id\}" aria-label="Xoá mục này"/);
+});
