@@ -390,3 +390,9 @@ test('unfinished actions open the coming-soon modal instead of failing', () => {
   assert.match(detail, /\$\{manages\?`<button type="button" class="btn small" data-soon="task-edit" data-soon-task="\$\{tk\.id\}">/);
   assert.match(detail, /class="checklist-remove" data-soon="task-edit" data-soon-task="\$\{tk\.id\}" aria-label="Xoá mục này"/);
 });
+
+test('the skip link focuses content without changing the route', () => {
+  assert.match(assets['index.html'], /<a href="#content" class="skip-link">/);
+  assert.match(assets['app.js'], /\$\('\.skip-link'\)\?\.addEventListener\('click',e=>\{e\.preventDefault\(\);\$\('#content'\)\.focus\(\)\}\)/,
+    'activating the skip link must not set #content as a route (it would show the lost page)');
+});

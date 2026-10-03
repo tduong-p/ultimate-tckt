@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-SOON-001
 title: Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -81,8 +81,9 @@ Câu chính bản EN: "This feature is under development. We've tased the devs t
   `comingSoonModal(key, onClose)` mở trong `#modal` có sẵn. Hai hàm dùng chung một hàm gắn sự kiện cho nút chích.
 - **Router:** `route()` thêm nhánh `page==='soon'` với `id` thuộc `COMING_SOON` → trang. Page không thuộc danh sách
   trang đã biết → trang `not-found`. Trang **có thật** nhưng người dùng không đủ quyền (ví dụ `#accounts` với member)
-  **vẫn chuyển về dashboard** như hiện nay, để không lộ trang đó tồn tại.
-- **Menu:** thêm nhóm "Sắp có" cuối `<nav id="nav">` trong `index.html`, ba mục `data-page="soon"`, chữ nhạt kèm pill
+  **vẫn chuyển về dashboard** như hiện nay, để không lộ trang đó tồn tại. Link bỏ qua "Chuyển đến nội dung chính"
+  (`#content`) chỉ chuyển focus, không đổi hash, để không rơi vào trang "Lạc đoàn".
+- **Menu:** thêm nhóm "Sắp có" cuối `<nav id="nav">` trong `index.html`, ba mục `data-page="soon/<key>"`, chữ nhạt kèm pill
   "Sắp có", hiện cho mọi vai trò. Mục đang mở được tô `active` theo `#soon/<key>`.
 - **SSO:** hằng `SSO_READY=false` trong `app.js`. Khi `false`, bấm nút Microsoft → chặn chuyển trang, mở modal `sso`.
   Cấu hình Azure xong thì đổi sang `true`; nút trở lại chuyển tới `/auth/microsoft` như cũ.
@@ -117,3 +118,4 @@ Cập nhật `docs/dev/frontend.md` (mục Core): mô tả `COMING_SOON`, cách 
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu: sáu chỗ chặn, chủ đề "chích điện dev", thanh sạc và nút chích | DYC |
 | 1.1 | 2026-10-03 | Giao việc/Trình: API đã có từ PR #40, chỉ thiếu giao diện | DYC |
+| 1.2 | 2026-10-03 | Menu dùng `data-page="soon/<key>"`; link bỏ qua (`#content`) chỉ chuyển focus, không đổi route | DYC |
