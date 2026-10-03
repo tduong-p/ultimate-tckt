@@ -1,7 +1,11 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.10
+<<<<<<< HEAD
+version: 1.9
+=======
+version: 1.11
+>>>>>>> origin/staging
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -63,6 +67,7 @@ ngay trước khi làm (code thay đổi sau mỗi PR nên số dòng/đoạn tr
 
 | PR | Nhánh | Mục spec | Module | Plan |
 |---|---|---|---|---|
+| 1.11 | 2026-10-02 | C?p nh?t k? ho?ch pilot |
 | 0 | `docs/pilot-dieu-hanh-spec` | Spec + plan này | Tài liệu | — |
 | 1 | `chore/pilot-a1-remove-dump` | a1 | Tài liệu & tooling | Task 1 |
 | 2 | `fix/pilot-a2-ctd-admin-seed` | a2 | CTD | Task 2 |
@@ -616,5 +621,10 @@ trước khi tạo trên GitHub.
 | 1.6 | 2026-09-30 | PR 8 xong (c26, c27 một phần, c29 CSS); PR 5 thông báo tạm hoãn | DYC |
 | 1.7 | 2026-09-30 | Hotfix staging 502 (migrate unit_id) chèn trước PR 7 | DYC |
 | 1.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+<<<<<<< HEAD
+
+<!-- updated: 2026-10-02 dev3 routes -->
+=======
 | 1.9 | 2026-10-02 | Ghi chú: email đi qua Noti, không còn `mailer.notify*` | DYC |
 | 1.10 | 2026-10-02 | Hotfix lần 2: khôi phục bản sửa unit_id bị PR #44 ghi đè | DYC |
+>>>>>>> origin/staging

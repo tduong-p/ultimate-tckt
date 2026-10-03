@@ -1,7 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.11
+<<<<<<< HEAD
+version: 2.9
+=======
+version: 2.12
+>>>>>>> origin/staging
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -91,6 +95,7 @@ nào, kể cả mật khẩu mặc định.
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 2.12 | 2026-10-02 | C?p nh?t mock test directives |
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Chỉ chỗ test luật docs-check | DYC |
 | 1.2 | 2026-09-24 | Tuỳ chọn `sudoFail` của sandbox | DYC |
@@ -105,6 +110,11 @@ nào, kể cả mật khẩu mặc định.
 | 2.6 | 2026-09-30 | Thêm pilot.ui-numbers.test.js (c26 c27 c29) | DYC |
 | 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |
 | 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+<<<<<<< HEAD
+
+<!-- updated: 2026-10-02 dev3 routes -->
+=======
 | 2.9 | 2026-10-02 | Thêm mục test Noti | DYC |
 | 2.10 | 2026-10-02 | Thêm `noti-sender.test.js` và test compose Core → Noti | DYC |
 | 2.11 | 2026-10-02 | Thêm test migrate với org_units.id INT có dấu (trạng thái staging) | DYC |
+>>>>>>> origin/staging

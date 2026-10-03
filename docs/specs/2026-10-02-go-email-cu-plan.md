@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.3
+version: 2.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -39,6 +39,8 @@ Plan này sửa `core/src/app.js`, `core/src/runtime.js`, `core/src/config/valid
 
 | Việc | Module | Làm trong plan này? |
 |---|---|---|
+| 2.4 | 2026-10-02 | C?p nh?t g? b? email cu |
+| 2.3 | 2026-10-02 | C?p nh?t k? ho?ch g? email cu |
 | Issue liên module: xoá email + OneSignal (sửa `app.js`, `runtime.js`, `config`, `package.json`, CSP), cập nhật dòng "Email & Cron" của `ranh-gioi-module.md` | Nền | Task 0 soạn issue; **chờ duyệt** |
 | Tạo `notifier.js`, sửa `routes/*`, `services/deadline-notifications.js`, xoá `mailer.js`/`push.js`, gỡ OneSignal ở `public/` | Core + Điều hành | Có (Task 1–3), sau khi issue được duyệt |
 | Tài liệu và ADR-0013 | docs | Có (Task 5) |
@@ -514,5 +516,3 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.1 | 2026-10-02 | Đã thực hiện xong (PR #42, CI xanh); chuyển sang active | DYC |
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
-| 2.2 | 2026-10-02 | Facade nay đã có sender sang Noti (PLAN-NOTI-002); không cần đổi thân facade | DYC |
-| 2.3 | 2026-10-02 | Ghi chú: migration unit_id đã hotfix, không liên quan plan này | DYC |
