@@ -105,7 +105,7 @@
 | [PB-RBAC-001](playbooks/doi-quyen.md) | Playbook — đổi quyền | 4.1 | active | dev, ai |
 | [PB-SCH-001](playbooks/doi-schema.md) | Playbook — đổi schema | 2.1 | active | dev, ai |
 | [PB-HOT-001](playbooks/hotfix-production.md) | Playbook — hotfix production | 1.2 | active | dev, ai |
-| [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.1 | active | dev, ai |
+| [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.2 | active | dev, ai |
 | [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.1 | active | dev, ai |
 | [PB-FIX-001](playbooks/sua-loi.md) | Playbook — sửa lỗi | 1.0 | active | dev, ai |
 | [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.4 | active | dev, ai |
