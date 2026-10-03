@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.7
+version: 1.8
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: []
 ---
 
@@ -101,6 +101,14 @@ Kiểm tác động code→tài liệu so `git diff base...HEAD`, tức chỉ c�
 còn chưa commit thì local báo `docs ok`, còn CI của PR báo hàng chục tài liệu có `related_code` trùng mà chưa sửa (PR #45).
 Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đổi `infra/**`/`.github/**` thì dự trù sửa nhiều tài liệu.
 
+## Router hash của UI Core coi mọi anchor là trang
+
+`core/public/app.js` điều hướng bằng `location.hash`, nên một link neo bình thường (`href="#content"` của link bỏ qua)
+cũng bị `route()` hiểu là tên trang. Trước đây hash lạ âm thầm về dashboard; từ SPEC-SOON-001 hash lạ hiện trang
+"Lạc đoàn". Link neo trong UI cũ phải `preventDefault()` và tự `focus()`/cuộn, hoặc tên trang phải có trong `KNOWN_PAGES`.
+Hai PR cùng merge vào `staging` mà còn marker `<<<<<<<`/`>>>>>>>` trong tài liệu làm `docs:check` của mọi PR sau đỏ —
+xem diff trước khi bấm merge.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -113,3 +121,4 @@ Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đ
 | 1.5 | 2026-10-02 | Thêm bẫy `docs:check --base` chỉ thấy file đã commit | DYC |
 | 1.6 | 2026-10-02 | Thêm bẫy: lần đầu đổi cả script VM và compose, job infra chạy script cũ; `AbortSignal.timeout` trên Node 22 | DYC |
 | 1.7 | 2026-10-02 | Thêm bẫy: unit_id phải theo kiểu org_units.id; merge viết lại file làm mất bản sửa cũ | DYC |
+| 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
