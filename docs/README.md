@@ -133,6 +133,10 @@
 | [PLAN-NOTI-001](specs/2026-10-02-noti-service-plan.md) | Kế hoạch xây service Noti (services/noti-api) | 1.0 | draft | dev, ai |
 | [SPEC-SOON-001](specs/2026-10-03-core-coming-soon-design.md) | Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy | 1.2 | active | dev, ai |
 | [PLAN-SOON-001](specs/2026-10-03-core-coming-soon-plan.md) | Plan — màn hình "Đang phát triển" cho UI Core legacy | 1.0 | active | dev, ai |
+| [PLAN-REL-001](specs/2026-10-03-phat-hanh-dot-1-core-plan.md) | Plan — sửa quyền, phạm vi dữ liệu và lỗi Core trước pilot | 1.1 | active | dev, ai |
+| [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.1 | active | dev, ops, ai |
+| [PLAN-REL-002](specs/2026-10-03-phat-hanh-dot-1-ha-tang-plan.md) | Plan — sửa hạ tầng và CI sau rà soát phát hành đợt 1 | 1.1 | active | dev, ops, ai |
+| [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.1 | active | dev, ops, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
