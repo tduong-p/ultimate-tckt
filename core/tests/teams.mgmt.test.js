@@ -212,3 +212,74 @@ test('deleting a team with a leader reverts role to member and syncs TCKT member
   assert.equal(memberships[0]?.role, 'member');
 }));
 
+
+// Hồi quy R1: thao tác tổ chỉ cập nhật membership TCKT đã có, không tái sinh membership đã bị chủ động gỡ.
+async function tcktMembershipCount(pool, userId) {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) n FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [userId]
+  );
+  return rows[0].n;
+}
+
+test('PATCH team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${removed.id}`, { body: { team_role: 'leader' } });
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('POST team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('POST', `/api/teams/${teamId}/members`, { body: { user_id: removed.id, team_role: 'member' } });
+  assert.equal(res.status, 201);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('DELETE team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('DELETE', `/api/teams/${teamId}/members/${removed.id}`);
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('DELETE team does not recreate a removed TCKT membership of its members', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('DELETE', `/api/teams/${teamId}`);
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('membership removed through /api/units stays removed after a later team operation', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const [[tckt]] = await pool.execute('SELECT id FROM org_units WHERE code="TCKT"');
+  const dyc = await createUser(pool, { units: [['DYC', 'dyc_admin']] });
+  const admin = await createUser(pool, { role: 'admin' });
+  const target = await createUser(pool, { role: 'member', team_id: teamId });
+
+  await client.login(dyc.email, dyc.password);
+  const removedRes = await client.request('DELETE', `/api/units/${tckt.id}/members/${target.id}`);
+  assert.equal(removedRes.status, 200);
+  assert.equal(await tcktMembershipCount(pool, target.id), 0);
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${target.id}`, { body: { team_role: 'vice_leader' } });
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, target.id), 0);
+}));
