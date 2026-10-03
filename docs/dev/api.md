@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.3
+version: 5.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -22,7 +22,6 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 
 | Method | Path | File |
 |---|---|---|
-| 5.3 | 2026-10-02 | Chu?n h�a route directives v� submissions |
 | GET | `/api/session` | `system.js` |
 | POST | `/api/session/unit` | `system.js` |
 | GET | `/auth/microsoft`, `/auth/microsoft/callback` | `system.js` |
@@ -477,5 +476,5 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 2.3 | 2026-09-30 | PR 8: bootstrap stats.openTasks đếm việc của chính người dùng; team overview và archive bỏ việc đã huỷ / chỉ đếm done | DYC |
 | 5.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 5.2 | 2026-10-02 | Bỏ `/api/push/config`, `/api/email/test` và nhóm `/api/admin/email/*` (không còn trong code) | DYC |
-
-<!-- updated: 2026-10-02 dev3 routes -->
+| 5.3 | 2026-10-02 | Chuẩn hoá route directives và submissions | DYC |
+| 5.4 | 2026-10-03 | Sửa dòng lịch sử 5.3 bị lỗi mã hoá và nằm nhầm trong bảng routing Core; bỏ chú thích HTML thừa cuối file | DYC |

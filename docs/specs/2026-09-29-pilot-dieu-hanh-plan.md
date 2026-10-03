@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.12
+version: 1.13
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -63,7 +63,6 @@ ngay trước khi làm (code thay đổi sau mỗi PR nên số dòng/đoạn tr
 
 | PR | Nhánh | Mục spec | Module | Plan |
 |---|---|---|---|---|
-| 1.11 | 2026-10-02 | C?p nh?t k? ho?ch pilot |
 | 0 | `docs/pilot-dieu-hanh-spec` | Spec + plan này | Tài liệu | — |
 | 1 | `chore/pilot-a1-remove-dump` | a1 | Tài liệu & tooling | Task 1 |
 | 2 | `fix/pilot-a2-ctd-admin-seed` | a2 | CTD | Task 2 |
@@ -620,3 +619,5 @@ trước khi tạo trên GitHub.
 | 1.9 | 2026-10-02 | Ghi chú: email đi qua Noti, không còn `mailer.notify*` | DYC |
 | 1.10 | 2026-10-02 | Hotfix lần 2: khôi phục bản sửa unit_id bị PR #44 ghi đè | DYC |
 | 1.12 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 1.11 | 2026-10-02 | Cập nhật kế hoạch pilot | DYC |
+| 1.13 | 2026-10-03 | Sửa dòng lịch sử 1.11 bị lỗi mã hoá và nằm nhầm trong bảng lộ trình PR | DYC |
