@@ -27,7 +27,7 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 4.3 | active | ai, dev |
-| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.9 | active | ai, dev |
+| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.10 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.9 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.3 | active | ai, dev |
 
@@ -58,7 +58,7 @@
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.17 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.18 | active | dev, ai |
 
 ## onboarding
 

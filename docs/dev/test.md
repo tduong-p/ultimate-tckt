@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.17
+version: 2.18
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -114,3 +114,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.15 | 2026-10-03 | Thêm test kiểm tra đồng bộ users.role và unit_memberships trên cả 4 route trong teams.mgmt.test.js | DYC |
 | 2.16 | 2026-10-03 | Test hồi quy: route tổ không tạo lại membership TCKT đã gỡ; `syncTcktMembershipFromRole` với `createIfMissing:false` | DYC |
 | 2.17 | 2026-10-03 | Đồng bộ main→staging: thêm `test_admin_seed.py` (seed CTD không reset mật khẩu, không tự mở khóa) | DYC |
+| 2.18 | 2026-10-03 | `my-tasks-today.test.js` dùng `dateInVietnam()` thay ngày local, hết đỏ chập chờn sau 17:00 UTC | DYC |

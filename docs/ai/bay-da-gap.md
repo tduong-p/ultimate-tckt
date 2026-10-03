@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.9
+version: 1.10
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -113,6 +113,11 @@ cũng bị `route()` hiểu là tên trang. Trước đây hash lạ âm thầm 
 Hai PR cùng merge vào `staging` mà còn marker `<<<<<<<`/`>>>>>>>` trong tài liệu làm `docs:check` của mọi PR sau đỏ —
 xem diff trước khi bấm merge.
 
+## Test tính "hôm nay" bằng ngày local của máy chạy: đỏ mỗi ngày từ 17:00 UTC
+
+CI chạy UTC, còn Core tính ngày nghiệp vụ theo giờ Việt Nam (`core/src/date-vn.js`). Từ 17:00 đến 24:00 UTC (00:00–07:00 giờ VN) hai ngày này khác nhau,
+nên test tự dựng deadline "hôm nay" bằng `new Date()` / `getDate()` thất bại chập chờn (ví dụ `my-tasks-today.test.js`). Trong test luôn dùng `dateInVietnam()`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -127,3 +132,4 @@ xem diff trước khi bấm merge.
 | 1.7 | 2026-10-02 | Thêm bẫy: unit_id phải theo kiểu org_units.id; merge viết lại file làm mất bản sửa cũ | DYC |
 | 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
+| 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |
