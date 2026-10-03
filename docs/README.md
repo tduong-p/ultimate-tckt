@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 2.0 | active | ai, dev |
 | [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.3 | active | ai, dev |
-| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.5 | active | ai, dev |
+| [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.6 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.0 | active | ai, dev |
 
 ## ba

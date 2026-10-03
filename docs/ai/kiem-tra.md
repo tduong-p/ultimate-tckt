@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.5
+version: 1.6
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-03
 related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
@@ -45,7 +45,7 @@ staging/production để chạy test.
 - `README.md`: hướng dẫn đầy đủ về test fixtures
 - `restore-db.ps1`: restore MySQL backup vào DB local (Windows PowerShell)
 - `test-local.ps1`: test end-to-end local (restore DB + verify + start server)
-- `sql/mysql/backup_current.sql`: snapshot MySQL hiện tại của TCKT operations
+- `sql/mysql/`: chỗ đặt dump MySQL **ở máy mình** — git-ignore, không commit (repo public)
 
 **Không** được copy thư mục này vào Docker images production. Chỉ dùng cho local dev, unit test, và manual QA.
 
@@ -81,3 +81,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.3 | 2026-09-24 | Công tắc `PROD_DEPLOY_ENABLED` | DYC |
 | 1.4 | 2026-09-26 | Thêm database inspection tools trong `tools/database-inspecs/` | DYC |
 | 1.5 | 2026-09-27 | Thêm `tools/test-fixtures/` — backup DB và script restore cho local dev | DYC |
+| 1.6 | 2026-10-03 | Dump MySQL chỉ để ở máy (git-ignore), gỡ `backup_current.sql` khỏi repo | DYC |
