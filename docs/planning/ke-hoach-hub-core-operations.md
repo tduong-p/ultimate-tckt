@@ -1,15 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-<<<<<<< HEAD
-version: 2.0
-=======
-version: 1.12
->>>>>>> origin/staging
+version: 2.1
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -1283,10 +1279,6 @@ npm run docs:check         # Documentation validation
 | 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
 | 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
 | 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
-<<<<<<< HEAD
-
-<!-- updated: 2026-10-02 dev3 routes -->
-=======
 | 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
 | 1.11 | 2026-10-02 | Ghi chú: kiểu cột unit_id theo org_units.id của DB đã migrate | DYC |
->>>>>>> origin/staging
+| 2.1 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
