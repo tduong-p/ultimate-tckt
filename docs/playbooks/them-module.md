@@ -1,11 +1,11 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml]
 ---
 
@@ -54,6 +54,7 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 - [ ] `lib.sh`: `ut_app_service`/`ut_app_port` có entry cho module mới, test tooling (`npm run test:tools`) xanh.
 - [ ] `deploy.yml`: path filter + 3 job (test/build/deploy) cho module mới, health check `/api/health` (hoặc endpoint tương đương) đã xác nhận chạy được trước khi bật `DEPLOY_ENABLED` / `PROD_DEPLOY_ENABLED`. Không thêm `concurrency` group cho job deploy (GitHub huỷ job đang chờ; `flock` trên VM đã tuần tự).
 - [ ] Module chỉ chấp nhận JWT bridge, không có luồng đăng nhập/mật khẩu riêng.
+- [ ] Seed khởi tạo dữ liệu không được ghi đè mật khẩu của tài khoản đã có, không tự động mở khóa tài khoản (`is_active = True`) mỗi khi container khởi động lại; có CLI riêng để đặt mật khẩu môi trường thật.
 - [ ] Tài liệu BA cho module mới đã có, dẫn từ `docs/ba/tong-quan-nen-tang.md`.
 
 ## Tài liệu phải cập nhật
@@ -72,3 +73,4 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 | 1.2 | 2026-09-30 | Làm rõ bảo trì bên trong service cũ không phải thêm module | DYC |
 | 1.3 | 2026-10-02 | Bổ sung bước lib.sh cho app nhiều service/health path riêng (theo Noti) | DYC |
 | 1.4 | 2026-10-02 | Module gọi Noti: key riêng qua `.env`, thiếu key chỉ tắt gửi | DYC |
+| 1.5 | 2026-10-03 | Đồng bộ main→staging: seed không được reset mật khẩu đã có hoặc mở khóa tài khoản khi container khởi động lại | DYC |

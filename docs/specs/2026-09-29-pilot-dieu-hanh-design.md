@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.3
+version: 2.4
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -64,7 +64,7 @@ sau trong họp team; spec chỉ cố định các bước của một đợt:
 | # | Việc | Module | Loại |
 |---|---|---|---|
 | a1 | Gỡ `tools/test-fixtures/sql/mysql/backup_current.sql` khỏi cây, thêm rule `.gitignore` cho `tools/test-fixtures/sql/**/*.sql`, sửa `tools/test-fixtures/README.md`, `docs/ai/kiem-tra.md`. **Không** viết lại lịch sử git (quyết định 2026-09-29) — 65 hash bcrypt vẫn còn trong lịch sử, xử lý ở a4. | Tài liệu & tooling | Làm luôn |
-| a2 | `seed_admin` CTD: admin đã có → giữ nguyên mật khẩu (chỉ đảm bảo role + `is_active`); tạo mới → mật khẩu mặc định **chỉ** khi `APP_ENV=dev`, môi trường thật để `password_hash=NULL`. Thêm lệnh `python -m app.seeds.set_password <email>` nhập mật khẩu qua `getpass`. Không thêm biến env. | CTD | Làm luôn |
+| a2 | `seed_admin` CTD: admin đã có → giữ nguyên mật khẩu (chỉ đảm bảo role; **không** mở khóa `is_active` — đính chính theo hotfix #57); tạo mới → mật khẩu mặc định **chỉ** khi `APP_ENV=dev`, môi trường thật để `password_hash=NULL`. Thêm lệnh `python -m app.seeds.set_password <email>` nhập mật khẩu qua `getpass`. Không thêm biến env. | CTD | Làm luôn |
 | a3 | Backup tự động hằng ngày (cron/systemd timer trên VM) cho MySQL, Postgres **và** volume `core_uploads`; chép ra ngoài VM; giữ 14 bản. Thử restore một lần. | Hạ tầng & CI | **Liên module** |
 | a4 | Checklist chuẩn bị dữ liệu (chạy một lần, sau backup): khoá hoặc đặt lại mật khẩu mọi tài khoản cũ trên production, dọn dữ liệu thử, tạo tài khoản người dùng thử + gán team, kiểm danh sách admin — khoá `admin@example.com` nếu còn (tài khoản mẫu từ `infra/seed/core-db.sql`, hash công khai trong repo). | Vận hành | Làm luôn (anh/chị chạy) |
 | a5 | Mọi chỗ ghi user/role (tạo user, bulk import, sửa user, đổi role qua team, `create-core-admin.sh`) gọi `syncTcktMembershipFromRole` để `unit_memberships` không trôi. | Core (Nền) | **Liên module** — cần người làm GĐ1-A xác nhận |
@@ -255,3 +255,4 @@ không chờ issue này.
 | 2.2 | 2026-10-03 | c8, c14: ghi chú màn hình "Đang phát triển" tạm thời (SPEC-SOON-001) | DYC |
 | 1.13 | 2026-10-02 | Cập nhật thiết kế phân quyền | DYC |
 | 2.3 | 2026-10-03 | Sửa dòng lịch sử 1.13 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi | DYC |
+| 2.4 | 2026-10-03 | a2: seed không còn mở khóa `is_active` của admin đã có (hotfix #57 đồng bộ từ main) | DYC |

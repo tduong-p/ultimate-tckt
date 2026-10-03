@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.16
+version: 2.17
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -38,7 +38,7 @@ khởi động phải làm Core thoát).
 
 ## CTD — `pytest`
 
-19 file test tại `services/ctd-api/backend/tests/test_*.py`, cần Postgres local. Chạy:
+19 file test tại `services/ctd-api/backend/tests/test_*.py`, cần Postgres local (bao gồm `test_admin_seed.py` kiểm tra seed CTD không reset mật khẩu và không tự mở khóa tài khoản). Chạy:
 
 ```bash
 cd services/ctd-api/backend
@@ -113,3 +113,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.14 | 2026-10-03 | Sửa dòng lịch sử 2.12 bị lỗi mã hoá và thiếu cột Người | DYC |
 | 2.15 | 2026-10-03 | Thêm test kiểm tra đồng bộ users.role và unit_memberships trên cả 4 route trong teams.mgmt.test.js | DYC |
 | 2.16 | 2026-10-03 | Test hồi quy: route tổ không tạo lại membership TCKT đã gỡ; `syncTcktMembershipFromRole` với `createIfMissing:false` | DYC |
+| 2.17 | 2026-10-03 | Đồng bộ main→staging: thêm `test_admin_seed.py` (seed CTD không reset mật khẩu, không tự mở khóa) | DYC |

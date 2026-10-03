@@ -12,7 +12,7 @@ ADMIN_FULL_NAME = "Quản trị viên Hệ thống"
 
 def seed_admin(db: Session, app_env: str | None = None) -> User:
     """Đảm bảo có tài khoản quản trị cao nhất. Chạy ở mỗi lần khởi động nên
-    không bao giờ đổi mật khẩu của tài khoản đã có."""
+    không bao giờ đổi mật khẩu hoặc trạng thái kích hoạt của tài khoản đã có."""
     env = app_env or settings.app_env
     user = db.query(User).filter_by(email=ADMIN_EMAIL).first()
     if user is None:
@@ -27,10 +27,11 @@ def seed_admin(db: Session, app_env: str | None = None) -> User:
         db.add(user)
     else:
         user.role = Role.QUAN_TRI
-        user.is_active = True
+        # Không tự động mở khoá (is_active) và không reset mật khẩu của tài khoản đã có
         if not user.full_name:
             user.full_name = ADMIN_FULL_NAME
 
     db.commit()
     db.refresh(user)
     return user
+

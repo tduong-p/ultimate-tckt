@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.8
+version: 1.9
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
@@ -91,3 +91,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.6 | 2026-09-30 | Dump MySQL chỉ để ở máy (git-ignore), gỡ `backup_current.sql` khỏi repo | DYC |
 | 1.7 | 2026-10-02 | Thêm lệnh test Noti, `test-noti` trong CI; `docs:check --base` chỉ thấy file đã commit | DYC |
 | 1.8 | 2026-10-02 | Đổi payload hay template thông báo: chạy `noti-sender.test.js` | DYC |
+| 1.9 | 2026-10-03 | Đồng bộ main→staging: dump MySQL chỉ để ở máy, gỡ `backup_current.sql` khỏi main (#58) | DYC |

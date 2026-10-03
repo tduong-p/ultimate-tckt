@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.13
+version: 1.14
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -190,6 +190,8 @@ Docs: cập nhật docs/ai/kiem-tra.md.
 git fetch origin
 git switch -c fix/pilot-a2-ctd-admin-seed origin/staging
 ```
+
+> **Đính chính (2026-10-03, hotfix #57):** code `admin_seed.py` ở Step 4 bên dưới và dòng `assert again.is_active is True` ở Step 2 đã bị thay thế. `seed_admin` giờ **không** ép `is_active=True` với admin đã có và không đặt lại mật khẩu; xem `services/ctd-api/backend/app/seeds/admin_seed.py` và `tests/test_admin_seed.py` (nguồn đúng).
 
 - [ ] **Step 2: Viết test đỏ** — `services/ctd-api/backend/tests/test_admin_seed.py`
 
@@ -621,3 +623,4 @@ trước khi tạo trên GitHub.
 | 1.12 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
 | 1.11 | 2026-10-02 | Cập nhật kế hoạch pilot | DYC |
 | 1.13 | 2026-10-03 | Sửa dòng lịch sử 1.11 bị lỗi mã hoá và nằm nhầm trong bảng lộ trình PR | DYC |
+| 1.14 | 2026-10-03 | Đính chính Task seed admin: không ép `is_active`, theo hotfix #57 | DYC |
