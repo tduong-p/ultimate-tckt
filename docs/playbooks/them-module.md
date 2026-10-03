@@ -1,11 +1,11 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-03
 related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml]
 ---
 
@@ -51,6 +51,7 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 - [ ] `lib.sh`: `ut_app_service`/`ut_app_port` có entry cho module mới, test tooling (`npm run test:tools`) xanh.
 - [ ] `deploy.yml`: path filter + 3 job (test/build/deploy) cho module mới, health check `/api/health` (hoặc endpoint tương đương) đã xác nhận chạy được trước khi bật `DEPLOY_ENABLED` / `PROD_DEPLOY_ENABLED`. Không thêm `concurrency` group cho job deploy (GitHub huỷ job đang chờ; `flock` trên VM đã tuần tự).
 - [ ] Module chỉ chấp nhận JWT bridge, không có luồng đăng nhập/mật khẩu riêng.
+- [ ] Seed khởi tạo dữ liệu không được ghi đè mật khẩu của tài khoản đã có, không tự động mở khóa tài khoản (`is_active = True`) mỗi khi container khởi động lại; có CLI riêng để đặt mật khẩu môi trường thật.
 - [ ] Tài liệu BA cho module mới đã có, dẫn từ `docs/ba/tong-quan-nen-tang.md`.
 
 ## Tài liệu phải cập nhật
@@ -66,3 +67,4 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Công tắc production, không dùng concurrency group | DYC |
+| 1.2 | 2026-10-03 | Bổ sung quy tắc: seed không được reset mật khẩu đã có hoặc mở khóa tài khoản khi container khởi động lại | DYC |

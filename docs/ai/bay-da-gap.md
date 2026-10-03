@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.2
+version: 1.3
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-03
 related_code: []
 ---
 
@@ -57,6 +57,10 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 - **Ruleset chỉ cho App bypass thì chủ repo cũng không xoá được nhánh.** Ruleset `bot-branches` chặn xoá `bot/**`
   với mọi người trừ App `tckt-repobot`, nên nút "Delete branch" sau khi đóng PR bot bị từ chối. Dọn bằng cách tạm
   thêm mình vào bypass (xem `docs/ops/repobot.md`).
+- **Seed chạy ở mỗi lần container khởi động không được ghi đè mật khẩu hoặc tự ý mở khóa tài khoản.**
+  `seed_admin` trong CTD từng đặt lại mật khẩu mặc định công khai và ép `is_active = True` ở mỗi lần container khởi động lại,
+  khiến việc đổi mật khẩu bảo mật hoặc khóa tài khoản quản trị bị đảo ngược sau mỗi lần deploy/restart.
+  Bài học: seed chỉ khởi tạo tài khoản nếu chưa có; với tài khoản đã tồn tại, không bao giờ ghi đè `password_hash` hay `is_active`.
 
 ## Lịch sử phiên bản
 
@@ -65,3 +69,4 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
 | 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |
+| 1.3 | 2026-10-03 | Thêm bẫy seed chạy mỗi lần container khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
