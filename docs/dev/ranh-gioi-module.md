@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [.github/CODEOWNERS, .github/ISSUE_TEMPLATE/**, core/src/routes/index.js]
 ---
 
@@ -64,9 +64,5 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | 1.2 | 2026-09-29 | Ghi nhận index.js đăng ký thêm routes của platform và units (GĐ1-A Task 7 & 8) | DYC |
 | 1.3 | 2026-09-29 | Làm rõ `core/src/settings/catalog.js` là hợp đồng dùng chung (thêm setting mới phải raise). Bổ sung `platform.js` vào danh sách hợp đồng. | DYC |
 | 1.4 | 2026-10-02 | Dòng "Email & Cron" đổi thành "Thông báo (Noti)": các file cũ không tồn tại trên staging; thêm service Noti (issue #41) | DYC |
-<<<<<<< HEAD
-
-<!-- updated: 2026-10-02 dev3 routes -->
-=======
 | 1.5 | 2026-10-02 | Ghi nhận service Noti tại services/noti-api/** theo ADR-0014 và SPEC-NOTI-001 | DYC |
->>>>>>> origin/staging
+| 1.7 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |

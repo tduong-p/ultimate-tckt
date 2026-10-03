@@ -1,15 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-<<<<<<< HEAD
-version: 2.9
-=======
-version: 2.12
->>>>>>> origin/staging
+version: 2.13
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -110,11 +106,7 @@ nào, kể cả mật khẩu mặc định.
 | 2.6 | 2026-09-30 | Thêm pilot.ui-numbers.test.js (c26 c27 c29) | DYC |
 | 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |
 | 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
-<<<<<<< HEAD
-
-<!-- updated: 2026-10-02 dev3 routes -->
-=======
 | 2.9 | 2026-10-02 | Thêm mục test Noti | DYC |
 | 2.10 | 2026-10-02 | Thêm `noti-sender.test.js` và test compose Core → Noti | DYC |
 | 2.11 | 2026-10-02 | Thêm test migrate với org_units.id INT có dấu (trạng thái staging) | DYC |
->>>>>>> origin/staging
+| 2.13 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
