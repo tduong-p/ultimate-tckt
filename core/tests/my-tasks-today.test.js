@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { dateInVietnam } = require('../src/date-vn');
 const { createTestDatabase } = require('./helpers/db');
 const { startTestServer } = require('./helpers/server');
 const { createTeam, createUser, createActivity, createTask } = require('./helpers/fixtures');
@@ -22,17 +23,9 @@ test('my-tasks-today separates due-today, overdue, and (for leads) pending revie
       await pool.execute('INSERT INTO user_teams(user_id, team_id, is_lead) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE is_lead=1', [leader.id, teamId]);
     } catch (_) {}
 
-    const now = new Date();
-    const formatDate = (d) => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-    const todayStr = formatDate(now);
-    const overdueDate = new Date();
-    overdueDate.setDate(now.getDate() - 3);
-    const overdueStr = formatDate(overdueDate);
+    // Server tính "hôm nay" theo giờ Việt Nam; test chạy UTC nên không dùng ngày local của máy chạy.
+    const todayStr = dateInVietnam();
+    const overdueStr = dateInVietnam(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000));
 
     const dueToday = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: leader.id });
     await pool.execute('UPDATE tasks SET deadline=? WHERE id=?', [todayStr, dueToday]);
