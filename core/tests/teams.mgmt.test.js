@@ -111,7 +111,7 @@ test('regular member cannot remove anyone from a team', () => withServer(async (
   assert.equal(res.status, 403);
 }));
 
-test('removing a leader from their only leadership team reverts role to member', () => withServer(async ({ pool, client }) => {
+test('removing a leader from their only leadership team reverts role to member and syncs TCKT membership', () => withServer(async ({ pool, client }) => {
   const teamId = await createTeam(pool);
   const admin = await createUser(pool, { role: 'admin' });
   const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: 1 });
@@ -122,4 +122,164 @@ test('removing a leader from their only leadership team reverts role to member',
 
   const [users] = await pool.execute('SELECT role FROM users WHERE id=?', [leader.id]);
   assert.equal(users[0].role, 'member');
+
+  const [memberships] = await pool.execute(
+    'SELECT m.role FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [leader.id]
+  );
+  assert.equal(memberships[0]?.role, 'member');
+}));
+
+test('adding a member as leader via POST /api/teams/:id/members syncs users.role and TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const user = await createUser(pool, { role: 'member' });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('POST', `/api/teams/${teamId}/members`, {
+    body: { user_id: user.id, team_role: 'leader' }
+  });
+  assert.equal(res.status, 201);
+
+  const [users] = await pool.execute('SELECT role FROM users WHERE id=?', [user.id]);
+  assert.equal(users[0].role, 'leader');
+
+  const [memberships] = await pool.execute(
+    'SELECT m.role FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [user.id]
+  );
+  assert.equal(memberships[0]?.role, 'leader');
+}));
+
+test('promoting member to leader via PATCH /api/teams/:id/members/:userId syncs users.role and TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const user = await createUser(pool, { role: 'member', team_id: teamId });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${user.id}`, {
+    body: { team_role: 'leader' }
+  });
+  assert.equal(res.status, 200);
+
+  const [users] = await pool.execute('SELECT role FROM users WHERE id=?', [user.id]);
+  assert.equal(users[0].role, 'leader');
+
+  const [memberships] = await pool.execute(
+    'SELECT m.role FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [user.id]
+  );
+  assert.equal(memberships[0]?.role, 'leader');
+}));
+
+test('demoting leader to member via PATCH /api/teams/:id/members/:userId syncs users.role and TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: 1 });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${leader.id}`, {
+    body: { team_role: 'member' }
+  });
+  assert.equal(res.status, 200);
+
+  const [users] = await pool.execute('SELECT role FROM users WHERE id=?', [leader.id]);
+  assert.equal(users[0].role, 'member');
+
+  const [memberships] = await pool.execute(
+    'SELECT m.role FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [leader.id]
+  );
+  assert.equal(memberships[0]?.role, 'member');
+}));
+
+test('deleting a team with a leader reverts role to member and syncs TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: 1 });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('DELETE', `/api/teams/${teamId}`);
+  assert.equal(res.status, 200);
+
+  const [users] = await pool.execute('SELECT role FROM users WHERE id=?', [leader.id]);
+  assert.equal(users[0].role, 'member');
+
+  const [memberships] = await pool.execute(
+    'SELECT m.role FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [leader.id]
+  );
+  assert.equal(memberships[0]?.role, 'member');
+}));
+
+
+// Hồi quy R1: thao tác tổ chỉ cập nhật membership TCKT đã có, không tái sinh membership đã bị chủ động gỡ.
+async function tcktMembershipCount(pool, userId) {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) n FROM unit_memberships m JOIN org_units o ON o.id = m.unit_id WHERE m.user_id = ? AND o.code = "TCKT"',
+    [userId]
+  );
+  return rows[0].n;
+}
+
+test('PATCH team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${removed.id}`, { body: { team_role: 'leader' } });
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('POST team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('POST', `/api/teams/${teamId}/members`, { body: { user_id: removed.id, team_role: 'member' } });
+  assert.equal(res.status, 201);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('DELETE team member does not recreate a removed TCKT membership', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('DELETE', `/api/teams/${teamId}/members/${removed.id}`);
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('DELETE team does not recreate a removed TCKT membership of its members', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const removed = await createUser(pool, { role: 'member', team_id: teamId, units: [] });
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('DELETE', `/api/teams/${teamId}`);
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, removed.id), 0);
+}));
+
+test('membership removed through /api/units stays removed after a later team operation', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const [[tckt]] = await pool.execute('SELECT id FROM org_units WHERE code="TCKT"');
+  const dyc = await createUser(pool, { units: [['DYC', 'dyc_admin']] });
+  const admin = await createUser(pool, { role: 'admin' });
+  const target = await createUser(pool, { role: 'member', team_id: teamId });
+
+  await client.login(dyc.email, dyc.password);
+  const removedRes = await client.request('DELETE', `/api/units/${tckt.id}/members/${target.id}`);
+  assert.equal(removedRes.status, 200);
+  assert.equal(await tcktMembershipCount(pool, target.id), 0);
+
+  await client.login(admin.email, admin.password);
+  const res = await client.request('PATCH', `/api/teams/${teamId}/members/${target.id}`, { body: { team_role: 'vice_leader' } });
+  assert.equal(res.status, 200);
+  assert.equal(await tcktMembershipCount(pool, target.id), 0);
 }));

@@ -34,3 +34,23 @@ test('.env.example lists every variable the compose files use', () => {
   }
   for (const v of used) if (!v.endsWith('IMAGE_TAG')) assert.match(ex, new RegExp(`^${v}=`, 'm'), v);
 });
+
+test('staging compose runs noti-api + noti-worker from one image, api on 127.0.0.1:8100', () => {
+  const y = read('infra/compose/docker-compose.staging.yml');
+  assert.match(y, /^  noti-api:/m);
+  assert.match(y, /^  noti-worker:/m);
+  assert.equal((y.match(/ghcr\.io\/tduong-p\/ultimate-tckt-noti:\$\{NOTI_IMAGE_TAG:\?\}/g) || []).length, 2);
+  assert.ok(y.includes('"127.0.0.1:8100:8000"'));
+  assert.match(y, /command: \["python", "-m", "noti\.worker"\]/);
+  assert.match(y, /NOTI_DATABASE_URL: postgresql\+psycopg:\/\/\$\{NOTI_DB_USER:\?\}:\$\{NOTI_DB_PASSWORD:\?\}@ctd-db:5432\/\$\{NOTI_DB_NAME:\?\}/);
+});
+
+test('staging core reaches noti over the compose network; a missing key only disables sending', () => {
+  const core = read('infra/compose/docker-compose.staging.yml').split(/^  ctd-db:/m)[0];
+  assert.match(core, /NOTI_URL: http:\/\/noti-api:8000/);
+  assert.match(core, /NOTI_API_KEY: \$\{CORE_NOTI_API_KEY:-\}/);
+});
+
+test('production compose has no noti yet (staging first)', () => {
+  assert.doesNotMatch(read('infra/compose/docker-compose.production.yml'), /noti/);
+});

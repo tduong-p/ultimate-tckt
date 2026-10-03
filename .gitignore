@@ -28,6 +28,7 @@ schema_dump_*.csv
 # Allow baseline or example files if needed
 !baseline_schema.csv
 !example_output.csv
+.aider*
 
 # Dump DB chỉ để ở máy — repo public, không commit dữ liệu thật (SPEC-PILOT-001 a1)
 tools/test-fixtures/sql/**/*.sql

@@ -1,11 +1,11 @@
 ---
 doc_id: PB-HOT-001
 title: Playbook — hotfix production
-version: 1.1
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-03
 related_code: [.github/workflows/deploy.yml]
 ---
 
@@ -27,21 +27,23 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
    ```
 3. **Sửa tối thiểu** — chỉ sửa đúng phần gây sự cố, không tiện tay dọn dẹp/refactor thêm trong cùng hotfix.
 4. **Viết/chạy test tái hiện lỗi** theo [`sua-loi.md`](sua-loi.md) — kể cả hotfix cũng không được bỏ qua bước này.
-5. **Mở PR từ `hotfix/<mo-ta-ngan>` vào `main`** (không vào `staging`). CI (`deploy.yml`) chạy `test-core`/`test-ctd` theo path filter như bình thường; ruleset `main` vẫn yêu cầu PR + check xanh, không có đường tắt bỏ qua CI.
+5. **Mở PR từ `hotfix/<mo-ta-ngan>` vào `main`** (không vào `staging`). CI (`deploy.yml`) chạy `test-core`/`test-ctd`/`test-noti` theo path filter như bình thường (Noti chưa chạy ở production, `deploy-noti` không chạy trên `main`); ruleset `main` vẫn yêu cầu PR + check xanh, không có đường tắt bỏ qua CI.
 6. **Merge vào `main`** → CI tự build + deploy production (nếu `DEPLOY_ENABLED=true` và `PROD_DEPLOY_ENABLED=true`). Theo dõi health check qua `docs/ops/su-co.md`.
-7. **Merge ngược `main → staging` ngay sau khi hotfix đã lên production** — bắt buộc, để `staging` không bị lệch lùi:
+7. **Merge ngược `main → staging` bằng PR ngay sau khi hotfix đã lên production** — bắt buộc, để `staging` không bị lệch lùi. Ruleset `protect-staging` chặn push thẳng (xem `docs/ops/github.md` mục 4), nên đi qua một nhánh đồng bộ:
    ```bash
-   git checkout staging && git pull
-   git merge main
-   git push origin staging
+   git fetch origin
+   git switch -c "sync/main-to-staging-$(date +%Y%m%d)" origin/staging
+   git merge --no-ff origin/main
+   git push -u origin HEAD
    ```
-8. Nếu bước 7 có xung đột, giải quyết thủ công — không được bỏ qua bước merge ngược này dù xung đột khó.
+   Mở PR từ nhánh `sync/main-to-staging-<ngày>` vào `staging` và merge bằng **merge commit** (không squash, không rebase — squash làm `main` lại có commit mà `staging` không có).
+8. Nếu bước 7 có xung đột, giải quyết ngay trong nhánh đồng bộ (sửa, `git add`, `git commit`) rồi mới push — không được bỏ qua bước merge ngược này dù xung đột khó.
 
 ## Kiểm tra xong
 
 - [ ] PR hotfix merge vào `main` qua CI xanh (`test-core`/`test-ctd`/`docs` theo ruleset), không bypass check.
 - [ ] Health check `/api/health` của app bị ảnh hưởng đã xanh trên production sau deploy.
-- [ ] `main` đã được merge ngược vào `staging` — chạy `git log staging..main` phải rỗng sau bước này.
+- [ ] PR đồng bộ đã merge vào `staging` — sau `git fetch origin`, `git log origin/staging..origin/main` phải rỗng.
 - [ ] Test tái hiện lỗi tồn tại trong bộ test, không chỉ sửa tay rồi xoá.
 
 ## Tài liệu phải cập nhật
@@ -56,3 +58,5 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Deploy production cần cả `PROD_DEPLOY_ENABLED` | DYC |
+| 1.2 | 2026-10-02 | Thêm `test-noti`; Noti chưa deploy production | DYC |
+| 1.3 | 2026-10-03 | Merge ngược `main → staging` qua PR từ nhánh đồng bộ (ruleset chặn push thẳng `staging`); kiểm bằng `origin/` | DYC |

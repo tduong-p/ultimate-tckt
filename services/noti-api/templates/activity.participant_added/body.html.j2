@@ -1,0 +1,15 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p><strong>{{ actor }}</strong> đã thêm bạn vào hoạt động với vai trò: <strong>{{ responsibility }}</strong>.</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> (ACT-{{ activity.id }}) {{ activity.title }}</p>
+  <p style="margin: 0 0 8px 0;"><strong>Nhiệm vụ:</strong> {{ responsibility }}</p>
+  {% if activity.get('deadline') %}
+  <p style="margin: 0;"><strong>Hạn chót:</strong> {{ activity.deadline }}</p>
+  {% endif %}
+</div>
+<p>
+  <a class="button" href="{{ base_url }}{{ activity.path }}">Xem hoạt động</a>
+</p>
+{% endblock %}

@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.3
+version: 1.10
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -62,6 +62,62 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
   khiến việc đổi mật khẩu bảo mật hoặc khóa tài khoản quản trị bị đảo ngược sau mỗi lần deploy/restart.
   Bài học: seed chỉ khởi tạo tài khoản nếu chưa có; với tài khoản đã tồn tại, không bao giờ ghi đè `password_hash` hay `is_active`.
 
+## `unit_id` ép `INT UNSIGNED` làm Core staging crash-loop; viết lại file migration làm mất bản sửa cũ
+
+DB staging đã migrate bởi bản cũ có `org_units.id` là `INT` có dấu. Migration ép `unit_id INT UNSIGNED` rồi MySQL từ chối
+`fk_teams_unit` (`ER_FK_INCOMPATIBLE_COLUMNS`), container `core` restart mãi và job `deploy-core` đỏ ở bước health check. Bản sửa `330a27b`
+(đọc kiểu của `org_units.id` rồi dùng đúng kiểu đó) từng có, nhưng PR #44 viết lại `core/src/config/migrate-units.js` và làm mất nó; CI xanh vì
+DB test là DB mới (đã `UNSIGNED`). Bài học: sau khi merge file migration lớn, kiểm tra các bản sửa trước đó còn nguyên (`git log -p -- <file>`), và
+giữ test dựng lại trạng thái DB staging (`migrate.units.test.js`, "signed INT"). Deploy đỏ ở health check: đọc `docker logs` của container trước khi đoán.
+
+## `mailer.notify*` cũ gửi cả email lẫn push; scheduler gắn thông báo ngoài vào `inserted`
+
+Hàm `notify*` của `mailer.js` cũ gọi cả Gmail lẫn OneSignal, nên xoá riêng một kênh dễ làm mất kênh kia. Ngoài ra scheduler nhắc hạn
+từng chỉ gửi khi `insertNotificationOnce` chèn được dòng mới: nếu gửi lỗi lúc đó thì thư không bao giờ được gửi lại. Hiện mọi điểm phát
+thông báo đi qua `notifier.notify({ event, recipient, data, sourceKey })`; scheduler gọi cho mọi mục tìm thấy, `sourceKey` là khoá chống
+trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8).
+
+## Noti: test chỉ chạy driver `console` nên lỗi của driver thật và cấu hình lọt qua
+
+Bản đầu của `services/noti-api` xanh 57/57 test nhưng driver `graph` sập ngay khi khởi động (đọc `settings.graph_tenant_id`, config
+tên `graph_tenant`), `.env.example` ghi sai tên biến (bị bỏ qua không báo), và worker gán cứng `base_url` nên mọi link trong email sai.
+Test giờ dựng từng driver từ `Settings`, so `.env.example` với các trường của `Settings`, và kiểm link trong thư lấy từ `NOTI_APP_BASE_URL`.
+Khi thêm cấu hình hoặc driver mới: thêm test dựng nó từ `Settings`, đừng chỉ test lớp driver với tham số truyền tay.
+
+## Đổi cùng lúc script VM và compose: job `infra` lần đầu chạy script cũ
+
+Job `infra` SSH vào VM và gọi `infra/scripts/apply-infra.sh` **đang có trên VM**; script này tự `git pull` rồi mới đọc compose
+mới. Khi PR #45 vừa thêm `${NOTI_IMAGE_TAG:?}` vào compose vừa sửa `apply-infra.sh` để export biến đó, lần chạy sau merge dùng
+script cũ với compose mới → `required variable NOTI_IMAGE_TAG is missing a value`. Script lúc đó đã được pull, nên chỉ cần
+`gh run rerun <id> --failed`. Thêm biến `:?` mới vào compose: hoặc cho script cũ vẫn chạy được (biến có `:-` ở bản đầu), hoặc
+dự trù rerun một lần.
+
+## Test Core xanh ở local (Node 24) nhưng đỏ trên CI (Node 22)
+
+`AbortSignal.timeout()` dùng timer không giữ event loop. Trên Node 22, test "request treo bị huỷ" làm `node --test` kết thúc
+khi promise còn chờ (`Promise resolution is still pending but the event loop has already resolved`), kéo đỏ cả test sau nó
+(PR #46). Code cần huỷ sau một khoảng thời gian thì dùng `AbortController` + `setTimeout` và `clearTimeout` trong `finally`.
+Core chạy Node 22 (`core/package.json` `engines`): máy có Node khác thì chạy test bằng `npx -y node@22 --test …`.
+
+## `docs:check --base` ở local xanh nhưng CI đỏ vì tài liệu liên quan chưa sửa
+
+Kiểm tác động code→tài liệu so `git diff base...HEAD`, tức chỉ các **commit**. Chạy `docs:check` khi thay đổi `infra/**`
+còn chưa commit thì local báo `docs ok`, còn CI của PR báo hàng chục tài liệu có `related_code` trùng mà chưa sửa (PR #45).
+Commit xong rồi mới chạy `npm run docs:check -- --base origin/staging`; đổi `infra/**`/`.github/**` thì dự trù sửa nhiều tài liệu.
+
+## Router hash của UI Core coi mọi anchor là trang
+
+`core/public/app.js` điều hướng bằng `location.hash`, nên một link neo bình thường (`href="#content"` của link bỏ qua)
+cũng bị `route()` hiểu là tên trang. Trước đây hash lạ âm thầm về dashboard; từ SPEC-SOON-001 hash lạ hiện trang
+"Lạc đoàn". Link neo trong UI cũ phải `preventDefault()` và tự `focus()`/cuộn, hoặc tên trang phải có trong `KNOWN_PAGES`.
+Hai PR cùng merge vào `staging` mà còn marker `<<<<<<<`/`>>>>>>>` trong tài liệu làm `docs:check` của mọi PR sau đỏ —
+xem diff trước khi bấm merge.
+
+## Test tính "hôm nay" bằng ngày local của máy chạy: đỏ mỗi ngày từ 17:00 UTC
+
+CI chạy UTC, còn Core tính ngày nghiệp vụ theo giờ Việt Nam (`core/src/date-vn.js`). Từ 17:00 đến 24:00 UTC (00:00–07:00 giờ VN) hai ngày này khác nhau,
+nên test tự dựng deadline "hôm nay" bằng `new Date()` / `getDate()` thất bại chập chờn (ví dụ `my-tasks-today.test.js`). Trong test luôn dùng `dateInVietnam()`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -69,4 +125,11 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Thêm bẫy quyền `paths-filter` và push nhiều nhánh vào repo mới | DYC |
 | 1.2 | 2026-09-27 | Thêm bẫy `agy` headless ghi file bằng shell và ruleset `bot-branches` chặn cả chủ repo xoá nhánh | DYC |
-| 1.3 | 2026-10-03 | Thêm bẫy seed chạy mỗi lần container khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
+| 1.3 | 2026-10-02 | Thêm bẫy mailer cũ gộp email và push; scheduler gắn thông báo ngoài vào `inserted` | DYC |
+| 1.4 | 2026-10-02 | Thêm bẫy Noti: test chỉ chạy driver console, lỗi cấu hình driver thật lọt qua | DYC |
+| 1.5 | 2026-10-02 | Thêm bẫy `docs:check --base` chỉ thấy file đã commit | DYC |
+| 1.6 | 2026-10-02 | Thêm bẫy: lần đầu đổi cả script VM và compose, job infra chạy script cũ; `AbortSignal.timeout` trên Node 22 | DYC |
+| 1.7 | 2026-10-02 | Thêm bẫy: unit_id phải theo kiểu org_units.id; merge viết lại file làm mất bản sửa cũ | DYC |
+| 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
+| 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
+| 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |

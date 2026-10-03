@@ -1,11 +1,11 @@
 ---
 doc_id: PB-RB-001
 title: Playbook — rollback
-version: 1.0
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-03
 related_code: [infra/scripts/deploy.sh]
 ---
 
@@ -19,15 +19,19 @@ Khi một bản deploy gây lỗi trên staging/production và cách nhanh nhấ
 
 ## Các bước
 
-### 1. Rollback image ứng dụng (`core` hoặc `ctd-api`)
+### 1. Rollback image ứng dụng (`core`, `ctd-api` hoặc `noti`)
 
-Tìm tag image chạy tốt trước đó (12 ký tự đầu SHA commit, xem lịch sử Actions hoặc tag trên GHCR), rồi:
+Các lệnh dưới đây chạy **trên VM** (SSH vào, xem [`../ops/deploy-va-nhanh.md`](../ops/deploy-va-nhanh.md) mục 5), từ thư mục nào cũng được: dùng đường dẫn tuyệt đối, vì `infra/scripts/` chỉ tồn tại bên trong thư mục môi trường.
+
+Tìm tag image chạy tốt trước đó (12 ký tự đầu SHA commit, xem lịch sử Actions hoặc tag trên GHCR; với đợt phát hành, tag cũ đã được ghi lại ở bước chuẩn bị, mục 7.2 của tài liệu trên), rồi:
 
 ```bash
-infra/scripts/deploy.sh <staging|production> <core|ctd-api> <tag-cu>
+bash /opt/ultimate-tckt/<staging|production>/infra/scripts/deploy.sh <staging|production> <core|ctd-api|noti> <tag-cu>   # noti: chỉ staging
 ```
 
-`deploy.sh` tự pull đúng tag, `up -d --no-deps` chỉ service đó, và chạy health check `http://127.0.0.1:<port>/api/health` — script tự thoát với exit code khác 0 nếu health check thất bại, không âm thầm coi là thành công.
+`deploy.sh` tự pull đúng tag, `up -d --no-deps` chỉ service của app đó (`noti` = `noti-api` + `noti-worker`), và chạy health check `http://127.0.0.1:<port>/api/health` (Noti: `:8100/v1/health`) — script tự thoát với exit code khác 0 nếu health check thất bại, không âm thầm coi là thành công. Nó **không** tự lùi khi health check lỗi: container lỗi vẫn nằm đó cho tới khi bạn deploy lại một tag tốt.
+
+**Lùi image không lùi dữ liệu.** Theo luật pilot (SPEC-PILOT-001 §9.3) migration của Core chỉ thêm bảng/cột nên bản Core cũ chạy được trên DB đã migrate; không cần restore DB chỉ vì lùi image (trừ khi migration của bản đó phá luật này). Lùi `ctd-api` về image **trước** bản sửa seed admin (#54) vừa không an toàn vừa không có công cụ: image đó không chứa `app.seeds.set_password` (chỉ có từ hotfix #57) và seed cũ đặt mật khẩu admin CTD về mật khẩu mặc định công khai ở **mỗi lần khởi động** container. Vì vậy kiểm image đích trước khi lùi (lệnh `docker run … find_spec` ở [`../ops/deploy-va-nhanh.md`](../ops/deploy-va-nhanh.md) mục 7.6); nếu nó là bản trước #54 thì sửa tiến, hoặc `ut_compose <env> stop ctd-api` cho tới khi có bản sửa, thay vì chạy bản cũ. Không có lệnh `set_password` để chạy sau khi lùi: lối thoát cuối cùng và điều kiện phê duyệt nằm ở mục 7.6 đó. Nếu `main` vẫn chứa bản lỗi, lần push sau lên `main` sẽ deploy lại bản lỗi: tạm tắt biến repo `PROD_DEPLOY_ENABLED` hoặc sửa tiến theo [`hotfix-production.md`](hotfix-production.md).
 
 ### 2. Rollback cấu hình infra (compose/nginx)
 
@@ -36,14 +40,16 @@ Nếu lỗi đến từ thay đổi `infra/**` (compose, nginx) chứ không ph�
 ```bash
 git -C /opt/ultimate-tckt/<env> log --oneline -- infra/   # tìm commit infra trước đó
 git -C /opt/ultimate-tckt/<env> checkout <commit-cu> -- infra/
-infra/scripts/apply-infra.sh <env>
+bash /opt/ultimate-tckt/<env>/infra/scripts/apply-infra.sh <env>
 ```
 
 `apply-infra.sh` tự sao lưu cấu hình nginx đang dùng vào `$UT_ROOT/backups/nginx-<ts>/` trước khi áp bản mới, và từ chối reload nếu `nginx -t` báo lỗi cú pháp.
 
+Đây chỉ là biện pháp tạm: thư mục `infra/` trên VM thành "đã sửa tay", mà `apply-infra.sh` và `deploy.sh` đều chạy `git pull --ff-only` nên sẽ từ chối nếu commit mới cũng đổi các file đó. Sau sự cố, đưa bản đúng vào git bằng PR (revert commit infra gây lỗi), rồi trên VM chạy `git -C /opt/ultimate-tckt/<env> checkout HEAD -- infra/` để bỏ thay đổi tay trước khi pull.
+
 ### 3. Rollback dữ liệu (restore từ backup)
 
-Chỉ khi rollback image/infra không đủ (dữ liệu đã bị hỏng bởi migration hoặc thao tác sai) — xem quy trình đầy đủ ở [`../ops/backup-restore.md`](../ops/backup-restore.md). Đây là bước nặng nhất, **luôn backup bản hiện tại trước khi restore đè lên**, kể cả khi bản hiện tại đang lỗi.
+Chỉ khi rollback image/infra không đủ (dữ liệu đã bị hỏng bởi migration hoặc thao tác sai) — xem quy trình đầy đủ ở [`../ops/backup-restore.md`](../ops/backup-restore.md). Đây là bước nặng nhất, **luôn backup bản hiện tại trước khi restore đè lên**, kể cả khi bản hiện tại đang lỗi. Nếu DB đã chạy migration mới hơn bản backup (có bảng hoặc marker mà bản backup không có), restore đè lên DB đang có để lại các bảng thừa đó: tạo lại DB trống rồi mới nạp dump — trình tự đầy đủ, kèm kiểm tra, ở [`../ops/deploy-va-nhanh.md`](../ops/deploy-va-nhanh.md) mục 7.6.
 
 ## Kiểm tra xong
 
@@ -62,3 +68,6 @@ Chỉ khi rollback image/infra không đủ (dữ liệu đã bị hỏng bởi 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-10-02 | Rollback Noti (staging) | DYC |
+| 1.2 | 2026-10-03 | Lệnh dùng đường dẫn tuyệt đối trên VM; lùi image không lùi dữ liệu; cảnh báo `infra/` bị sửa tay; restore vào DB sạch khi DB đã migrate | DYC |
+| 1.3 | 2026-10-03 | Lùi `ctd-api` về image trước #54: không có `set_password` và đặt lại mật khẩu mặc định mỗi lần khởi động; kiểm image trước khi lùi | DYC |

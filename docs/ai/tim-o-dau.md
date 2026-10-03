@@ -1,11 +1,11 @@
 ---
 doc_id: AI-MAP-001
 title: Cần X thì xem file nào
-version: 2.0
+version: 2.3
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-02
 related_code: []
 ---
 
@@ -18,9 +18,9 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 
 | Cần gì | Xem ở đâu |
 |---|---|
-| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `settings-email.js`, `settings-cron.js`, `system.js`; đăng ký ở `core/src/routes/index.js` |
+| Route/endpoint HTTP | `core/src/routes/*.js` — mỗi file một router: `activities.js`, `tasks.js`, `users.js`, `teams.js`, `documents.js`, `reports.js`, `notifications.js`, `system.js`; đăng ký ở `core/src/routes/index.js` |
 | Phân quyền / phạm vi dữ liệu | `core/src/policies/access.js` (`activityScope`, `canManageTeam`, `canManageActivity`, `canReviewTask`…); middleware role ở `core/src/middleware/auth.js` (`auth`, `admin`, `manager`, `devops`) |
-| Gửi email / rule engine | `core/src/services/email-events.js` (registry sự kiện + gửi), `core/src/services/email-condition-evaluator.js` (ma trận điều kiện), `core/src/services/email-settings.js` (cấu hình SMTP mã hoá) |
+| Phát thông báo ra ngoài (email/push sau này) | `core/src/notifier.js` (facade, hiện chưa gửi gì; email sẽ do service Noti đảm nhận — `docs/specs/2026-10-02-noti-service-design.md`) |
 | Cron job | `core/src/services/cron-runner.js` (registry handler + chạy job), route quản trị ở `core/src/routes/settings-cron.js` |
 | Schema DB / migration | `core/db.sql` (schema gốc), `core/src/config/migrate.js` (migration idempotent chạy bằng `npm run migrate`) |
 | Cấu hình môi trường | `core/src/config/environment.js`, `core/src/config/validate.js`, mẫu biến ở `core/.env.example` |
@@ -30,7 +30,6 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Upload file đính kèm task | `core/src/middleware/uploads.js`, `core/src/services/task-attachments.js` |
 | Thông báo hạn chót | `core/src/services/deadline-notifications.js` |
 | Frontend cũ (chỉ bảo trì) | `core/public/app.js` (logic chính), `core/public/index.html`, `core/public/styles.css` + `components.css`, `core/public/settings.js` (trang Setting), `core/public/notifications.js` |
-| Push notification (OneSignal) | `core/src/push.js`, `core/public/OneSignalSDKWorker.js` |
 | Entry point / server | `core/src/app.js` (khởi tạo Express + middleware + routes), `core/src/server.js` (lắng nghe cổng + lifecycle cron), `core/app.js` (điểm chạy `npm start`) |
 | Test | `core/tests/*.test.js`, fixture/helper dùng chung ở `core/tests/helpers/` |
 
@@ -49,13 +48,28 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | Gửi mail | `services/ctd-api/backend/app/infra/mailer.py` (`MAILER_DRIVER=console|smtp`) |
 | Lưu trữ file hồ sơ | `services/ctd-api/backend/app/infra/storage.py` (`STORAGE_DRIVER=memory|s3|local`) |
 | Job nền (nhắc hạn, gửi outbox) | `services/ctd-api/backend/app/jobs/run_reminders.py`, `send_outbox.py` |
-| Seed dữ liệu | `services/ctd-api/backend/app/seeds/admin_seed.py`, `catalog_seed.py`, `workflow_seed.py`, `demo_seed.py` |
+| Seed dữ liệu | `services/ctd-api/backend/app/seeds/admin_seed.py`, `set_password.py`, `catalog_seed.py`, `workflow_seed.py`, `demo_seed.py` |
 | Frontend — đăng nhập | `services/ctd-api/frontend/src/features/auth/Login.tsx`, `src/lib/auth.tsx` |
 | Frontend — nộp/theo dõi hồ sơ (sinh viên) | `services/ctd-api/frontend/src/features/hoso/SubmitCase.tsx`, `CaseStatus.tsx` |
 | Frontend — xử lý hồ sơ (cán bộ) | `services/ctd-api/frontend/src/features/canbo/Inbox.tsx`, `ReviewCase.tsx` |
 | Frontend — báo cáo | `services/ctd-api/frontend/src/features/baocao/Dashboard.tsx` |
 | Frontend — gọi API / theme | `services/ctd-api/frontend/src/lib/api.ts`, `src/theme/tokens.ts`, `src/components/ui.tsx` |
 | Test | `services/ctd-api/backend/tests/test_*.py` |
+
+## Noti (`services/noti-api/`, FastAPI/Postgres)
+
+| Cần gì | Xem ở đâu |
+|---|---|
+| API endpoint / App FastAPI | `services/noti-api/noti/api.py` |
+| Schema DB / Models | `services/noti-api/noti/models.py` |
+| Migration Alembic | `services/noti-api/alembic/versions/` |
+| Worker nền / gửi mail / retry | `services/noti-api/noti/worker.py` |
+| Hàng đợi / claim / recover / purge / metrics | `services/noti-api/noti/queue.py` |
+| Driver gửi mail (console, smtp, graph) | `services/noti-api/noti/drivers/` |
+| Template email & Registry render | `services/noti-api/templates/`, `services/noti-api/noti/templating.py` |
+| CLI quản trị (client, purge) | `services/noti-api/noti/cli.py` |
+| Hướng dẫn phát triển / vận hành | `docs/dev/noti.md`, `docs/specs/2026-10-02-noti-service-design.md` |
+| Test | `services/noti-api/tests/test_*.py` |
 
 ## Hạ tầng và CI
 
@@ -79,3 +93,7 @@ Bảng tra nhanh, dựa trên cây thư mục thật của repo (kiểm bằng `
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-27 | Thêm dòng bot Discord repobot vào Hạ tầng và CI | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
+| 2.1 | 2026-09-30 | Thêm `set_password.py` vào hàng Seed dữ liệu | DYC |
+| 2.2 | 2026-10-02 | Gỡ email cũ và OneSignal: trỏ tới `notifier.js` và SPEC-NOTI-001 | DYC |
+| 2.3 | 2026-10-02 | Thêm mục tra cứu cho service Noti (services/noti-api/) | DYC |
+

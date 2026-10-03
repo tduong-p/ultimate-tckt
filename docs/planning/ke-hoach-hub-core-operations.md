@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 1.2
+version: 2.4
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-03
 related_code: [core/**, web/**, core/src/config/migrate-units.js]
 ---
 
@@ -373,7 +373,8 @@ ops_log_attendance
 - Login flow (use existing session)
 - Unit switcher
 - Dynamic menu from API
-- Notification bell (OneSignal integration)
+- Notification bell (OneSignal integration) — *cập nhật 2026-10-02: OneSignal đã gỡ (ADR-0013); email đi qua service Noti
+  (`core/src/noti-sender.js`, `docs/dev/email-cron.md`), chuông dùng thông báo trong app*
 
 **Tech decisions:**
 - Router: React Router v6
@@ -797,6 +798,7 @@ export function scopeFor(user, resourceType) {
 
 **Critical indexes:**
 ```sql
+-- Lưu ý (2026-10-02): trên DB đã migrate, `unit_id` phải cùng kiểu với `org_units.id` (staging là INT có dấu), xem `migrate-units.js` `orgUnitIdType`.
 -- Memberships lookup (frequent)
 CREATE INDEX idx_memberships_user ON unit_memberships(user_id);
 CREATE INDEX idx_memberships_unit ON unit_memberships(unit_id);
@@ -1268,4 +1270,18 @@ npm run docs:check         # Documentation validation
 | 1.0 | 2026-09-24 | Bản đầu - Hub system plan (no CTD) | DYC |
 | 1.1 | 2026-09-26 | Version bump core/package.json 2.2.0 - thêm database tooling | DYC |
 | 1.2 | 2026-09-27 | Thêm core/src/config/migrate-units.js vào related_code - file migration đa đơn vị | DYC |
-
+| 1.3 | 2026-09-27 | Cập nhật file catalog và migration test | D2 |
+| 1.4 | 2026-09-29 | GĐ1-A: Hoàn thành Task 4 (unit context, session, auth) & Task 5 (legacy gate, audit cross-unit read, req.actor) | DYC |
+| 1.4 | 2026-09-30 | Ghi nhận Core thoát thay vì phục vụ trên schema migration lỗi | DYC |
+| 1.5 | 2026-09-30 | Ghi nhận pilot PR 4 sửa lỗi phân quyền Core | DYC |
+| 1.6 | 2026-09-30 | Ghi nhận pilot PR 6 sửa múi giờ Core | DYC |
+| 1.7 | 2026-09-30 | Pilot PR 8: sửa số liệu, ẩn nút theo quyền, mobile | DYC |
+| 1.8 | 2026-09-30 | Sửa migration multi-unit: unit_id theo kiểu của org_units.id (staging 502) | DYC |
+| 1.9 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
+| 1.11 | 2026-10-02 | Ghi chú: kiểu cột unit_id theo org_units.id của DB đã migrate | DYC |
+| 2.1 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 1.12 | 2026-10-02 | Cập nhật kế hoạch triển khai | DYC |
+| 2.2 | 2026-10-03 | Sửa dòng lịch sử 1.12 bị lỗi mã hoá và nằm nhầm trong bảng timeline | DYC |
+| 2.3 | 2026-10-03 | Dọn `core/test-output.txt` (output test commit nhầm) và thêm vào `core/.gitignore`; không đổi nội dung kế hoạch | DYC |
+| 2.4 | 2026-10-03 | Sửa 4 route teams.js đồng bộ vai trò và membership TCKT (R1, G1) | DYC |

@@ -310,3 +310,89 @@ test('translation function t is never shadowed by local variables or parameters 
   assert.doesNotMatch(app, /,\s*t\s*=\s*d\.task/, 'taskDetailModal must not shadow t with d.task');
 });
 
+test('app.js never declares a local that calls a same-named helper (TDZ crash)', () => {
+  const shadowing = [...assets['app.js'].matchAll(/\b(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*\1\s*\(/g)]
+    .map(match => match[1]);
+  assert.deepEqual(shadowing, []);
+});
+
+test('app.js does not call server-only role helpers', () => {
+  for (const helper of ['isLeadership', 'isExecutive', 'managerOrEventLead']) {
+    assert.doesNotMatch(assets['app.js'], new RegExp(`\\b${helper}\\s*\\(`), `${helper} only exists on the server`);
+  }
+});
+
+test('the frontend no longer ships OneSignal or the legacy test-email UI', () => {
+  const app = fs.readFileSync(path.join(publicDir, 'app.js'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+  for (const text of ['OneSignal', 'setupPushNotifications', 'testEmailModal', 'api/email/test']) {
+    assert.equal(app.includes(text) || html.includes(text), false, `${text} must be gone`);
+  }
+  assert.equal(fs.existsSync(path.join(publicDir, 'OneSignalSDKWorker.js')), false);
+});
+
+function literalAfter(source, marker) {
+  const start = source.indexOf(marker);
+  assert.ok(start !== -1, `missing ${marker}`);
+  const end = source.indexOf('\n', start);
+  return new Function(`return ${source.slice(start + marker.length, end).replace(/;\s*$/, '')}`)();
+}
+
+test('coming-soon copy covers every unfinished entry point in both languages', () => {
+  const table = literalAfter(assets['app.js'], 'const COMING_SOON=');
+  assert.deepEqual(Object.keys(table).sort(), ['directive', 'not-found', 'ops-log', 'sso', 'submission', 'task-edit']);
+  for (const [key, item] of Object.entries(table)) {
+    assert.match(item.icon, /^[a-z-]+$/, `${key} needs a Phosphor icon name`);
+    for (const language of ['vi', 'en']) {
+      assert.ok(item[language]?.name && item[language]?.line, `${key} needs ${language} name and line`);
+    }
+  }
+  assert.doesNotMatch(assets['app.js'], /sang Cam/i, 'the screen must not joke about trafficking victims');
+  assert.match(assets['app.js'], /Chúng tôi đã chích điện dev để đẩy nhanh tiến độ\./);
+  assert.match(assets['app.js'], /We've tased the devs to speed things up\./);
+});
+
+test('router shows coming-soon pages, a lost page for unknown hashes, and still hides forbidden pages', () => {
+  const app = assets['app.js'];
+  const route = app.slice(app.indexOf('async function route()'), app.indexOf('function nbEventRow'));
+  const known = literalAfter(app, 'const KNOWN_PAGES=');
+  for (const page of ['', 'dashboard', 'accounts', 'reports', 'activity', 'board', 'team', 'my-tasks-today']) {
+    assert.ok(known.has(page), `${page || '(empty hash)'} must stay a known page`);
+  }
+  assert.ok(!known.has('soon'), 'soon pages are routed explicitly');
+  assert.match(route, /page==='soon'&&id!=='not-found'&&COMING_SOON\[id\]\)showComingSoon\(id\)/);
+  assert.match(route, /else if\(KNOWN_PAGES\.has\(page\)\)location\.hash='dashboard';else showComingSoon\('not-found'\)/);
+  assert.match(route, /a\.dataset\.page===`\$\{page\}\/\$\{id\}`/, 'soon links must highlight individually');
+});
+
+test('the sidebar teases upcoming features in a labelled group', () => {
+  const nav = assets['index.html'].slice(assets['index.html'].indexOf('<nav id="nav"'), assets['index.html'].indexOf('</nav>'));
+  assert.match(nav, /<div class="nav-soon" role="group" aria-label="Sắp có">/);
+  for (const key of ['directive', 'submission', 'ops-log']) {
+    assert.match(nav, new RegExp(`<a href="#soon/${key}" data-page="soon/${key}"[^>]*>`), `missing ${key} link`);
+  }
+});
+
+test('the coming-soon screen honours reduced motion and exposes an accessible meter', () => {
+  const body = mediaBody(assets['components.css'], /@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/g);
+  assert.equal(computedRule(body, '.soon-mascot').animation?.value, 'none');
+  assert.match(assets['app.js'], /class="soon-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100"/);
+  assert.match(assets['app.js'], /start=30\+Math\.floor\(Math\.random\(\)\*41\)/);
+  assert.match(assets['app.js'], /Math\.min\(99,/);
+});
+
+test('unfinished actions open the coming-soon modal instead of failing', () => {
+  const app = assets['app.js'];
+  assert.match(app, /if\(!SSO_READY\)\$\('#login \.btn\.microsoft'\)\?\.setAttribute\('data-soon','sso'\)/);
+  assert.match(app, /const trigger=e\.target\.closest\('\[data-soon\]'\);if\(!trigger\)return;e\.preventDefault\(\);/);
+  assert.match(app, /comingSoonModal\(trigger\.dataset\.soon,back\?\(\)=>taskDetailModal\(back\):null\)/);
+  const detail = app.slice(app.indexOf('async function taskDetailModal('));
+  assert.match(detail, /\$\{manages\?`<button type="button" class="btn small" data-soon="task-edit" data-soon-task="\$\{tk\.id\}">/);
+  assert.match(detail, /class="checklist-remove" data-soon="task-edit" data-soon-task="\$\{tk\.id\}" aria-label="Xoá mục này"/);
+});
+
+test('the skip link focuses content without changing the route', () => {
+  assert.match(assets['index.html'], /<a href="#content" class="skip-link">/);
+  assert.match(assets['app.js'], /\$\('\.skip-link'\)\?\.addEventListener\('click',e=>\{e\.preventDefault\(\);\$\('#content'\)\.focus\(\)\}\)/,
+    'activating the skip link must not set #content as a route (it would show the lost page)');
+});

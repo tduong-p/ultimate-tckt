@@ -1,0 +1,15 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+Công việc sau của bạn đã QUÁ HẠN thực hiện:
+- Công việc: (TCKT-{{ task.id }}) {{ task.title }}
+{% if activity is defined and activity.get('title') %}
+- Hoạt động: {{ activity.title }}
+{% endif %}
+{% if task.get('deadline') %}
+- Hạn chót: {{ task.deadline }}
+{% endif %}
+
+Vui lòng khẩn trương hoàn thành và cập nhật tại: {{ base_url }}{{ task.path }}
+{% endblock %}

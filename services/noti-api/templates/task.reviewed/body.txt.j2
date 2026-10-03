@@ -1,0 +1,16 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã đánh giá kết quả nghiệm thu cho công việc:
+- Công việc: (TCKT-{{ task.id }}) {{ task.title }}
+{% if activity is defined and activity.get('title') %}
+- Hoạt động: {{ activity.title }}
+{% endif %}
+- Kết quả: {{ decision }}
+{% if feedback is defined and feedback %}
+- Nhận xét: {{ feedback }}
+{% endif %}
+
+Xem chi tiết tại: {{ base_url }}{{ task.path }}
+{% endblock %}

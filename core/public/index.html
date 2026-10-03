@@ -27,8 +27,8 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
-  <link rel="stylesheet" href="/styles.css?v=2.9.0">
-  <link rel="stylesheet" href="/components.css?v=2.9.0">
+  <link rel="stylesheet" href="/styles.css?v=2.10.0">
+  <link rel="stylesheet" href="/components.css?v=2.10.0">
 </head>
 <body>
   <!-- Accessible Skip to Content Link (WCAG 2.2 AA) -->
@@ -71,6 +71,12 @@
         <a href="#reports" data-page="reports" data-manager-only title="Báo cáo"><i class="ph-bold ph-chart-pie-slice" aria-hidden="true"></i><span>Báo cáo</span></a>
         <a href="#archive" data-page="archive" title="Lưu trữ"><i class="ph-bold ph-archive" aria-hidden="true"></i><span>Lưu trữ</span></a>
         <a href="#accounts" data-page="accounts" data-admin-only title="Tài khoản"><i class="ph-bold ph-gear-six" aria-hidden="true"></i><span>Tài khoản</span></a>
+        <div class="nav-soon" role="group" aria-label="Sắp có">
+          <span class="nav-soon-label">Sắp có</span>
+          <a href="#soon/directive" data-page="soon/directive" title="Giao việc (sắp có)"><i class="ph-bold ph-paper-plane-tilt" aria-hidden="true"></i><span>Giao việc</span><em class="soon-pill">Sắp có</em></a>
+          <a href="#soon/submission" data-page="soon/submission" title="Trình (sắp có)"><i class="ph-bold ph-stamp" aria-hidden="true"></i><span>Trình</span><em class="soon-pill">Sắp có</em></a>
+          <a href="#soon/ops-log" data-page="soon/ops-log" title="Nhật ký trực ban (sắp có)"><i class="ph-bold ph-notebook" aria-hidden="true"></i><span>Nhật ký trực ban</span><em class="soon-pill">Sắp có</em></a>
+        </div>
       </nav>
       <div class="sidebar-foot">
         <div id="sidebar-user" class="user-chip"></div>
@@ -96,8 +102,7 @@
 
   <dialog id="modal" aria-modal="true" aria-label="Cửa sổ thông tin"><button type="button" class="modal-close" data-close aria-label="Đóng cửa sổ"><i class="ph-bold ph-x" aria-hidden="true"></i></button><div id="modal-content"></div></dialog>
   <dialog id="onboarding-modal" class="onboarding-modal" aria-modal="true" aria-labelledby="onboarding-title"><div id="onboarding-content"></div></dialog>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script src="/app.js?v=2.9.0" defer></script>
-  <script src="/notifications.js?v=2.9.0" defer></script>
+  <script src="/app.js?v=2.10.0" defer></script>
+  <script src="/notifications.js?v=2.10.0" defer></script>
 </body>
 </html>

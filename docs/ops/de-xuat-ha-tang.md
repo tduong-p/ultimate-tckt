@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-PROP-001
 title: Đề xuất cấp máy chủ và tên miền chính thức
-version: 1.0
+version: 1.1
 status: active
 audience: [ops, ba]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-02
 related_code: []
 ---
 
@@ -83,7 +83,7 @@ Nginx quản lý cổng 80 (chuyển hướng HTTPS) và 443; chứng chỉ SSL 
 - **Zero-build trên server**: ảnh Docker được build sẵn (arm64, buildx + QEMU) tại GitHub Actions và đẩy lên `ghcr.io`; máy chủ chỉ `pull` và `up -d` — không biên dịch mã nguồn.
 - **CSDL không mở ra internet**: cổng MySQL/Postgres chỉ bind `127.0.0.1`; truy cập từ xa (khi cần) đi qua SSH tunnel + user chỉ đọc, xem `docs/ops/truy-cap-db.md`.
 - **Lưu trữ bền vững**: tệp đính kèm (`core_uploads`) và tài liệu hồ sơ (`ctd_documents`) nằm trên Docker named volume riêng, không mất khi cập nhật container. Backup CSDL tự động, giữ 14 bản gần nhất (`docs/ops/backup-restore.md`).
-- **Tác vụ định kỳ**: các cron job xử lý gửi thông báo/nhắc việc của `core` và `ctd-api` (xem `docs/dev/email-cron.md`) chạy như tiến trình nền hoặc bên trong container, không phụ thuộc vào cấu hình đặc thù của server thử nghiệm hiện tại.
+- **Tác vụ định kỳ**: các tác vụ định kỳ của `core` (nhắc hạn, xem `docs/dev/email-cron.md`) và `ctd-api` chạy như tiến trình nền hoặc bên trong container, không phụ thuộc vào cấu hình đặc thù của server thử nghiệm hiện tại.
 
 ## 3. Cấu hình đề xuất cho server mới
 
@@ -127,3 +127,4 @@ Kính đề nghị Ban Chủ nhiệm/Lãnh đạo đơn vị và bộ phận qu�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tờ trình cũ `DE_XUAT_CAP_SERVER_VA_SUBDOMAIN.md`, cập nhật tên container/compose sang `ultimate-tckt-*`) | DYC |
+| 1.1 | 2026-10-02 | Bỏ nhắc cron email/rule engine của Core | DYC |

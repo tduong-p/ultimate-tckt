@@ -6,3 +6,4 @@ log.md
 .DS_Store
 
 .worktrees/
+test-output.txt

@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.1
+version: 2.18
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -22,14 +22,19 @@ về `DB_*` rồi `root@localhost`; user DB cần quyền `CREATE`/`DROP DATABAS
 cd core && npm test
 ```
 
-Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + migrate; nạp `.env` tự động qua `dotenv` để đọc cấu hình DB test),
+Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + chạy `migrateDatabase` để tạo các bảng Đa đơn vị; nạp `.env` tự động qua `dotenv` để đọc cấu hình DB test),
 `server.js` (`startTestServer` — dựng Express app thật, trả về client HTTP giả lập session), `fixtures.js`
 (`createTeam`, `createUser`, `createActivity`… tạo dữ liệu mẫu tối thiểu). Mỗi test nên tự dựng dữ liệu qua
 fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
-frontend cũ và API), `migrate.test.js` (migration idempotent).
+frontend cũ và API), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (gồm ca `org_units.id` là INT có dấu như DB staging), `units.context.test.js` (ngữ cảnh đơn vị và session view),
+`units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị), `noti-sender.test.js` (payload gửi Noti đủ trường
+`required` của từng template trong `services/noti-api/templates/`, không cần MySQL).
+
+frontend cũ và API), `migrate.test.js` (migration idempotent), `runtime.startup.test.js` (lỗi migration khi
+khởi động phải làm Core thoát).
 
 ## CTD — `pytest`
 
@@ -42,11 +47,23 @@ TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/ctd_test
 
 Fixture dùng chung ở `tests/conftest.py`. Nhóm test đáng chú ý: `test_quyen_thao_tac.py` (khớp với danh sách
 trắng quyền ở `app/services/permissions.py`), `test_workflow_engine.py`/`test_workflow_matrix.py` (chuyển trạng
-thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_migrations.py`.
+thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_migrations.py`,
+`test_admin_seed.py` (seed theo môi trường và lệnh đặt mật khẩu).
+
+## Noti — `pytest`
+
+Test tại `services/noti-api/tests/`, cần Postgres local (DB `noti_test`). Chạy:
+
+```bash
+cd services/noti-api
+NOTI_TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/noti_test .venv/bin/pytest
+```
+
+CI: job `test-noti`. Chi tiết: `docs/dev/noti.md`.
 
 ## Test hạ tầng và tooling — `tools/tests/`
 
-Script bash (`infra/scripts/*.sh`) được test bằng `node --test` với các lệnh hệ thống (`docker`, `git`, `sudo`,
+Script bash (`infra/scripts/*.sh`) được test bằng `node --test` (gồm `deploy.sh … noti`, compose staging có Noti và env Core → Noti) với các lệnh hệ thống (`docker`, `git`, `sudo`,
 `nginx`, `curl`…) thay bằng stub ghi log, không đụng máy thật. Helper: `tools/tests/helpers/sandbox.js`
 (`makeSandbox`; tuỳ chọn `curlCode` giả lập health check, `dockerOut` giả lập output docker, `sudoFail` làm một lệnh `sudo` thất bại, vd `'nginx -t'`). Luật của docs-check (frontmatter, bump version, tác động code→tài liệu, link hỏng) có test riêng ở
 `tools/tests/docs-check.test.js` — sửa `tools/docs-check/` thì thêm test ở đó trước. Chạy toàn bộ tooling + docs-check:
@@ -79,4 +96,22 @@ nào, kể cả mật khẩu mặc định.
 | 1.2 | 2026-09-24 | Tuỳ chọn `sudoFail` của sandbox | DYC |
 | 1.3 | 2026-09-27 | Ghi nhận `db.js` helper nạp `.env` tự động qua dotenv | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.3 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
-| 2.1 | 2026-10-03 | Thêm file test_admin_seed.py kiểm tra seed không reset mật khẩu và giữ trạng thái khóa tài khoản | DYC |
+| 2.1 | 2026-09-27 | Cập nhật helper `createTestDatabase` chạy migration đa đơn vị | D2 |
+| 2.2 | 2026-09-29 | Thêm mô tả các test ngữ cảnh đa đơn vị (units.context) và cổng điều hành (units.legacy-gate) | AI (Task 5) |
+| 2.2 | 2026-09-30 | Thêm nhóm test seed admin CTD và lệnh đặt mật khẩu | DYC |
+| 2.3 | 2026-09-30 | Thêm test hành vi khởi động khi auto-migration lỗi | DYC |
+| 2.4 | 2026-09-30 | Thêm core/tests/pilot.authz.test.js (pilot PR 4) | DYC |
+| 2.5 | 2026-09-30 | Thêm core/tests/pilot.vn-date.test.js (pilot PR 6) | DYC |
+| 2.6 | 2026-09-30 | Thêm pilot.ui-numbers.test.js (c26 c27 c29) | DYC |
+| 2.7 | 2026-09-30 | Thêm test migrate với org_units.id INT có dấu (DB staging) | DYC |
+| 2.8 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
+| 2.9 | 2026-10-02 | Thêm mục test Noti | DYC |
+| 2.10 | 2026-10-02 | Thêm `noti-sender.test.js` và test compose Core → Noti | DYC |
+| 2.11 | 2026-10-02 | Thêm test migrate với org_units.id INT có dấu (trạng thái staging) | DYC |
+| 2.13 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 2.12 | 2026-10-02 | Cập nhật mock test directives | DYC |
+| 2.14 | 2026-10-03 | Sửa dòng lịch sử 2.12 bị lỗi mã hoá và thiếu cột Người | DYC |
+| 2.15 | 2026-10-03 | Thêm test kiểm tra đồng bộ users.role và unit_memberships trên cả 4 route trong teams.mgmt.test.js | DYC |
+| 2.16 | 2026-10-03 | Test hồi quy: route tổ không tạo lại membership TCKT đã gỡ; `syncTcktMembershipFromRole` với `createIfMissing:false` | DYC |
+| 2.17 | 2026-10-03 | Đồng bộ main→staging: thêm `test_admin_seed.py` (seed CTD không reset mật khẩu, không tự mở khóa) | DYC |
+| 2.18 | 2026-10-03 | `my-tasks-today.test.js` dùng `dateInVietnam()` thay ngày local, hết đỏ chập chờn sau 17:00 UTC | DYC |

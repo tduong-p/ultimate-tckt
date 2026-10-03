@@ -1,0 +1,10 @@
+key: system.test
+subject: "[DYC] Thử nghiệm cấu hình hệ thống thông báo: {{ message }}"
+required:
+  - message
+optional:
+  - tested_at
+sensitive: false
+data_example:
+  message: "Đây là thư kiểm tra cấu hình gửi mail của hệ thống Noti."
+  tested_at: "2026-10-02 19:00:00"

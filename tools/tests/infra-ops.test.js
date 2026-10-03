@@ -50,8 +50,9 @@ test('backup.sh writes both dumps under backups/', () => {
   assert.match(c, /exec -T ctd-db sh -c pg_dump .*\$POSTGRES_USER/);
   // Dump tự DROP trước khi tạo lại → restore đè lên DB đang có dữ liệu không bị lỗi "already exists".
   assert.match(c, /pg_dump --clean --if-exists/);
-  // Không bao giờ đưa mật khẩu từ host vào dòng lệnh.
-  assert.doesNotMatch(c, /-p[^"$ ]/);
+  // Không bao giờ đưa mật khẩu từ host vào dòng lệnh. Chỉ khớp tham số `-p…` đứng riêng: thư mục tạm
+  // ngẫu nhiên kiểu /tmp/ut-pXXXX từng làm test đỏ ngẫu nhiên.
+  assert.doesNotMatch(c, /(^|\s)-p[^"$ ]/m);
   const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-core\.sql\.gz$/.test(f)), files.join(','));
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-ctd\.sql\.gz$/.test(f)), files.join(','));
@@ -85,4 +86,17 @@ test('migrate-volumes.sh refuses when a target volume already has data', () => {
   assert.equal(r.status, 3);
   assert.match(r.stderr, /already contains data/);
   assert.ok(!sb.calls().some((l) => l.includes('cp -a')));
+});
+
+test('apply-infra.sh staging also restarts noti services once noti has been deployed', () => {
+  const sb = makeSandbox({ dockerOut: { 'inspect --format {{.Config.Image}} ultimate-tckt-staging-noti-api-1': 'ghcr.io/x/ultimate-tckt-noti:abc' } });
+  const r = sb.run('apply-infra.sh', ['staging']);
+  assert.equal(r.status, 0, r.stderr);
+  assert.ok(sb.calls().some((l) => l.includes('up -d --no-deps core ctd-api noti-api noti-worker')), sb.calls().join('\n'));
+});
+
+test('apply-infra.sh does not start noti before its first deploy', () => {
+  const sb = makeSandbox();
+  sb.run('apply-infra.sh', ['staging']);
+  assert.ok(!sb.calls().some((l) => l.includes('up -d') && l.includes('noti')), sb.calls().join('\n'));
 });

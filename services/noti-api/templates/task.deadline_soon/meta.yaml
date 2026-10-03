@@ -1,0 +1,20 @@
+key: task.deadline_soon
+subject: "[DYC] (TCKT-{{ task.id }}) Sắp đến hạn ({{ window }}): {{ task.title }}"
+required:
+  - window
+  - task.id
+  - task.title
+  - task.path
+optional:
+  - task.deadline
+  - activity.title
+ttl: 86400
+data_example:
+  window: "24h"
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+    deadline: "2026-10-03 17:00"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

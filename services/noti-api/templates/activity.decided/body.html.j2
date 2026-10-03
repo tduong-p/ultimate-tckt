@@ -1,0 +1,17 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p><strong>{{ actor }}</strong> đã đưa ra quyết định đối với đề án hoạt động:</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> (ACT-{{ activity.id }}) {{ activity.title }}</p>
+  <p style="margin: 0 0 8px 0;"><strong>Quyết định:</strong> {{ action }}</p>
+  {% if feedback is defined and feedback %}
+  <p style="margin: 0;"><strong>Ý kiến phản hồi:</strong> {{ feedback }}</p>
+  {% endif %}
+</div>
+{% if activity.get('path') %}
+<p>
+  <a class="button" href="{{ base_url }}{{ activity.path }}">Xem hoạt động</a>
+</p>
+{% endif %}
+{% endblock %}

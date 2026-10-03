@@ -37,9 +37,14 @@ sudo systemctl reload nginx
 
 export CORE_IMAGE_TAG="${CORE_IMAGE_TAG:-$(ut_current_tag "$ENV" core)}"
 export CTD_API_IMAGE_TAG="${CTD_API_IMAGE_TAG:-$(ut_current_tag "$ENV" ctd-api)}"
+# Noti chỉ được bật lại khi đã deploy ít nhất một lần (có tag đang chạy); trước đó tag giả chỉ để compose nội suy.
+APPS=(core ctd-api)
+NOTI_IMAGE_TAG="${NOTI_IMAGE_TAG:-$(ut_current_tag "$ENV" noti-api || true)}"
+if [[ -n "$NOTI_IMAGE_TAG" ]]; then APPS+=(noti-api noti-worker); else NOTI_IMAGE_TAG=unset; fi
+export NOTI_IMAGE_TAG
 if [[ "$APPLY_DB" == "true" ]]; then
-  ut_compose "$ENV" up -d core ctd-api core-db ctd-db
+  ut_compose "$ENV" up -d "${APPS[@]}" core-db ctd-db
 else
-  ut_compose "$ENV" up -d --no-deps core ctd-api
+  ut_compose "$ENV" up -d --no-deps "${APPS[@]}"
 fi
 echo "Infra applied to $ENV at $(git -C "$DIR" rev-parse --short HEAD)"
