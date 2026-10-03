@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-DB-001
 title: Migration cơ sở dữ liệu
-version: 2.1
+version: 2.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-09-27
+updated: 2026-10-03
 related_code: [core/db.sql, core/src/config/migrate.js, services/ctd-api/backend/alembic/**]
 ---
 
@@ -34,7 +34,7 @@ Toàn bộ logic tạo bảng đa đơn vị nằm ở `core/src/config/migrate-
 - Bảng mới: `org_units`, `unit_memberships`, `unit_modules`, `unit_visibility_policies`, `setting_locks`, `audit_logs`, `directives`, `submissions`, `ops_logs`, `ops_log_attendance`, `platform_migrations`.
 - Sửa bảng cũ: `teams.unit_id` và `activities.unit_id` mặc định = ID của đơn vị TCKT (để mọi bản ghi tạo theo luồng cũ đều thuộc TCKT).
 - **Backfill 1 lần**: marker `platform_migrations.multi_unit_backfill_v1` đảm bảo chỉ backfill membership/module vào lần đầu tiên chạy. Lần chạy migrate sau sẽ không tự ý thêm lại những membership mà người quản trị đã chủ động gỡ bỏ.
-- **Cách kiểm tra sau deploy**: chạy truy vấn `SELECT COUNT(*) FROM unit_memberships;` kết quả phải ≥ `SELECT COUNT(*) FROM users;`.
+- **Cách kiểm tra sau deploy**: chạy truy vấn `SELECT COUNT(*) FROM unit_memberships;` kết quả phải ≥ `SELECT COUNT(*) FROM users;`. Lệnh chạy trong container và các kiểm tra khác (số đơn vị, marker, membership ngoài TCKT): `docs/ops/deploy-va-nhanh.md` mục 7.5.
 
 ## CTD (Postgres) — Alembic
 
@@ -55,10 +55,18 @@ Quy tắc:
 
 ## Áp migration lên staging/production
 
-Migration DB **không** tự chạy trong `deploy.sh` (script đó chỉ pull image + up một service). Áp schema mới lên
-staging/production đi qua `infra/scripts/apply-infra.sh <env> true` (tham số `apply_db=true` mới đụng tới
-`core-db`/`ctd-db`) — chạy `backup.sh <env>` trước khi áp migration có khả năng phá dữ liệu (đổi kiểu cột, xoá
-cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-restore.md`.
+Migration của Core **tự chạy khi container `core` khởi động**: `core/src/runtime.js` (`migrateOnStartup`) gọi `migrateDatabase`
+(kể cả `migrate-units.js`) trước khi mở cổng. Vì vậy mỗi lần `deploy.sh <env> core <tag>` tạo lại container `core` là một lần chạy
+migration trên DB của môi trường đó; không có bước "áp migration" riêng. Migration lỗi thì Core ghi log (file `log.md` trong
+container), in lỗi ra stdout rồi thoát mã 1, container tự khởi động lại (`restart: unless-stopped`) cho tới khi chạy được — Core
+không phục vụ trên schema dở dang, và `deploy.sh` báo đỏ khi health check không qua trong 60 giây. Với CTD, container chạy
+`alembic upgrade head` rồi `python -m app.seeds` trước khi `uvicorn` (`CMD` trong `services/ctd-api/Dockerfile`), nên revision mới
+cũng được áp khi deploy `ctd-api`.
+
+`infra/scripts/apply-infra.sh <env> true` **không** áp migration: tham số `apply_db=true` chỉ `up -d` thêm hai container
+`core-db`/`ctd-db`. Chạy `backup.sh <env>` trước khi deploy bản có migration có khả năng phá dữ liệu (đổi kiểu cột, xoá cột) —
+SPEC-PILOT-001 §9.3 cấm kiểu migration đó trong thời gian pilot; ghi rõ trong PR khi có migration để người phát hành backup. Runbook
+đầy đủ: `docs/ops/deploy-va-nhanh.md` mục 7; sao lưu và khôi phục: `docs/ops/backup-restore.md`.
 
 ## Lịch sử phiên bản
 
@@ -67,3 +75,4 @@ cột). Runbook đầy đủ: `docs/ops/deploy-va-nhanh.md`, `docs/ops/backup-re
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 2.0 | 2026-09-27 | Đồng bộ `main` = `staging`: nội dung theo bản `main` (chưa có code đa đơn vị GĐ1-A). Bản 1.1 trên `staging` mô tả GĐ1-A, lưu ở nhánh `archive/gd1a-staging` — NTMT làm lại ở PR sau | DYC |
 | 2.1 | 2026-09-27 | Thêm thông tin về migration đa đơn vị | D2 |
+| 2.2 | 2026-10-03 | Sửa: migration Core tự chạy lúc khởi động container (không phải "không chạy khi deploy"); `apply_db=true` không áp migration | DYC |
