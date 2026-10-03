@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.14
+version: 2.15
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -111,3 +111,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.13 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
 | 2.12 | 2026-10-02 | Cập nhật mock test directives | DYC |
 | 2.14 | 2026-10-03 | Sửa dòng lịch sử 2.12 bị lỗi mã hoá và thiếu cột Người | DYC |
+| 2.15 | 2026-10-03 | Thêm test kiểm tra đồng bộ users.role và unit_memberships trên cả 4 route trong teams.mgmt.test.js | DYC |

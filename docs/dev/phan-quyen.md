@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.1
+version: 6.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-01
+updated: 2026-10-03
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -254,3 +254,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 6.0 | 2026-09-29 | Cập nhật cấu trúc phân quyền cấu hình nền tảng thành platformAdmin thay thế devops. Thêm chi tiết về cơ chế bootstrap DYC membership. | DYC |
 | 3.1 | 2026-09-30 | Phạm vi hoạt động, ranh giới canManageUser, Event Lead, quy tắc bài cập nhật (pilot PR 4) | DYC |
 | 6.1 | 2026-10-01 | Cập nhật ma trận phân quyền Legacy Gate: thêm kiểm tra unit_modules (đơn vị có module dieu-hanh được truy cập). Cập nhật test coverage ghi nhận units.visibility.test.js | AI |
+| 6.2 | 2026-10-03 | Đồng bộ hai chiều users.role ↔ unit_memberships (TCKT) trên cả 4 route teams.js (R1, G1) | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.4
+version: 5.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -478,3 +478,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.2 | 2026-10-02 | Bỏ `/api/push/config`, `/api/email/test` và nhóm `/api/admin/email/*` (không còn trong code) | DYC |
 | 5.3 | 2026-10-02 | Chuẩn hoá route directives và submissions | DYC |
 | 5.4 | 2026-10-03 | Sửa dòng lịch sử 5.3 bị lỗi mã hoá và nằm nhầm trong bảng routing Core; bỏ chú thích HTML thừa cuối file | DYC |
+| 5.5 | 2026-10-03 | Ghi nhận 4 route teams.js gọi syncTcktMembershipFromRole đồng bộ membership TCKT (R1, G1) | DYC |

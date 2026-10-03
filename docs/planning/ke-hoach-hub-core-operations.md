@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.3
+version: 2.4
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1284,3 +1284,4 @@ npm run docs:check         # Documentation validation
 | 1.12 | 2026-10-02 | Cập nhật kế hoạch triển khai | DYC |
 | 2.2 | 2026-10-03 | Sửa dòng lịch sử 1.12 bị lỗi mã hoá và nằm nhầm trong bảng timeline | DYC |
 | 2.3 | 2026-10-03 | Dọn `core/test-output.txt` (output test commit nhầm) và thêm vào `core/.gitignore`; không đổi nội dung kế hoạch | DYC |
+| 2.4 | 2026-10-03 | Sửa 4 route teams.js đồng bộ vai trò và membership TCKT (R1, G1) | DYC |
