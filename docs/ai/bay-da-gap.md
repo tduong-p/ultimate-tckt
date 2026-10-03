@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.8
+version: 1.9
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -57,6 +57,10 @@ Danh sách lỗi/hiểu lầm đã xảy ra thật trong lịch sử dự án, �
 - **Ruleset chỉ cho App bypass thì chủ repo cũng không xoá được nhánh.** Ruleset `bot-branches` chặn xoá `bot/**`
   với mọi người trừ App `tckt-repobot`, nên nút "Delete branch" sau khi đóng PR bot bị từ chối. Dọn bằng cách tạm
   thêm mình vào bypass (xem `docs/ops/repobot.md`).
+- **Seed chạy ở mỗi lần container khởi động không được ghi đè mật khẩu hoặc tự ý mở khóa tài khoản.**
+  `seed_admin` trong CTD từng đặt lại mật khẩu mặc định công khai và ép `is_active = True` ở mỗi lần container khởi động lại,
+  khiến việc đổi mật khẩu bảo mật hoặc khóa tài khoản quản trị bị đảo ngược sau mỗi lần deploy/restart.
+  Bài học: seed chỉ khởi tạo tài khoản nếu chưa có; với tài khoản đã tồn tại, không bao giờ ghi đè `password_hash` hay `is_active`.
 
 ## `unit_id` ép `INT UNSIGNED` làm Core staging crash-loop; viết lại file migration làm mất bản sửa cũ
 
@@ -122,3 +126,4 @@ xem diff trước khi bấm merge.
 | 1.6 | 2026-10-02 | Thêm bẫy: lần đầu đổi cả script VM và compose, job infra chạy script cũ; `AbortSignal.timeout` trên Node 22 | DYC |
 | 1.7 | 2026-10-02 | Thêm bẫy: unit_id phải theo kiểu org_units.id; merge viết lại file làm mất bản sửa cũ | DYC |
 | 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
+| 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |

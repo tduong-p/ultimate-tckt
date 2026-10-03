@@ -1,5 +1,6 @@
 """Seed admin chạy ở mỗi lần container khởi động: không được đặt lại mật khẩu,
-và môi trường thật không bao giờ nhận mật khẩu mặc định công khai trong repo."""
+không được tự ý mở khóa tài khoản đã bị khóa, và môi trường thật không bao giờ
+nhận mật khẩu mặc định công khai trong repo."""
 
 import pytest
 
@@ -20,6 +21,15 @@ def test_seed_giu_mat_khau_admin_da_co(db):
     assert not verify_password(ADMIN_PASSWORD_DEFAULT, again.password_hash)
     assert again.role == Role.QUAN_TRI
     assert again.is_active is True
+
+
+def test_seed_giu_trang_thai_khoa_tai_khoan(db):
+    admin = seed_admin(db, app_env="dev")
+    admin.is_active = False
+    db.commit()
+
+    again = seed_admin(db, app_env="production")
+    assert again.is_active is False
 
 
 def test_seed_moi_truong_that_khong_dat_mat_khau_mac_dinh(db):
