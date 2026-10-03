@@ -1,8 +1,8 @@
 ---
 doc_id: SPEC-SOON-001
 title: Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy
-version: 1.0
-status: draft
+version: 1.1
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-03
@@ -26,8 +26,8 @@ Kết quả rà soát (2026-10-03) dẫn tới sáu chỗ áp dụng:
 | Key | Chỗ hiện | Kiểu | Vì sao chặn |
 |---|---|---|---|
 | `sso` | Nút "Sign in with Microsoft HUST" trên trang đăng nhập | modal | Chưa cấu hình Azure → `/auth/microsoft` trả 503 chữ trơn |
-| `directive` | Mục menu mới "Giao việc" (nhóm "Sắp có") | trang `#soon/directive` | Directive BTV → TCKT chưa có code |
-| `submission` | Mục menu mới "Trình" | trang `#soon/submission` | Trình hồ sơ lên BTV chưa có code |
+| `directive` | Mục menu mới "Giao việc" (nhóm "Sắp có") | trang `#soon/directive` | API đã có (PR #40, `core/src/routes/directives.js`), chưa có giao diện |
+| `submission` | Mục menu mới "Trình" | trang `#soon/submission` | API đã có (PR #40, `core/src/routes/submissions.js`), chưa có giao diện |
 | `ops-log` | Mục menu mới "Nhật ký trực ban" | trang `#soon/ops-log` | ops_log chưa có code |
 | `task-edit` | Nút "Sửa" mới trong chi tiết công việc + nút xoá mục checklist | modal | Backend có `PATCH /api/tasks/:id`, `DELETE …/checklist/:itemId` nhưng UI chưa có |
 | `not-found` | Hash không thuộc trang nào đã biết | trang | Hiện giờ âm thầm chuyển về dashboard |
@@ -116,3 +116,4 @@ Cập nhật `docs/dev/frontend.md` (mục Core): mô tả `COMING_SOON`, cách 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu: sáu chỗ chặn, chủ đề "chích điện dev", thanh sạc và nút chích | DYC |
+| 1.1 | 2026-10-03 | Giao việc/Trình: API đã có từ PR #40, chỉ thiếu giao diện | DYC |

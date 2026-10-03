@@ -2,7 +2,7 @@
 doc_id: PLAN-SOON-001
 title: Plan — màn hình "Đang phát triển" cho UI Core legacy
 version: 1.0
-status: draft
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-03
