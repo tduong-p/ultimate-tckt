@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.1
+version: 2.2
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -111,7 +111,7 @@ frontend, test/dữ liệu/vận hành. Số dòng tham chiếu theo `origin/sta
 | c5 | Admin sửa tài khoản bất kỳ → cờ trưởng/phó team của người đó bị ghi lại sai (`users.js:81`). | Giữ cờ hiện có cho team vẫn được chọn. | Core |
 | c6 | `return` sớm sau `beginTransaction` ở `users.js:81` → trả connection còn transaction mở về pool. | Kiểm tra trước khi mở transaction / rollback trước khi return. | Core |
 | c7 | Bulk import và công tắc "Tài khoản SSO" (`app.js:1142,1161` → `users.js:58`) tạo user `auth_provider='microsoft'`, mật khẩu ngẫu nhiên, không team → không đăng nhập được khi không có SSO. | Nhận cột `password`, `team`; tạo `local`. Ẩn công tắc SSO khi SSO tắt. | Core |
-| c8 | Nút "Đăng nhập Microsoft" là nút chính nhưng production trả 503 text. | `/api/session` trả `sso_enabled`; ẩn nút khi tắt. | Core — đổi dạng `/api/session` là **hợp đồng dùng chung**, cần xác nhận (chỉ thêm field) |
+| c8 | Nút "Đăng nhập Microsoft" là nút chính nhưng production trả 503 text. | `/api/session` trả `sso_enabled`; ẩn nút khi tắt. Tạm thời (SPEC-SOON-001): nút mở màn hình "Đang phát triển" thay vì trang 503. | Core — đổi dạng `/api/session` là **hợp đồng dùng chung**, cần xác nhận (chỉ thêm field) |
 | c9 | Khoá tài khoản: `DELETE /api/users/:id` xoá cứng khi không vướng khoá ngoại — `task_assignees`, `participants` cascade nên mất phân công (`core/db.sql:129,188`); user đã khoá không liệt kê/mở lại được. | Luôn khoá mềm (`is_active=0`); thêm lọc "Đã khoá" + nút mở lại. | Core |
 | c10 | Upload tệp vào task chỉ kiểm `visibleActivity` → ai thấy hoạt động cũng đính kèm được (`tasks.js:22`). | Yêu cầu `canTouchTask`. | Core |
 | c11 | Tự log tạo task trước khi kiểm tra phần mở rộng tệp → 415 để lại task mồ côi (`activities.js:255` vs `285`). | Kiểm tra tệp trước. | Core |
@@ -134,7 +134,7 @@ frontend, test/dữ liệu/vận hành. Số dòng tham chiếu theo `origin/sta
 |---|---|---|
 | c12 | Khoá/hạ quyền không có hiệu lực với phiên đang mở (tối đa 12 giờ). Đọc lại `role`, `is_active` trong `auth`. | **Liên module** (auth/session) |
 | c13 | Từ chối đề xuất xoá cứng hoạt động (`activities.js:195`); đặt trạng thái "cancelled" trong form sửa cũng xoá cứng (`activities.js:80`). Người đề xuất không biết lý do. Chuyển sang trạng thái mềm + giữ `activity_proposals`. | Có thể **liên module** nếu thêm giá trị enum |
-| c14 | Task không sửa được tiêu đề/mô tả/**người nhận** (chỉ POST tạo task ghi `task_assignees`) → người nhận nghỉ hoặc chọn nhầm thì task kẹt, chỉ còn cách huỷ tạo lại. Không có UI sửa hạn/ưu tiên, xoá mục checklist; `PATCH /api/tasks/:id` 500 khi hạn rỗng. | Core |
+| c14 | Task không sửa được tiêu đề/mô tả/**người nhận** (chỉ POST tạo task ghi `task_assignees`) → người nhận nghỉ hoặc chọn nhầm thì task kẹt, chỉ còn cách huỷ tạo lại. Không có UI sửa hạn/ưu tiên, xoá mục checklist; `PATCH /api/tasks/:id` 500 khi hạn rỗng. Tạm thời (SPEC-SOON-001): nút "Sửa" và xoá mục checklist hiện màn hình "Đang phát triển". | Core |
 | c15 | Hết phiên chỉ hiện toast, không đưa về màn đăng nhập. | Core |
 | c16 | Thông báo phản hồi task hiện nhãn "Email: failed / Push: failed" khi hai kênh đang tắt. Ghi `disabled` thay vì `failed`. | Core |
 | c30 | Trạng thái và ghi dữ liệu: PATCH hoạt động ghi dở (hai handler đầu `activities.js:34,36` ghi trước khi handler chính trả 400/409); trạng thái hoạt động không whitelist, admin nhảy thẳng proposed → completed không qua `decideProposal` (`activities.js:80`); duyệt task/đề xuất kiểm rồi UPDATE không điều kiện, không transaction (`tasks.js:119-128`, `activities.js:47-49,194-200`) → duyệt trùng. | Core |
@@ -253,3 +253,4 @@ không chờ issue này.
 | 1.11 | 2026-10-02 | b1': compose staging có thêm env Core → Noti | DYC |
 | 1.12 | 2026-10-02 | Ghi chú hotfix migrate unit_id lần 2 | DYC |
 | 2.1 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 2.2 | 2026-10-03 | c8, c14: ghi chú màn hình "Đang phát triển" tạm thời (SPEC-SOON-001) | DYC |
