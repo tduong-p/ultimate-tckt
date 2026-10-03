@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.4
+version: 2.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/src/app.js, core/src/runtime.js, core/src/config/validate.js, core/src/routes/*.js, core/src/services/deadline-notifications.js, core/public/app.js, core/public/index.html, core/tests/**]
 ---
 
@@ -516,3 +516,4 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.1 | 2026-10-02 | Đã thực hiện xong (PR #42, CI xanh); chuyển sang active | DYC |
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
+| 2.5 | 2026-10-03 | Ghi chú: `frontend.contract.test.js` thêm test màn hình "Đang phát triển" (SPEC-SOON-001); test chặn UI email cũ giữ nguyên | DYC |
