@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.2
+version: 2.3
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -36,7 +36,6 @@ commit, người dùng và request.
 
 | Trong phạm vi | Ngoài phạm vi (làm sau) |
 |---|---|
-| 1.13 | 2026-10-02 | C?p nh?t thi?t k? ph�n quy?n |
 | Luồng Điều hành hiện có của TCKT, gia cố + sửa lỗi | Email thật (tạm bỏ — xem mục 8) |
 | Lớp debug: log, request id, version, báo lỗi, audit | Microsoft SSO (cần đăng ký app Azure) |
 | Chặn lỗ hổng bảo mật, backup, chuẩn bị dữ liệu | Đa đơn vị có UI, BTV, directive/submission/ops_log |
@@ -254,3 +253,5 @@ không chờ issue này.
 | 1.12 | 2026-10-02 | Ghi chú hotfix migrate unit_id lần 2 | DYC |
 | 2.1 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
 | 2.2 | 2026-10-03 | c8, c14: ghi chú màn hình "Đang phát triển" tạm thời (SPEC-SOON-001) | DYC |
+| 1.13 | 2026-10-02 | Cập nhật thiết kế phân quyền | DYC |
+| 2.3 | 2026-10-03 | Sửa dòng lịch sử 1.13 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi | DYC |

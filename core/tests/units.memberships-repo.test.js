@@ -57,6 +57,21 @@ test('TCKT role sync works both ways', async () => {
   } finally { await teardown(); }
 });
 
+test('TCKT role sync with createIfMissing:false updates an existing membership but never creates one', async () => {
+  const { pool, teardown } = await createTestDatabase();
+  try {
+    const none = await createUser(pool, { role: 'member', units: [] });
+    await pool.query("UPDATE users SET role='leader' WHERE id=?", [none.id]);
+    await m.syncTcktMembershipFromRole(pool, none.id, { createIfMissing: false });
+    assert.deepEqual(await m.listMemberships(pool, none.id), []);
+
+    const has = await createUser(pool, { role: 'member' });
+    await pool.query("UPDATE users SET role='leader' WHERE id=?", [has.id]);
+    await m.syncTcktMembershipFromRole(pool, has.id, { createIfMissing: false });
+    assert.deepEqual((await m.listMemberships(pool, has.id)).map(x => [x.code, x.role]), [['TCKT', 'leader']]);
+  } finally { await teardown(); }
+});
+
 test('ensureDycAdmins grants (or upgrades to) dyc_admin for existing emails only, idempotently', async () => {
   const { pool, teardown } = await createTestDatabase();
   try {

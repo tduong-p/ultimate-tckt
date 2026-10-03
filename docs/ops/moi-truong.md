@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-03
 related_code: [infra/compose/**, infra/nginx/**, infra/.env.example]
 ---
 
@@ -55,7 +55,7 @@ NOTI_RECIPIENT_ALLOWLIST, NOTI_REDIRECT_TO, NOTI_SMTP_*, NOTI_GRAPH_*
 
 Tiền tố `CORE_*` thay cho `TCKT_*` cũ (giá trị giữ nguyên khi chuyển đổi, xem `docs/ops/chuyen-doi-ultimate-tckt.md`). Tiền tố `CTD_*` giữ nguyên. Không ghi giá trị thật vào bất kỳ tài liệu nào — chỉ ghi tên biến và nơi lưu.
 
-**Lưu ý về `CORE_SETTINGS_ENCRYPTION_KEY`:** compose cũ (trước khi gộp monorepo) không khai báo biến này, nên trang **Setting → SMTP** trên core bị lỗi khi lưu cấu hình (khoá mã hoá không tồn tại). Compose mới (`infra/compose/docker-compose.<env>.yml`) đã thêm biến này bắt buộc (`${CORE_SETTINGS_ENCRYPTION_KEY:?}`) — thiếu biến thì container `core` không khởi động được thay vì âm thầm lỗi khi người dùng bấm Lưu. `bootstrap-vm.sh` tự sinh giá trị này (`openssl rand -base64 32`) nếu `.env` cũ chưa có. Mất khoá này = mất khả năng đọc lại cấu hình SMTP đã lưu trước đó (xem `docs/ai/bat-bien.md`).
+**Lưu ý về `CORE_SETTINGS_ENCRYPTION_KEY`:** compose (`infra/compose/docker-compose.<env>.yml`) vẫn khai báo biến này là bắt buộc (`${CORE_SETTINGS_ENCRYPTION_KEY:?}`) và truyền vào container `core` dưới tên `SETTINGS_ENCRYPTION_KEY`, nên thiếu biến thì `core` không khởi động được; `bootstrap-vm.sh` tự sinh giá trị (`openssl rand -base64 32`) nếu `.env` chưa có. Tuy nhiên **code Core hiện không đọc biến này**: không còn module mã hoá cấu hình, không còn trang cấu hình SMTP (email do Noti đảm nhận, mục 4a và 5), nên không có cấu hình SMTP nào được mã hoá bằng nó. Biến chỉ còn là di sản của compose, đã được ghi nhận để gỡ (R19 trong SPEC-REL-001). Đừng sinh lại hay đổi nó chỉ vì lo "mất khoá = mất cấu hình SMTP": điều đó không còn đúng.
 
 ## 4a. Noti trên staging
 
@@ -111,3 +111,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.1 | 2026-10-02 | Core không còn module email và OneSignal | DYC |
 | 1.2 | 2026-10-02 | Thêm Noti trên staging: cổng 8100, biến `NOTI_*`, việc làm tay một lần (mục 4a) | DYC |
 | 1.3 | 2026-10-02 | Thêm `CORE_NOTI_API_KEY`; mục 4a: cách tạo key cho Core và bật gửi | DYC |
+| 1.4 | 2026-10-03 | Bỏ khẳng định sai về SMTP và khoá mã hoá cấu hình (code Core không còn dùng); biến chỉ còn là di sản của compose | DYC |

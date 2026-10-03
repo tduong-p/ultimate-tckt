@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.1
+version: 2.4
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -61,7 +61,6 @@ Tài liệu này là kế hoạch chi tiết phát triển **Hub system** (Core 
 
 | Tuần | Focus | Deliverables |
 |------|-------|-------------|
-| 1.12 | 2026-10-02 | C?p nh?t k? ho?ch tri?n khai |
 | 1 | Backend foundation | Migration, middleware, DYC admin, audit |
 | 2 | Operations features | Directives, submissions, visibility, ops logs |
 | 3 | Frontend shell + migration | React shell, migrate old UI, new screens |
@@ -1282,3 +1281,7 @@ npm run docs:check         # Documentation validation
 | 1.10 | 2026-10-02 | Ghi chú: email thông báo nay do Noti gửi, không qua rule engine/OneSignal | DYC |
 | 1.11 | 2026-10-02 | Ghi chú: kiểu cột unit_id theo org_units.id của DB đã migrate | DYC |
 | 2.1 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 1.12 | 2026-10-02 | Cập nhật kế hoạch triển khai | DYC |
+| 2.2 | 2026-10-03 | Sửa dòng lịch sử 1.12 bị lỗi mã hoá và nằm nhầm trong bảng timeline | DYC |
+| 2.3 | 2026-10-03 | Dọn `core/test-output.txt` (output test commit nhầm) và thêm vào `core/.gitignore`; không đổi nội dung kế hoạch | DYC |
+| 2.4 | 2026-10-03 | Sửa 4 route teams.js đồng bộ vai trò và membership TCKT (R1, G1) | DYC |

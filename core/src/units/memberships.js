@@ -95,15 +95,22 @@ async function removeMembership(db, userId, unitId) {
 
 /**
  * Read users.role, then upsert a TCKT membership with that role.
+ * With `createIfMissing: false` only an existing TCKT membership is updated, so a membership
+ * that was removed on purpose (DELETE /api/units/:id/members/:userId) is never brought back.
  * @param {import('mysql2/promise').Pool} db
  * @param {number} userId
+ * @param {{createIfMissing?: boolean}} [options]
  * @returns {Promise<void>}
  */
-async function syncTcktMembershipFromRole(db, userId) {
+async function syncTcktMembershipFromRole(db, userId, { createIfMissing = true } = {}) {
   const [[user]] = await db.execute('SELECT role FROM users WHERE id = ?', [userId]);
   if (!user) return;
   const tcktId = await unitIdByCode(db, TCKT_CODE);
   if (!tcktId) return;
+  if (!createIfMissing) {
+    const [rows] = await db.execute('SELECT 1 FROM unit_memberships WHERE user_id = ? AND unit_id = ?', [userId, tcktId]);
+    if (!rows.length) return;
+  }
   await upsertMembership(db, userId, tcktId, user.role);
 }
 

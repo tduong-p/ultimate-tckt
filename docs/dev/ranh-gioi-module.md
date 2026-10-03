@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -18,7 +18,6 @@ trong **một module** thì làm luôn; việc chạm **module khác** hoặc **
 
 | Module | Thư mục/file thuộc module | Ghi chú |
 |---|---|---|
-| 1.6 | 2026-10-02 | C?p nh?t ranh gi?i module dieu-hanh |
 | **Nền (Core platform)** | `core/src/units/**`, `core/src/middleware/**`, `core/src/settings/**`, `core/src/config/**`, `core/src/auth/**`, `core/src/services/audit.js`, `core/src/routes/{units,platform,index,utils}.js`, phần session/đăng nhập/tài khoản trong `core/src/routes/system.js`, `core/src/app.js`, `core/src/runtime.js`, `core/src/server.js`, `core/db.sql` | Toàn bộ module Nền là **hợp đồng dùng chung** — xem mục dưới. Thêm setting mới vào `core/src/settings/catalog.js` phải raise họp team (ảnh hưởng quyền). |
 | **Điều hành** (TCKT) | `core/src/routes/{activities,tasks,teams,documents,reports,users,notifications}.js`, phần bootstrap/my-tasks/weight-presets trong `core/src/routes/system.js`, `core/src/policies/**`, `core/src/services/{task-attachments,deadline-notifications}.js`, `core/public/**` (frontend cũ) | |
 | **Thông báo (Noti)** | `core/src/notifier.js` (facade phía Core), `core/src/services/deadline-notifications.js`; service `services/noti-api/**` (SPEC-NOTI-001) | Hợp đồng API Noti là hợp đồng dùng chung |
@@ -66,3 +65,5 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | 1.4 | 2026-10-02 | Dòng "Email & Cron" đổi thành "Thông báo (Noti)": các file cũ không tồn tại trên staging; thêm service Noti (issue #41) | DYC |
 | 1.5 | 2026-10-02 | Ghi nhận service Noti tại services/noti-api/** theo ADR-0014 và SPEC-NOTI-001 | DYC |
 | 1.7 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
+| 1.6 | 2026-10-02 | Cập nhật ranh giới module dieu-hanh | DYC |
+| 1.8 | 2026-10-03 | Sửa dòng lịch sử 1.6 bị lỗi mã hoá và nằm nhầm trong bảng module; luật không đổi | DYC |

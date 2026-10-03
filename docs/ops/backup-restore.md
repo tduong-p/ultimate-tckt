@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-BAK-001
 title: Backup và restore database
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-03
 related_code: [infra/scripts/backup.sh]
 ---
 
@@ -46,7 +46,9 @@ Dùng trong runbook chuyển đổi, xem `docs/ops/chuyen-doi-ultimate-tckt.md`.
 source /opt/ultimate-tckt/<env>/infra/scripts/lib.sh
 ```
 
-Dump MySQL (mysqldump mặc định có `DROP TABLE IF EXISTS`) và dump Postgres (`pg_dump --clean --if-exists`, từ bản 2026-09-24) đều tự xoá bảng trước khi tạo lại, nên restore đè lên DB đang có dữ liệu được. Dump Postgres cũ hơn (không có `--clean`) phải restore vào DB rỗng: `ut_compose <env> exec -T ctd-db sh -c 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"'` trước.
+Compose đòi `CORE_IMAGE_TAG` và `CTD_API_IMAGE_TAG` (staging thêm `NOTI_IMAGE_TAG`) cho mọi lệnh, kể cả `exec`; `backup.sh` và lệnh gõ tay không tự nạp chúng. Nạp bằng hàm `ut_tags` ở [`deploy-va-nhanh.md`](deploy-va-nhanh.md) mục 7.0 trước khi chạy `backup.sh` hoặc các lệnh dưới đây.
+
+Dump MySQL (mysqldump mặc định có `DROP TABLE IF EXISTS`) và dump Postgres (`pg_dump --clean --if-exists`, từ bản 2026-09-24) đều tự xoá bảng trước khi tạo lại, nên restore đè lên DB đang có dữ liệu **cùng schema** được. Ngoại lệ: nếu DB hiện tại đã chạy migration mới hơn bản dump (có bảng hoặc marker mà dump không có — ví dụ rollback sau đợt phát hành đa đơn vị), dump không xoá các bảng thừa đó; tạo lại DB trống trước khi nạp: `ut_compose <env> exec -T core-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "DROP DATABASE \`$MYSQL_DATABASE\`; CREATE DATABASE \`$MYSQL_DATABASE\`;"'` (dừng `core` trước; trình tự đầy đủ ở [`deploy-va-nhanh.md`](deploy-va-nhanh.md) mục 7.6). Dump Postgres cũ hơn (không có `--clean`) phải restore vào DB rỗng: `ut_compose <env> exec -T ctd-db sh -c 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"'` trước.
 
 ### MySQL (core)
 
@@ -86,3 +88,4 @@ Restore là chép ngược lại (`tar xzf` vào volume qua container tạm) —
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Restore: nạp `lib.sh` trước, dump Postgres có `--clean --if-exists`, cách restore dump cũ | DYC |
+| 1.2 | 2026-10-03 | Compose đòi tag image: nạp bằng `ut_tags`; DB đã migrate mới hơn dump phải tạo lại DB trống trước khi nạp | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.5
+version: 2.6
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -39,8 +39,6 @@ Plan này sửa `core/src/app.js`, `core/src/runtime.js`, `core/src/config/valid
 
 | Việc | Module | Làm trong plan này? |
 |---|---|---|
-| 2.4 | 2026-10-02 | C?p nh?t g? b? email cu |
-| 2.3 | 2026-10-02 | C?p nh?t k? ho?ch g? email cu |
 | Issue liên module: xoá email + OneSignal (sửa `app.js`, `runtime.js`, `config`, `package.json`, CSP), cập nhật dòng "Email & Cron" của `ranh-gioi-module.md` | Nền | Task 0 soạn issue; **chờ duyệt** |
 | Tạo `notifier.js`, sửa `routes/*`, `services/deadline-notifications.js`, xoá `mailer.js`/`push.js`, gỡ OneSignal ở `public/` | Core + Điều hành | Có (Task 1–3), sau khi issue được duyệt |
 | Tài liệu và ADR-0013 | docs | Có (Task 5) |
@@ -517,3 +515,7 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.0 | 2026-10-02 | Viết lại: bỏ cả OneSignal, thay `push-notifier` bằng facade `notifier` chung; tách việc module Nền/infra thành Task 0; bảng sự kiện và khoảng trống dữ liệu từng điểm gọi; scheduler không phụ thuộc `inserted`; sửa lệnh grep/`sed` sai | DYC |
 | 1.0 | 2026-10-02 | Bản đầu (hướng tách push-only, đã bị thay) | DYC |
 | 2.5 | 2026-10-03 | Ghi chú: `frontend.contract.test.js` thêm test màn hình "Đang phát triển" (SPEC-SOON-001); test chặn UI email cũ giữ nguyên | DYC |
+| 2.2 | 2026-10-02 | Facade nay đã có sender sang Noti (PLAN-NOTI-002); không cần đổi thân facade | DYC |
+| 2.3 | 2026-10-02 | Ghi chú: migration unit_id đã hotfix, không liên quan plan này | DYC |
+| 2.4 | 2026-10-02 | Tăng version khi đồng bộ chỉ mục tài liệu (merge `479c05f`); nội dung không đổi | DYC |
+| 2.6 | 2026-10-03 | Sửa hai dòng lịch sử 2.3 và 2.4 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi; khôi phục dòng 2.2, 2.3 bị mất | DYC |
