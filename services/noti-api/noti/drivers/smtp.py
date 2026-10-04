@@ -44,11 +44,22 @@ class SmtpDriver(Driver):
         msg.add_alternative(message.html, subtype="html")
 
         try:
-            with smtplib.SMTP(self.host, self.port, timeout=self.timeout) as server:
+            server = smtplib.SMTP(self.host, self.port, timeout=self.timeout)
+            try:
                 server.starttls(context=ssl.create_default_context())
                 if self.user and self.password:
                     server.login(self.user, self.password)
                 server.send_message(msg)
+            finally:
+                # Thư đã đi (hoặc lỗi gốc đã có) thì lỗi khi đóng phiên (QUIT) không được đổi kết quả.
+                try:
+                    server.quit()
+                except Exception:
+                    pass
+                try:
+                    server.close()
+                except Exception:
+                    pass
         except smtplib.SMTPRecipientsRefused as e:
             codes = [r[0] for r in e.recipients.values()]
             if codes and all(500 <= c < 600 for c in codes):

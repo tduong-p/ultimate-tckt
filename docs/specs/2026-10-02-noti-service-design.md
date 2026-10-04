@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -143,7 +143,7 @@ Dữ liệu chứa email và tên người (dữ liệu cá nhân): xem §12.
 - **Timeout của driver là 30 giây**, luôn nhỏ hơn thời gian khoá, để một lần gửi chậm không bị worker khác lấy trùng.
 - Gửi **từng người nhận một**; lỗi của một người không ảnh hưởng người khác.
 - **Render lỗi lúc gửi là lỗi vĩnh viễn** (`failed` ngay, không retry), vì thử lại cũng cho cùng kết quả. Thử render đã chạy lúc nhận yêu cầu nên trường hợp này chỉ xảy ra khi template đổi giữa chừng; `template_version` (băm nội dung thư mục template) được lưu để biết thư đã soạn bằng bản nào.
-- Phân loại lỗi: **tạm thời** (mất kết nối, timeout, `5xx` từ nhà cung cấp) → backoff `1 phút, 5 phút, 30 phút, 2 giờ, 12 giờ`, tối đa **6 lần thử** (`MAX_ATTEMPTS`; 5 khoảng nghỉ, cửa sổ thử lại xấp xỉ 14,6 giờ), sau đó `failed`. **`429`**: tôn trọng `Retry-After` của nhà cung cấp (lấy giá trị lớn hơn giữa nó và backoff). **Vĩnh viễn** (địa chỉ không hợp lệ, từ chối kiểu người nhận không tồn tại, lỗi quyền/yêu cầu sai như Graph `400/403/404`, SMTP `5xx`) → `failed` ngay. Riêng lỗi xác thực sửa được (SMTP `530/534/535`, Graph `401`, lỗi MSAL tạm thời) coi là tạm thời để thử lại sau khi sửa cấu hình. SMTP kiểm chứng chỉ TLS; MSAL có timeout.
+- Phân loại lỗi: **tạm thời** (mất kết nối, timeout, `5xx` từ nhà cung cấp) → backoff `1 phút, 5 phút, 30 phút, 2 giờ, 12 giờ`, tối đa **6 lần thử** (`MAX_ATTEMPTS`; 5 khoảng nghỉ, cửa sổ thử lại xấp xỉ 14,6 giờ), sau đó `failed`. **`429`**: tôn trọng `Retry-After` của nhà cung cấp (lấy giá trị lớn hơn giữa nó và backoff). **Vĩnh viễn** (địa chỉ không hợp lệ, từ chối kiểu người nhận không tồn tại, lỗi quyền/yêu cầu sai như Graph `400/403/404`, SMTP `5xx`) → `failed` ngay. Riêng lỗi xác thực sửa được (SMTP `530/534/535`, Graph `401`, lỗi MSAL tạm thời) coi là tạm thời để thử lại sau khi sửa cấu hình. SMTP kiểm chứng chỉ TLS; MSAL có timeout; lỗi MSAL `invalid_client`/`unauthorized_client`/`invalid_scope`/`invalid_request` vẫn là vĩnh viễn.
 - **Hạn chót của lô:** lô lấy ra phải gửi xong trước khi khoá hết hạn; quá hạn chót thì phần còn lại được trả về `pending` mà không tính là một lần thử.
 - Vòng lặp ngủ 2 giây khi không có việc.
 - **Giới hạn tốc độ**: `NOTI_SEND_RATE_PER_MINUTE` (mặc định 30) áp dụng **theo từng tiến trình worker**. v1 chạy **đúng một** worker để giới hạn có nghĩa; khi cần nhiều worker thì chuyển giới hạn sang token bucket trong DB (việc để sau, §14). `SKIP LOCKED` vẫn bảo đảm nhiều worker không lấy trùng, nên việc tăng sau này không đổi hợp đồng.
@@ -295,6 +295,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 | 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
 | 1.5 | 2026-10-02 | Trạng thái: chạy ở staging | DYC |
 | 1.7 | 2026-10-05 | #49: trạng thái `suppressed`, `MAX_ATTEMPTS` 6, phân loại lỗi, `/retry` 409 `data_purged`, giới hạn thân, rủi ro gửi lặp còn lại | DYC |
+| 1.8 | 2026-10-05 | #49: làm rõ lỗi cấu hình MSAL (invalid_client…) vẫn vĩnh viễn | DYC |
 | 1.6 | 2026-10-05 | Ví dụ khoá nhắc hạn đổi sang `task-deadline-1d` (Core nhắc theo ngày lịch, #49) | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |

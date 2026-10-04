@@ -149,5 +149,5 @@ về `pending` và thư có thể đi thêm một lần. Đừng "sửa" bằng 
 | 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
 | 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |
-| 1.12 | 2026-10-05 | #49 Noti: thêm bẫy `suppressed` thay `sent` cho thư bị allowlist, và rủi ro gửi lặp khi DB hỏng sau gửi | DYC |
 | 1.11 | 2026-10-05 | #49: scheduler dùng `email_status` (pending mồ côi); thêm bẫy `tasks.deadline` là `DATE` nên nhắc theo ngày lịch, không theo giờ | DYC |
+| 1.12 | 2026-10-05 | #49 Noti: thêm bẫy `suppressed` thay `sent` cho thư bị allowlist, và rủi ro gửi lặp khi DB hỏng sau gửi | DYC |

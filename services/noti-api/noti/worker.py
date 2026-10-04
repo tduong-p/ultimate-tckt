@@ -93,21 +93,21 @@ def run_once(
     batch_size: int = 10,
     clock: Callable[[], float] = time.monotonic,
 ) -> int:
+    # Tính từ lúc claim (khoá bắt đầu đếm từ đó), không phải sau khi claim xong.
+    deadline = clock() + LOCK_SECONDS - DRIVER_CALLS_PER_SEND * DRIVER_TIMEOUT_SECONDS
     claimed_items = claim_next(db, limit=batch_size, now=now)
     if not claimed_items:
         return 0
 
-    deadline = clock() + LOCK_SECONDS - DRIVER_CALLS_PER_SEND * DRIVER_TIMEOUT_SECONDS
-
     for item in claimed_items:
-        if delay_between_sends > 0:
-            time.sleep(delay_between_sends)
-
         # Hết hạn chót của lô: trả phần còn lại để khoá không hết hạn giữa lúc đang gửi
         if clock() >= deadline:
             release(db, item.recipient_id, now=now)
             db.commit()
             continue
+
+        if delay_between_sends > 0:
+            time.sleep(delay_between_sends)
 
         # Merge data and recipient-specific variables
         merged_data = dict(item.data)

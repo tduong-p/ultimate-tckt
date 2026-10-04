@@ -130,7 +130,7 @@
 | [PLAN-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-plan.md) | Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot) | 1.16 | draft | dev, ai |
 | [PLAN-NOTI-002](specs/2026-10-02-core-noti-sender-plan.md) | Kế hoạch — Core gửi thông báo sang Noti (sender HTTP) | 1.1 | active | dev, ai |
 | [PLAN-EMAILGO-001](specs/2026-10-02-go-email-cu-plan.md) | Kế hoạch gỡ module email cũ và OneSignal của Core | 2.7 | active | dev, ai |
-| [SPEC-NOTI-001](specs/2026-10-02-noti-service-design.md) | Thiết kế service Noti — gửi thông báo email theo template qua HTTP API | 1.7 | active | dev, ai |
+| [SPEC-NOTI-001](specs/2026-10-02-noti-service-design.md) | Thiết kế service Noti — gửi thông báo email theo template qua HTTP API | 1.8 | active | dev, ai |
 | [PLAN-NOTI-001](specs/2026-10-02-noti-service-plan.md) | Kế hoạch xây service Noti (services/noti-api) | 1.0 | draft | dev, ai |
 | [SPEC-SOON-001](specs/2026-10-03-core-coming-soon-design.md) | Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy | 1.2 | active | dev, ai |
 | [PLAN-SOON-001](specs/2026-10-03-core-coming-soon-plan.md) | Plan — màn hình "Đang phát triển" cho UI Core legacy | 1.0 | active | dev, ai |
@@ -140,7 +140,7 @@
 | [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.2 | active | dev, ops, ai |
 | [SPEC-NOTI-002](specs/2026-10-05-core-noti-49-design.md) | Thiết kế — sửa phần Core của | 1.1 | active | dev, ai |
 | [PLAN-NOTI-003](specs/2026-10-05-core-noti-49-plan.md) | Kế hoạch — sửa phần Core của | 1.1 | active | dev, ai |
-| [SPEC-NOTI-003](specs/2026-10-05-noti-49-design.md) | Thiết kế — sửa phần bên trong Noti của | 1.0 | active | dev, ai |
+| [SPEC-NOTI-003](specs/2026-10-05-noti-49-design.md) | Thiết kế — sửa phần bên trong Noti của | 1.1 | active | dev, ai |
 | [PLAN-NOTI-004](specs/2026-10-05-noti-49-plan.md) | Kế hoạch — sửa phần bên trong Noti của | 1.1 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |

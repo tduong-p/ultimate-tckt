@@ -324,3 +324,50 @@ def test_msal_app_gets_timeout(monkeypatch):
     driver, App = _graph_with_app(monkeypatch, lambda: {"access_token": "tok"})
     assert driver._get_token() == "tok"
     assert App.kwargs["timeout"] == driver.timeout == 7
+
+
+class _QuitFailsSMTP:
+    """smtplib.SMTP giả: send_message thành công (hoặc lỗi theo ý), nhưng đóng phiên thì nổ."""
+
+    def __init__(self, send_error=None):
+        self.send_error = send_error
+        self.sent = 0
+
+    def starttls(self, context=None):
+        pass
+
+    def login(self, *a):
+        pass
+
+    def send_message(self, msg):
+        if self.send_error:
+            raise self.send_error
+        self.sent += 1
+
+    def quit(self):
+        raise smtplib.SMTPResponseException(421, b"closing")
+
+    def close(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.quit()
+
+
+@pytest.mark.parametrize("code", [421, 550])
+def test_smtp_quit_failure_after_send_is_not_an_error(monkeypatch, code):
+    server = _QuitFailsSMTP()
+    server.quit = lambda: (_ for _ in ()).throw(smtplib.SMTPResponseException(code, b"x"))
+    monkeypatch.setattr(smtplib, "SMTP", lambda host, port, timeout: server)
+    SmtpDriver(host="h", user="u", password="p", mail_from="n@example.com").send(_MSG)
+    assert server.sent == 1
+
+
+def test_smtp_send_error_still_classified_when_quit_also_fails(monkeypatch):
+    server = _QuitFailsSMTP(send_error=smtplib.SMTPResponseException(550, b"no"))
+    monkeypatch.setattr(smtplib, "SMTP", lambda host, port, timeout: server)
+    with pytest.raises(PermanentError):
+        SmtpDriver(host="h", user="u", password="p", mail_from="n@example.com").send(_MSG)

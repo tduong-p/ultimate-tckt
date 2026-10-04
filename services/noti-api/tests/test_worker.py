@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import uuid
 import pytest
 
@@ -402,24 +403,33 @@ def test_reply_to_outside_allowlist_is_dropped(db, make_client, monkeypatch):
     assert by_to["b@hust.edu.vn"].reply_to == "boss@hust.edu.vn"
 
 
-def test_commit_failure_after_send_does_not_resend_or_retry(db, make_client, monkeypatch):
+def test_commit_failure_after_send_does_not_resend_or_retry(db, make_client, monkeypatch, caplog):
     import noti.worker
     c, _ = make_client()
     n = create_notification(db, c.id)
     r = create_recipient(db, n.id, "user@example.com")
     db.commit()
 
+    calls = {"n": 0}
+
     def boom(*args, **kwargs):
+        calls["n"] += 1
         raise RuntimeError("db down")
 
     monkeypatch.setattr(noti.worker, "mark_sent", boom)
     driver = FakeDriver()
     now = datetime.now(timezone.utc)
-    run_once(db, get_registry(), driver, now=now)
+    with caplog.at_level(logging.ERROR, logger="noti.worker"):
+        run_once(db, get_registry(), driver, now=now)
     assert len(driver.sent_messages) == 1
+    assert calls["n"] == 3
     db.refresh(r)
     assert r.attempts == 1
     assert r.last_error is None
+    assert r.status == "sending"
+    errors = [rec.getMessage() for rec in caplog.records if rec.levelno >= logging.ERROR]
+    assert any(str(r.id) in m for m in errors)
+    assert not any("user@example.com" in m for m in errors)
 
     # Khoá chưa hết hạn nên lần chạy kế không gửi lại
     run_once(db, get_registry(), driver, now=now + timedelta(seconds=1))
@@ -432,10 +442,15 @@ def test_batch_deadline_releases_remaining_without_counting_attempt(db, make_cli
     recs = [create_recipient(db, n.id, f"u{i}@example.com") for i in range(3)]
     db.commit()
 
-    ticks = iter([0.0, 0.0, 10_000.0, 10_000.0, 10_000.0])
+    calls = {"n": 0}
+
+    def clock():
+        calls["n"] += 1
+        return 0.0 if calls["n"] <= 2 else 10_000.0
+
     driver = FakeDriver()
     now = datetime.now(timezone.utc)
-    processed = run_once(db, get_registry(), driver, now=now, clock=lambda: next(ticks))
+    processed = run_once(db, get_registry(), driver, now=now, clock=clock)
     assert processed == 3
     assert len(driver.sent_messages) == 1
     statuses = []
