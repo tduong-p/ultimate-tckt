@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-MAIL-001
 title: Plan — bật email thật trên production (Core → Noti)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -23,12 +23,12 @@ related_code: [infra/compose/docker-compose.production.yml, tools/tests/compose.
 
 ## Global Constraints
 
-- **Việc liên module.** Không code task 2–6 khi issue liên module chưa có dòng "Quyết định họp team" (`AGENTS.md` §3). Task 1 (kiểm kê) và việc xin IT (task 0) làm được ngay.
+- **Việc liên module.** Quyết định ghi trong #63 ngày 2026-10-05: không cần họp team, production dùng SMTP M365 (Graph để sau, #68). Task 3–6 làm được.
 - **Production luôn có `NOTI_RECIPIENT_ALLOWLIST` khác rỗng** (SPEC-MAIL-001 D8). Allowlist rỗng nghĩa là gửi cho mọi người.
 - **Không secret trong repo, log, mô tả PR, comment issue.** Secret chỉ ở `/opt/ultimate-tckt/production/infra/.env` trên VM. Người vận hành tự nhập; agent không nhập mật khẩu hay key.
 - **Cổng host của Noti production là `127.0.0.1:8101`** (staging dùng 8100; cả hai chạy trên cùng một VM).
 - **Thứ tự bắt buộc:** làm tay trên VM (Task 3) **trước** khi merge compose (Task 4), vì compose dùng `${NOTI_DB_USER:?}`; thiếu biến thì mọi lệnh compose production lỗi.
-- **Không deploy khi cổng M1–M3 còn đỏ** ở pha có gửi thật. Pha A (`console`) vẫn cần M4–M6.
+- **Không deploy khi cổng M1–M3 còn đỏ** (M3 = tài khoản SMTP dịch vụ riêng, xem SPEC-MAIL-001) ở pha có gửi thật. Pha A (`console`) vẫn cần M4–M6.
 - PR vào `staging` rồi `staging → main` bằng merge commit; không push thẳng `main`. Mỗi PR: cập nhật tài liệu liên quan, tăng `version`, `updated`, thêm dòng lịch sử, chạy `npm run docs:index`.
 - Trước khi push: `cd core && npm test`, `npm run test:tools && npm run docs:check -- --base origin/staging`.
 
@@ -50,13 +50,9 @@ related_code: [infra/compose/docker-compose.production.yml, tools/tests/compose.
 
 ---
 
-### Task 0: Xin IT cấp quyền Graph (M3) — làm ngay, chạy song song
+### Task 0: ~~Xin IT cấp quyền Graph~~ — bỏ khỏi đợt này
 
-**Files:** không có file code. Kết quả ghi vào issue liên module.
-
-- [ ] **Step 1: Gửi yêu cầu cho IT trường.** Nội dung: xin ứng dụng Microsoft Entra dùng quyền `Mail.Send` kiểu application, **giới hạn theo một hộp thư gửi duy nhất** (Exchange RBAC for Applications hoặc application access policy), ưu tiên chứng chỉ thay cho client secret; hỏi lịch xoay vòng và địa chỉ gửi chính thức; hỏi SPF/DKIM/DMARC của địa chỉ đó.
-- [ ] **Step 2: Ghi vào issue** ngày gửi, người nhận, mã ticket. Không dán tenant ID, client ID hay secret vào issue.
-- [ ] **Step 3: Khi IT trả lời,** kiểm chứng giới hạn: gửi thử từ ứng dụng bằng một hộp thư **khác** hộp thư được cấp, kết quả phải là bị từ chối. Ghi kết quả (đạt/không) vào issue. Đây là bằng chứng cổng M3.
+Quyết định 2026-10-05: production dùng SMTP như staging. Việc xin quyền Graph và chuyển driver chuyển sang issue #68. M3 giờ là: tài khoản SMTP dịch vụ riêng, có người chịu trách nhiệm mật khẩu, xác nhận trong #63.
 
 ### Task 1: Kiểm kê #49 và tách thành việc nhỏ (M1, M2)
 
@@ -87,12 +83,9 @@ related_code: [infra/compose/docker-compose.production.yml, tools/tests/compose.
 - [ ] **Step 3b: Ghi lại** bảng trạng thái vào comment cuối của #49 (không đóng #49 cho tới khi M1 và M2 đủ).
 - [ ] **Step 4: Cổng M1/M2 chỉ xanh khi** mọi dòng ở bảng trên là "đã sửa" và CI của `main` xanh. Cập nhật `docs/dev/email-cron.md` và `docs/dev/noti.md` theo từng PR sửa.
 
-### Task 2: Quyết định họp team cho phần hạ tầng
+### Task 2: ~~Quyết định họp team~~ — đã chốt, không họp
 
-**Files:** issue liên module mới (`.github/ISSUE_TEMPLATE/cross-module.md`).
-
-- [ ] **Step 1:** Tạo issue theo mẫu, trỏ tới SPEC-MAIL-001 và plan này. Điền: module khởi phát = Thông báo/hạ tầng; ảnh hưởng = Điều hành (env), infra, Noti; hợp đồng đổi = env `NOTI_*`/`CORE_NOTI_API_KEY`, compose production, `lib.sh`, `deploy.yml`.
-- [ ] **Step 2:** Chờ dòng "Quyết định họp team" (người chốt, ngày). Task 3–6 chỉ bắt đầu sau dòng này.
+Quyết định ghi ở #63 (2026-10-05): không cần họp team; production dùng SMTP; Graph làm sau (#68).
 
 ### Task 3: Chuẩn bị tay trên VM production (trước khi merge compose)
 
@@ -338,7 +331,7 @@ Expected: `failed` = 0; `oldest_pending_minutes` < 15.
 - [ ] Đọc log `noti-worker`, đối chiếu người nhận với sự kiện; ghi vào issue: không thư sai người, không trùng, không thư lúc 00:00–07:00 giờ VN với nhắc hạn.
 
 **Pha B (nhóm nhỏ, ≥ 5 ngày làm việc), chỉ khi M1–M3 xanh và pha A đạt:**
-- [ ] Đặt `.env`: `NOTI_MAIL_DRIVER=graph`, secret Graph (người vận hành tự nhập), `NOTI_MAIL_FROM=<địa chỉ chính thức>`, `NOTI_RECIPIENT_ALLOWLIST=<3–5 địa chỉ cụ thể>`, `NOTI_REDIRECT_TO=<hộp thư người phụ trách>`. Chạy `deploy.sh production noti <tag đang chạy>`.
+- [ ] Đặt `.env`: `NOTI_MAIL_DRIVER=smtp`, `NOTI_SMTP_*` (người vận hành tự nhập mật khẩu), `NOTI_MAIL_FROM=<địa chỉ chính thức>`, `NOTI_RECIPIENT_ALLOWLIST=<3–5 địa chỉ cụ thể>`, `NOTI_REDIRECT_TO=<hộp thư người phụ trách>`. Chạy `deploy.sh production noti <tag đang chạy>`.
 - [ ] **Kiểm Review Focus 5:** làm một sự kiện có người nhận **ngoài** allowlist; thư phải về `NOTI_REDIRECT_TO` hoặc bị loại, và **không** đến địa chỉ ngoài danh sách. Hỏi người nhận trong nhóm xác nhận đã nhận đúng thư, đúng giờ.
 - [ ] Hằng ngày chạy truy vấn hàng đợi ở trên.
 
@@ -370,3 +363,4 @@ Expected: `failed` = 0; `oldest_pending_minutes` < 15.
 |---|---|---|---|
 | 1.0 | 2026-10-04 | Bản đầu | DYC |
 | 1.1 | 2026-10-05 | Task 1 (M1, M2) xong nhờ PR #66; ghi trạng thái | Claude |
+| 1.2 | 2026-10-05 | Bỏ Task 0 và Task 2; production dùng SMTP; Graph chuyển sang #68 | Claude |
