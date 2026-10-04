@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-NOTI-002
 title: Thiết kế — sửa phần Core của #49 (thông báo Core → Noti gửi sai giờ, trùng, sai người, mất thư)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: TCKT
@@ -38,8 +38,14 @@ PR #65 chỉ đổi cách lấy "hôm nay" (múi giờ), chưa sửa các mục 
 - **Chưa xác nhận**: member và lead `is_active = 1`; `t.assigned_by <> ta.user_id`; chỉ khi `assigned_at` cách `now`
   từ 24 giờ đến dưới 7 ngày (168 giờ). `sourceKey` = `task-unacknowledged:<task>:<member>:<epoch giây của assigned_at>`.
 - **Trễ hạn**: giữ mỗi ngày một thư, key `task-overdue:<task>:<user>:<ngày VN>`.
-- **R12 (idempotency)**: chỉ gọi `notifier.notify` khi `INSERT IGNORE` vào `notifications` chèn được dòng mới. Dòng
-  trong app là dấu "đã gửi"; các lần chạy 15 phút sau không gọi lại.
+- **R12 (idempotency) dùng cột có sẵn `notifications.email_status`** (`ENUM('pending','success','failed')`, hiện luôn
+  `NULL`; không đổi schema). Dòng mới chèn với `email_status = 'pending'`. Scheduler gọi `notify` cho mục tìm thấy khi
+  dòng `(user_id, source_key)` của nó đang `pending` (vừa chèn hoặc lần trước lỗi tạm thời), rồi cập nhật theo kết quả:
+  - gửi được → `success`; bị bỏ vĩnh viễn (`self`, `invalid-email`, `invalid-event`, lỗi 4xx) → `failed`;
+  - lỗi tạm thời sau khi hết lượt retry → giữ `pending`, lần chạy sau thử lại (không mất thư khi Noti chết lâu —
+    tránh bẫy "scheduler gắn thông báo ngoài vào `inserted`" trong `docs/ai/bay-da-gap.md`);
+  - không có sender (`no-sender`) → `NULL`, không thử lại (khi bật sender sau này không gửi bù thư cũ).
+  Dòng `success`/`failed`/`NULL` không bao giờ được gọi lại → hết cảnh gọi Noti mỗi 15 phút cho cùng một thư.
 - Nội dung trong app: "…sẽ đến hạn vào ngày mai (DD/MM)." và "…đến hạn hôm nay."
 
 ## 4. Notifier facade (`core/src/notifier.js`) — mục 3, 6, 7
@@ -52,6 +58,8 @@ PR #65 chỉ đổi cách lấy "hôm nay" (múi giờ), chưa sửa các mục 
 - **Retry có giới hạn**: tối đa 3 lần thử; nghỉ 1 s rồi 3 s (cấu hình được để test). Chỉ thử lại khi lỗi có
   `transient === true` hoặc là timeout của facade. Mỗi lần thử có timeout riêng. Các route vẫn gọi không `await`,
   nên retry không làm chậm response. `sourceKey` ổn định → Noti dedupe, gửi lại an toàn.
+- **Kết quả trả về** thêm `retryable: true` khi lần thử cuối vẫn là lỗi tạm thời (để scheduler giữ `pending`).
+  Các reason: `self`, `invalid-email`, `invalid-event`, `no-sender`, `timeout`, `sender-error`.
 
 ## 5. Sender (`core/src/noti-sender.js`)
 
@@ -81,7 +89,7 @@ PR #65 chỉ đổi cách lấy "hôm nay" (múi giờ), chưa sửa các mục 
 
 - `services.deadline-notifications.test.js`: giờ giả lập VN 00:30, 02:30, 06:59, 07:00, 21:59, 22:00; hạn ngày mai,
   hạn hôm nay, dời hạn, task `review`, chạy hai lần không gọi `notify` lần hai, lead tự giao cho mình, lead/member bị khoá,
-  chưa xác nhận quá 7 ngày.
+  chưa xác nhận quá 7 ngày, Noti lỗi tạm thời giữ `pending` và lần chạy sau gửi lại, `success`/`failed` không gọi lại.
 - `notifier.test.js`: lọc `self`, lọc email sai, retry với lỗi `transient`, không retry với lỗi thường, hết lượt thử.
 - `noti-sender.test.js`: cờ `transient` theo mã HTTP/lỗi mạng, cắt `feedback`, nhãn `priority`.
 - Test route: người nhận nghiệm thu (event_lead, fallback admin, bỏ người nộp), `activity.decided` không có path khi
@@ -101,3 +109,4 @@ PR #65 chỉ đổi cách lấy "hôm nay" (múi giờ), chưa sửa các mục 
 | Version | Ngày | Thay đổi |
 |---|---|---|
 | 1.0 | 2026-10-05 | Bản đầu. |
+| 1.1 | 2026-10-05 | R12 dùng cột `notifications.email_status` để thư lỗi tạm thời được gửi lại (tránh bẫy gắn gửi vào `inserted`); notifier trả `retryable`. |
