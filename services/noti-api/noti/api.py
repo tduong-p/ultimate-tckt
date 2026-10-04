@@ -3,14 +3,14 @@ from pathlib import Path
 from typing import Any
 import uuid
 
-from fastapi import Depends, FastAPI, Query, Request, Response
+from fastapi import Depends, FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from noti.auth import current_client
-from noti.config import settings
+from noti.body_limit import BodyLimitMiddleware
 from noti.db import get_db
 from noti.errors import NotiError, noti_error_handler, validation_error_handler
 from noti.models import ApiClient, Notification, NotificationRecipient
@@ -27,21 +27,7 @@ TEMPLATES_ROOT = Path(__file__).parent.parent / "templates"
 app.state.registry = load_registry(TEMPLATES_ROOT)
 
 
-@app.middleware("http")
-async def limit_body_size(request: Request, call_next):
-    content_length = request.headers.get("content-length")
-    if content_length:
-        try:
-            if int(content_length) > settings.max_body_bytes:
-                return Response(status_code=413)
-        except ValueError:
-            pass
-
-    body = await request.body()
-    if len(body) > settings.max_body_bytes:
-        return Response(status_code=413)
-
-    return await call_next(request)
+app.add_middleware(BodyLimitMiddleware)
 
 
 @app.get("/v1/health")
