@@ -140,6 +140,7 @@
 | [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.2 | active | dev, ops, ai |
 | [SPEC-NOTI-002](specs/2026-10-05-core-noti-49-design.md) | Thiết kế — sửa phần Core của | 1.1 | active | dev, ai |
 | [PLAN-NOTI-003](specs/2026-10-05-core-noti-49-plan.md) | Kế hoạch — sửa phần Core của | 1.1 | active | dev, ai |
+| [SPEC-NOTI-003](specs/2026-10-05-noti-49-design.md) | Thiết kế — sửa phần bên trong Noti của | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
