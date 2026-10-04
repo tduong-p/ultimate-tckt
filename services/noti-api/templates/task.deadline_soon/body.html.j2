@@ -1,7 +1,7 @@
 {% extends "_layout/layout.html.j2" %}
 {% block content %}
 <p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
-<p>Công việc sau của bạn sắp đến hạn hoàn thành (trong vòng <strong>{{ window }}</strong>):</p>
+<p>Công việc sau của bạn sắp đến hạn hoàn thành (<strong>{{ window }}</strong>):</p>
 <div style="background: #fff8c5; border-left: 4px solid #d4a72c; padding: 12px; margin: 16px 0;">
   <p style="margin: 0 0 8px 0;"><strong>Công việc:</strong> (TCKT-{{ task.id }}) {{ task.title }}</p>
   {% if activity is defined and activity.get('title') %}

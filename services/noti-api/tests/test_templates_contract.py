@@ -35,3 +35,12 @@ def test_templates_contract():
         assert "\r" not in out.subject and "\n" not in out.subject, f"Template {key} subject has CRLF"
         assert "style=\"" in out.html, f"Template {key} html should have inlined styles"
         assert out.text, f"Template {key} text should not be empty"
+
+
+def test_deadline_soon_has_no_trong_vong_and_example_window_is_calendar_label():
+    # Core nhắc theo ngày lịch (tasks.deadline là DATE), nên "window" là nhãn như "1 ngày", không phải khoảng giờ.
+    folder = ROOT / "task.deadline_soon"
+    for name in ("body.txt.j2", "body.html.j2"):
+        assert "trong vòng" not in (folder / name).read_text(encoding="utf-8"), name
+    reg = load_registry(ROOT)
+    assert reg.templates["task.deadline_soon"].data_example["window"] == "1 ngày"

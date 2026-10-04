@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [services/noti-api/**]
 ---
 
@@ -28,6 +28,7 @@ services/noti-api/
 ├── noti/
 │   ├── api.py            # FastAPI application & endpoints
 │   ├── auth.py           # Per-client API key authentication
+│   ├── body_limit.py     # Middleware ASGI chặn thân yêu cầu quá lớn (413)
 │   ├── cli.py            # CLI quản trị (create-client, revoke-client, purge)
 │   ├── config.py         # Pydantic settings & env loading
 │   ├── db.py             # SQLAlchemy session & engine
@@ -36,7 +37,7 @@ services/noti-api/
 │   ├── models.py         # SQLAlchemy models (api_clients, notifications, notification_recipients)
 │   ├── queue.py          # Claim (SKIP LOCKED), recover, metrics, purge
 │   ├── recipient_policy.py # Staging allowlist & redirect
-│   ├── status.py         # overall_status calculator
+│   ├── status.py         # overall_status calculator (bỏ qua `suppressed`)
 │   ├── templating.py     # Registry, safe render, sanitize headers, inline CSS
 │   ├── worker.py         # Background worker loop & retry backoff
 │   └── drivers/          # console, smtp, graph
@@ -105,8 +106,26 @@ Mọi biến môi trường có tiền tố `NOTI_` và được liệt kê đ�
 - Driver `graph`: `NOTI_GRAPH_TENANT`, `NOTI_GRAPH_CLIENT_ID`, và chứng chỉ (`NOTI_GRAPH_CERTIFICATE_PATH` +
   `NOTI_GRAPH_CERTIFICATE_THUMBPRINT`, ưu tiên) hoặc `NOTI_GRAPH_CLIENT_SECRET`; `NOTI_MAIL_FROM` là hộp thư chung gửi đi.
 - Staging: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ, phân tách bằng dấu phẩy). Người nhận ngoài danh sách được
-  chuyển về `NOTI_REDIRECT_TO` (hoặc bỏ nếu trống); **CC ngoài danh sách luôn bị bỏ**, không chuyển hướng.
+  chuyển về `NOTI_REDIRECT_TO` (hoặc bỏ nếu trống); **CC và `reply_to` ngoài danh sách luôn bị bỏ**, không chuyển hướng.
+  Người nhận bị bỏ vì allowlist có trạng thái `suppressed` (không phải `sent`, vì chưa có thư nào đi).
   Production để trống danh sách.
+
+### 2.7. Trạng thái người nhận, retry và lỗi
+
+- Trạng thái người nhận: `pending`, `sending`, `sent`, `failed`, `expired`, `suppressed`. `sent` chỉ có nghĩa nhà cung cấp
+  đã nhận thư. `suppressed` = bị allowlist bỏ, không gửi thư nào. Trạng thái tổng bỏ qua `suppressed`; nếu **tất cả**
+  người nhận đều `suppressed` thì trạng thái tổng là `suppressed`.
+- Tối đa `MAX_ATTEMPTS = 6` lần thử (`noti/queue.py`), nghỉ giữa các lần `BACKOFF = [60, 300, 1800, 7200, 43200]` giây
+  (`noti/worker.py`), tổng cửa sổ thử lại xấp xỉ 14,6 giờ; hết lượt thì `failed`. Lỗi `429` tôn trọng `Retry-After` nếu lớn hơn backoff.
+- Phân loại lỗi driver: SMTP `5xx` (trừ `530/534/535`, coi là lỗi cấu hình sửa được → thử lại) và Graph `400/403/404/4xx`
+  là vĩnh viễn (`failed` ngay); mất kết nối, timeout, `5xx`, `429`, Graph `401` và lỗi MSAL tạm thời là thử lại. SMTP kiểm
+  chứng chỉ TLS khi `starttls`; MSAL có timeout.
+- Một lô lấy ra phải xong trước khi khoá 5 phút hết hạn: quá hạn chót của lô thì phần còn lại được trả về `pending`
+  mà **không** tính là một lần thử.
+- Ghi `sent` được thử 3 lần và **không bao giờ** kích hoạt gửi lại. **Rủi ro còn lại:** nếu sau khi thư đã đi mà DB
+  vẫn hỏng lâu hơn thời hạn khoá 5 phút, `recover()` trả dòng về `pending` và thư có thể bị gửi thêm một lần.
+- `POST /v1/notifications/{id}/retry` sau khi dữ liệu đã bị purge (`data` null) trả `409 data_purged`.
+- Thân yêu cầu quá `NOTI_MAX_BODY_BYTES` (mặc định 64 KB) bị từ chối `413` ngay khi vượt, kể cả upload chunked, không đệm cả thân vào bộ nhớ.
 
 ## 3. Quản lý client và API key (CLI)
 
@@ -212,6 +231,7 @@ curl http://localhost:8000/v1/templates \
 | `401` | `unauthorized` | Thiếu hoặc sai API key, hoặc key đã bị thu hồi. |
 | `404` | `not_found` | Không tìm thấy thông báo hoặc thông báo thuộc về client khác. |
 | `409` | `dedupe_key_conflict` | Cùng `dedupe_key` nhưng payload đã bị thay đổi so với lần gọi trước. |
+| `409` | `data_purged` | `POST …/retry` khi dữ liệu thông báo đã bị purge: không thể soạn lại, hãy gửi yêu cầu mới. |
 | `413` | — (thân rỗng) | Kích thước payload vượt quá giới hạn cấu hình (mặc định 64 KB). |
 
 ## 7. Quy ước `dedupe_key`
@@ -224,6 +244,7 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.5 | 2026-10-05 | #49: trạng thái `suppressed`, `MAX_ATTEMPTS = 6`, phân loại lỗi, `/retry` sau purge → 409, giới hạn thân 413, rủi ro gửi lặp còn lại | DYC |
 | 1.3 | 2026-10-02 | Chạy ở staging: compose, CI, việc làm tay trên VM (trỏ OPS-ENV-001 §4a) | DYC |
 | 1.2 | 2026-10-02 | Worker tự purge mỗi giờ; image chạy non-root | DYC |
 | 1.1 | 2026-10-02 | Sửa link tuyệt đối; ghi rõ chưa chạy trên VM; thêm mục cấu hình (graph, allowlist áp cho CC); `dedupe_key` là tuỳ chọn, trỏ về playbook; sửa mã 413 và mô tả 400 | DYC |

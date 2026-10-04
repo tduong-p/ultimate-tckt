@@ -2,7 +2,7 @@
 {% block content %}
 Xin chào {{ recipient_name or "bạn" }},
 
-Công việc sau của bạn sắp đến hạn hoàn thành (trong vòng {{ window }}):
+Công việc sau của bạn sắp đến hạn hoàn thành ({{ window }}):
 - Công việc: (TCKT-{{ task.id }}) {{ task.title }}
 {% if activity is defined and activity.get('title') %}
 - Hoạt động: {{ activity.title }}

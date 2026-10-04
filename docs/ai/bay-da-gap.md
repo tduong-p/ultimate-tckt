@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.11
+version: 1.12
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -126,6 +126,14 @@ xem diff trước khi bấm merge.
 CI chạy UTC, còn Core tính ngày nghiệp vụ theo giờ Việt Nam (`core/src/date-vn.js`). Từ 17:00 đến 24:00 UTC (00:00–07:00 giờ VN) hai ngày này khác nhau,
 nên test tự dựng deadline "hôm nay" bằng `new Date()` / `getDate()` thất bại chập chờn (ví dụ `my-tasks-today.test.js`). Trong test luôn dùng `dateInVietnam()`.
 
+## Noti: `sent` không còn nghĩa "đã gửi" cho thư bị allowlist; gửi lặp khi DB hỏng sau gửi
+
+Trước #49, người nhận bị `NOTI_RECIPIENT_ALLOWLIST` bỏ vẫn được ghi `sent`, nên staging báo "đã gửi" cho thư chưa hề đi.
+Giờ trạng thái là `suppressed` (không tính vào trạng thái tổng; tất cả `suppressed` → tổng `suppressed`). Code đọc
+trạng thái Noti (đếm `sent`, thống kê) phải xử lý `suppressed` như "cố ý không gửi", không phải thành công cũng không phải lỗi.
+Còn một rủi ro đã biết, đã ghi trong SPEC-NOTI-001 §7: nếu thư đã đi mà DB hỏng lâu hơn khoá 5 phút, `recover()` trả dòng
+về `pending` và thư có thể đi thêm một lần. Đừng "sửa" bằng cách cho lỗi ghi `sent` kích hoạt retry; điều đó còn tệ hơn.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -141,4 +149,5 @@ nên test tự dựng deadline "hôm nay" bằng `new Date()` / `getDate()` th�
 | 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
 | 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |
+| 1.12 | 2026-10-05 | #49 Noti: thêm bẫy `suppressed` thay `sent` cho thư bị allowlist, và rủi ro gửi lặp khi DB hỏng sau gửi | DYC |
 | 1.11 | 2026-10-05 | #49: scheduler dùng `email_status` (pending mồ côi); thêm bẫy `tasks.deadline` là `DATE` nên nhắc theo ngày lịch, không theo giờ | DYC |
