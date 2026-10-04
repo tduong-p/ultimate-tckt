@@ -1,12 +1,12 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
-related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml]
+updated: 2026-10-04
+related_code: [services/ctd-api/**, infra/compose/**, infra/scripts/lib.sh, .github/workflows/deploy.yml, core/src/config/database.js]
 ---
 
 # Playbook — thêm module mới
@@ -74,3 +74,4 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 | 1.3 | 2026-10-02 | Bổ sung bước lib.sh cho app nhiều service/health path riêng (theo Noti) | DYC |
 | 1.4 | 2026-10-02 | Module gọi Noti: key riêng qua `.env`, thiếu key chỉ tắt gửi | DYC |
 | 1.5 | 2026-10-03 | Đồng bộ main→staging: seed không được reset mật khẩu đã có hoặc mở khóa tài khoản khi container khởi động lại | DYC |
+| 1.6 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |

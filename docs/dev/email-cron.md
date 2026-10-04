@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 5.0
+version: 5.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
-related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/deadline-notifications.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js]
+updated: 2026-10-04
+related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/deadline-notifications.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js, core/src/config/database.js]
 ---
 
 # Thông báo của Core
@@ -87,3 +87,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 4.2 | 2026-10-02 | Sửa: Noti mới có code, chưa chạy trên VM | DYC |
 | 4.3 | 2026-10-02 | Noti chạy ở staging | DYC |
 | 5.0 | 2026-10-02 | Core gửi sang Noti qua `core/src/noti-sender.js` khi có `NOTI_URL` + `NOTI_API_KEY`; nhãn tiếng Việt và định dạng ngày | DYC |
+| 5.1 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone cho deadline notifications | DYC |

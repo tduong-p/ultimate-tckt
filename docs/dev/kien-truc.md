@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.2
+version: 3.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
-related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js]
+updated: 2026-10-04
+related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/config/database.js]
 ---
 
 # Kiến trúc hệ thống
@@ -82,6 +82,17 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 - `web/` — frontend chung tương lai cho toàn nền tảng (React 18 + TypeScript + Vite), **chưa tạo** ở GĐ1. Xem
   `.kiro/specs/nen-tang-da-don-vi/design.md` §3 cho kiến trúc dự kiến (`shell/`, `ui/`, `modules/<module-id>/`).
 
+## Múi giờ
+
+**Toàn hệ thống dùng giờ Việt Nam (Asia/Ho_Chi_Minh, UTC+7) làm chuẩn duy nhất.**
+
+- Node.js: `process.env.TZ = 'Asia/Ho_Chi_Minh'` (đặt ở `core/app.js` dòng đầu)
+- MySQL connection: `timezone: '+07:00'` (trong `core/src/config/database.js`)
+- MySQL server: `--default-time-zone='+07:00'` (trong Docker Compose)
+- Mọi cột `DATETIME`/`TIMESTAMP` lưu giờ Việt Nam, không phải UTC
+
+Chi tiết: **DEV-TZ-001** (`docs/dev/mui-gio.md`) — quy ước, cách dùng đúng, testing, troubleshooting.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -92,3 +103,4 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 | 3.0 | 2026-09-30 | Làm rõ flow middleware đa đơn vị: pipeline 8 bước từ helmet→error handler, chi tiết loadUnitContext + legacyGate + req.actor | DYC |
 | 3.1 | 2026-10-02 | Core không còn email rule engine; có facade `notifier` | DYC |
 | 3.2 | 2026-10-02 | Facade `notifier` có sender HTTP sang Noti | DYC |
+| 3.3 | 2026-10-04 | Thêm mục "Múi giờ" - toàn hệ thống dùng Asia/Ho_Chi_Minh (UTC+7), xem DEV-TZ-001 | DYC |
