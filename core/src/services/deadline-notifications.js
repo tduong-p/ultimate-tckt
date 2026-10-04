@@ -4,31 +4,46 @@ const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
 
 async function findUpcomingDeadlines(db, now = new Date()) {
   const [rows] = await db.execute(
-    `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,a.title activity_title,u.id user_id,u.name user_name,u.email user_email
-     FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id JOIN users u ON u.id=ta.user_id AND u.is_active=1
-     WHERE t.status NOT IN ('done','cancelled') AND (TIMESTAMPDIFF(HOUR,?,t.deadline) IN (24,4) OR DATEDIFF(t.deadline,?) = 1)`,
-    [now, dateInVietnam(now)]
+    `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,
+            a.title activity_title,
+            u.id user_id,u.name user_name,u.email user_email
+     FROM tasks t JOIN activities a ON a.id=t.activity_id 
+                  JOIN task_assignees ta ON ta.task_id=t.id 
+                  JOIN users u ON u.id=ta.user_id AND u.is_active=1
+     WHERE t.status NOT IN ('done','cancelled') 
+            AND (TIMESTAMPDIFF(HOUR,NOW(),t.deadline) IN (24,4) 
+            OR DATEDIFF(t.deadline,CURDATE()) = 1)`
   );
   return rows;
 }
 
-async function findOverdueTasks(db, now = new Date()) {
+async function findOverdueTasks(db) {
   const [rows] = await db.execute(
-    `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,a.title activity_title,u.id user_id,u.name user_name,u.email user_email
-     FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id JOIN users u ON u.id=ta.user_id AND u.is_active=1
-     WHERE t.status NOT IN ('done','cancelled') AND t.deadline<?`,
-    [dateInVietnam(now)]
+    `SELECT t.id task_id,t.title task_title,t.deadline,t.activity_id,
+            a.title activity_title,
+            u.id user_id,u.name user_name,u.email user_email
+     FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id 
+                  JOIN users u ON u.id=ta.user_id AND u.is_active=1
+     WHERE t.status NOT IN ('done','cancelled') AND t.deadline<CURDATE()`
   );
   return rows;
 }
 
-async function findUnacknowledgedAssignments(db, now = new Date()) {
+async function findUnacknowledgedAssignments(db) {
   const [rows] = await db.execute(
-    `SELECT t.id task_id,t.title task_title,t.activity_id,a.title activity_title,ta.user_id member_id,member.name member_name,t.assigned_by lead_id,\`lead\`.email lead_email,\`lead\`.name lead_name
-     FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN task_assignees ta ON ta.task_id=t.id JOIN users member ON member.id=ta.user_id
-     LEFT JOIN users \`lead\` ON \`lead\`.id=t.assigned_by
-     WHERE ta.acknowledged_at IS NULL AND t.status NOT IN ('done','cancelled') AND TIMESTAMPDIFF(HOUR,ta.assigned_at,?)>=24 AND t.assigned_by IS NOT NULL`,
-    [now]
+    `SELECT t.id task_id,t.title task_title,t.activity_id,
+            a.title activity_title,
+            ta.user_id member_id,
+            member.name member_name,
+            t.assigned_by lead_id,\`lead\`.email lead_email,\`lead\`.name lead_name
+     FROM tasks t JOIN activities a ON a.id=t.activity_id 
+                  JOIN task_assignees ta ON ta.task_id=t.id 
+                  JOIN users member ON member.id=ta.user_id
+                  LEFT JOIN users \`lead\` ON \`lead\`.id=t.assigned_by
+     WHERE ta.acknowledged_at IS NULL 
+            AND t.status NOT IN ('done','cancelled') 
+            AND TIMESTAMPDIFF(HOUR,ta.assigned_at,NOW())>=24 
+            AND t.assigned_by IS NOT NULL`
   );
   return rows;
 }
@@ -46,7 +61,7 @@ async function runDeadlineNotifications({ db, notifier, logger, now = new Date()
   await db.execute('DELETE FROM notifications WHERE expires_at<=NOW()');
   let created = 0;
 
-  const upcoming = await findUpcomingDeadlines(db, now);
+  const upcoming = await findUpcomingDeadlines(db);
   for (const item of upcoming) {
     const hoursLeft = Math.round((new Date(item.deadline) - now) / 3600000);
     const window = hoursLeft <= 4 ? '4h' : '24h';
@@ -59,7 +74,7 @@ async function runDeadlineNotifications({ db, notifier, logger, now = new Date()
     notifier.notify({ event: 'task.deadline_soon', recipient: { id: item.user_id, name: item.user_name, email: item.user_email }, data: { window, task: { id: item.task_id, title: item.task_title, path: url, deadline: item.deadline }, activity: { title: item.activity_title } }, sourceKey });
   }
 
-  const overdue = await findOverdueTasks(db, now);
+  const overdue = await findOverdueTasks(db);
   for (const item of overdue) {
     const title = 'Công việc trễ hạn';
     const body = `"${item.task_title}" trong "${item.activity_title}" đã quá hạn.`;
@@ -70,7 +85,7 @@ async function runDeadlineNotifications({ db, notifier, logger, now = new Date()
     notifier.notify({ event: 'task.overdue', recipient: { id: item.user_id, name: item.user_name, email: item.user_email }, data: { task: { id: item.task_id, title: item.task_title, path: url, deadline: item.deadline }, activity: { title: item.activity_title } }, sourceKey });
   }
 
-  const unacknowledged = await findUnacknowledgedAssignments(db, now);
+  const unacknowledged = await findUnacknowledgedAssignments(db);
   for (const item of unacknowledged) {
     if (!item.lead_id) continue;
     const title = 'Thành viên chưa xác nhận nhận việc';
