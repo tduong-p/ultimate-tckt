@@ -1,12 +1,12 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-03
-related_code: [infra/compose/**, infra/nginx/**, infra/.env.example]
+updated: 2026-10-04
+related_code: [infra/compose/**, infra/nginx/**, infra/.env.example, core/src/config/database.js]
 ---
 
 # Môi trường staging và production
@@ -112,3 +112,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.2 | 2026-10-02 | Thêm Noti trên staging: cổng 8100, biến `NOTI_*`, việc làm tay một lần (mục 4a) | DYC |
 | 1.3 | 2026-10-02 | Thêm `CORE_NOTI_API_KEY`; mục 4a: cách tạo key cho Core và bật gửi | DYC |
 | 1.4 | 2026-10-03 | Bỏ khẳng định sai về SMTP và khoá mã hoá cấu hình (code Core không còn dùng); biến chỉ còn là di sản của compose | DYC |
+| 1.5 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |
