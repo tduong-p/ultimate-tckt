@@ -58,6 +58,27 @@ test('backup.sh writes both dumps under backups/', () => {
   assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-ctd\.sql\.gz$/.test(f)), files.join(','));
 });
 
+test('backup.sh dumps the noti database too when it exists on ctd-db', () => {
+  const sb = makeSandbox({ dockerOut: { "datname='noti'": '1\n' } });
+  const r = sb.run('backup.sh', ['staging']);
+  assert.equal(r.status, 0, r.stderr);
+  const c = sb.calls().join('\n');
+  assert.match(c, /exec -T ctd-db sh -c pg_dump --clean --if-exists -U "\$POSTGRES_USER" noti/);
+  const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));
+  assert.ok(files.some((f) => /^staging-\d{8}-\d{4}-noti\.sql\.gz$/.test(f)), files.join(','));
+  assert.match(r.stdout, /-noti\.sql\.gz/);
+});
+
+test('backup.sh skips the noti dump when the database does not exist', () => {
+  const sb = makeSandbox();
+  const r = sb.run('backup.sh', ['staging']);
+  assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(sb.calls().join('\n'), /pg_dump .* noti/);
+  const files = fs.readdirSync(path.join(sb.root, 'opt', 'backups'));
+  assert.ok(!files.some((f) => f.includes('-noti.')), files.join(','));
+  assert.doesNotMatch(r.stdout, /noti/);
+});
+
 test('backup.sh on the old stack uses given compose args and tckt-db service', () => {
   const sb = makeSandbox();
   const r = sb.run('backup.sh', ['staging'], { UT_BACKUP_COMPOSE_ARGS: '-p old-staging -f /x.yml' });
@@ -65,6 +86,7 @@ test('backup.sh on the old stack uses given compose args and tckt-db service', (
   const c = sb.calls().join('\n');
   assert.match(c, /docker compose -p old-staging -f \/x\.yml exec -T tckt-db sh -c mysqldump/);
   assert.match(c, /docker compose -p old-staging -f \/x\.yml exec -T ctd-db sh -c pg_dump/);
+  assert.doesNotMatch(c, /pg_database|noti/); // stack cũ không có noti: không kiểm tra, không dump
 });
 
 test('migrate-volumes.sh copies each old volume into its new name', () => {
