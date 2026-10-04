@@ -151,6 +151,8 @@ def retry_notification(
     )
     if not noti:
         raise NotiError(404, "not_found")
+    if noti.data is None:
+        raise NotiError(409, "data_purged")
 
     for r in noti.recipients:
         if r.status == "failed":
