@@ -138,6 +138,8 @@
 | [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.2 | active | dev, ops, ai |
 | [PLAN-REL-002](specs/2026-10-03-phat-hanh-dot-1-ha-tang-plan.md) | Plan — sửa hạ tầng và CI sau rà soát phát hành đợt 1 | 1.1 | active | dev, ops, ai |
 | [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.2 | active | dev, ops, ai |
+| [SPEC-MAIL-001](specs/2026-10-04-mail-production-design.md) | Thiết kế bật email thật trên production (Core → Noti) — Đợt 2 | 1.1 | active | dev, ai |
+| [PLAN-MAIL-001](specs/2026-10-04-mail-production-plan.md) | Plan — bật email thật trên production (Core → Noti) | 1.1 | active | dev, ai |
 | [SPEC-NOTI-002](specs/2026-10-05-core-noti-49-design.md) | Thiết kế — sửa phần Core của | 1.1 | active | dev, ai |
 | [PLAN-NOTI-003](specs/2026-10-05-core-noti-49-plan.md) | Kế hoạch — sửa phần Core của | 1.1 | active | dev, ai |
 | [SPEC-NOTI-003](specs/2026-10-05-noti-49-design.md) | Thiết kế — sửa phần bên trong Noti của | 1.1 | active | dev, ai |
