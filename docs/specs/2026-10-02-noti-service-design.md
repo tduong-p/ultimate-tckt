@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.5
+version: 1.8
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [services/noti-api/**]
 ---
 
@@ -105,17 +105,17 @@ Mọi route (trừ health) yêu cầu `Authorization: Bearer <api-key>`; thiếu
 | `dedupe_key` đã có, nội dung giống | `200` | cùng dạng thân như `202`, `id` và `status` hiện tại của bản cũ |
 | `dedupe_key` đã có, nội dung khác | `409` | `{ "error": "dedupe_key_conflict", "id": "<bản cũ>" }` |
 | Thân sai cấu trúc, template không có/không được phép, thiếu biến bắt buộc, thử render lỗi, `recipients` rỗng/quá giới hạn | `400` | `{ "error": "validation_error", "details": […] }` |
-| Thân vượt giới hạn kích thước | `413` | — |
+| Thân vượt giới hạn kích thước | `413` | — (từ chối ngay khi vượt, kể cả upload chunked, không đệm cả thân) |
 
 Mã `422` mặc định của FastAPI được ghi đè về `400` ở một chỗ duy nhất để người gọi chỉ phải xử lý một dạng lỗi.
 
-Giới hạn: tối đa **50 người nhận** mỗi yêu cầu; thân yêu cầu tối đa **64 KB** (chặn ở tầng uvicorn/proxy, không chỉ ở ứng dụng); `dedupe_key` tối đa 255 ký tự.
+Giới hạn: tối đa **50 người nhận** mỗi yêu cầu; thân yêu cầu tối đa **64 KB** (middleware ASGI `noti/body_limit.py` chặn ngay khi vượt, kể cả upload chunked; vẫn nên chặn thêm ở proxy); `dedupe_key` tối đa 255 ký tự.
 Mỗi client có **danh sách template được phép** (cột `allowed_templates` của `api_clients`; rỗng = tất cả); gọi template ngoài danh sách → `400`.
 
 ### Các route khác
 - `GET /v1/notifications/{id}` → trạng thái từng người nhận, số lần thử, lỗi cuối, `template_version`. Yêu cầu của client khác trả `404` (không lộ sự tồn tại).
 - `GET /v1/notifications?dedupe_key=…` → tra theo khoá chống trùng trong phạm vi client gọi.
-- `POST /v1/notifications/{id}/retry` → đặt lại các người nhận `failed` về `pending` (chỉ client tạo ra nó; `404` nếu client khác).
+- `POST /v1/notifications/{id}/retry` → đặt lại các người nhận `failed` về `pending` (chỉ client tạo ra nó; `404` nếu client khác; `409 data_purged` nếu dữ liệu thông báo đã bị dọn, vì không còn gì để soạn lại).
 - `GET /v1/templates` → danh sách template, biến bắt buộc/tuỳ chọn và dữ liệu mẫu, lọc theo quyền của client.
 - `GET /v1/health` (không cần key) → `{ "status": "ok" }`, dùng cho healthcheck compose.
 
@@ -127,10 +127,10 @@ API được tài liệu hoá qua OpenAPI của FastAPI; thay đổi phá vỡ t
 |---|---|
 | `api_clients` | `id`, `name` (unique), `key_hash`, `allowed_templates` (text[]), `created_at`, `revoked_at` |
 | `notifications` | `id` (uuid), `client_id`, `template`, `template_version`, `data` (jsonb, null được sau khi dọn), `payload_hash`, `dedupe_key` (null được), `cc`, `reply_to`, `priority`, `expires_at`, `source_ref`, `created_at`; **unique `(client_id, dedupe_key)`** khi `dedupe_key` không null |
-| `notification_recipients` | `id`, `notification_id`, `email`, `name`, `variables` (jsonb), `status` (`pending`/`sending`/`sent`/`failed`/`expired`), `attempts`, `next_attempt_at`, `locked_until`, `last_error`, `sent_at` |
+| `notification_recipients` | `id`, `notification_id`, `email`, `name`, `variables` (jsonb), `status` (`pending`/`sending`/`sent`/`failed`/`expired`/`suppressed`), `attempts`, `next_attempt_at`, `locked_until`, `last_error`, `sent_at` |
 
 **Trạng thái tổng** suy ra từ người nhận, không lưu riêng: `pending` nếu còn người `pending`/`sending`; ngược lại `sent` nếu tất cả `sent`;
-`failed` nếu không ai `sent`; còn lại (có cả `sent` lẫn `failed`/`expired`) là `partial`.
+`failed` nếu không ai `sent`; còn lại (có cả `sent` lẫn `failed`/`expired`) là `partial`. Người nhận `suppressed` (bị allowlist bỏ, §10) **không được tính** vào phép suy ra này; chỉ khi **tất cả** đều `suppressed` thì trạng thái tổng là `suppressed`.
 
 Dữ liệu chứa email và tên người (dữ liệu cá nhân): xem §12.
 
@@ -143,11 +143,12 @@ Dữ liệu chứa email và tên người (dữ liệu cá nhân): xem §12.
 - **Timeout của driver là 30 giây**, luôn nhỏ hơn thời gian khoá, để một lần gửi chậm không bị worker khác lấy trùng.
 - Gửi **từng người nhận một**; lỗi của một người không ảnh hưởng người khác.
 - **Render lỗi lúc gửi là lỗi vĩnh viễn** (`failed` ngay, không retry), vì thử lại cũng cho cùng kết quả. Thử render đã chạy lúc nhận yêu cầu nên trường hợp này chỉ xảy ra khi template đổi giữa chừng; `template_version` (băm nội dung thư mục template) được lưu để biết thư đã soạn bằng bản nào.
-- Phân loại lỗi: **tạm thời** (mất kết nối, timeout, `5xx` từ nhà cung cấp) → backoff `1 phút, 5 phút, 30 phút, 2 giờ, 12 giờ`, tối đa **5 lần**, sau đó `failed`. **`429`**: tôn trọng `Retry-After` của nhà cung cấp (lấy giá trị lớn hơn giữa nó và backoff). **Vĩnh viễn** (địa chỉ không hợp lệ, từ chối kiểu người nhận không tồn tại, lỗi xác thực cấu hình) → `failed` ngay.
+- Phân loại lỗi: **tạm thời** (mất kết nối, timeout, `5xx` từ nhà cung cấp) → backoff `1 phút, 5 phút, 30 phút, 2 giờ, 12 giờ`, tối đa **6 lần thử** (`MAX_ATTEMPTS`; 5 khoảng nghỉ, cửa sổ thử lại xấp xỉ 14,6 giờ), sau đó `failed`. **`429`**: tôn trọng `Retry-After` của nhà cung cấp (lấy giá trị lớn hơn giữa nó và backoff). **Vĩnh viễn** (địa chỉ không hợp lệ, từ chối kiểu người nhận không tồn tại, lỗi quyền/yêu cầu sai như Graph `400/403/404`, SMTP `5xx`) → `failed` ngay. Riêng lỗi xác thực sửa được (SMTP `530/534/535`, Graph `401`, lỗi MSAL tạm thời) coi là tạm thời để thử lại sau khi sửa cấu hình. SMTP kiểm chứng chỉ TLS; MSAL có timeout; lỗi MSAL `invalid_client`/`unauthorized_client`/`invalid_scope`/`invalid_request` vẫn là vĩnh viễn.
+- **Hạn chót của lô:** lô lấy ra phải gửi xong trước khi khoá hết hạn; quá hạn chót thì phần còn lại được trả về `pending` mà không tính là một lần thử.
 - Vòng lặp ngủ 2 giây khi không có việc.
 - **Giới hạn tốc độ**: `NOTI_SEND_RATE_PER_MINUTE` (mặc định 30) áp dụng **theo từng tiến trình worker**. v1 chạy **đúng một** worker để giới hạn có nghĩa; khi cần nhiều worker thì chuyển giới hạn sang token bucket trong DB (việc để sau, §14). `SKIP LOCKED` vẫn bảo đảm nhiều worker không lấy trùng, nên việc tăng sau này không đổi hợp đồng.
-- **Giới hạn đã biết:** gửi theo kiểu "ít nhất một lần". Nếu worker chết sau khi nhà cung cấp nhận thư nhưng trước khi ghi `sent`, người nhận có thể nhận trùng một lần. Chấp nhận, vì xác suất thấp và hậu quả nhỏ.
-- **Ý nghĩa của `sent`:** nhà cung cấp **đã nhận** thư (với Graph là lệnh `sendMail` trả `202`). Thư bị trả lại về sau (NDR/bounce) **không** được theo dõi ở v1.
+- **Giới hạn đã biết:** gửi theo kiểu "ít nhất một lần". Nếu worker chết sau khi nhà cung cấp nhận thư nhưng trước khi ghi `sent`, người nhận có thể nhận trùng một lần. Chấp nhận, vì xác suất thấp và hậu quả nhỏ. Việc ghi `sent` được thử 3 lần và lỗi ghi **không bao giờ** gây gửi lại; còn lại một rủi ro: nếu DB hỏng kéo dài hơn thời hạn khoá 5 phút sau một lần gửi thành công, `recover()` trả dòng về `pending` và thư có thể đi thêm một lần.
+- **Ý nghĩa của `sent`:** nhà cung cấp **đã nhận** thư (với Graph là lệnh `sendMail` trả `202`). Thư bị trả lại về sau (NDR/bounce) **không** được theo dõi ở v1. Người nhận bị allowlist bỏ có trạng thái riêng `suppressed`, không bao giờ là `sent`.
 - **Thử lại thủ công** (`POST …/retry`): đặt `attempts = 0`, `next_attempt_at = now()`, chỉ cho người nhận `failed`; người nhận `expired` không retry (cần gửi yêu cầu mới với `dedupe_key` khác).
 - Điều kiện xem xét thay hàng đợi bằng thư viện hoặc broker: nhu cầu lên lịch phức tạp, nhiều loại job ngoài email, nhiều worker cần giới hạn tốc độ chung, hoặc thông lượng vượt vài chục thư mỗi giây.
 
@@ -159,7 +160,7 @@ Theo mô hình idempotency key đã dùng rộng rãi (Stripe, Adyen, bản nhá
 - Cài đặt không có cửa sổ đua: `INSERT … ON CONFLICT (client_id, dedupe_key) DO NOTHING RETURNING id`; nếu không trả dòng nào thì `SELECT` bản có sẵn rồi so `payload_hash`. Cùng hash → `200` bản cũ; khác hash → `409 dedupe_key_conflict`.
 - **`payload_hash` chuẩn hoá** để hai lần gọi giống nhau về nghĩa cho cùng một hash: JSON khoá sắp xếp, UTF-8 chuẩn NFC, email hạ chữ thường, danh sách `recipients`/`cc` sắp xếp theo email và loại trùng; băm tính trên `template + recipients + cc + reply_to + data` **sau khi đã bỏ biến thừa** (biến không khai trong `meta.yaml`). `priority`, `expires_at`, `source_ref` **không** vào hash (thay đổi chúng không làm thành thông báo khác).
 - Key do **người gọi tạo từ định danh nghiệp vụ** và phải chứa yếu tố làm sự kiện khác nhau khi cần lặp lại hợp lệ (ngày, số lần).
-  Ví dụ: `task-deadline-24h:120:7:2026-10-02`, `task-assigned:120:7`. Core đã có sẵn `source_key` cho thông báo trong ứng dụng; dùng chính chuỗi đó làm `dedupe_key` để hai kênh cùng một sự kiện cùng một khoá.
+  Ví dụ: `task-deadline-1d:120:7:2026-10-02`, `task-assigned:120:7`. Core đã có sẵn `source_key` cho thông báo trong ứng dụng; dùng chính chuỗi đó làm `dedupe_key` để hai kênh cùng một sự kiện cùng một khoá.
 - Không có key → không chống trùng; Noti không đoán.
 - Key sống cùng vòng đời bản ghi (90 ngày, §12). Sau đó có thể gửi lại cùng key.
 - Gọi lại cùng key khi bản cũ đã `failed` → vẫn trả bản cũ; muốn gửi lại dùng `POST …/retry`.
@@ -193,7 +194,7 @@ templates/
 | `task.response` | phản hồi công việc |
 | `task.review_requested` | nộp nghiệm thu (2 chỗ) |
 | `task.reviewed` | kết quả nghiệm thu |
-| `task.deadline_soon` | scheduler: sắp đến hạn (24h/4h) |
+| `task.deadline_soon` | scheduler: sắp đến hạn (nhắc theo ngày lịch, `window` là nhãn như "1 ngày") |
 | `task.overdue` | scheduler: quá hạn |
 | `task.unacknowledged` | scheduler: chưa xác nhận nhận việc |
 | `system.test` | gửi thử cấu hình (quản trị) |
@@ -212,7 +213,7 @@ templates/
 - Basic auth SMTP của Exchange Online đang bị Microsoft tắt dần (mặc định tắt cuối 12/2026 cho tenant hiện có; mốc có thể đổi), nên không xây trên đó. `graph` dùng OAuth và cần **admin trường cấp quyền `Mail.Send` kiểu application**. Việc xin quyền chạy song song, không chặn code vì `console` và `smtp` đủ để phát triển và kiểm thử.
 - **Yêu cầu khi xin quyền:** `Mail.Send` kiểu application mặc định cho phép gửi **từ mọi hộp thư** trong tenant. Phải xin IT **giới hạn phạm vi theo hộp thư gửi duy nhất** (Exchange *RBAC for Applications* hoặc application access policy) và dùng một **hộp thư chung riêng cho Noti**, không dùng hộp thư cá nhân.
 - Ưu tiên **chứng chỉ** thay cho client secret; secret nếu dùng phải có lịch xoay vòng (≤ 12 tháng) và người chịu trách nhiệm.
-- **Staging không được gửi cho người thật** trừ khi có danh sách cho phép: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ); thư tới địa chỉ ngoài danh sách bị chuyển hướng về `NOTI_REDIRECT_TO` (một hộp thư thử) hoặc bỏ; địa chỉ CC ngoài danh sách luôn bị bỏ. Production để trống danh sách (gửi thẳng).
+- **Staging không được gửi cho người thật** trừ khi có danh sách cho phép: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ); thư tới địa chỉ ngoài danh sách bị chuyển hướng về `NOTI_REDIRECT_TO` (một hộp thư thử) hoặc bỏ; địa chỉ CC và `reply_to` ngoài danh sách luôn bị bỏ. Người nhận bị bỏ được đánh dấu `suppressed` (không phải `sent`). Production để trống danh sách (gửi thẳng).
 - Mọi secret chỉ qua biến môi trường, không vào repo hay log.
 
 ## 11. Xác thực
@@ -293,6 +294,9 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 | 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
 | 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
 | 1.5 | 2026-10-02 | Trạng thái: chạy ở staging | DYC |
+| 1.7 | 2026-10-05 | #49: trạng thái `suppressed`, `MAX_ATTEMPTS` 6, phân loại lỗi, `/retry` 409 `data_purged`, giới hạn thân, rủi ro gửi lặp còn lại | DYC |
+| 1.8 | 2026-10-05 | #49: làm rõ lỗi cấu hình MSAL (invalid_client…) vẫn vĩnh viễn | DYC |
+| 1.6 | 2026-10-05 | Ví dụ khoá nhắc hạn đổi sang `task-deadline-1d` (Core nhắc theo ngày lịch, #49) | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |

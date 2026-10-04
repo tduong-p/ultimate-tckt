@@ -6,6 +6,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 
+MAX_ATTEMPTS = 6
+
+
 @dataclass
 class Claimed:
     recipient_id: int
@@ -39,7 +42,7 @@ RETURNING r.id AS recipient_id, r.notification_id, r.email, r.name, r.variables,
 """)
 
 
-def recover(db: Session, now: Optional[datetime] = None, max_attempts: int = 5) -> None:
+def recover(db: Session, now: Optional[datetime] = None, max_attempts: int = MAX_ATTEMPTS) -> None:
     if now is None:
         now = datetime.now(timezone.utc)
 
@@ -140,6 +143,35 @@ def mark_failed(db: Session, recipient_id: int, error: str, now: Optional[dateti
     WHERE id = :rid
     """)
     db.execute(sql, {"error": error, "now": now, "rid": recipient_id})
+
+
+def mark_suppressed(
+    db: Session,
+    recipient_id: int,
+    error: str = "dropped by allowlist",
+    now: Optional[datetime] = None,
+) -> None:
+    if now is None:
+        now = datetime.now(timezone.utc)
+    sql = text("""
+    UPDATE notification_recipients
+    SET status = 'suppressed', sent_at = NULL, finished_at = :now, locked_until = NULL, last_error = :error
+    WHERE id = :rid
+    """)
+    db.execute(sql, {"now": now, "error": error, "rid": recipient_id})
+
+
+def release(db: Session, recipient_id: int, now: Optional[datetime] = None) -> None:
+    """Trả dòng về pending mà không tính là một lần thử (claim đã +1 attempts)."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+    sql = text("""
+    UPDATE notification_recipients
+    SET status = 'pending', attempts = GREATEST(attempts - 1, 0), locked_until = NULL,
+        next_attempt_at = :now, finished_at = NULL
+    WHERE id = :rid
+    """)
+    db.execute(sql, {"now": now, "rid": recipient_id})
 
 
 def metrics(db: Session, now: Optional[datetime] = None) -> dict[str, Any]:

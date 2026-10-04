@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.14
+version: 1.16
 status: draft
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
-related_code: [core/src/**, core/public/**, core/tests/**, core/app.js, services/ctd-api/backend/app/seeds/**, services/ctd-api/backend/tests/**, tools/test-fixtures/**]
+updated: 2026-10-04
+related_code: [core/src/**, core/public/**, core/tests/**, core/app.js, services/ctd-api/backend/app/seeds/**, services/ctd-api/backend/tests/**, tools/test-fixtures/**, core/src/config/database.js, core/src/date-vn.js]
 ---
 
 # MVP Điều hành pilot — Implementation Plan
@@ -624,3 +624,5 @@ trước khi tạo trên GitHub.
 | 1.11 | 2026-10-02 | Cập nhật kế hoạch pilot | DYC |
 | 1.13 | 2026-10-03 | Sửa dòng lịch sử 1.11 bị lỗi mã hoá và nằm nhầm trong bảng lộ trình PR | DYC |
 | 1.14 | 2026-10-03 | Đính chính Task seed admin: không ép `is_active`, theo hotfix #57 | DYC |
+| 1.15 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
+| 1.16 | 2026-10-04 | Thêm timezone fix toàn hệ thống - sửa lỗi deadline notification sai giờ | DYC |

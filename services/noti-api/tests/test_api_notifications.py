@@ -131,6 +131,26 @@ def test_retry_endpoint(client, db, make_client):
     assert rec.attempts == 0
 
 
+def test_retry_after_purge_is_409_data_purged_and_changes_nothing(client, db, make_client):
+    _, key = make_client()
+    nid = client.post("/v1/notifications", json=body(), headers=auth(key)).json()["id"]
+
+    noti = db.get(Notification, uuid.UUID(nid))
+    noti.data = None
+    rec = db.query(NotificationRecipient).filter_by(notification_id=uuid.UUID(nid)).one()
+    rec.status = "failed"
+    rec.attempts = 3
+    db.commit()
+
+    res = client.post(f"/v1/notifications/{nid}/retry", headers=auth(key))
+    assert res.status_code == 409
+    assert res.json()["error"] == "data_purged"
+
+    db.refresh(rec)
+    assert rec.status == "failed"
+    assert rec.attempts == 3
+
+
 def test_templates_listing_filtered(client, make_client):
     _, key_all = make_client("all_user")
     r_all = client.get("/v1/templates", headers=auth(key_all))

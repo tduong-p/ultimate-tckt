@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import logging
 import uuid
 import pytest
 
@@ -8,6 +9,9 @@ from noti.status import overall_status
 from noti.templating import get_registry
 from noti.worker import (
     BACKOFF,
+    DRIVER_CALLS_PER_SEND,
+    DRIVER_TIMEOUT_SECONDS,
+    LOCK_SECONDS,
     MAX_ATTEMPTS,
     PURGE_INTERVAL_SECONDS,
     batch_size_for,
@@ -163,11 +167,11 @@ def test_worker_permanent_error_fails_immediately(db, make_client):
     assert "[REDACTED_EMAIL]" in r.last_error
 
 
-def test_worker_transient_fifth_attempt_fails(db, make_client):
+def test_worker_transient_last_attempt_fails(db, make_client):
     c, _ = make_client()
     n = create_notification(db, c.id)
-    # Already attempted 4 times, next claim will make attempts == 5
-    r = create_recipient(db, n.id, "flaky@example.com", attempts=4)
+    # Already attempted MAX_ATTEMPTS-1 times, next claim will make attempts == MAX_ATTEMPTS
+    r = create_recipient(db, n.id, "flaky@example.com", attempts=MAX_ATTEMPTS - 1)
     db.commit()
 
     registry = get_registry()
@@ -180,7 +184,7 @@ def test_worker_transient_fifth_attempt_fails(db, make_client):
 
     db.refresh(r)
     assert r.status == "failed"
-    assert r.attempts == 5
+    assert r.attempts == MAX_ATTEMPTS
     assert "Max attempts reached" in r.last_error
 
 
@@ -227,7 +231,7 @@ def test_worker_render_error_fails_immediately_without_retry(db, make_client):
     assert "Template" in r.last_error or "Render error" in r.last_error
 
 
-def test_worker_crash_recovery_terminates_at_five_attempts(db, make_client):
+def test_worker_crash_recovery_terminates_at_max_attempts(db, make_client):
     from noti.queue import claim_next, recover
     c, _ = make_client()
     n = create_notification(db, c.id)
@@ -235,8 +239,8 @@ def test_worker_crash_recovery_terminates_at_five_attempts(db, make_client):
     r = create_recipient(db, n.id, "crasher@example.com", next_attempt_at=now - timedelta(seconds=1))
     db.commit()
 
-    # Simulate 5 crashes (worker claims item -> attempts incremented -> worker dies without completing -> lock expires)
-    for attempt in range(1, 6):
+    # Simulate MAX_ATTEMPTS crashes (worker claims item -> attempts incremented -> worker dies without completing -> lock expires)
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         # 1. Worker claims
         claimed = claim_next(db, limit=10, now=now)
         assert len(claimed) == 1
@@ -245,13 +249,13 @@ def test_worker_crash_recovery_terminates_at_five_attempts(db, make_client):
         # 2. Worker crashes! Time moves forward 10 minutes (lock expires)
         now += timedelta(minutes=10)
 
-    # After 5th crash and lock expiration, recover should turn it into 'failed'
-    recover(db, now=now, max_attempts=5)
+    # After the last crash and lock expiration, recover should turn it into 'failed'
+    recover(db, now=now, max_attempts=MAX_ATTEMPTS)
     db.commit()
 
     db.refresh(r)
     assert r.status == "failed"
-    assert r.attempts == 5
+    assert r.attempts == MAX_ATTEMPTS
 
     # Should no longer be claimable
     claimed = claim_next(db, limit=10, now=now)
@@ -278,8 +282,9 @@ def test_worker_recipient_policy_dropped(db, make_client, monkeypatch):
     assert len(driver.sent_messages) == 0
 
     db.refresh(r)
-    # Marked sent with last_error to prevent retry or false failure alert
-    assert r.status == "sent"
+    # Suppressed (not sent) so it is neither retried nor counted as delivered
+    assert r.status == "suppressed"
+    assert r.sent_at is None
     assert r.last_error == "dropped by allowlist"
 
 
@@ -355,4 +360,116 @@ def test_batch_fits_inside_lock_even_if_every_send_times_out():
     for delay in (0.0, 2.0, 60.0, 400.0):
         size = batch_size_for(delay)
         assert size >= 1
-        assert size == 1 or size * (30 + delay) <= 300
+        assert size == 1 or size * (DRIVER_CALLS_PER_SEND * DRIVER_TIMEOUT_SECONDS + delay) <= LOCK_SECONDS
+
+
+def test_batch_size_accounts_for_two_calls_per_send():
+    assert batch_size_for(0) == 300 // 60 == 5
+
+
+def test_allowlisted_recipient_is_suppressed_and_driver_not_called(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(settings, "redirect_to", None)
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    r = create_recipient(db, n.id, "outsider@gmail.com")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    assert driver.sent_messages == []
+    db.refresh(r)
+    assert r.status == "suppressed"
+
+
+def test_reply_to_outside_allowlist_is_dropped(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(settings, "redirect_to", None)
+    c, _ = make_client()
+    n1 = create_notification(db, c.id)
+    n1.reply_to = "outsider@gmail.com"
+    create_recipient(db, n1.id, "a@hust.edu.vn")
+    n2 = create_notification(db, c.id)
+    n2.reply_to = "boss@hust.edu.vn"
+    create_recipient(db, n2.id, "b@hust.edu.vn")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    by_to = {m.to_email: m for m in driver.sent_messages}
+    assert by_to["a@hust.edu.vn"].reply_to is None
+    assert by_to["b@hust.edu.vn"].reply_to == "boss@hust.edu.vn"
+
+
+def test_commit_failure_after_send_does_not_resend_or_retry(db, make_client, monkeypatch, caplog):
+    import noti.worker
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    r = create_recipient(db, n.id, "user@example.com")
+    db.commit()
+
+    calls = {"n": 0}
+
+    def boom(*args, **kwargs):
+        calls["n"] += 1
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(noti.worker, "mark_sent", boom)
+    driver = FakeDriver()
+    now = datetime.now(timezone.utc)
+    with caplog.at_level(logging.ERROR, logger="noti.worker"):
+        run_once(db, get_registry(), driver, now=now)
+    assert len(driver.sent_messages) == 1
+    assert calls["n"] == 3
+    db.refresh(r)
+    assert r.attempts == 1
+    assert r.last_error is None
+    assert r.status == "sending"
+    errors = [rec.getMessage() for rec in caplog.records if rec.levelno >= logging.ERROR]
+    assert any(str(r.id) in m for m in errors)
+    assert not any("user@example.com" in m for m in errors)
+
+    # Khoá chưa hết hạn nên lần chạy kế không gửi lại
+    run_once(db, get_registry(), driver, now=now + timedelta(seconds=1))
+    assert len(driver.sent_messages) == 1
+
+
+def test_batch_deadline_releases_remaining_without_counting_attempt(db, make_client):
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    recs = [create_recipient(db, n.id, f"u{i}@example.com") for i in range(3)]
+    db.commit()
+
+    calls = {"n": 0}
+
+    def clock():
+        calls["n"] += 1
+        return 0.0 if calls["n"] <= 2 else 10_000.0
+
+    driver = FakeDriver()
+    now = datetime.now(timezone.utc)
+    processed = run_once(db, get_registry(), driver, now=now, clock=clock)
+    assert processed == 3
+    assert len(driver.sent_messages) == 1
+    statuses = []
+    for r in recs:
+        db.refresh(r)
+        statuses.append((r.status, r.attempts))
+    assert statuses.count(("sent", 1)) == 1
+    assert statuses.count(("pending", 0)) == 2
+
+
+@pytest.mark.parametrize("before,expected", [(MAX_ATTEMPTS - 1, "failed"), (MAX_ATTEMPTS - 2, "pending")])
+def test_sixth_transient_failure_marks_failed_fifth_stays_pending(db, make_client, before, expected):
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    r = create_recipient(db, n.id, "flaky@example.com", attempts=before)
+    db.commit()
+    driver = FakeDriver()
+    driver.set_error_for_email("flaky@example.com", TransientError("Connection reset"))
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    db.refresh(r)
+    assert r.status == expected
+

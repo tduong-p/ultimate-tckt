@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-NOTI-002
 title: Kế hoạch — Core gửi thông báo sang Noti (sender HTTP)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
-related_code: [core/src/noti-sender.js, core/src/app.js, core/tests/noti-sender.test.js]
+updated: 2026-10-04
+related_code: [core/src/noti-sender.js, core/src/app.js, core/tests/noti-sender.test.js, core/src/config/database.js]
 ---
 
 # Core → Noti sender Implementation Plan
@@ -77,3 +77,4 @@ và `createNotiSender({ url, apiKey })` (gọi HTTP). `app.js` gắn sender khi 
 | Version | Ngày | Thay đổi |
 |---|---|---|
 | 1.0 | 2026-10-02 | Bản đầu. |
+| 1.1 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |

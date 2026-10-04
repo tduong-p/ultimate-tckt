@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-MAIL-001
 title: Plan — bật email thật trên production (Core → Noti)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-04
+updated: 2026-10-05
 related_code: [infra/compose/docker-compose.production.yml, tools/tests/compose.test.js]
 ---
 
@@ -59,6 +59,8 @@ related_code: [infra/compose/docker-compose.production.yml, tools/tests/compose.
 - [ ] **Step 3: Khi IT trả lời,** kiểm chứng giới hạn: gửi thử từ ứng dụng bằng một hộp thư **khác** hộp thư được cấp, kết quả phải là bị từ chối. Ghi kết quả (đạt/không) vào issue. Đây là bằng chứng cổng M3.
 
 ### Task 1: Kiểm kê #49 và tách thành việc nhỏ (M1, M2)
+
+> **Trạng thái 2026-10-05: xong.** Cả hai phần của #49 (Core mục 1–9, bên trong Noti) đã sửa trong PR #66 (đã vào `staging` và `main` qua PR #67), #49 đã đóng. M1 và M2 đạt; bảng test bên dưới được thay bằng test trong PR đó. Hạng mục để sau: outbox bền phía Core, lọc admin theo đơn vị.
 
 **Files:** không có file code. Kết quả là danh sách trong issue #49 và các sub-issue.
 
@@ -367,3 +369,4 @@ Expected: `failed` = 0; `oldest_pending_minutes` < 15.
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-04 | Bản đầu | DYC |
+| 1.1 | 2026-10-05 | Task 1 (M1, M2) xong nhờ PR #66; ghi trạng thái | Claude |

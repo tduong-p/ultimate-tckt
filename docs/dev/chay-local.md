@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-LOCAL-001
 title: Chạy dự án ở máy local
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai, onboarding]
 owner: DYC
-updated: 2026-09-30
-related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json]
+updated: 2026-10-04
+related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json, core/src/config/database.js]
 ---
 
 # Chạy dự án ở máy local
@@ -83,3 +83,4 @@ docker run -d --name dev-postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres pos
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-30 | Lệnh `set_password`; seed admin không ghi đè mật khẩu | DYC |
+| 1.2 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |

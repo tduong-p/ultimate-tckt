@@ -1,6 +1,7 @@
 from typing import Optional
 import httpx
 import msal
+import requests
 
 from noti.drivers.base import Driver, Message, PermanentError, TransientError
 
@@ -38,15 +39,31 @@ class GraphDriver(Driver):
                 self.client_id,
                 authority=f"https://login.microsoftonline.com/{self.tenant_id}",
                 client_credential=credential,
+                timeout=self.timeout,
             )
         return self._app
 
+    _PERMANENT_AUTH_ERRORS = {"invalid_client", "unauthorized_client", "invalid_scope", "invalid_request"}
+
     def _get_token(self) -> str:
-        result = self._msal_app().acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-        if "access_token" not in result:
-            err = result.get("error_description", result.get("error", "Unknown MSAL auth failure"))
+        try:
+            result = self._msal_app().acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+        except (requests.RequestException, OSError) as e:
+            raise TransientError(f"MSAL network error: {e}")
+        if "access_token" in result:
+            return result["access_token"]
+        err = result.get("error_description", result.get("error", "Unknown MSAL auth failure"))
+        status = result.get("status_code")
+        is_server_side = isinstance(status, int) and (status == 429 or 500 <= status < 600)
+        if result.get("error") in self._PERMANENT_AUTH_ERRORS and not is_server_side:
             raise PermanentError(f"MSAL authentication failed: {err}")
-        return result["access_token"]
+        retry_after = None
+        raw = result.get("retry_after") or (result.get("headers") or {}).get("Retry-After")
+        try:
+            retry_after = int(raw) if raw is not None else None
+        except (ValueError, TypeError):
+            pass
+        raise TransientError(f"MSAL authentication unavailable: {err}", retry_after=retry_after)
 
     def send(self, message: Message) -> None:
         token = self._get_token()
@@ -104,7 +121,11 @@ class GraphDriver(Driver):
         if 500 <= res.status_code < 600:
             raise TransientError(f"Microsoft Graph server error {res.status_code}: {res.text}")
 
-        if res.status_code in (401, 403):
+        if res.status_code == 401:
+            # Token hết hạn/bị thu hồi: lần thử sau lấy token mới.
+            raise TransientError(f"Microsoft Graph 401 unauthorized: {res.text}")
+
+        if res.status_code == 403:
             raise PermanentError(f"Microsoft Graph auth/permission error {res.status_code}: {res.text}")
 
         if res.status_code in (400, 404):

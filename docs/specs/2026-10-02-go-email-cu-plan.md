@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.6
+version: 2.7
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
-related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/src/app.js, core/src/runtime.js, core/src/config/validate.js, core/src/routes/*.js, core/src/services/deadline-notifications.js, core/public/app.js, core/public/index.html, core/tests/**]
+updated: 2026-10-04
+related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/src/app.js, core/src/runtime.js, core/src/config/validate.js, core/src/routes/*.js, core/src/services/deadline-notifications.js, core/public/app.js, core/public/index.html, core/tests/**, core/src/config/database.js]
 ---
 
 # Gỡ email cũ và OneSignal — Implementation Plan
@@ -519,3 +519,4 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.3 | 2026-10-02 | Ghi chú: migration unit_id đã hotfix, không liên quan plan này | DYC |
 | 2.4 | 2026-10-02 | Tăng version khi đồng bộ chỉ mục tài liệu (merge `479c05f`); nội dung không đổi | DYC |
 | 2.6 | 2026-10-03 | Sửa hai dòng lịch sử 2.3 và 2.4 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi; khôi phục dòng 2.2, 2.3 bị mất | DYC |
+| 2.7 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |
