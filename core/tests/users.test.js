@@ -115,3 +115,15 @@ test('editing a user whose stored email is on a reserved domain succeeds when th
   assert.equal(rows[0].name, 'Tên mới');
   assert.equal(rows[0].email, 'legacy@tckt.local');
 }));
+
+test('POST /api/users stores the email trimmed and lowercased', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  await client.login(admin.email, admin.password);
+  const result = await client.request('POST', '/api/users', {
+    body: { name: 'Thành viên C', email: '  Mixed.Case@Example.COM ', password: 'MatKhau123!', role: 'member', team_ids: [teamId] }
+  });
+  assert.equal(result.status, 201);
+  const [rows] = await pool.execute('SELECT email FROM users WHERE id=?', [result.json.id]);
+  assert.equal(rows[0].email, 'mixed.case@example.com');
+}));

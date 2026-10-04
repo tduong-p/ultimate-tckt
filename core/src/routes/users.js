@@ -24,6 +24,7 @@ router.get('/api/people',auth,asyncRoute(async(req,res)=>{
 
 router.post('/api/users', auth, manager, asyncRoute(async (req, res) => {
   let { name, email, password, role, phone } = req.body;
+  email = String(email || '').trim().toLowerCase();
   const authProvider = req.body.auth_provider === 'microsoft' ? 'microsoft' : 'local';
   const teamIds = ids(req.body.team_ids), allowedTeams = await managedTeamIds(req.actor);
   if (isLeadership(req.actor)) role = 'member';
@@ -53,7 +54,7 @@ router.post('/api/users', auth, manager, asyncRoute(async (req, res) => {
       : await bcrypt.hash(password, 10);
     const [result] = await conn.execute(
       'INSERT INTO users(name,email,password_hash,role,auth_provider,phone) VALUES(?,?,?,?,?,?)',
-      [name, String(email).trim().toLowerCase(), hash, role, authProvider, phone || null]
+      [name, email, hash, role, authProvider, phone || null]
     );
     for (const teamId of teamIds) await conn.execute('INSERT INTO user_teams(user_id,team_id,is_lead,is_vice_lead) VALUES(?,?,?,?)', [result.insertId, teamId, role === 'leader', role === 'vice_leader']);
     await conn.commit();

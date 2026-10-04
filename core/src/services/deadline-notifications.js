@@ -131,7 +131,8 @@ async function insertNotificationOnce(
 
 // Tạo thông báo trong app (một lần theo source_key) rồi gửi email nếu dòng còn `pending`.
 // Gửi tuần tự bằng await; kết quả ghi vào notifications.email_status.
-async function deliver({ db, notifier, now }, row, event) {
+async function deliver(ctx, row, event) {
+  const { db, notifier, now } = ctx;
   const inserted = await insertNotificationOnce(db, { ...row, now });
 
   const [[current]] = await db.execute(
@@ -139,8 +140,12 @@ async function deliver({ db, notifier, now }, row, event) {
     [row.userId, row.sourceKey]
   );
 
-  if (current && current.email_status === 'pending') {
+  if (current && current.email_status === 'pending' && !ctx.halted) {
     const result = await notifier.notify(event);
+    if (result && result.retryable) {
+      ctx.halted = true;
+      if (ctx.logger) ctx.logger.warn('Email tạm thời không gửi được; dừng gửi trong lượt này, các thông báo còn lại giữ pending cho lượt sau.');
+    }
     await db.execute(
       'UPDATE notifications SET email_status = ? WHERE user_id = ? AND source_key = ?',
       [emailStatusFor(result), row.userId, row.sourceKey]
@@ -173,7 +178,7 @@ async function runDeadlineNotifications({
     return { date: today, created: 0, skipped: 'outside-hours' };
   }
 
-  const ctx = { db, notifier, now };
+  const ctx = { db, notifier, logger, now, halted: false };
   let created = 0;
 
   const upcoming = await findUpcomingDeadlines(db, now);

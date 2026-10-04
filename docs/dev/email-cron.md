@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 6.0
+version: 6.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -44,7 +44,7 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 - `toNotiPayload` sửa dữ liệu trước khi gửi: mã thô thành chữ (`activity.decided.action`: `approve`/`reject`/`request_changes`;
   `task.reviewed.decision`: `approve`/`reject`/`cancel`; `task.response.response.kind`), `Date` của mysql2 thành `YYYY-MM-DD`
   (thêm ` HH:mm` nếu có giờ), bỏ giá trị `null`/`undefined`/chuỗi rỗng, cắt `response.body` và `feedback` còn 4000 ký tự (Noti từ chối
-  body > 64 KB), gắn nhãn tiếng Việt cho loại đề án (`activity.proposed.type`). Mã lạ giữ nguyên.
+  body > 64 KB), gắn nhãn tiếng Việt cho loại và mức ưu tiên của đề án (`activity.type`, `activity.priority`). Mã lạ giữ nguyên.
 - `core/tests/noti-sender.test.js` đọc `required` trong `services/noti-api/templates/<event>/meta.yaml`: thêm event hay đổi
   template mà thiếu trường thì test này đỏ.
 
@@ -63,8 +63,8 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 | `task.overdue` | scheduler | `task-overdue:<taskId>:<userId>:<ngày VN hôm nay>` |
 | `task.unacknowledged` | scheduler | `task-unacknowledged:<taskId>:<memberId>:<epoch giây của assigned_at>` |
 
-Mọi route truyền `actorId` (người thao tác) để facade bỏ thông báo tự gửi cho chính họ. Người nhận của `task.review_requested` /
-`activity.proposed` lấy từ `findReviewRecipients` (`core/src/services/notification-recipients.js`); `activity.proposed` mang
+Mọi route truyền `actorId` (người thao tác) để facade bỏ thông báo tự gửi cho chính họ. Người nhận của
+`task.review_requested` lấy từ `findReviewRecipients` (`core/src/services/notification-recipients.js`); `activity.proposed` dùng truy vấn riêng (admin + vice_admin đang hoạt động) và mang
 `type`, `deadline`, `priority` và đi tới admin + vice_admin; `activity.decided` khi hoạt động đã xoá thì không có `path`.
 
 ### Scheduler nhắc hạn (`deadline-notifications.js` + `reminder-rules.js`)
@@ -72,7 +72,7 @@ Mọi route truyền `actorId` (người thao tác) để facade bỏ thông bá
 - `tasks.deadline` là cột `DATE`: nhắc theo **ngày lịch giờ VN**, không theo giờ. Mốc "1 ngày" (hạn là ngày mai) và "hôm nay";
   nhãn trong thư là `1 ngày` / `hôm nay`. Task `review`, `done`, `cancelled` bị loại. `task.overdue` gửi mỗi ngày cho task quá hạn chưa xong.
   `task.unacknowledged` chỉ gửi khi giao đã từ 24 giờ trở lên và dưới 168 giờ (7 ngày).
-- Chỉ gửi trong khung 07:00–21:59 giờ VN; ngoài khung thì bỏ qua lượt chạy, lượt 15 phút sau xử lý tiếp (dòng thông báo trong ứng dụng vẫn được tạo).
+- Chỉ gửi trong khung 07:00–21:59 giờ VN; ngoài khung thì lượt chạy chỉ dọn dòng thông báo đã hết hạn, không tạo dòng trong ứng dụng và không gửi; lượt 15 phút sau xử lý tiếp. Kiểm tra giờ chỉ làm một lần ở đầu lượt, nên lượt chạy bắt đầu trước 22:00 có thể gửi xong sau mốc đó. Lượt chạy dừng gửi sau lần lỗi tạm thời (`retryable`) đầu tiên; các mục còn lại giữ `pending` cho lượt sau.
 - Gửi **tuần tự** (`await` từng mục), không bắn đồng thời.
 - Dòng `notifications` mới có `email_status = 'pending'`. Scheduler chỉ gọi `notifier.notify` khi dòng còn `pending`, rồi ghi kết quả
   bằng `emailStatusFor`: `success` (đã gửi), `pending` (lỗi tạm thời, lượt sau gửi lại), `failed` (lỗi vĩnh viễn hoặc bị lọc), `NULL` (không có sender).
@@ -107,3 +107,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 5.0 | 2026-10-02 | Core gửi sang Noti qua `core/src/noti-sender.js` khi có `NOTI_URL` + `NOTI_API_KEY`; nhãn tiếng Việt và định dạng ngày | DYC |
 | 5.1 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone cho deadline notifications | DYC |
 | 6.0 | 2026-10-05 | #49: khoá `sourceKey` mới (`task-deadline-1d\|today`, `unacknowledged` có epoch); scheduler nhắc theo ngày lịch, khung 07:00–21:59, gửi tuần tự, dùng `email_status`; notifier lọc tự gửi/email lỗi và thử lại; nêu `actorId`, người nhận review | DYC |
+| 6.1 | 2026-10-05 | Sửa mô tả khung giờ (ngoài khung không tạo gì), người nhận `activity.proposed`, hai nhãn `activity.type`/`activity.priority`; thêm kiểm tra giờ một lần mỗi lượt và dừng gửi sau lỗi tạm thời | DYC |

@@ -210,6 +210,25 @@ test('a transient Noti failure keeps the row pending and the next run sends it',
   } finally { await teardown(); }
 });
 
+test('after the first retryable failure the run stops sending and leaves the rest pending', async () => {
+  const notifier = fakeNotifier([{ delivered: false, reason: 'sender-error', retryable: true }]);
+  const { pool, teardown } = await createTestDatabase();
+  try {
+    const ctx = await setup(pool);
+    const a = await createUser(pool, { role: 'member', team_id: ctx.teamId });
+    const b = await createUser(pool, { role: 'member', team_id: ctx.teamId });
+    await addTask(pool, ctx, { assignee: a, deadline: addDaysVietnam(NOW, 1) });
+    await addTask(pool, ctx, { assignee: b, deadline: addDaysVietnam(NOW, 1) });
+
+    await runDeadlineNotifications({ db: pool, notifier, logger, now: NOW });
+
+    assert.equal(notifier.sent.length, 1, 'notify is called once, then the run stops');
+    const rows = await statusRows(pool);
+    assert.equal(rows.length, 2);
+    assert.deepEqual(rows.map(r => r.email_status), ['pending', 'pending']);
+  } finally { await teardown(); }
+});
+
 test('permanent skips and no-sender are never retried', async () => {
   const notifier = fakeNotifier([
     { delivered: false, reason: 'self' },

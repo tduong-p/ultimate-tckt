@@ -292,8 +292,8 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 |---|---|---|---|
 | 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
 | 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
-| 1.6 | 2026-10-05 | Ví dụ khoá nhắc hạn đổi sang `task-deadline-1d` (Core nhắc theo ngày lịch, #49) | DYC |
 | 1.5 | 2026-10-02 | Trạng thái: chạy ở staging | DYC |
+| 1.6 | 2026-10-05 | Ví dụ khoá nhắc hạn đổi sang `task-deadline-1d` (Core nhắc theo ngày lịch, #49) | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |
