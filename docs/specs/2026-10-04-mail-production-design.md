@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-MAIL-001
 title: Thiết kế bật email thật trên production (Core → Noti) — Đợt 2
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -22,7 +22,7 @@ trước khi bật cấu hình gửi email thật trên production"*.
 
 | Thành phần | Staging | Production |
 |---|---|---|
-| Service Noti (`noti-api`, `noti-worker`) | Chạy (`NOTI_MAIL_DRIVER=smtp`) | **Không có** trong `docker-compose.production.yml`; không có container |
+| Service Noti (`noti-api`, `noti-worker`) | Chạy (`NOTI_MAIL_DRIVER=smtp`) | Đã thêm vào compose (PLAN-MAIL-001 Task 4, nhánh `feat/infra-noti-production`); lúc viết spec: **không có** trong `docker-compose.production.yml`; không có container |
 | `NOTI_URL`, `NOTI_API_KEY` của Core | Có | **Không có** → `notiSenderFromEnv` trả `null`, Core không gửi gì |
 | Giới hạn người nhận `NOTI_RECIPIENT_ALLOWLIST` | Một địa chỉ test | Chưa có (Noti chưa tồn tại) |
 | `deploy-noti` trong CI | Chạy | **Chặn cứng** (`needs.changes.outputs.env == 'staging'`) |
@@ -126,6 +126,8 @@ Tài liệu phải cập nhật trong cùng các PR: `docs/ops/moi-truong.md`, `
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.3 | 2026-10-05 | Đồng bộ với code hạ tầng Noti production (PR hạ tầng) | DYC |
 | 1.2 | 2026-10-05 | Production dùng SMTP như staging (D6, M3, pha B/C); không cần họp team; Graph để sau (#68) | DYC |
 | 1.1 | 2026-10-04 | Làm rõ: cổng host 8101 (tránh xung đột staging 8100), allowlist bắt buộc ở cấp compose | DYC |
 | 1.0 | 2026-10-04 | Bản đầu: hiện trạng production, cổng M1–M6, ba pha rollout, rollback | DYC |
+| 1.2 | 2026-10-05 | Ghi nhận compose production đã có Noti (Task 4) | DYC |

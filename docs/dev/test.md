@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.19
+version: 2.20
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -49,6 +49,10 @@ Fixture dùng chung ở `tests/conftest.py`. Nhóm test đáng chú ý: `test_qu
 trắng quyền ở `app/services/permissions.py`), `test_workflow_engine.py`/`test_workflow_matrix.py` (chuyển trạng
 thái hồ sơ), `test_scope.py` (phạm vi dữ liệu theo đơn vị), `test_migrations.py`,
 `test_admin_seed.py` (seed theo môi trường và lệnh đặt mật khẩu).
+
+## Hạ tầng — `npm run test:tools`
+
+`tools/tests/compose.test.js`, `infra-deploy.test.js`, `workflows.test.js` kiểm cả Noti production: service + cổng 8101, allowlist bắt buộc (`:?`), `deploy.sh production noti`, điều kiện `PROD_NOTI_ENABLED`.
 
 ## Noti — `pytest`
 
@@ -116,3 +120,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.17 | 2026-10-03 | Đồng bộ main→staging: thêm `test_admin_seed.py` (seed CTD không reset mật khẩu, không tự mở khóa) | DYC |
 | 2.18 | 2026-10-03 | `my-tasks-today.test.js` dùng `dateInVietnam()` thay ngày local, hết đỏ chập chờn sau 17:00 UTC | DYC |
 | 2.19 | 2026-10-05 | #49: thêm `reminder-rules`, `notification-recipients` và mở rộng test notifier, noti-sender, email, users, scheduler | DYC |
+| 2.20 | 2026-10-05 | Thêm mục test hạ tầng Noti production | DYC |

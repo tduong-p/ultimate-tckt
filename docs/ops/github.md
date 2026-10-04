@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [.github/**]
 ---
 
@@ -31,6 +31,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 
 - `DEPLOY_ENABLED` (`true`/`false`) — bật/tắt bước SSH-deploy trong `deploy.yml`. Đặt `false` cho tới khi VM đã bootstrap xong và sẵn sàng nhận deploy (xem `docs/ops/chuyen-doi-ultimate-tckt.md`).
 - `PROD_DEPLOY_ENABLED` (`true`/`false`) — công tắc riêng cho production; deploy production cần cả hai biến `true`.
+- `PROD_NOTI_ENABLED` (`true`, mặc định không đặt = tắt) — công tắc riêng cho job `deploy-noti` trên production (SPEC-MAIL-001 D3); vẫn cần `DEPLOY_ENABLED`.
 
 ## 3. Ruleset nhánh `main`
 
@@ -86,3 +87,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.5 | 2026-09-27 | Thêm mục 8: GitHub App và ruleset `bot-branches` cho bot repobot | DYC |
 | 1.6 | 2026-09-27 | Mục 8: App đọc PR/diff/commit cho kênh thông báo, không thêm quyền | DYC (soạn cùng Claude) |
 | 1.7 | 2026-10-02 | Thêm package `ultimate-tckt-noti` và job `test-noti` | DYC |
+| 1.8 | 2026-10-05 | Thêm biến repo `PROD_NOTI_ENABLED` | DYC |

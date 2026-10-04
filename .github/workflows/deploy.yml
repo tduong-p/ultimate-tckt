@@ -223,12 +223,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: bash /opt/ultimate-tckt/${{ needs.changes.outputs.env }}/infra/scripts/deploy.sh ${{ needs.changes.outputs.env }} ctd-api ${{ needs.changes.outputs.tag }}
 
-  # Noti mới chạy ở staging (production chưa có trong compose): không deploy production dù PROD_DEPLOY_ENABLED bật.
+  # Noti chạy ở staging luôn; production chỉ khi biến repo PROD_NOTI_ENABLED = 'true' (SPEC-MAIL-001 D3).
   deploy-noti:
     needs: [changes, build-noti]
     if: >-
       github.event_name == 'push' &&
-      vars.DEPLOY_ENABLED == 'true' && needs.changes.outputs.env == 'staging'
+      vars.DEPLOY_ENABLED == 'true' &&
+      (needs.changes.outputs.env == 'staging' || vars.PROD_NOTI_ENABLED == 'true')
     runs-on: ubuntu-latest
     environment: ${{ needs.changes.outputs.env }}
     steps:

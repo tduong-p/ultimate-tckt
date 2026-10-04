@@ -60,11 +60,14 @@ test('deploy.sh staging noti pulls+ups both noti services and checks /v1/health 
   assert.ok(c.some((l) => l.startsWith('curl ') && l.includes('127.0.0.1:8100/v1/health')));
 });
 
-test('deploy.sh production noti is refused before touching git (not configured for production yet)', () => {
+test('deploy.sh production noti pulls+ups both noti services and checks /v1/health on 8101', () => {
   const sb = makeSandbox();
-  const r = sb.run('deploy.sh', ['production', 'noti', 'abc']);
-  assert.notEqual(r.status, 0);
-  assert.ok(!sb.calls().some((l) => /^(git|docker) /.test(l)), sb.calls().join('\n'));
+  const r = sb.run('deploy.sh', ['production', 'noti', 'abc123def456']);
+  assert.equal(r.status, 0, r.stderr);
+  const c = sb.calls();
+  assert.ok(c.some((l) => l.includes(' pull noti-api noti-worker')), c.join('\n'));
+  assert.ok(c.some((l) => l.includes(' up -d --no-deps noti-api noti-worker')), c.join('\n'));
+  assert.ok(c.some((l) => l.startsWith('curl ') && l.includes('127.0.0.1:8101/v1/health')), c.join('\n'));
 });
 
 test('deploy.sh core still sets NOTI_IMAGE_TAG so the staging compose file interpolates', () => {

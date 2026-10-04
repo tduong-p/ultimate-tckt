@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-REL-001
 title: Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: []
 ---
 
@@ -26,7 +26,7 @@ vào mục "Quyết định" của các issue #48, #49, và #50.
   (PR #28) lên production lần đầu.
 - Đã kiểm chứng, **không** phải sửa:
   - migration đa đơn vị an toàn và chạy lại được với dữ liệu production;
-  - production thiếu Noti thì `notifier` chỉ ghi log, không lỗi;
+  - production thiếu Noti thì `notifier` chỉ ghi log, không lỗi (từ 2026-10-05 compose production có Noti, mặc định chưa nối vì `CORE_NOTI_API_KEY` trống; xem SPEC-MAIL-001);
   - chứng chỉ TLS có SAN cho cả bốn tên miền; `/api/health` production trả 200;
   - `npm run test:tools` 55/55; CI trên `staging` xanh.
 
@@ -146,3 +146,4 @@ Các quyết định chính thức đã được ghi trực tiếp vào GitHub i
 | 1.0 | 2026-10-03 | Bản đầu: kết quả rà soát trước đợt 1, cổng phát hành, 26 phát hiện, ánh xạ sang PLAN-REL-001/002/003 | DYC |
 | 1.1 | 2026-10-03 | Cập nhật theo quyết định văn bản chốt cho #48, #49, #50, #54, #55; siết chặt điều kiện nghiệm thu G1-G6; thiết kế lại Task 4 GHCR; giữ SETTINGS_ENCRYPTION_KEY; phân định rõ pilot vs backlog | DYC |
 | 1.2 | 2026-10-03 | Thêm điều kiện nghiệm thu vận hành O1 (#55) và O2 (#54); PR hotfix dùng `Refs`, không tự đóng issue; cảnh báo rollback `ctd-api` về image trước #54 | DYC |
+| 1.3 | 2026-10-05 | Ghi chú: production đã có Noti trong compose theo SPEC-MAIL-001 | DYC |

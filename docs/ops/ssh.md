@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-SSH-001
 title: SSH vào VM — khoá cá nhân và cấp quyền
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ops, ai, onboarding]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [infra/scripts/lib.sh]
 ---
 
@@ -86,7 +86,7 @@ cd /opt/ultimate-tckt/staging          # hoặc production — bố cục ở vp
 source infra/scripts/lib.sh
 ut_compose staging ps                  # xem container của môi trường
 ut_compose staging logs --tail 100 core
-ut_compose staging logs --tail 100 noti-worker   # Noti (chỉ staging)
+ut_compose staging logs --tail 100 noti-worker   # Noti (staging và production)
 ```
 
 Production là dữ liệu thật: chỉ đọc/xem log trừ khi được giao rõ ràng; không xoá volume/stack (luật ở `AGENTS.md` mục 5).
@@ -115,3 +115,4 @@ Khi một người rời dự án hoặc nghi lộ khoá: xoá đúng dòng key 
 |---|---|---|---|
 | 1.0 | 2026-09-26 | Bản đầu: khoá cá nhân, cấp quyền, `~/.ssh/config`, lỗi thường gặp | DYC |
 | 1.1 | 2026-10-02 | Thêm ví dụ xem log Noti | DYC |
+| 1.2 | 2026-10-05 | Noti có ở cả production | DYC |

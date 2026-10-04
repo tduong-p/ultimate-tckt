@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-MAIL-001
 title: Plan — bật email thật trên production (Core → Noti)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -125,6 +125,8 @@ Expected: có `NOTI_DB_NAME=`, `NOTI_DB_USER=`, `NOTI_DB_PASSWORD=`, `NOTI_MAIL_
 - [ ] **Step 5: Xác nhận Core và CTD production vẫn bình thường** (`curl -fsS https://tckt-hub.duckdns.org/api/health`, `https://ctd-hoso.duckdns.org/api/health`).
 
 ### Task 4: Thay đổi hạ tầng trong repo (TDD)
+
+> **Trạng thái 2026-10-05: code xong** trên nhánh `feat/infra-noti-production` (chưa mở PR, chưa merge). Step 9 (`docker compose config`) chưa chạy vì máy dev không có docker; chạy ở bước kiểm trước khi merge. Biến Graph vẫn giữ dạng tuỳ chọn `:-` (#68).
 
 **Files:**
 - Modify: `tools/tests/compose.test.js` (xoá test `production compose has no noti yet`, thêm test mới)
@@ -364,3 +366,4 @@ Expected: `failed` = 0; `oldest_pending_minutes` < 15.
 | 1.0 | 2026-10-04 | Bản đầu | DYC |
 | 1.1 | 2026-10-05 | Task 1 (M1, M2) xong nhờ PR #66; ghi trạng thái | Claude |
 | 1.2 | 2026-10-05 | Bỏ Task 0 và Task 2; production dùng SMTP; Graph chuyển sang #68 | Claude |
+| 1.3 | 2026-10-05 | Task 4: ghi trạng thái code xong | DYC |

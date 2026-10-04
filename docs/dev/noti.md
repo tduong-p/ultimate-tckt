@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -16,8 +16,8 @@ Service **Noti** (`services/noti-api/`) là dịch vụ thông báo độc lập
 Tài liệu thiết kế chi tiết: [SPEC-NOTI-001](../specs/2026-10-02-noti-service-design.md).
 Quyết định kiến trúc: [ADR-0014](../adr/0014-noti-service.md).
 
-> **Trạng thái:** chạy **chỉ ở staging** (compose, CI `test-noti`/`build-noti`/`deploy-noti`, driver `console`) —
-> cách dựng và biến môi trường: [`docs/ops/moi-truong.md`](../ops/moi-truong.md) mục 4a. Production và cảnh báo chưa làm.
+> **Trạng thái:** chạy ở staging, và có trong compose production (cổng 8101, deploy bật bằng biến repo `PROD_NOTI_ENABLED`; kế hoạch rollout: SPEC-MAIL-001) —
+> cách dựng và biến môi trường: [`docs/ops/moi-truong.md`](../ops/moi-truong.md) mục 4a. Cảnh báo tự động chưa làm.
 > Image chạy bằng user không phải root; worker tự purge mỗi giờ. Core gọi Noti qua `core/src/noti-sender.js` (client `core`, key `CORE_NOTI_API_KEY`) — xem `docs/dev/email-cron.md`.
 
 ## 1. Cấu trúc thư mục
@@ -108,7 +108,7 @@ Mọi biến môi trường có tiền tố `NOTI_` và được liệt kê đ�
 - Staging: `NOTI_RECIPIENT_ALLOWLIST` (miền hoặc địa chỉ, phân tách bằng dấu phẩy). Người nhận ngoài danh sách được
   chuyển về `NOTI_REDIRECT_TO` (hoặc bỏ nếu trống); **CC và `reply_to` ngoài danh sách luôn bị bỏ**, không chuyển hướng.
   Người nhận bị bỏ vì allowlist có trạng thái `suppressed` (không phải `sent`, vì chưa có thư nào đi).
-  Production để trống danh sách.
+  Production **bắt buộc** khác rỗng: compose production dùng `${NOTI_RECIPIENT_ALLOWLIST:?}` nên rỗng thì không khởi động (rỗng = gửi cho mọi người).
 
 ### 2.7. Trạng thái người nhận, retry và lỗi
 
@@ -250,3 +250,4 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 | 1.1 | 2026-10-02 | Sửa link tuyệt đối; ghi rõ chưa chạy trên VM; thêm mục cấu hình (graph, allowlist áp cho CC); `dedupe_key` là tuỳ chọn, trỏ về playbook; sửa mã 413 và mô tả 400 | DYC |
 | 1.0 | 2026-10-02 | Tài liệu ban đầu hướng dẫn phát triển và vận hành Noti service (PLAN-NOTI-001) | DYC |
 | 1.4 | 2026-10-02 | Core đã gọi Noti ở staging qua `core/src/noti-sender.js` | DYC |
+| 1.6 | 2026-10-05 | Noti có trong compose production (cổng 8101, `PROD_NOTI_ENABLED`); allowlist production bắt buộc khác rỗng | DYC |

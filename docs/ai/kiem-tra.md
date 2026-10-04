@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.9
+version: 1.10
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
@@ -25,6 +25,7 @@ cd services/ctd-api/backend && TEST_DATABASE_URL=postgresql+psycopg://postgres:p
 
 # Core → Noti: payload đủ trường template (không cần MySQL)
 cd core && node --test tests/noti-sender.test.js
+# Hạ tầng (compose, deploy.sh, workflow): `npm run test:tools` — gồm test Noti production (cổng 8101, allowlist bắt buộc, `PROD_NOTI_ENABLED`)
 # Noti (FastAPI/Postgres) — cần Postgres local, DB noti_test đã tồn tại
 cd services/noti-api && NOTI_TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/noti_test .venv/bin/pytest
 
@@ -92,3 +93,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.7 | 2026-10-02 | Thêm lệnh test Noti, `test-noti` trong CI; `docs:check --base` chỉ thấy file đã commit | DYC |
 | 1.8 | 2026-10-02 | Đổi payload hay template thông báo: chạy `noti-sender.test.js` | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: dump MySQL chỉ để ở máy, gỡ `backup_current.sql` khỏi main (#58) | DYC |
+| 1.10 | 2026-10-05 | Ghi test hạ tầng Noti production trong `tools/tests` | DYC |

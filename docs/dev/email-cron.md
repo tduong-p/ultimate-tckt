@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 6.1
+version: 6.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -27,13 +27,13 @@ cron động và trang Setting email chỉ tồn tại ở nhánh `archive/gd1a-
   Kết quả trả về có `delivered`, hoặc `reason`, và `retryable: true` khi hết lượt thử mà lỗi vẫn là tạm thời.
 - Việc tạo hoặc sửa email người dùng (`routes/users.js`) từ chối email không gửi được.
 - Service Noti (`services/noti-api/`, xem `docs/dev/noti.md` và `docs/specs/2026-10-02-noti-service-design.md`) đã có code
-  và chạy ở **staging** (chưa có production; driver `console`).
+  và chạy ở **staging**; compose production cũng đã có Noti (SPEC-MAIL-001), bật theo ba pha, mặc định driver `console`.
 
 ## Sender Core → Noti
 
 `core/src/noti-sender.js` là sender của facade. `core/src/app.js` chỉ gắn nó khi có **cả** `NOTI_URL` và `NOTI_API_KEY`;
 thiếu một trong hai thì Core chạy như cũ và không gửi gì (log `no sender configured`). Staging: `NOTI_URL=http://noti-api:8000`,
-key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.md` §4a). Production chưa cấu hình.
+key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.md` §4a). Production: `NOTI_URL` cố định trong compose, `NOTI_API_KEY` lấy từ `CORE_NOTI_API_KEY`; để trống là công tắc tắt khẩn cấp (Core chạy, không gửi).
 
 - Mỗi `notify` là một `POST {NOTI_URL}/v1/notifications` với `Authorization: Bearer <key>`, body
   `{ template: event, recipients: [{ email, name }], data, dedupe_key: sourceKey }`.
@@ -108,3 +108,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 5.1 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone cho deadline notifications | DYC |
 | 6.0 | 2026-10-05 | #49: khoá `sourceKey` mới (`task-deadline-1d\|today`, `unacknowledged` có epoch); scheduler nhắc theo ngày lịch, khung 07:00–21:59, gửi tuần tự, dùng `email_status`; notifier lọc tự gửi/email lỗi và thử lại; nêu `actorId`, người nhận review | DYC |
 | 6.1 | 2026-10-05 | Sửa mô tả khung giờ (ngoài khung không tạo gì), người nhận `activity.proposed`, hai nhãn `activity.type`/`activity.priority`; thêm kiểm tra giờ một lần mỗi lượt và dừng gửi sau lỗi tạm thời | DYC |
+| 6.2 | 2026-10-05 | Production có Noti trong compose; `CORE_NOTI_API_KEY` trống = tắt gửi (SPEC-MAIL-001) | DYC |
