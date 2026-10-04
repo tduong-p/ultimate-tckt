@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 4.1
+version: 4.2
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh, infra/scripts/lib.sh]
 ---
 
@@ -43,7 +43,7 @@ Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
    ```bash
    bash /opt/ultimate-tckt/<env>/infra/scripts/deploy.sh <env> <core|ctd-api> <tag>
    ```
-   **`deploy-noti`** chỉ chạy cho **staging** (production chưa có Noti trong compose), gọi `deploy.sh staging noti <tag>`.
+   **`deploy-noti`** chạy cho staging luôn; production chỉ khi biến repo `PROD_NOTI_ENABLED == 'true'` (cùng `DEPLOY_ENABLED`), gọi `deploy.sh <env> noti <tag>`.
 6. **`infra`** — chạy khi `infra/**` đổi (push) hoặc chạy tay (`workflow_dispatch`), cũng cần `DEPLOY_ENABLED == 'true'` (production: thêm `PROD_DEPLOY_ENABLED`): SSH chạy `infra/scripts/apply-infra.sh <env> [apply_db]`. Tick `apply_db` khi kích hoạt thủ công để đồng thời cập nhật `core-db`/`ctd-db` (mặc định false — không đụng database). Job này chỉ `needs: changes`, **không** chờ `test-*` hay `build-*` (phát hiện R14 của SPEC-REL-001): với `main`, cấu hình được áp ngay khi push dù test chưa xanh.
 
 Các job deploy/infra **không** dùng concurrency group của GitHub (GitHub huỷ job đang chờ khi job mới vào cùng group — deploy sẽ bị bỏ âm thầm). Việc tuần tự do `flock` trên VM đảm nhận (`/tmp/ultimate-tckt-<env>-deploy.lock`, chờ tối đa 180 giây). Thứ tự giữa `infra` và `deploy-*` khi cùng đổi trong một push không được đảm bảo (chấp nhận được vì cả hai đều `git pull` trước khi chạy): `deploy-core`, `deploy-ctd-api` và `infra` của cùng một push chạy song song, và push chỉ coi là xong khi **cả ba** xanh.
@@ -57,7 +57,7 @@ Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitH
 1. Lấy khoá `flock` của môi trường (`/tmp/ultimate-tckt-<env>-deploy.lock`) — tránh hai deploy chạy chồng.
 2. `git pull --ff-only` đúng nhánh của môi trường đó (`staging` hoặc `main`).
 3. `docker compose -p ultimate-tckt-<env> --env-file infra/.env -f infra/compose/docker-compose.<env>.yml pull <service>` rồi `up -d --no-deps <service>` — chỉ đụng service của app đó (`noti` = `noti-api` + `noti-worker`), các app khác giữ tag đang chạy.
-4. Kiểm tra `http://127.0.0.1:<port>/api/health` (Noti: `/v1/health` cổng 8100) trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công.
+4. Kiểm tra `http://127.0.0.1:<port>/api/health` (Noti: `/v1/health`, cổng 8100 staging / 8101 production) trả 200 trong tối đa 60 giây; không đạt thì script thoát khác 0 (CI đỏ), không coi là thành công.
 
 ## 4. Bật/tắt deploy tự động
 
@@ -97,7 +97,7 @@ upload…) đều được nêu rõ ở chỗ đó. Từ bước 7.2 đến hế
 
 ### 7.0 Công cụ dùng trong phiên SSH
 
-Compose của cả hai môi trường đòi `${CORE_IMAGE_TAG:?}` và `${CTD_API_IMAGE_TAG:?}` (staging thêm `${NOTI_IMAGE_TAG:?}`) cho **mọi**
+Compose của cả hai môi trường đòi `${CORE_IMAGE_TAG:?}` và `${CTD_API_IMAGE_TAG:?}` (cả hai thêm `${NOTI_IMAGE_TAG:?}` từ khi production có Noti) cho **mọi**
 lệnh `docker compose`, kể cả `exec` và `logs`. `deploy.sh` và `apply-infra.sh` tự nạp chúng; lệnh gõ tay và `backup.sh` thì không,
 nên phải nạp trước bằng `ut_tags`. Dán các hàm sau một lần mỗi phiên:
 
@@ -291,7 +291,7 @@ Bước nào không đạt thì dừng; không có ngoại lệ kiểu "merge r�
 3. Merge bằng nút **Create a merge commit**. Không "Squash and merge", không "Rebase and merge". Nếu nút mặc định đang là squash, đổi lại
    trước khi bấm.
 4. Theo dõi tab Actions của lần chạy `deploy` trên `main`: `changes` → `test-*` → `build-core`, `build-ctd-api` → `deploy-core`,
-   `deploy-ctd-api`; `infra` chạy song song và không chờ test (mục 1–2). `deploy-noti` không chạy trên production. Chờ **tất cả** xong
+   `deploy-ctd-api`; `infra` chạy song song và không chờ test (mục 1–2). `deploy-noti` chỉ chạy trên production khi `PROD_NOTI_ENABLED == 'true'`. Chờ **tất cả** xong
    rồi mới sang 7.5.
 5. `deploy-core` đỏ vì health check quá 60 giây ở lần đầu (Core chạy migration trước khi mở cổng): đừng bấm deploy lại ngay; làm
    7.5 bước 2. Thấy dòng `TCKT Activity Hub running on port` thì Core đã lên bình thường: ghi nhận job đỏ, không rollback. Thấy lỗi
@@ -322,7 +322,7 @@ curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hos
    docker exec "$C" sh -c 'grep -c " — ERROR" /app/log.md; true'    # số lỗi từ lúc container khởi động; phải là 0
    docker logs --since 10m "$C" 2>&1 | tail -n 20
    ```
-   Trên production, bộ nhắc hạn ghi các dòng `info` mỗi 15 phút vì chưa có Noti (R12): không phải lỗi.
+   Trên production, bộ nhắc hạn ghi các dòng `info` mỗi 15 phút khi chưa nối Noti (key trống, R12): không phải lỗi.
 
 ### 7.5 Sau khi merge (production)
 
@@ -472,3 +472,4 @@ kiểm kết quả giữa các bước. CTD không cần restore (không có mig
 | 3.1 | 2026-10-02 | Thêm Noti vào pipeline: `test-noti`/`build-noti`/`deploy-noti` (chỉ staging), `deploy.sh … noti` | DYC |
 | 4.0 | 2026-10-03 | Viết lại mục 7 thành runbook phát hành đợt 1 (cổng G1–G6, backup/restore đúng đường dẫn và vào DB sạch, cổng/tên miền đúng, smoke, rollback không dùng `git reset`); mục 1–2: job `infra` không chờ test; mục 6: log Core nằm trong container | DYC |
 | 4.1 | 2026-10-03 | Thêm O1/O2: nghiệm thu vận hành #55 (xoay secret, hash lộ) và #54 (set_password, kiểm sau restart); G1 dùng CI + test hồi quy; tag sau phát hành theo từng dịch vụ; rollback `ctd-api` kiểm image trước #54 | DYC |
+| 4.2 | 2026-10-05 | `deploy-noti` chạy cho production khi `PROD_NOTI_ENABLED`; cổng Noti production 8101 (SPEC-MAIL-001) | DYC |

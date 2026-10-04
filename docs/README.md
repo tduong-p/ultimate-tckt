@@ -51,11 +51,11 @@
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.2 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.3 | active | dev, ai |
-| [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 6.1 | active | dev, ai |
+| [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 6.2 | active | dev, ai |
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.7 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.3 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
-| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.5 | active | dev, ai |
+| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.6 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
@@ -76,9 +76,9 @@
 | [OPS-BAK-001](ops/backup-restore.md) | Backup và restore database | 1.2 | active | dev, ops, ai |
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.5 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.1 | active | ops, ba |
-| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.1 | active | dev, ops, ai |
+| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.2 | active | dev, ops, ai |
 | [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.7 | active | dev, ops, ai |
-| [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.5 | active | dev, ops, ai |
+| [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.6 | active | dev, ops, ai |
 | [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.1 | active | ops, dev |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.3 | active | dev, ops |
 | [OPS-SSH-001](ops/ssh.md) | SSH vào VM — khoá cá nhân và cấp quyền | 1.1 | active | dev, ops, ai, onboarding |
@@ -135,7 +135,7 @@
 | [SPEC-SOON-001](specs/2026-10-03-core-coming-soon-design.md) | Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy | 1.2 | active | dev, ai |
 | [PLAN-SOON-001](specs/2026-10-03-core-coming-soon-plan.md) | Plan — màn hình "Đang phát triển" cho UI Core legacy | 1.0 | active | dev, ai |
 | [PLAN-REL-001](specs/2026-10-03-phat-hanh-dot-1-core-plan.md) | Plan — sửa quyền, phạm vi dữ liệu và lỗi Core trước pilot | 1.2 | active | dev, ai |
-| [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.2 | active | dev, ops, ai |
+| [SPEC-REL-001](specs/2026-10-03-phat-hanh-dot-1-design.md) | Design — phát hành đợt 1 (staging → main) và các bản sửa sau rà soát | 1.3 | active | dev, ops, ai |
 | [PLAN-REL-002](specs/2026-10-03-phat-hanh-dot-1-ha-tang-plan.md) | Plan — sửa hạ tầng và CI sau rà soát phát hành đợt 1 | 1.1 | active | dev, ops, ai |
 | [PLAN-REL-003](specs/2026-10-03-phat-hanh-dot-1-tai-lieu-plan.md) | Plan — tài liệu, dọn dẹp và runbook phát hành đợt 1 | 1.2 | active | dev, ops, ai |
 | [SPEC-MAIL-001](specs/2026-10-04-mail-production-design.md) | Thiết kế bật email thật trên production (Core → Noti) — Đợt 2 | 1.2 | active | dev, ai |
