@@ -1,6 +1,7 @@
 import json
 import email
 import smtplib
+import ssl
 from unittest.mock import MagicMock
 import httpx
 import pytest
@@ -170,7 +171,7 @@ def test_graph_driver_reuses_msal_app_and_passes_thumbprint(monkeypatch, tmp_pat
     created = []
 
     class FakeApp:
-        def __init__(self, client_id, authority, client_credential):
+        def __init__(self, client_id, authority, client_credential, **kwargs):
             created.append(client_credential)
 
         def acquire_token_for_client(self, scopes):
@@ -200,3 +201,126 @@ def test_console_driver_outbox_is_bounded_and_logs_no_content(caplog):
     assert len(driver.outbox) == ConsoleDriver.MAX_OUTBOX
     assert "Bí mật nội bộ" not in caplog.text
     assert "a@example.com" not in caplog.text
+
+
+# --- #49 Noti: chứng chỉ SMTP, phân loại lỗi, timeout MSAL ---
+
+_MSG = Message(to_email="a@example.com", to_name=None, cc=[], reply_to=None, subject="s", html="h", text="t")
+
+
+def _smtp_driver_with(monkeypatch, server):
+    server.__enter__.return_value = server
+    monkeypatch.setattr(smtplib, "SMTP", lambda host, port, timeout: server)
+    return SmtpDriver(host="h", user="u", password="p", mail_from="n@example.com")
+
+
+def test_smtp_starttls_uses_verifying_context(monkeypatch):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    driver.send(_MSG)
+    ctx = server.starttls.call_args.kwargs["context"]
+    assert ctx.verify_mode == ssl.CERT_REQUIRED
+    assert ctx.check_hostname is True
+
+
+@pytest.mark.parametrize("code", [530, 534, 535])
+def test_smtp_auth_codes_are_transient(monkeypatch, code):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    server.login.side_effect = smtplib.SMTPAuthenticationError(code, b"auth failed")
+    with pytest.raises(TransientError):
+        driver.send(_MSG)
+
+
+def test_smtp_550_is_permanent(monkeypatch):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    server.send_message.side_effect = smtplib.SMTPResponseException(550, b"no")
+    with pytest.raises(PermanentError):
+        driver.send(_MSG)
+
+
+def test_smtp_recipients_refused_mixed_codes_is_transient(monkeypatch):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    server.send_message.side_effect = smtplib.SMTPRecipientsRefused(
+        {"a@example.com": (550, b"no"), "b@example.com": (450, b"later")}
+    )
+    with pytest.raises(TransientError):
+        driver.send(_MSG)
+
+
+def test_smtp_recipients_refused_all_5xx_is_permanent(monkeypatch):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    server.send_message.side_effect = smtplib.SMTPRecipientsRefused(
+        {"a@example.com": (550, b"no"), "b@example.com": (553, b"bad")}
+    )
+    with pytest.raises(PermanentError):
+        driver.send(_MSG)
+
+
+def test_smtp_ssl_error_is_transient(monkeypatch):
+    server = MagicMock()
+    driver = _smtp_driver_with(monkeypatch, server)
+    server.starttls.side_effect = ssl.SSLCertVerificationError("bad cert")
+    with pytest.raises(TransientError):
+        driver.send(_MSG)
+
+
+def test_graph_401_is_transient_403_is_permanent(monkeypatch):
+    monkeypatch.setattr(GraphDriver, "_get_token", lambda self: "t")
+    d401 = GraphDriver(mail_from="s@example.com", transport=httpx.MockTransport(lambda r: httpx.Response(401, text="x")))
+    with pytest.raises(TransientError):
+        d401.send(_MSG)
+    d403 = GraphDriver(mail_from="s@example.com", transport=httpx.MockTransport(lambda r: httpx.Response(403, text="x")))
+    with pytest.raises(PermanentError):
+        d403.send(_MSG)
+
+
+def _graph_with_app(monkeypatch, acquire):
+    class FakeApp:
+        def __init__(self, client_id, authority, client_credential, **kwargs):
+            FakeApp.kwargs = kwargs
+
+        def acquire_token_for_client(self, scopes):
+            return acquire()
+
+    monkeypatch.setattr("noti.drivers.graph.msal.ConfidentialClientApplication", FakeApp)
+    return GraphDriver(tenant_id="t", client_id="c", client_secret="s", timeout=7), FakeApp
+
+
+def test_msal_network_exception_is_transient(monkeypatch):
+    import requests
+
+    def boom():
+        raise requests.ConnectionError("down")
+
+    driver, _ = _graph_with_app(monkeypatch, boom)
+    with pytest.raises(TransientError):
+        driver._get_token()
+
+
+def test_msal_invalid_client_is_permanent(monkeypatch):
+    driver, _ = _graph_with_app(monkeypatch, lambda: {"error": "invalid_client", "error_description": "bad secret"})
+    with pytest.raises(PermanentError):
+        driver._get_token()
+
+
+def test_msal_temporarily_unavailable_is_transient(monkeypatch):
+    driver, _ = _graph_with_app(monkeypatch, lambda: {"error": "temporarily_unavailable", "retry_after": "30"})
+    with pytest.raises(TransientError) as ei:
+        driver._get_token()
+    assert ei.value.retry_after == 30
+
+
+def test_msal_5xx_status_in_result_is_transient(monkeypatch):
+    driver, _ = _graph_with_app(monkeypatch, lambda: {"error": "x", "status_code": 503})
+    with pytest.raises(TransientError):
+        driver._get_token()
+
+
+def test_msal_app_gets_timeout(monkeypatch):
+    driver, App = _graph_with_app(monkeypatch, lambda: {"access_token": "tok"})
+    assert driver._get_token() == "tok"
+    assert App.kwargs["timeout"] == driver.timeout == 7
