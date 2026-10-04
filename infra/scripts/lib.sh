@@ -31,7 +31,7 @@ ut_app_tag_var() {
 ut_app_port() {
   case "$1:$2" in
     staging:core) echo 3000 ;; staging:ctd-api) echo 8000 ;; staging:noti) echo 8100 ;;
-    production:core) echo 3001 ;; production:ctd-api) echo 8001 ;;
+    production:core) echo 3001 ;; production:ctd-api) echo 8001 ;; production:noti) echo 8101 ;;
     *) ut_die "no port for $1/$2" ;;
   esac
 }

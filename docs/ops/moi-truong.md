@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-04
+updated: 2026-10-05
 related_code: [infra/compose/**, infra/nginx/**, infra/.env.example, core/src/config/database.js]
 ---
 
@@ -35,7 +35,7 @@ Nginx định tuyến theo `Host` header/SNI. Site config: `ultimate-tckt-<env>-
 | core (app) | 3000 | 3001 |
 | ctd-api (app) | 8000 | 8001 |
 | core-db (MySQL) | 3306 | 3307 |
-| noti-api (Noti) | 8100 | — (chưa chạy) |
+| noti-api (Noti) | 8100 | 8101 |
 
 `ctd-db` (Postgres) không map port ra host, chỉ truy cập qua mạng nội bộ Docker (hoặc SSH tunnel + user riêng nếu cần — hiện chưa có script tạo user chỉ đọc cho Postgres, xem `docs/ops/truy-cap-db.md`).
 
@@ -46,9 +46,9 @@ File thật nằm ở `/opt/ultimate-tckt/<env>/infra/.env` (quyền 600), khôn
 ```
 CORE_MYSQL_ROOT_PASSWORD, CORE_DB_NAME, CORE_DB_USER, CORE_DB_PASSWORD,
 CORE_SESSION_SECRET, CORE_SETTINGS_ENCRYPTION_KEY, CORE_DEVOPS_EMAILS,
-CORE_NOTI_API_KEY (chỉ staging, tuỳ chọn),
+CORE_NOTI_API_KEY (tuỳ chọn; trống = Core không gửi),
 CTD_DB_NAME, CTD_DB_USER, CTD_DB_PASSWORD, CTD_JWT_SECRET
-# chỉ staging:
+# Noti (staging và production; production: NOTI_RECIPIENT_ALLOWLIST bắt buộc khác rỗng):
 NOTI_DB_NAME, NOTI_DB_USER, NOTI_DB_PASSWORD, NOTI_MAIL_DRIVER, NOTI_MAIL_FROM,
 NOTI_RECIPIENT_ALLOWLIST, NOTI_REDIRECT_TO, NOTI_SMTP_*, NOTI_GRAPH_*
 ```
@@ -57,11 +57,11 @@ Tiền tố `CORE_*` thay cho `TCKT_*` cũ (giá trị giữ nguyên khi chuyể
 
 **Lưu ý về `CORE_SETTINGS_ENCRYPTION_KEY`:** compose (`infra/compose/docker-compose.<env>.yml`) vẫn khai báo biến này là bắt buộc (`${CORE_SETTINGS_ENCRYPTION_KEY:?}`) và truyền vào container `core` dưới tên `SETTINGS_ENCRYPTION_KEY`, nên thiếu biến thì `core` không khởi động được; `bootstrap-vm.sh` tự sinh giá trị (`openssl rand -base64 32`) nếu `.env` chưa có. Tuy nhiên **code Core hiện không đọc biến này**: không còn module mã hoá cấu hình, không còn trang cấu hình SMTP (email do Noti đảm nhận, mục 4a và 5), nên không có cấu hình SMTP nào được mã hoá bằng nó. Biến chỉ còn là di sản của compose, đã được ghi nhận để gỡ (R19 trong SPEC-REL-001). Đừng sinh lại hay đổi nó chỉ vì lo "mất khoá = mất cấu hình SMTP": điều đó không còn đúng.
 
-## 4a. Noti trên staging
+## 4a. Noti trên staging và production
 
-Service Noti (`docs/dev/noti.md`) chạy **chỉ ở staging**: `noti-api` (cổng host `127.0.0.1:8100`, health `/v1/health`) và
+Service Noti (`docs/dev/noti.md`) chạy ở staging và production (production: SPEC-MAIL-001, plan PLAN-MAIL-001): `noti-api` (cổng host `127.0.0.1:8100` ở staging, `127.0.0.1:8101` ở production, health `/v1/health`) và
 `noti-worker` dùng chung image `ghcr.io/tduong-p/ultimate-tckt-noti`. Không có domain/nginx: Core gọi qua mạng compose
-(`http://noti-api:8000`). Database `noti` riêng nằm trên `ctd-db` của staging (không chung database với CTD).
+(`http://noti-api:8000`). Database `noti` riêng nằm trên `ctd-db` của từng môi trường (không chung database với CTD). Các bước dưới đây viết cho staging; production làm tương tự với `production` thay `staging` trong tên container và đường dẫn.
 
 Việc làm tay một lần trên VM, **trước** lần deploy đầu (compose đòi `NOTI_DB_*`, thiếu thì mọi lệnh compose của staging lỗi,
 kể cả deploy Core):
@@ -80,6 +80,15 @@ kể cả deploy Core):
    Mất key hoặc lộ key: CLI không cho tạo lại tên `core` sau khi thu hồi, nên tạo client tên mới rồi mới thu hồi tên cũ —
    `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli create-client core-<yyyymm>`, thay `CORE_NOTI_API_KEY`,
    chạy lại apply-infra, rồi `docker exec ultimate-tckt-staging-noti-api-1 python -m noti.cli revoke-client core`.
+
+**Production** (khác staging):
+- Làm tay trên VM **trước khi merge** compose production: backup (`backup.sh production`), tạo role/database `noti` trên `ultimate-tckt-production-ctd-db-1`,
+  thêm `NOTI_DB_*`, `NOTI_MAIL_DRIVER=console`, `NOTI_RECIPIENT_ALLOWLIST` (một địa chỉ), `NOTI_REDIRECT_TO` vào `.env` production,
+  để `CORE_NOTI_API_KEY` trống. Thiếu `NOTI_DB_*` hoặc allowlist rỗng thì mọi lệnh compose production lỗi (có chủ đích: allowlist rỗng nghĩa là gửi cho mọi người).
+- Deploy Noti production bật bằng biến repo `PROD_NOTI_ENABLED = 'true'`; lần đầu chạy tay
+  `deploy.sh production noti <tag đang chạy ở staging>` (`apply-infra.sh` chỉ bật Noti khi đã có tag đang chạy).
+- Driver gửi thật là `smtp` (M365) bằng tài khoản dịch vụ riêng; Graph để sau (#68). Công tắc tắt khẩn cấp: xoá `CORE_NOTI_API_KEY`, chạy lại `apply-infra.sh production`.
+- Ba pha rollout (console → nhóm nhỏ → toàn bộ) theo SPEC-MAIL-001 §5.
 
 Bật gửi thật: đặt `NOTI_MAIL_DRIVER=graph` (hoặc `smtp`) cùng secret tương ứng và **luôn** đặt `NOTI_RECIPIENT_ALLOWLIST`
 trên staging, rồi chạy lại `deploy.sh staging noti <tag đang chạy>`.
@@ -113,3 +122,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.3 | 2026-10-02 | Thêm `CORE_NOTI_API_KEY`; mục 4a: cách tạo key cho Core và bật gửi | DYC |
 | 1.4 | 2026-10-03 | Bỏ khẳng định sai về SMTP và khoá mã hoá cấu hình (code Core không còn dùng); biến chỉ còn là di sản của compose | DYC |
 | 1.5 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |
+| 1.6 | 2026-10-05 | Noti chạy cả ở production (cổng 8101, allowlist bắt buộc, `PROD_NOTI_ENABLED`); mục 4a thêm phần production (SPEC-MAIL-001) | DYC |

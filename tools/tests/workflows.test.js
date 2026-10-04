@@ -69,7 +69,7 @@ test('docs.yml checks every PR/push and tags docs on main', () => {
   assert.match(y, /NO_DOCS: \$\{\{ github\.event_name == 'push' \|\| contains\(github\.event\.pull_request\.labels\.\*\.name, 'no-docs-needed'\) \}\}/);
 });
 
-test('deploy.yml: noti has test (real Postgres) -> build -> deploy, deploy only to staging for now', () => {
+test('deploy.yml: noti has test (real Postgres) -> build -> deploy, deploy to production only behind PROD_NOTI_ENABLED', () => {
   const y = wf('deploy.yml');
   for (const j of ['test-noti', 'build-noti', 'deploy-noti']) assert.match(y, new RegExp(`^  ${j}:`, 'm'), j);
   assert.match(y, /noti:\n\s+- 'services\/noti-api\/\*\*'/);
@@ -78,6 +78,7 @@ test('deploy.yml: noti has test (real Postgres) -> build -> deploy, deploy only 
   assert.match(y, /ultimate-tckt-noti:\$\{\{ needs\.changes\.outputs\.tag \}\}/);
   const start = y.indexOf('\n  deploy-noti:');
   const job = y.slice(start, y.indexOf('\n    steps:', start)).replace(/\s+/g, ' ');
-  assert.ok(job.includes("vars.DEPLOY_ENABLED == 'true' && needs.changes.outputs.env == 'staging'"), job);
+  assert.ok(job.includes("vars.DEPLOY_ENABLED == 'true' &&"), job);
+  assert.ok(job.includes("(needs.changes.outputs.env == 'staging' || vars.PROD_NOTI_ENABLED == 'true')"), job);
   assert.match(y.slice(start), /deploy\.sh \$\{\{ needs\.changes\.outputs\.env \}\} noti /);
 });

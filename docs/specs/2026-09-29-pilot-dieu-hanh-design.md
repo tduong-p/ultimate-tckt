@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.6
+version: 2.7
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-04
+updated: 2026-10-05
 related_code: [core/src/**, core/public/**, services/ctd-api/backend/app/seeds/**, infra/**, tools/test-fixtures/**, core/src/config/database.js, core/app.js]
 ---
 
@@ -56,6 +56,7 @@ sau trong họp team; spec chỉ cố định các bước của một đợt:
 | Phát hành | Backup production (tự động khi a3 xong; trước đó chạy tay `backup.sh`) → merge PR → smoke trên production → mở lại `staging`. |
 
 - Giữa hai lần chốt, `staging` được phép tạm hỏng; người làm hỏng phải sửa hoặc revert trước khi chốt đợt.
+- Noti trên production bật theo SPEC-MAIL-001 (không thuộc phạm vi pilot này).
 - Lỗi gấp không đợi đợt: `docs/playbooks/hotfix-production.md` (nhánh từ `main`, merge ngược về `staging`).
 - Đợt đầu tiên mang migration đa đơn vị (PR #28) lên production — xem mục 11.
 
@@ -258,3 +259,4 @@ không chờ issue này.
 | 2.4 | 2026-10-03 | a2: seed không còn mở khóa `is_active` của admin đã có (hotfix #57 đồng bộ từ main) | DYC |
 | 2.5 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
 | 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống vào related_code - sửa lỗi deadline notification | DYC |
+| 2.7 | 2026-10-05 | Ghi chú: Noti production theo SPEC-MAIL-001 | DYC |
