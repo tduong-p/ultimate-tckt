@@ -1,6 +1,15 @@
-const { dateInVietnam } = require('../date-vn');
+const { dateInVietnam, addDaysVietnam } = require('../date-vn');
+const {
+  isSendingHour,
+  deadlineWindow,
+  isUnacknowledgedDue,
+  sourceKeys,
+  emailStatusFor
+} = require('./reminder-rules');
 
 const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
+
+const EXCLUDED_STATUSES = "'review', 'done', 'cancelled'";
 
 async function findOverdueTasks(db, now = new Date()) {
   const vietnamDate = dateInVietnam(now);
@@ -11,6 +20,7 @@ async function findOverdueTasks(db, now = new Date()) {
       t.id AS task_id,
       t.title AS task_title,
       t.deadline,
+      DATE_FORMAT(t.deadline, '%Y-%m-%d') AS deadline_day,
       t.activity_id,
       a.title AS activity_title,
       u.id AS user_id,
@@ -22,16 +32,19 @@ async function findOverdueTasks(db, now = new Date()) {
     JOIN users u
       ON u.id = ta.user_id
       AND u.is_active = 1
-    WHERE t.status NOT IN ('done', 'cancelled')
-      AND DATE(t.deadline) < ?
+    WHERE t.status NOT IN (${EXCLUDED_STATUSES})
+      AND t.deadline < ?
     `,
     [vietnamDate]
   );
 
   return rows;
 }
+
+// Task có hạn hôm nay hoặc ngày mai theo giờ VN (so sánh ngày lịch).
 async function findUpcomingDeadlines(db, now = new Date()) {
-  const vietnamDate = dateInVietnam(now);
+  const today = dateInVietnam(now);
+  const tomorrow = addDaysVietnam(now, 1);
 
   const [rows] = await db.execute(
     `
@@ -39,6 +52,7 @@ async function findUpcomingDeadlines(db, now = new Date()) {
       t.id AS task_id,
       t.title AS task_title,
       t.deadline,
+      DATE_FORMAT(t.deadline, '%Y-%m-%d') AS deadline_day,
       t.activity_id,
       a.title AS activity_title,
       u.id AS user_id,
@@ -50,17 +64,16 @@ async function findUpcomingDeadlines(db, now = new Date()) {
     JOIN users u
       ON u.id = ta.user_id
       AND u.is_active = 1
-    WHERE t.status NOT IN ('done', 'cancelled')
-      AND (
-        TIMESTAMPDIFF(HOUR, ?, t.deadline) IN (24, 4)
-        OR DATEDIFF(t.deadline, ?) = 1
-      )
+    WHERE t.status NOT IN (${EXCLUDED_STATUSES})
+      AND t.deadline IN (?, ?)
     `,
-    [now, vietnamDate]
+    [today, tomorrow]
   );
 
   return rows;
 }
+
+// Việc giao >= 24 giờ chưa xác nhận. Lọc tuổi < 168 giờ làm ở Node (isUnacknowledgedDue).
 async function findUnacknowledgedAssignments(db, now = new Date()) {
   const [rows] = await db.execute(
     `
@@ -70,6 +83,7 @@ async function findUnacknowledgedAssignments(db, now = new Date()) {
       t.activity_id,
       a.title AS activity_title,
       ta.user_id AS member_id,
+      ta.assigned_at AS assigned_at,
       member.name AS member_name,
       t.assigned_by AS lead_id,
       \`lead\`.email AS lead_email,
@@ -81,67 +95,66 @@ async function findUnacknowledgedAssignments(db, now = new Date()) {
       ON ta.task_id = t.id
     JOIN users member
       ON member.id = ta.user_id
-    LEFT JOIN users \`lead\`
+      AND member.is_active = 1
+    JOIN users \`lead\`
       ON \`lead\`.id = t.assigned_by
+      AND \`lead\`.is_active = 1
     WHERE ta.acknowledged_at IS NULL
-      AND t.status NOT IN ('done', 'cancelled')
-      AND TIMESTAMPDIFF(HOUR, ta.assigned_at, ?) >= 24
+      AND t.status NOT IN (${EXCLUDED_STATUSES})
       AND t.assigned_by IS NOT NULL
+      AND t.assigned_by <> ta.user_id
+      AND ta.assigned_at <= ?
     `,
-    [now]
+    [new Date(now.getTime() - 24 * 3600000)]
   );
 
-  return rows;
+  return rows.filter(row => isUnacknowledgedDue(row.assigned_at, now));
 }
-
 
 async function insertNotificationOnce(
   db,
-  {
-    userId,
-    activityId,
-    taskId,
-    kind,
-    title,
-    body,
-    url,
-    sourceKey,
-    now = new Date()
-  }
+  { userId, activityId, taskId, kind, title, body, url, sourceKey, now = new Date() }
 ) {
   const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   const [result] = await db.execute(
     `
     INSERT IGNORE INTO notifications
-      (
-        user_id,
-        activity_id,
-        task_id,
-        kind,
-        title,
-        body,
-        url,
-        source_key,
-        expires_at
-      )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, activity_id, task_id, kind, title, body, url, source_key, expires_at, email_status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `,
-    [
-      userId,
-      activityId,
-      taskId,
-      kind,
-      title,
-      body,
-      url,
-      sourceKey,
-      expiresAt
-    ]
+    [userId, activityId, taskId, kind, title, body, url, sourceKey, expiresAt]
   );
 
   return result.affectedRows > 0;
 }
+
+// Tạo thông báo trong app (một lần theo source_key) rồi gửi email nếu dòng còn `pending`.
+// Gửi tuần tự bằng await; kết quả ghi vào notifications.email_status.
+async function deliver({ db, notifier, now }, row, event) {
+  const inserted = await insertNotificationOnce(db, { ...row, now });
+
+  const [[current]] = await db.execute(
+    'SELECT email_status FROM notifications WHERE user_id = ? AND source_key = ?',
+    [row.userId, row.sourceKey]
+  );
+
+  if (current && current.email_status === 'pending') {
+    const result = await notifier.notify(event);
+    await db.execute(
+      'UPDATE notifications SET email_status = ? WHERE user_id = ? AND source_key = ?',
+      [emailStatusFor(result), row.userId, row.sourceKey]
+    );
+  }
+
+  return inserted;
+}
+
+function formatDayMonth(day) {
+  const [, month, date] = day.split('-');
+  return `${date}/${month}`;
+}
+
 async function runDeadlineNotifications({
   db,
   notifier,
@@ -156,165 +169,103 @@ async function runDeadlineNotifications({
     [now]
   );
 
+  if (!isSendingHour(now)) {
+    return { date: today, created: 0, skipped: 'outside-hours' };
+  }
+
+  const ctx = { db, notifier, now };
   let created = 0;
 
   const upcoming = await findUpcomingDeadlines(db, now);
 
   for (const item of upcoming) {
-    const hoursLeft = Math.round(
-      (new Date(item.deadline) - now) / 3600000
-    );
-
-    const window = hoursLeft <= 4 ? '4h' : '24h';
-
-    const title = 'Sắp đến hạn';
-
-    const body =
-      `"${item.task_title}" trong "${item.activity_title}" ` +
-      `sẽ đến hạn trong ${window === '4h' ? '4 giờ' : '24 giờ'} tới.`;
+    const window = deadlineWindow(item.deadline_day, now);
+    if (!window) continue;
 
     const url = `/#activity/${item.activity_id}`;
+    const sourceKey = sourceKeys.deadline(window.code, item.task_id, item.user_id, item.deadline_day);
+    const body = window.code === '1d'
+      ? `"${item.task_title}" trong "${item.activity_title}" sẽ đến hạn vào ngày mai (${formatDayMonth(item.deadline_day)}).`
+      : `"${item.task_title}" trong "${item.activity_title}" đến hạn hôm nay.`;
 
-    const sourceKey =
-      `task-deadline-${window}:${item.task_id}:${item.user_id}:${today}`;
-
-    const inserted = await insertNotificationOnce(db, {
+    const inserted = await deliver(ctx, {
       userId: item.user_id,
       activityId: item.activity_id,
       taskId: item.task_id,
       kind: 'task_deadline_soon',
-      title,
+      title: 'Sắp đến hạn',
       body,
       url,
-      sourceKey,
-      now
-    });
-
-    if (inserted) created += 1;
-
-    notifier.notify({
+      sourceKey
+    }, {
       event: 'task.deadline_soon',
-      recipient: {
-        id: item.user_id,
-        name: item.user_name,
-        email: item.user_email
-      },
+      recipient: { id: item.user_id, name: item.user_name, email: item.user_email },
       data: {
-        window,
-        task: {
-          id: item.task_id,
-          title: item.task_title,
-          path: url,
-          deadline: item.deadline
-        },
-        activity: {
-          title: item.activity_title
-        }
+        window: window.label,
+        task: { id: item.task_id, title: item.task_title, path: url, deadline: item.deadline_day },
+        activity: { title: item.activity_title }
       },
       sourceKey
     });
+
+    if (inserted) created += 1;
   }
 
   const overdue = await findOverdueTasks(db, now);
 
   for (const item of overdue) {
-    const title = 'Công việc trễ hạn';
-
-    const body =
-      `"${item.task_title}" trong "${item.activity_title}" đã quá hạn.`;
-
     const url = `/#activity/${item.activity_id}`;
+    const sourceKey = sourceKeys.overdue(item.task_id, item.user_id, today);
 
-    const sourceKey =
-      `task-overdue:${item.task_id}:${item.user_id}:${today}`;
-
-    const inserted = await insertNotificationOnce(db, {
+    const inserted = await deliver(ctx, {
       userId: item.user_id,
       activityId: item.activity_id,
       taskId: item.task_id,
       kind: 'task_overdue',
-      title,
-      body,
+      title: 'Công việc trễ hạn',
+      body: `"${item.task_title}" trong "${item.activity_title}" đã quá hạn.`,
       url,
-      sourceKey,
-      now
-    });
-
-    if (inserted) created += 1;
-
-    notifier.notify({
+      sourceKey
+    }, {
       event: 'task.overdue',
-      recipient: {
-        id: item.user_id,
-        name: item.user_name,
-        email: item.user_email
-      },
+      recipient: { id: item.user_id, name: item.user_name, email: item.user_email },
       data: {
-        task: {
-          id: item.task_id,
-          title: item.task_title,
-          path: url,
-          deadline: item.deadline
-        },
-        activity: {
-          title: item.activity_title
-        }
+        task: { id: item.task_id, title: item.task_title, path: url, deadline: item.deadline_day },
+        activity: { title: item.activity_title }
       },
       sourceKey
     });
+
+    if (inserted) created += 1;
   }
 
-  const unacknowledged =
-    await findUnacknowledgedAssignments(db, now);
+  const unacknowledged = await findUnacknowledgedAssignments(db, now);
 
   for (const item of unacknowledged) {
-    if (!item.lead_id) continue;
-
-    const title = 'Thành viên chưa xác nhận nhận việc';
-
-    const body =
-      `${item.member_name} chưa xác nhận nhận việc ` +
-      `"${item.task_title}" sau 24 giờ.`;
-
     const url = `/#activity/${item.activity_id}`;
+    const sourceKey = sourceKeys.unacknowledged(item.task_id, item.member_id, item.assigned_at);
 
-    const sourceKey =
-      `task-unacknowledged:${item.task_id}:${item.member_id}`;
-
-    const inserted = await insertNotificationOnce(db, {
+    const inserted = await deliver(ctx, {
       userId: item.lead_id,
       activityId: item.activity_id,
       taskId: item.task_id,
       kind: 'task_unacknowledged',
-      title,
-      body,
+      title: 'Thành viên chưa xác nhận nhận việc',
+      body: `${item.member_name} chưa xác nhận nhận việc "${item.task_title}" sau 24 giờ.`,
       url,
-      sourceKey,
-      now
-    });
-
-    if (inserted) created += 1;
-
-    notifier.notify({
+      sourceKey
+    }, {
       event: 'task.unacknowledged',
-      recipient: {
-        id: item.lead_id,
-        name: item.lead_name,
-        email: item.lead_email
-      },
+      recipient: { id: item.lead_id, name: item.lead_name, email: item.lead_email },
       data: {
         memberName: item.member_name,
-        task: {
-          id: item.task_id,
-          title: item.task_title,
-          path: url
-        },
-        activity: {
-          title: item.activity_title
-        }
+        task: { id: item.task_id, title: item.task_title, path: url },
+        activity: { title: item.activity_title }
       },
       sourceKey
     });
+
+    if (inserted) created += 1;
   }
 
   if (created) {
