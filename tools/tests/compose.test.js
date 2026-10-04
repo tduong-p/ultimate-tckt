@@ -68,6 +68,13 @@ test('production noti refuses to start without a recipient allowlist (empty = ma
   assert.match(y, /NOTI_RECIPIENT_ALLOWLIST: \$\{NOTI_RECIPIENT_ALLOWLIST:\?\}/);
 });
 
+test('noti always-cc is passed through in both stacks (empty = off)', () => {
+  for (const f of ['production', 'staging']) {
+    const y = read(`infra/compose/docker-compose.${f}.yml`);
+    assert.match(y, /NOTI_ALWAYS_CC: \$\{NOTI_ALWAYS_CC:-\}/);
+  }
+});
+
 test('production core reaches noti over the compose network; a missing key only disables sending', () => {
   const core = read('infra/compose/docker-compose.production.yml').split(/^  ctd-db:/m)[0];
   assert.match(core, /NOTI_URL: http:\/\/noti-api:8000/);

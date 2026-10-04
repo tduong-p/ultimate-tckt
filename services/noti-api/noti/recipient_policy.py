@@ -26,3 +26,23 @@ def apply_policy(
     if redirect_to:
         return redirect_to.strip()
     return None
+
+
+def merge_always_cc(cc: list[str], always_cc: Optional[list[str]], recipient: str) -> list[str]:
+    """Thêm các địa chỉ CC cố định của vận hành vào cuối `cc`.
+
+    Bỏ trùng không phân biệt hoa thường (giữ thứ tự, giữ nguyên chữ của lần xuất hiện đầu) và bỏ địa chỉ
+    trùng người nhận cuối cùng. Các địa chỉ cố định do vận hành cấu hình nên cố ý không qua allowlist;
+    gọi hàm này chỉ sau khi người nhận đã qua allowlist.
+    """
+    recipient_key = recipient.strip().lower()
+    seen = {recipient_key}
+    merged: list[str] = []
+    for addr in [*cc, *(always_cc or [])]:
+        addr = addr.strip()
+        key = addr.lower()
+        if not addr or key in seen:
+            continue
+        seen.add(key)
+        merged.append(addr)
+    return merged

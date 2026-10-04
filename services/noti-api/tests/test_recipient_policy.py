@@ -20,3 +20,16 @@ def test_outside_allowlist_redirects_or_drops():
     assert apply_policy("a@gmail.com", ["hust.edu.vn"], "qa@hust.edu.vn") == "qa@hust.edu.vn"
     # Outside allowlist without redirect_to returns None (dropped)
     assert apply_policy("a@gmail.com", ["hust.edu.vn"], None) is None
+
+
+from noti.recipient_policy import merge_always_cc
+
+
+def test_merge_always_cc_off_when_empty():
+    assert merge_always_cc(["a@x.com"], [], "r@x.com") == ["a@x.com"]
+    assert merge_always_cc([], None, "r@x.com") == []
+
+
+def test_merge_always_cc_appends_dedupes_case_insensitively_and_drops_recipient():
+    out = merge_always_cc(["A@x.com"], ["a@X.com", "Ops@y.com", "R@x.com", "ops@y.com"], "r@x.com")
+    assert out == ["A@x.com", "Ops@y.com"]

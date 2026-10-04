@@ -473,3 +473,47 @@ def test_sixth_transient_failure_marks_failed_fifth_stays_pending(db, make_clien
     db.refresh(r)
     assert r.status == expected
 
+
+
+def test_always_cc_added_after_allowlist_and_deduped(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(settings, "redirect_to", None)
+    monkeypatch.setattr(settings, "always_cc", ["Ops@gmail.com", "a@hust.edu.vn", "b@HUST.edu.vn"])
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    n.cc = ["outsider@yahoo.com", "b@hust.edu.vn"]
+    create_recipient(db, n.id, "a@hust.edu.vn")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    assert driver.sent_messages[0].cc == ["b@hust.edu.vn", "Ops@gmail.com"]
+
+
+def test_always_cc_not_added_for_suppressed_recipient(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "recipient_allowlist", ["hust.edu.vn"])
+    monkeypatch.setattr(settings, "redirect_to", None)
+    monkeypatch.setattr(settings, "always_cc", ["ops@gmail.com"])
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    create_recipient(db, n.id, "outsider@gmail.com")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    assert driver.sent_messages == []
+
+
+def test_always_cc_off_by_default(db, make_client, monkeypatch):
+    from noti.config import settings
+    monkeypatch.setattr(settings, "always_cc", [])
+    c, _ = make_client()
+    n = create_notification(db, c.id)
+    create_recipient(db, n.id, "a@hust.edu.vn")
+    db.commit()
+
+    driver = FakeDriver()
+    run_once(db, get_registry(), driver, now=datetime.now(timezone.utc))
+    assert driver.sent_messages[0].cc == []
