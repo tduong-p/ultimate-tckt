@@ -24,6 +24,9 @@ function fakeNotifier(results = [], fallback = { delivered: true }) {
 }
 
 async function setup(pool) {
+  // db.sql có sẵn một nhiệm vụ mẫu (hạn quá khứ so với NOW cố định) sẽ bị tính là trễ hạn.
+  await pool.execute('DELETE FROM task_assignees');
+  await pool.execute('DELETE FROM tasks');
   const teamId = await createTeam(pool);
   const leader = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: true });
   const activityId = await createActivity(pool, { team_id: teamId, creator_id: leader.id, status: 'approved' });
