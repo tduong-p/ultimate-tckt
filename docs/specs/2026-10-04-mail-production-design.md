@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-MAIL-001
 title: Thiết kế bật email thật trên production (Core → Noti) — Đợt 2
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -126,6 +126,7 @@ Tài liệu phải cập nhật trong cùng các PR: `docs/ops/moi-truong.md`, `
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
+| 1.3 | 2026-10-05 | Đồng bộ với code hạ tầng Noti production (PR hạ tầng) | DYC |
 | 1.2 | 2026-10-05 | Production dùng SMTP như staging (D6, M3, pha B/C); không cần họp team; Graph để sau (#68) | DYC |
 | 1.1 | 2026-10-04 | Làm rõ: cổng host 8101 (tránh xung đột staging 8100), allowlist bắt buộc ở cấp compose | DYC |
 | 1.0 | 2026-10-04 | Bản đầu: hiện trạng production, cổng M1–M6, ba pha rollout, rollback | DYC |
