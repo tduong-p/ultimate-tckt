@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-BAK-001
 title: Backup và restore database
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: [infra/scripts/backup.sh]
 ---
 
@@ -20,14 +20,15 @@ ssh ubuntu@168.107.68.32
 bash /opt/ultimate-tckt/<env>/infra/scripts/backup.sh <staging|production>
 ```
 
-Script dump `core-db` (`mysqldump --single-transaction --routines`) và `ctd-db` (`pg_dump`) qua `docker compose exec`, nén gzip, ghi vào:
+Script dump `core-db` (`mysqldump --single-transaction --routines`), `ctd-db` (`pg_dump`) và database `noti` của module Mail/Noti (cùng container `ctd-db`, chỉ dump khi database đó tồn tại; bỏ qua với stack cũ có `UT_BACKUP_COMPOSE_ARGS`) qua `docker compose exec`, nén gzip, ghi vào:
 
 ```
 /opt/ultimate-tckt/backups/<env>-<yyyymmdd-hhmm>-core.sql.gz
 /opt/ultimate-tckt/backups/<env>-<yyyymmdd-hhmm>-ctd.sql.gz
+/opt/ultimate-tckt/backups/<env>-<yyyymmdd-hhmm>-noti.sql.gz   # chỉ khi có DB noti
 ```
 
-Giữ 14 bản gần nhất mỗi loại (core, ctd), bản cũ hơn bị xoá tự động.
+Giữ 14 bản gần nhất mỗi loại (core, ctd, noti), bản cũ hơn bị xoá tự động.
 
 **Backup stack cũ trước khi chuyển đổi:** khi chạy `backup.sh` nhắm vào stack cũ (project `seee-ctd-<env>`, tên service `tckt-db` thay vì `core-db`), truyền `UT_BACKUP_COMPOSE_ARGS` để ghi đè compose project/file mặc định:
 
@@ -66,6 +67,13 @@ gunzip -c /opt/ultimate-tckt/backups/<env>-<ts>-ctd.sql.gz \
   | ut_compose <env> exec -T ctd-db sh -c 'psql -U "$POSTGRES_USER" "$POSTGRES_DB"'
 ```
 
+### Postgres (noti)
+
+```bash
+gunzip -c /opt/ultimate-tckt/backups/<env>-<ts>-noti.sql.gz \
+  | ut_compose <env> exec -T ctd-db sh -c 'psql -U "$POSTGRES_USER" noti'
+```
+
 **Lưu ý khi restore:** dừng ứng dụng (`core`/`ctd-api`) hoặc chấp nhận downtime ngắn trước khi restore đè lên dữ liệu hiện có — restore không tự dừng app. Kiểm tra lại số dòng ở vài bảng chính sau khi restore (xem cách đếm ở `docs/ops/chuyen-doi-ultimate-tckt.md` mục đếm mốc) để xác nhận dữ liệu đã vào đúng.
 
 ## 3. File đính kèm / tài liệu (không nằm trong dump SQL)
@@ -89,3 +97,4 @@ Restore là chép ngược lại (`tar xzf` vào volume qua container tạm) —
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-24 | Restore: nạp `lib.sh` trước, dump Postgres có `--clean --if-exists`, cách restore dump cũ | DYC |
 | 1.2 | 2026-10-03 | Compose đòi tag image: nạp bằng `ut_tags`; DB đã migrate mới hơn dump phải tạo lại DB trống trước khi nạp | DYC |
+| 1.3 | 2026-10-05 | Backup thêm dump database `noti` (cùng `ctd-db`, chỉ khi DB tồn tại) và cách restore | DYC |
