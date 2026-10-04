@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-TZ-001
 title: Múi giờ và xử lý thời gian
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-04
-related_code: [core/app.js, core/src/config/database.js, core/src/date-vn.js, core/src/services/deadline-notifications.js]
+updated: 2026-10-05
+related_code: [core/app.js, core/src/config/database.js, core/src/date-vn.js, core/src/services/deadline-notifications.js, core/src/services/reminder-rules.js]
 ---
 
 # Múi giờ và xử lý thời gian
@@ -202,44 +202,18 @@ const today = dateInVietnam();
 await db.execute('INSERT INTO tasks (deadline) VALUES (?)', [today]);  // Sai! Thiếu giờ
 ```
 
-## Ví dụ thực tế: Deadline Notifications
+## Ví dụ thực tế: nhắc hạn
 
-File: `core/src/services/deadline-notifications.js`
+Files: `core/src/services/deadline-notifications.js`, `core/src/services/reminder-rules.js`, `core/src/date-vn.js`
 
-### Trước đây (sai)
+`tasks.deadline` là cột **`DATE`** (ngày 00:00, không có giờ). Vì vậy nhắc hạn tính theo **ngày lịch giờ VN**, không theo số giờ:
 
-```javascript
-async function findUpcomingDeadlines(db, now = new Date()) {
-  const [rows] = await db.execute(
-    `WHERE ... AND (
-      TIMESTAMPDIFF(HOUR, ?, t.deadline) IN (24, 4)  -- ? = now (JS Date)
-      OR DATEDIFF(t.deadline, ?) = 1                 -- ? = dateInVietnam(now) (string)
-    )`,
-    [now, dateInVietnam(now)]  // Trộn lẫn Date object và string
-  );
-}
-```
-
-**Vấn đề:** Nếu server chạy UTC mà chưa set `TZ`, `now` sẽ là giờ UTC, dẫn đến sai lệch 7 giờ.
-
-### Bây giờ (đúng)
-
-```javascript
-async function findUpcomingDeadlines(db) {
-  const [rows] = await db.execute(
-    `WHERE ... AND (
-      TIMESTAMPDIFF(HOUR, NOW(), t.deadline) IN (24, 4)
-      OR DATEDIFF(t.deadline, CURDATE()) = 1
-    )`
-    // Không cần tham số! MySQL tự biết giờ VN
-  );
-}
-```
-
-**Tại sao đúng:**
-- `NOW()` và `CURDATE()` chạy trong MySQL session với `timezone: '+07:00'`
-- Không phụ thuộc vào server timezone
-- Đơn giản, dễ test
+- Hạn là ngày mai (`addDaysVietnam(now, 1)`) → nhắc "1 ngày"; hạn là hôm nay (`dateInVietnam(now)`) → nhắc "hôm nay".
+- So sánh bằng chuỗi `YYYY-MM-DD` trong Node (`deadlineWindow`), không dùng `TIMESTAMPDIFF(HOUR, …)`: với `DATE` thì "còn 4 giờ" hay
+  "còn 24 giờ" vô nghĩa và lệch tuỳ giờ chạy scheduler.
+- Chỉ gửi trong khung **07:00–21:59 giờ VN** (`isSendingHour`, dùng `hourInVietnam`); ngoài khung bỏ qua, lượt 15 phút sau xử lý tiếp.
+- `task.unacknowledged` tính theo thời điểm giao (`assigned_at`, có giờ): từ 24 giờ đến dưới 168 giờ.
+- Các hàm `findOverdueTasks`, `findUpcomingDeadlines`, `findUnacknowledgedAssignments` nhận `now` để test điều khiển được thời gian.
 
 ## Testing
 
@@ -303,23 +277,24 @@ docker exec -it ultimate-tckt-production-core-db-1 mysql -u root -p -e \
 
 ### 4. Test deadline notifications với dữ liệu giả
 
+Chạy trong khung 07:00–21:59 giờ VN (ngoài khung scheduler không gửi).
+
 ```sql
--- Tạo task deadline 4 giờ nữa
+-- Task hạn hôm nay (nhắc "hôm nay")
 INSERT INTO tasks (
   activity_id, title, team_id, primary_assignee_id,
   assigned_by, status, deadline
 ) VALUES (
-  1, 'Test 4h deadline', 1, 1, 1, 'todo',
-  DATE_ADD(NOW(), INTERVAL 4 HOUR)
+  1, 'Test hạn hôm nay', 1, 1, 1, 'todo', CURDATE()
 );
 
--- Tạo task deadline ngày mai
+-- Task hạn ngày mai (nhắc "1 ngày")
 INSERT INTO tasks (
   activity_id, title, team_id, primary_assignee_id,
   assigned_by, status, deadline
 ) VALUES (
-  1, 'Test 24h deadline', 1, 1, 1, 'todo',
-  DATE_ADD(NOW(), INTERVAL 24 HOUR)
+  1, 'Test hạn ngày mai', 1, 1, 1, 'todo',
+  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
 );
 
 -- Kiểm tra
@@ -338,8 +313,8 @@ WHERE title LIKE 'Test%';
 +----+-------------------+---------------------+-------------+-------------+
 | id | title             | deadline            | hours_until | days_until  |
 +----+-------------------+---------------------+-------------+-------------+
-|  X | Test 4h deadline  | 2026-10-04 19:30:00 |           4 |           0 |
-|  Y | Test 24h deadline | 2026-10-05 15:30:00 |          24 |           1 |
+|  X | Test hạn hôm nay  | 2026-10-04 00:00:00 |          -15 |           0 |
+|  Y | Test hạn ngày mai | 2026-10-05 00:00:00 |           9 |           1 |
 +----+-------------------+---------------------+-------------+-------------+
 ```
 
@@ -361,7 +336,7 @@ const { runDeadlineNotifications } = require('./src/services/deadline-notificati
 "
 ```
 
-Phải thấy 2 notifications được tạo.
+Phải thấy 2 notifications được tạo (với `notifier` giả như trên, `email_status` được ghi theo kết quả của nó).
 
 ## Troubleshooting
 
@@ -427,3 +402,4 @@ Trong trường hợp đó, cần:
 | Version | Ngày | Thay đổi | Người |
 |---------|------|----------|-------|
 | 1.0 | 2026-10-04 | Bản đầu - quy ước timezone toàn hệ thống, sau khi sửa lỗi deadline notification | DYC |
+| 1.1 | 2026-10-05 | #49: nhắc hạn theo ngày lịch giờ VN (`tasks.deadline` là `DATE`), khung gửi 07:00–21:59, bỏ ví dụ `TIMESTAMPDIFF` 4h/24h | DYC |

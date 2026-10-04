@@ -1,11 +1,11 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.5
+version: 2.6
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/reports.js, core/src/routes/notifications.js]
 ---
 
@@ -44,7 +44,7 @@ Tài liệu này mô tả các luồng nghiệp vụ vận hành hoạt động/
 1. Lead tạo task trong hoạt động đã duyệt (`POST /api/activities/:id/tasks`), chỉ định 1 **Primary Assignee** + các người phối hợp (co-assignees), thêm checklist con.
 2. Hệ thống phát `task.assigned` tới các assignee.
 3. Thành viên bấm **Xác nhận nhận việc** (`POST /api/tasks/:id/acknowledge`) → ghi `task_assignees.acknowledged_at`.
-4. Nếu sau 24 giờ thành viên chưa xác nhận, hệ thống phát `task.unacknowledged` cho Lead giao việc (qua cron nhắc việc).
+4. Nếu sau 24 giờ thành viên chưa xác nhận (và chưa quá 7 ngày), hệ thống phát `task.unacknowledged` cho Lead giao việc (qua cron nhắc việc, chỉ trong khung 07:00–21:59 giờ VN).
 5. Task tự ghi nhận việc phát sinh (`Self-Log Work`, không thuộc kế hoạch ban đầu) qua `POST /api/activities/:id/log-task`, có trọng số 0–10 lấy từ danh mục `weight_presets` và minh chứng.
 
 ## 4. Luồng thực hiện & nghiệm thu — đã làm
@@ -94,3 +94,4 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 | 2.3 | 2026-09-30 | PR 8: báo cáo lưu trữ chỉ đếm việc done; số việc đang mở theo từng người | DYC |
 | 2.4 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 2.5 | 2026-10-02 | Email không còn do Rule Engine; thông báo ngoài app đi qua `notifier` và sẽ do Noti đảm nhận | DYC |
+| 2.6 | 2026-10-05 | #49: nhắc chưa xác nhận trong 24 giờ–7 ngày, khung gửi 07:00–21:59; không tự thông báo cho người thao tác | DYC |
