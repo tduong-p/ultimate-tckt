@@ -1,6 +1,7 @@
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate, make_msgid
 import smtplib
+import ssl
 from typing import Optional
 
 from noti.drivers.base import Driver, Message, PermanentError, TransientError
@@ -43,18 +44,35 @@ class SmtpDriver(Driver):
         msg.add_alternative(message.html, subtype="html")
 
         try:
-            with smtplib.SMTP(self.host, self.port, timeout=self.timeout) as server:
-                server.starttls()
+            server = smtplib.SMTP(self.host, self.port, timeout=self.timeout)
+            try:
+                server.starttls(context=ssl.create_default_context())
                 if self.user and self.password:
                     server.login(self.user, self.password)
                 server.send_message(msg)
+            finally:
+                # Thư đã đi (hoặc lỗi gốc đã có) thì lỗi khi đóng phiên (QUIT) không được đổi kết quả.
+                try:
+                    server.quit()
+                except Exception:
+                    pass
+                try:
+                    server.close()
+                except Exception:
+                    pass
         except smtplib.SMTPRecipientsRefused as e:
-            raise PermanentError(f"SMTP recipients refused: {e}")
+            codes = [r[0] for r in e.recipients.values()]
+            if codes and all(500 <= c < 600 for c in codes):
+                raise PermanentError(f"SMTP recipients refused: {e}")
+            raise TransientError(f"SMTP recipients refused (not all permanent): {e}")
         except smtplib.SMTPResponseException as e:
+            # 530/534/535 = lỗi xác thực/cấu hình phía ta (sửa được) -> thử lại, không đánh dấu vĩnh viễn.
+            if e.smtp_code in (530, 534, 535):
+                raise TransientError(f"SMTP {e.smtp_code} auth error: {e}")
             if 500 <= e.smtp_code < 600:
                 raise PermanentError(f"SMTP {e.smtp_code} permanent error: {e}")
             raise TransientError(f"SMTP {e.smtp_code} transient error: {e}")
-        except (smtplib.SMTPException, OSError, TimeoutError) as e:
+        except (ssl.SSLError, smtplib.SMTPException, OSError) as e:
             raise TransientError(f"SMTP connection/network error: {e}")
         except Exception as e:
             raise TransientError(f"Unexpected SMTP error: {e}")

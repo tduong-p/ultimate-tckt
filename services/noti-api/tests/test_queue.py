@@ -190,3 +190,63 @@ def test_mark_helpers(db, make_client):
     db.refresh(r)
     assert r.status == "failed"
     assert r.last_error == "fatal error"
+
+
+def test_mark_suppressed_sets_terminal_fields(db, make_client):
+    from noti.queue import mark_suppressed
+    c, _ = make_client()
+    n = create_test_noti(db, c.id)
+    now = datetime.now(timezone.utc)
+    r = create_test_recipient(db, n.id, "a@example.com", status="sending", attempts=1,
+                              locked_until=now + timedelta(minutes=5))
+    db.commit()
+
+    mark_suppressed(db, r.id, now=now)
+    db.commit()
+    db.refresh(r)
+    assert r.status == "suppressed"
+    assert r.finished_at == now
+    assert r.sent_at is None
+    assert r.locked_until is None
+    assert r.last_error == "dropped by allowlist"
+
+
+def test_release_returns_row_to_pending_without_counting_attempt(db, make_client):
+    from noti.queue import release
+    c, _ = make_client()
+    n = create_test_noti(db, c.id)
+    now = datetime.now(timezone.utc)
+    r2 = create_test_recipient(db, n.id, "a@example.com", status="sending", attempts=2,
+                               locked_until=now + timedelta(minutes=5))
+    r0 = create_test_recipient(db, n.id, "b@example.com", status="sending", attempts=0,
+                               locked_until=now + timedelta(minutes=5))
+    db.commit()
+
+    release(db, r2.id, now=now)
+    release(db, r0.id, now=now)
+    db.commit()
+    db.refresh(r2)
+    db.refresh(r0)
+    assert r2.status == "pending" and r2.attempts == 1
+    assert r2.locked_until is None and r2.finished_at is None
+    assert r2.next_attempt_at == now
+    assert r0.status == "pending" and r0.attempts == 0
+
+
+def test_recover_uses_max_attempts_6(db, make_client):
+    from noti.queue import MAX_ATTEMPTS
+    assert MAX_ATTEMPTS == 6
+    c, _ = make_client()
+    n = create_test_noti(db, c.id)
+    now = datetime.now(timezone.utc)
+    expired_lock = now - timedelta(minutes=1)
+    r5 = create_test_recipient(db, n.id, "a@example.com", status="sending", attempts=5, locked_until=expired_lock)
+    r6 = create_test_recipient(db, n.id, "b@example.com", status="sending", attempts=6, locked_until=expired_lock)
+    db.commit()
+
+    recover(db, now=now)
+    db.commit()
+    db.refresh(r5)
+    db.refresh(r6)
+    assert r5.status == "pending"
+    assert r6.status == "failed"

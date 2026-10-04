@@ -10,7 +10,7 @@ optional:
   - activity.title
 ttl: 86400
 data_example:
-  window: "24h"
+  window: "1 ngày"
   task:
     id: 120
     title: "Làm poster hoạt động"

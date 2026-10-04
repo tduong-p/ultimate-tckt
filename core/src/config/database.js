@@ -1,7 +1,11 @@
 const mysql = require('mysql2/promise');
 
 function createDatabase(config) {
-  return mysql.createPool(config);
+  const poolConfig = {
+    ... config,
+    timezone: '+07:00'
+  };
+  return mysql.createPool(poolConfig);
 }
 
 module.exports = { createDatabase };

@@ -18,16 +18,17 @@ const get = (data, dotted) => dotted.split('.').reduce((v, k) => (v == null ? un
 
 // Dữ liệu giống hệt chỗ gọi thật trong routes/ và services/deadline-notifications.js.
 const callSites = [
-  { event: 'activity.proposed', data: { actor: 'Bình', activity: { id: 3, title: 'MHX', path: '/#activity/3' } }, sourceKey: 'activity-proposed:3:1:create' },
+  { event: 'activity.proposed', data: { actor: 'Bình', activity: { id: 3, title: 'MHX', path: '/#activity/3', type: 'event', deadline, priority: 'high' } }, sourceKey: 'activity-proposed:3:1:create' },
   { event: 'activity.participant_added', data: { actor: 'Bình', responsibility: 'Truyền thông', activity: { id: 3, title: 'MHX', path: '/#activity/3', deadline } }, sourceKey: 'activity-participant:3:7' },
   { event: 'activity.decided', data: { actor: 'Bình', action: 'approve', feedback: '', activity: { id: 3, title: 'MHX', path: '/#activity/3' } }, sourceKey: 'activity-decided:3:9:7' },
   { event: 'task.assigned', data: { actor: 'Bình', task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-assigned:5:7' },
   { event: 'task.response', data: { actor: 'Bình', response: { kind: 'comment', body: 'Xong bản nháp' }, task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-response:11:7' },
   { event: 'task.review_requested', data: { actor: 'Bình', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: undefined } }, sourceKey: 'task-review:5:7:1' },
   { event: 'task.reviewed', data: { actor: 'Bình', decision: 'reject', feedback: 'Sửa màu', task: { id: 5, title: 'Poster', path: '/#activity/3' } }, sourceKey: 'task-reviewed:5:7:reject:1' },
-  { event: 'task.deadline_soon', data: { window: '24h', task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-deadline-24h:5:7:2026-10-14' },
+  { event: 'task.deadline_soon', data: { window: '1 ngày', task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-deadline-1d:5:7:2026-10-14' },
   { event: 'task.overdue', data: { task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-overdue:5:7:2026-10-16' },
-  { event: 'task.unacknowledged', data: { memberName: 'Cường', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-unacknowledged:5:8' },
+  { event: 'task.unacknowledged', data: { memberName: 'Cường', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-unacknowledged:5:8:1791000000' },
+  { event: 'activity.decided', data: { actor: 'Bình', action: 'reject', feedback: 'Thiếu kinh phí', activity: { id: 3, title: 'MHX' } }, sourceKey: 'activity-decided:3:9:8' },
 ];
 
 for (const site of callSites) {
@@ -131,6 +132,36 @@ test('a long task response body is cut so Noti does not reject it (64 KB limit)'
   const { data } = toNotiPayload({ event: 'task.response', recipient, sourceKey: 'k', data: { response: { kind: 'comment', body: 'ả'.repeat(10000) } } });
   assert.ok(data.response.body.length <= 4000);
   assert.ok(data.response.body.endsWith('…'));
+});
+
+test('5xx, 429 and network failures are transient; 400/401/413 are not', async () => {
+  const run = fetchImpl => createNotiSender({ url: 'http://n', apiKey: 'k', fetchImpl })(event);
+  for (const status of [500, 503, 429]) {
+    await assert.rejects(run(fakeFetch({ ok: false, status, json: async () => ({}) })), err => err.transient === true && err.status === status);
+  }
+  for (const status of [400, 401, 413]) {
+    await assert.rejects(run(fakeFetch({ ok: false, status, json: async () => ({}) })), err => err.transient !== true && err.status === status);
+  }
+  await assert.rejects(run(async () => { throw new TypeError('fetch failed'); }), err => err.transient === true);
+});
+
+test('a long decision feedback is cut to 4000 characters', () => {
+  for (const [name, data] of [['task.reviewed', { decision: 'reject' }], ['activity.decided', { action: 'reject' }]]) {
+    const payload = toNotiPayload({ event: name, recipient, sourceKey: 'k', data: { ...data, feedback: 'ả'.repeat(5000) } });
+    assert.equal(payload.data.feedback.length, 4000);
+    assert.ok(payload.data.feedback.endsWith('…'));
+  }
+});
+
+test('activity.proposed priority and type get Vietnamese labels', () => {
+  const data = activity => toNotiPayload({ event: 'activity.proposed', recipient, sourceKey: 'k', data: { activity } }).data.activity;
+  assert.equal(data({ priority: 'urgent', type: 'event' }).priority, 'Khẩn cấp');
+  assert.equal(data({ priority: 'urgent', type: 'event' }).type, 'Tổ đề xuất');
+  assert.equal(data({ priority: 'low', type: 'assigned' }).priority, 'Thấp');
+  assert.equal(data({ priority: 'low', type: 'assigned' }).type, 'Lãnh đạo giao');
+  assert.equal(data({ priority: 'medium' }).priority, 'Trung bình');
+  assert.equal(data({ priority: 'high' }).priority, 'Cao');
+  assert.equal(data({ type: 'xyz' }).type, 'xyz');
 });
 
 test('sender passes an abort signal so a hung request is cancelled', async () => {

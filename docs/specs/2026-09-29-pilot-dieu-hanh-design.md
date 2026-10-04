@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.4
+version: 2.6
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-03
-related_code: [core/src/**, core/public/**, services/ctd-api/backend/app/seeds/**, infra/**, tools/test-fixtures/**]
+updated: 2026-10-04
+related_code: [core/src/**, core/public/**, services/ctd-api/backend/app/seeds/**, infra/**, tools/test-fixtures/**, core/src/config/database.js, core/app.js]
 ---
 
 # Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
@@ -256,3 +256,5 @@ không chờ issue này.
 | 1.13 | 2026-10-02 | Cập nhật thiết kế phân quyền | DYC |
 | 2.3 | 2026-10-03 | Sửa dòng lịch sử 1.13 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi | DYC |
 | 2.4 | 2026-10-03 | a2: seed không còn mở khóa `is_active` của admin đã có (hotfix #57 đồng bộ từ main) | DYC |
+| 2.5 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
+| 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống vào related_code - sửa lỗi deadline notification | DYC |

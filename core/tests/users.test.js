@@ -78,3 +78,52 @@ test('admin can update user and delete/deactivate user', () => withServer(async 
   const deleteRes = await client.request('DELETE', `/api/users/${member.id}`);
   assert.equal(deleteRes.status, 200);
 }));
+
+test('admin creating or editing a user with an undeliverable email gets 400', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const member = await createUser(pool, { role: 'member', team_id: teamId });
+  await client.login(admin.email, admin.password);
+
+  const createRes = await client.request('POST', '/api/users', {
+    body: { name: 'Email giả', email: 'x@tckt.local', password: 'MatKhau123!', role: 'member', team_ids: [teamId] }
+  });
+  assert.equal(createRes.status, 400);
+  assert.deepEqual(createRes.json, { error: 'Email không hợp lệ.' });
+
+  const patchRes = await client.request('PATCH', `/api/users/${member.id}`, {
+    body: { name: 'Tên mới', email: 'bad@', role: 'member', team_ids: [teamId], avatar_color: '#1E3A8A' }
+  });
+  assert.equal(patchRes.status, 400);
+  assert.deepEqual(patchRes.json, { error: 'Email không hợp lệ.' });
+  const [rows] = await pool.execute('SELECT email FROM users WHERE id=?', [member.id]);
+  assert.equal(rows[0].email, member.email.toLowerCase());
+}));
+
+test('editing a user whose stored email is on a reserved domain succeeds when the email is unchanged', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  const legacy = await createUser(pool, { role: 'member', team_id: teamId });
+  await pool.execute('UPDATE users SET email=? WHERE id=?', ['legacy@tckt.local', legacy.id]);
+  await client.login(admin.email, admin.password);
+
+  const res = await client.request('PATCH', `/api/users/${legacy.id}`, {
+    body: { name: 'Tên mới', role: 'member', team_ids: [teamId], avatar_color: '#1E3A8A' }
+  });
+  assert.equal(res.status, 200);
+  const [rows] = await pool.execute('SELECT name,email FROM users WHERE id=?', [legacy.id]);
+  assert.equal(rows[0].name, 'Tên mới');
+  assert.equal(rows[0].email, 'legacy@tckt.local');
+}));
+
+test('POST /api/users stores the email trimmed and lowercased', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool);
+  const admin = await createUser(pool, { role: 'admin' });
+  await client.login(admin.email, admin.password);
+  const result = await client.request('POST', '/api/users', {
+    body: { name: 'Thành viên C', email: '  Mixed.Case@Example.COM ', password: 'MatKhau123!', role: 'member', team_ids: [teamId] }
+  });
+  assert.equal(result.status, 201);
+  const [rows] = await pool.execute('SELECT email FROM users WHERE id=?', [result.json.id]);
+  assert.equal(rows[0].email, 'mixed.case@example.com');
+}));

@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.4
+version: 2.6
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-03
-related_code: [core/**, web/**, core/src/config/migrate-units.js]
+updated: 2026-10-04
+related_code: [core/**, web/**, core/src/config/migrate-units.js, core/src/config/database.js, core/app.js, core/src/date-vn.js]
 ---
 
 # Kế hoạch phát triển Hub (Core + Operations, không CTD)
@@ -1285,3 +1285,5 @@ npm run docs:check         # Documentation validation
 | 2.2 | 2026-10-03 | Sửa dòng lịch sử 1.12 bị lỗi mã hoá và nằm nhầm trong bảng timeline | DYC |
 | 2.3 | 2026-10-03 | Dọn `core/test-output.txt` (output test commit nhầm) và thêm vào `core/.gitignore`; không đổi nội dung kế hoạch | DYC |
 | 2.4 | 2026-10-03 | Sửa 4 route teams.js đồng bộ vai trò và membership TCKT (R1, G1) | DYC |
+| 2.5 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
+| 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống - xem DEV-TZ-001 (docs/dev/mui-gio.md) | DYC |

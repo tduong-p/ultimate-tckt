@@ -1,12 +1,12 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 4.3
+version: 4.4
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-02
-related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**]
+updated: 2026-10-04
+related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**, core/src/config/database.js]
 ---
 
 # Bất biến — điều không được phá
@@ -70,3 +70,4 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 | 4.1 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 4.2 | 2026-10-02 | Ghi chú `ctd-db` staging chứa database `noti` | DYC |
 | 4.3 | 2026-10-02 | Thông báo không được làm lỗi request; `CORE_NOTI_API_KEY` chỉ ở `.env` VM | DYC |
+| 4.4 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |

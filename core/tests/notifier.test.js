@@ -33,6 +33,58 @@ test('a throwing sender is contained', async () => {
 });
 
 test('a hanging sender is cut off by the timeout', async () => {
-  const notifier = createNotifier({ logger, timeoutMs: 20, sender: () => new Promise(() => {}) });
-  assert.deepEqual(await notifier.notify(valid), { delivered: false, reason: 'timeout' });
+  const notifier = createNotifier({ logger, timeoutMs: 20, retryDelaysMs: [0, 0], sender: () => new Promise(() => {}) });
+  assert.deepEqual(await notifier.notify(valid), { delivered: false, reason: 'timeout', retryable: true });
+});
+
+const fast = { retryDelaysMs: [0, 0] };
+const transientError = () => Object.assign(new Error('Noti unreachable'), { transient: true });
+
+test('the actor never receives a mail about their own action', async () => {
+  let calls = 0;
+  const notifier = createNotifier({ logger, sender: async () => { calls += 1; }, ...fast });
+  assert.deepEqual(await notifier.notify({ ...valid, actorId: 7 }), { delivered: false, reason: 'self' });
+  assert.deepEqual(await notifier.notify({ ...valid, actorId: '7' }), { delivered: false, reason: 'self' });
+  assert.equal(calls, 0);
+});
+
+test('an undeliverable email is skipped with a warning that has no full address', async () => {
+  const warnings = [];
+  let calls = 0;
+  const notifier = createNotifier({ logger: { ...logger, warn: m => warnings.push(String(m)) }, sender: async () => { calls += 1; }, ...fast });
+  const result = await notifier.notify({ ...valid, recipient: { id: 8, name: 'X', email: 'x@tckt.local' } });
+  assert.deepEqual(result, { delivered: false, reason: 'invalid-email' });
+  assert.equal(calls, 0);
+  assert.ok(warnings.some(m => m.includes('tckt.local')));
+  assert.ok(!warnings.some(m => m.includes('x@tckt.local')));
+});
+
+test('transient failures are retried up to 3 attempts then reported retryable', async () => {
+  let calls = 0;
+  const notifier = createNotifier({ logger, sender: async () => { calls += 1; throw transientError(); }, ...fast });
+  assert.deepEqual(await notifier.notify(valid), { delivered: false, reason: 'sender-error', retryable: true });
+  assert.equal(calls, 3);
+});
+
+test('a transient failure followed by success is delivered', async () => {
+  let calls = 0;
+  const notifier = createNotifier({ logger, sender: async () => { calls += 1; if (calls === 1) throw transientError(); }, ...fast });
+  assert.deepEqual(await notifier.notify(valid), { delivered: true });
+  assert.equal(calls, 2);
+});
+
+test('a non-transient failure is not retried', async () => {
+  let calls = 0;
+  const notifier = createNotifier({ logger, sender: async () => { calls += 1; throw new Error('Noti responded 400'); }, ...fast });
+  const result = await notifier.notify(valid);
+  assert.equal(calls, 1);
+  assert.equal(result.reason, 'sender-error');
+  assert.equal('retryable' in result, false);
+});
+
+test('a hanging attempt times out and is retried', async () => {
+  let calls = 0;
+  const notifier = createNotifier({ logger, sender: () => { calls += 1; return new Promise(() => {}); }, timeoutMs: 20, ...fast });
+  assert.deepEqual(await notifier.notify(valid), { delivered: false, reason: 'timeout', retryable: true });
+  assert.equal(calls, 3);
 });
