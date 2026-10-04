@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-NOTI-003
 title: Kế hoạch — sửa phần Core của #49 (thông báo Core → Noti)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: TCKT
@@ -239,3 +239,4 @@ nghiệm thu gom vào một helper.
 | Version | Ngày | Thay đổi |
 |---|---|---|
 | 1.0 | 2026-10-05 | Bản đầu. |
+| 1.1 | 2026-10-05 | Task 1–6 đã làm xong trên nhánh `fix/core-noti-49` (còn mở PR vào `staging`). |

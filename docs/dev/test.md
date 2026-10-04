@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.18
+version: 2.19
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -15,7 +15,7 @@ Tài liệu này giúp dev biết chạy test ở đâu, viết test kiểu gì,
 
 ## Core — `node --test`
 
-25 file test tại `core/tests/*.test.js`, cần MySQL local (biến `TEST_DB_HOST/PORT/USER/PASSWORD`, mặc định rơi
+44 file test tại `core/tests/*.test.js`, cần MySQL local (biến `TEST_DB_HOST/PORT/USER/PASSWORD`, mặc định rơi
 về `DB_*` rồi `root@localhost`; user DB cần quyền `CREATE`/`DROP DATABASE` vì test tự tạo/xoá DB tạm). Chạy:
 
 ```bash
@@ -115,3 +115,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.16 | 2026-10-03 | Test hồi quy: route tổ không tạo lại membership TCKT đã gỡ; `syncTcktMembershipFromRole` với `createIfMissing:false` | DYC |
 | 2.17 | 2026-10-03 | Đồng bộ main→staging: thêm `test_admin_seed.py` (seed CTD không reset mật khẩu, không tự mở khóa) | DYC |
 | 2.18 | 2026-10-03 | `my-tasks-today.test.js` dùng `dateInVietnam()` thay ngày local, hết đỏ chập chờn sau 17:00 UTC | DYC |
+| 2.19 | 2026-10-05 | #49: thêm `reminder-rules`, `notification-recipients` và mở rộng test notifier, noti-sender, email, users, scheduler | DYC |

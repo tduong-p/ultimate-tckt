@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.10
+version: 1.11
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: []
 ---
 
@@ -73,9 +73,17 @@ giữ test dựng lại trạng thái DB staging (`migrate.units.test.js`, "sign
 ## `mailer.notify*` cũ gửi cả email lẫn push; scheduler gắn thông báo ngoài vào `inserted`
 
 Hàm `notify*` của `mailer.js` cũ gọi cả Gmail lẫn OneSignal, nên xoá riêng một kênh dễ làm mất kênh kia. Ngoài ra scheduler nhắc hạn
-từng chỉ gửi khi `insertNotificationOnce` chèn được dòng mới: nếu gửi lỗi lúc đó thì thư không bao giờ được gửi lại. Hiện mọi điểm phát
-thông báo đi qua `notifier.notify({ event, recipient, data, sourceKey })`; scheduler gọi cho mọi mục tìm thấy, `sourceKey` là khoá chống
-trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8).
+từng chỉ gửi khi `insertNotificationOnce` chèn được dòng mới (gửi lỗi một lần là mất thư), rồi lại sửa thành gọi mọi mục mỗi lượt
+(bắn lặp, không biết đã gửi chưa). Hiện mọi điểm phát thông báo đi qua `notifier.notify({ event, recipient, data, sourceKey })`;
+`sourceKey` là khoá chống trùng phía nhận (Noti dedupe, SPEC-NOTI-001 §8). Scheduler dùng `notifications.email_status` làm trạng thái:
+dòng mới là `pending`, chỉ gọi `notify` khi còn `pending`, rồi ghi `success`/`failed`/`pending` (lỗi tạm thời, lượt sau thử lại) bằng
+`emailStatusFor`. Dòng `pending` mồ côi (người nhận hết hiệu lực, task đã đóng) không ai dọn: đừng coi `pending` là "sắp gửi chắc chắn".
+
+## `tasks.deadline` là `DATE`: nhắc hạn theo giờ cho kết quả sai
+
+Cột `deadline` chỉ có ngày (00:00). Phép `TIMESTAMPDIFF(HOUR, NOW(), deadline) IN (24, 4)` cũ cho "còn 4 giờ" sai và lệch tuỳ giờ scheduler chạy.
+Nhắc hạn nay so **ngày lịch giờ VN** trong Node (`core/src/services/reminder-rules.js`: "1 ngày", "hôm nay"), chỉ gửi 07:00–21:59 VN.
+Đừng thêm mốc theo giờ cho `tasks.deadline`; xem `docs/dev/mui-gio.md`.
 
 ## Noti: test chỉ chạy driver `console` nên lỗi của driver thật và cấu hình lọt qua
 
@@ -133,3 +141,4 @@ nên test tự dựng deadline "hôm nay" bằng `new Date()` / `getDate()` th�
 | 1.8 | 2026-10-03 | Thêm bẫy: router hash UI Core coi anchor là trang; marker xung đột lọt vào staging | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: thêm bẫy seed chạy mỗi lần khởi động ghi đè mật khẩu và tự mở khóa tài khoản quản trị | DYC |
 | 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |
+| 1.11 | 2026-10-05 | #49: scheduler dùng `email_status` (pending mồ côi); thêm bẫy `tasks.deadline` là `DATE` nên nhắc theo ngày lịch, không theo giờ | DYC |

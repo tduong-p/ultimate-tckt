@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-02
+updated: 2026-10-05
 related_code: [services/noti-api/**]
 ---
 
@@ -159,7 +159,7 @@ Theo mô hình idempotency key đã dùng rộng rãi (Stripe, Adyen, bản nhá
 - Cài đặt không có cửa sổ đua: `INSERT … ON CONFLICT (client_id, dedupe_key) DO NOTHING RETURNING id`; nếu không trả dòng nào thì `SELECT` bản có sẵn rồi so `payload_hash`. Cùng hash → `200` bản cũ; khác hash → `409 dedupe_key_conflict`.
 - **`payload_hash` chuẩn hoá** để hai lần gọi giống nhau về nghĩa cho cùng một hash: JSON khoá sắp xếp, UTF-8 chuẩn NFC, email hạ chữ thường, danh sách `recipients`/`cc` sắp xếp theo email và loại trùng; băm tính trên `template + recipients + cc + reply_to + data` **sau khi đã bỏ biến thừa** (biến không khai trong `meta.yaml`). `priority`, `expires_at`, `source_ref` **không** vào hash (thay đổi chúng không làm thành thông báo khác).
 - Key do **người gọi tạo từ định danh nghiệp vụ** và phải chứa yếu tố làm sự kiện khác nhau khi cần lặp lại hợp lệ (ngày, số lần).
-  Ví dụ: `task-deadline-24h:120:7:2026-10-02`, `task-assigned:120:7`. Core đã có sẵn `source_key` cho thông báo trong ứng dụng; dùng chính chuỗi đó làm `dedupe_key` để hai kênh cùng một sự kiện cùng một khoá.
+  Ví dụ: `task-deadline-1d:120:7:2026-10-02`, `task-assigned:120:7`. Core đã có sẵn `source_key` cho thông báo trong ứng dụng; dùng chính chuỗi đó làm `dedupe_key` để hai kênh cùng một sự kiện cùng một khoá.
 - Không có key → không chống trùng; Noti không đoán.
 - Key sống cùng vòng đời bản ghi (90 ngày, §12). Sau đó có thể gửi lại cùng key.
 - Gọi lại cùng key khi bản cũ đã `failed` → vẫn trả bản cũ; muốn gửi lại dùng `POST …/retry`.
@@ -292,6 +292,7 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 |---|---|---|---|
 | 1.3 | 2026-10-02 | Làm rõ trạng thái: có code, chưa chạy trên VM; CC ngoài allowlist bị bỏ (§10) | DYC |
 | 1.4 | 2026-10-02 | Purge do worker tự chạy mỗi giờ, không cần lịch ngoài (§11) | DYC |
+| 1.6 | 2026-10-05 | Ví dụ khoá nhắc hạn đổi sang `task-deadline-1d` (Core nhắc theo ngày lịch, #49) | DYC |
 | 1.5 | 2026-10-02 | Trạng thái: chạy ở staging | DYC |
 | 1.2 | 2026-10-02 | Hoàn tất triển khai service Noti (PLAN-NOTI-001), chuyển trạng thái sang active, cập nhật related_code | DYC |
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |

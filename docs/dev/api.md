@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.6
+version: 5.7
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-05
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -480,3 +480,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.4 | 2026-10-03 | Sửa dòng lịch sử 5.3 bị lỗi mã hoá và nằm nhầm trong bảng routing Core; bỏ chú thích HTML thừa cuối file | DYC |
 | 5.5 | 2026-10-03 | Ghi nhận 4 route teams.js gọi syncTcktMembershipFromRole đồng bộ membership TCKT (R1, G1) | DYC |
 | 5.6 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (R1) | DYC |
+| 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
