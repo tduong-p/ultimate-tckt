@@ -30,7 +30,7 @@ from noti.queue import (
     metrics,
     release,
 )
-from noti.recipient_policy import apply_policy
+from noti.recipient_policy import apply_policy, merge_always_cc
 from noti.templating import Registry, TemplateError, get_registry
 
 logger = logging.getLogger(__name__)
@@ -137,6 +137,8 @@ def run_once(
 
         # CC cũng phải qua allowlist: địa chỉ ngoài danh sách bị bỏ (không chuyển hướng để tránh nhận trùng)
         cc = [c for c in item.cc if apply_policy(c, settings.recipient_allowlist, None) is not None]
+        # CC cố định do vận hành cấu hình: thêm SAU allowlist (cố ý không lọc), chỉ cho thư thật sự được gửi
+        cc = merge_always_cc(cc, settings.always_cc, target_email)
 
         reply_to = item.reply_to
         if reply_to and settings.recipient_allowlist and apply_policy(reply_to, settings.recipient_allowlist, None) is None:

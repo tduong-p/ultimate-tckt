@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     max_body_bytes: int = 64 * 1024
     recipient_allowlist: Annotated[list[str], NoDecode] = []
     redirect_to: str | None = None
+    always_cc: Annotated[list[str], NoDecode] = []
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
@@ -25,7 +26,7 @@ class Settings(BaseSettings):
     graph_certificate_path: str = ""
     graph_certificate_thumbprint: str = ""
 
-    @field_validator("recipient_allowlist", mode="before")
+    @field_validator("recipient_allowlist", "always_cc", mode="before")
     @classmethod
     def _csv(cls, value):
         if isinstance(value, str):

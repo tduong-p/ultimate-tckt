@@ -371,3 +371,26 @@ def test_smtp_send_error_still_classified_when_quit_also_fails(monkeypatch):
     monkeypatch.setattr(smtplib, "SMTP", lambda host, port, timeout: server)
     with pytest.raises(PermanentError):
         SmtpDriver(host="h", user="u", password="p", mail_from="n@example.com").send(_MSG)
+
+
+def test_smtp_delivers_to_cc_via_header_envelope(monkeypatch):
+    driver = SmtpDriver(host="h", port=587, user="", password="", mail_from="noreply@example.com")
+    msg = Message(to_email="a@example.com", to_name=None, cc=["x@example.com", "y@example.com"],
+                  reply_to=None, subject="s", html="h", text="t")
+    captured = {}
+
+    class Srv:
+        def starttls(self, **kw): pass
+        def login(self, *a): pass
+        def quit(self): pass
+        def close(self): pass
+        def send_message(self, m, *a, **kw):
+            captured["m"] = m
+            captured["args"] = a
+            captured["kw"] = kw
+
+    monkeypatch.setattr(smtplib, "SMTP", lambda host, port, timeout: Srv())
+    driver.send(msg)
+    # send_message lấy người nhận phong bì từ To/Cc/Bcc nếu không truyền to_addrs
+    assert not captured["args"] and "to_addrs" not in captured["kw"]
+    assert captured["m"]["Cc"] == "x@example.com, y@example.com"
