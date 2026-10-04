@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 import re
 import time
-from typing import Optional
+from typing import Callable, Optional
 
 from alembic.config import Config
 from alembic.migration import MigrationContext
@@ -20,16 +20,27 @@ from noti.drivers import (
     TransientError,
     get_driver,
 )
-from noti.queue import claim_next, mark_failed, mark_retry, mark_sent, metrics
+from noti.queue import (
+    MAX_ATTEMPTS,
+    claim_next,
+    mark_failed,
+    mark_retry,
+    mark_sent,
+    mark_suppressed,
+    metrics,
+    release,
+)
 from noti.recipient_policy import apply_policy
 from noti.templating import Registry, TemplateError, get_registry
 
 logger = logging.getLogger(__name__)
 
 BACKOFF = [60, 300, 1800, 7200, 43200]
-MAX_ATTEMPTS = 5
 LOCK_SECONDS = 300
 DRIVER_TIMEOUT_SECONDS = 30
+# Mỗi lần gửi có thể gọi driver tối đa 2 lần (vd. lấy token rồi gửi), mỗi lần chạm timeout.
+DRIVER_CALLS_PER_SEND = 2
+RECORD_SENT_TRIES = 3
 # Worker tự chạy purge định kỳ, không cần cron trên VM (SPEC-NOTI-001 §11).
 PURGE_INTERVAL_SECONDS = 3600
 EMAIL_REGEX = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
@@ -45,11 +56,32 @@ def delay_for(attempts: int, retry_after: Optional[int] = None) -> int:
 
 def batch_size_for(delay_between_sends: float) -> int:
     """Cả lô phải gửi xong trước khi khoá hết hạn, kể cả khi mọi thư chạm timeout driver (§7)."""
-    return max(1, int(LOCK_SECONDS // (DRIVER_TIMEOUT_SECONDS + delay_between_sends)))
+    return max(1, int(LOCK_SECONDS // (DRIVER_CALLS_PER_SEND * DRIVER_TIMEOUT_SECONDS + delay_between_sends)))
 
 
 def scrub_error(error: str) -> str:
     return EMAIL_REGEX.sub("[REDACTED_EMAIL]", error)
+
+
+def _record_sent(db: Session, recipient_id: int, now: Optional[datetime]) -> bool:
+    """Ghi 'sent' sau khi driver đã gửi xong. Thư đã đi nên không bao giờ retry/fail vì lỗi ghi."""
+    for attempt in range(1, RECORD_SENT_TRIES + 1):
+        try:
+            db.rollback()
+            mark_sent(db, recipient_id, now=now)
+            db.commit()
+            return True
+        except Exception:
+            logger.warning("Recording sent state failed for recipient %s (try %d/%d)", recipient_id, attempt, RECORD_SENT_TRIES)
+    try:
+        db.rollback()
+    except Exception:
+        pass
+    logger.error(
+        "Mail was sent but status could not be recorded for recipient %s; left for lock expiry",
+        recipient_id,
+    )
+    return False
 
 
 def run_once(
@@ -59,14 +91,23 @@ def run_once(
     now: Optional[datetime] = None,
     delay_between_sends: float = 0.0,
     batch_size: int = 10,
+    clock: Callable[[], float] = time.monotonic,
 ) -> int:
     claimed_items = claim_next(db, limit=batch_size, now=now)
     if not claimed_items:
         return 0
 
+    deadline = clock() + LOCK_SECONDS - DRIVER_CALLS_PER_SEND * DRIVER_TIMEOUT_SECONDS
+
     for item in claimed_items:
         if delay_between_sends > 0:
             time.sleep(delay_between_sends)
+
+        # Hết hạn chót của lô: trả phần còn lại để khoá không hết hạn giữa lúc đang gửi
+        if clock() >= deadline:
+            release(db, item.recipient_id, now=now)
+            db.commit()
+            continue
 
         # Merge data and recipient-specific variables
         merged_data = dict(item.data)
@@ -90,12 +131,16 @@ def run_once(
         target_email = apply_policy(item.email, settings.recipient_allowlist, settings.redirect_to)
         if target_email is None:
             logger.info("Recipient %s dropped by allowlist", item.recipient_id)
-            mark_sent(db, item.recipient_id, error="dropped by allowlist", now=now)
+            mark_suppressed(db, item.recipient_id, now=now)
             db.commit()
             continue
 
         # CC cũng phải qua allowlist: địa chỉ ngoài danh sách bị bỏ (không chuyển hướng để tránh nhận trùng)
         cc = [c for c in item.cc if apply_policy(c, settings.recipient_allowlist, None) is not None]
+
+        reply_to = item.reply_to
+        if reply_to and settings.recipient_allowlist and apply_policy(reply_to, settings.recipient_allowlist, None) is None:
+            reply_to = None
 
         subject = rendered.subject
         if target_email != item.email:
@@ -106,7 +151,7 @@ def run_once(
             to_email=target_email,
             to_name=item.name,
             cc=cc,
-            reply_to=item.reply_to,
+            reply_to=reply_to,
             subject=subject,
             html=rendered.html,
             text=rendered.text,
@@ -115,8 +160,6 @@ def run_once(
         # 4. Send through driver
         try:
             driver.send(msg)
-            mark_sent(db, item.recipient_id, now=now)
-            db.commit()
         except PermanentError as e:
             logger.warning("Permanent error sending email for recipient %s", item.recipient_id)
             mark_failed(db, item.recipient_id, scrub_error(str(e)), now=now)
@@ -139,6 +182,8 @@ def run_once(
                 logger.info("Retrying recipient %s in %d seconds after unexpected error", item.recipient_id, delay)
                 mark_retry(db, item.recipient_id, delay_seconds=delay, error=scrub_error(str(e)), now=now)
             db.commit()
+        else:
+            _record_sent(db, item.recipient_id, now)
 
     return len(claimed_items)
 
