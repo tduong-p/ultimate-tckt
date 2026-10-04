@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -50,7 +50,7 @@ CORE_NOTI_API_KEY (tuỳ chọn; trống = Core không gửi),
 CTD_DB_NAME, CTD_DB_USER, CTD_DB_PASSWORD, CTD_JWT_SECRET
 # Noti (staging và production; production: NOTI_RECIPIENT_ALLOWLIST bắt buộc khác rỗng):
 NOTI_DB_NAME, NOTI_DB_USER, NOTI_DB_PASSWORD, NOTI_MAIL_DRIVER, NOTI_MAIL_FROM,
-NOTI_RECIPIENT_ALLOWLIST, NOTI_REDIRECT_TO, NOTI_SMTP_*, NOTI_GRAPH_*
+NOTI_RECIPIENT_ALLOWLIST, NOTI_REDIRECT_TO, NOTI_ALWAYS_CC (tuỳ chọn; CC cố định mọi thư, bỏ qua allowlist), NOTI_SMTP_*, NOTI_GRAPH_*
 ```
 
 Tiền tố `CORE_*` thay cho `TCKT_*` cũ (giá trị giữ nguyên khi chuyển đổi, xem `docs/ops/chuyen-doi-ultimate-tckt.md`). Tiền tố `CTD_*` giữ nguyên. Không ghi giá trị thật vào bất kỳ tài liệu nào — chỉ ghi tên biến và nơi lưu.
@@ -123,3 +123,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.4 | 2026-10-03 | Bỏ khẳng định sai về SMTP và khoá mã hoá cấu hình (code Core không còn dùng); biến chỉ còn là di sản của compose | DYC |
 | 1.5 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |
 | 1.6 | 2026-10-05 | Noti chạy cả ở production (cổng 8101, allowlist bắt buộc, `PROD_NOTI_ENABLED`); mục 4a thêm phần production (SPEC-MAIL-001) | DYC |
+| 1.7 | 2026-10-05 | Thêm biến `NOTI_ALWAYS_CC` (tuỳ chọn) vào bảng biến Noti | DYC |

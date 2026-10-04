@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -109,6 +109,13 @@ Mọi biến môi trường có tiền tố `NOTI_` và được liệt kê đ�
   chuyển về `NOTI_REDIRECT_TO` (hoặc bỏ nếu trống); **CC và `reply_to` ngoài danh sách luôn bị bỏ**, không chuyển hướng.
   Người nhận bị bỏ vì allowlist có trạng thái `suppressed` (không phải `sent`, vì chưa có thư nào đi).
   Production **bắt buộc** khác rỗng: compose production dùng `${NOTI_RECIPIENT_ALLOWLIST:?}` nên rỗng thì không khởi động (rỗng = gửi cho mọi người).
+
+- `NOTI_ALWAYS_CC` (phân tách bằng dấu phẩy, mặc định rỗng = tắt): mọi thư Noti gửi đi đều CC thêm các địa chỉ này
+  (địa chỉ cụ thể do vận hành đặt trong `.env`, không nằm trong code). Địa chỉ được thêm **sau** khi lọc allowlist nên
+  cố ý **không** bị allowlist chặn, nhưng chỉ cho thư thực sự được gửi: người nhận bị `suppressed` thì không có thư và không CC.
+  Bỏ trùng không phân biệt hoa thường (với CC của người gọi) và bỏ địa chỉ trùng người nhận cuối cùng. Áp cho cả driver
+  `smtp` (header `Cc` → người nhận phong bì) và `graph` (`ccRecipients`); kích thước thư không đổi.
+  **Riêng tư:** địa chỉ được CC thấy nội dung mọi thông báo và địa chỉ của từng người nhận — chỉ dùng hộp thư do tổ chức kiểm soát.
 
 ### 2.7. Trạng thái người nhận, retry và lỗi
 
@@ -251,3 +258,4 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 | 1.0 | 2026-10-02 | Tài liệu ban đầu hướng dẫn phát triển và vận hành Noti service (PLAN-NOTI-001) | DYC |
 | 1.4 | 2026-10-02 | Core đã gọi Noti ở staging qua `core/src/noti-sender.js` | DYC |
 | 1.6 | 2026-10-05 | Noti có trong compose production (cổng 8101, `PROD_NOTI_ENABLED`); allowlist production bắt buộc khác rỗng | DYC |
+| 1.7 | 2026-10-05 | Thêm `NOTI_ALWAYS_CC`: CC cố định cho mọi thư, thêm sau allowlist (mục 2.6) | DYC |

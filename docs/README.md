@@ -55,7 +55,7 @@
 | [DEV-FE-001](dev/frontend.md) | Frontend | 1.7 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.3 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
-| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.6 | active | dev, ai |
+| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.7 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
@@ -78,7 +78,7 @@
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.1 | active | ops, ba |
 | [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.2 | active | dev, ops, ai |
 | [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.8 | active | dev, ops, ai |
-| [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.6 | active | dev, ops, ai |
+| [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.7 | active | dev, ops, ai |
 | [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.1 | active | ops, dev |
 | [OPS-TEST-001](ops/setup-db-test-vps.md) | Setup database test trên VPS | 1.4 | active | dev, ops |
 | [OPS-SSH-001](ops/ssh.md) | SSH vào VM — khoá cá nhân và cấp quyền | 1.2 | active | dev, ops, ai, onboarding |
@@ -130,7 +130,7 @@
 | [PLAN-PILOT-001](specs/2026-09-29-pilot-dieu-hanh-plan.md) | Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot) | 1.16 | draft | dev, ai |
 | [PLAN-NOTI-002](specs/2026-10-02-core-noti-sender-plan.md) | Kế hoạch — Core gửi thông báo sang Noti (sender HTTP) | 1.1 | active | dev, ai |
 | [PLAN-EMAILGO-001](specs/2026-10-02-go-email-cu-plan.md) | Kế hoạch gỡ module email cũ và OneSignal của Core | 2.7 | active | dev, ai |
-| [SPEC-NOTI-001](specs/2026-10-02-noti-service-design.md) | Thiết kế service Noti — gửi thông báo email theo template qua HTTP API | 1.8 | active | dev, ai |
+| [SPEC-NOTI-001](specs/2026-10-02-noti-service-design.md) | Thiết kế service Noti — gửi thông báo email theo template qua HTTP API | 1.9 | active | dev, ai |
 | [PLAN-NOTI-001](specs/2026-10-02-noti-service-plan.md) | Kế hoạch xây service Noti (services/noti-api) | 1.0 | draft | dev, ai |
 | [SPEC-SOON-001](specs/2026-10-03-core-coming-soon-design.md) | Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy | 1.2 | active | dev, ai |
 | [PLAN-SOON-001](specs/2026-10-03-core-coming-soon-plan.md) | Plan — màn hình "Đang phát triển" cho UI Core legacy | 1.0 | active | dev, ai |
