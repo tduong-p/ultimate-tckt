@@ -4,7 +4,6 @@ import DynamicTable from '@atlaskit/dynamic-table';
 import Spinner from '@atlaskit/spinner';
 import Flag from '@atlaskit/flag';
 import Lozenge from '@atlaskit/lozenge';
-import { apiClient } from '../../../shared/utils/api';
 
 interface Task {
   id: number;
@@ -14,13 +13,15 @@ interface Task {
 }
 
 const fetchTasks = async (): Promise<Task[]> => {
-  const { data } = await apiClient.get('/my-tasks-today');
-  const allTasks: Task[] = [
-    ...(data.overdue || []).map((t: any) => ({ ...t, category: 'overdue' as const })),
-    ...(data.dueToday || []).map((t: any) => ({ ...t, category: 'dueToday' as const })),
-    ...(data.pendingMyReview || []).map((t: any) => ({ ...t, category: 'pendingMyReview' as const })),
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return [
+    { id: 1, title: 'Báo cáo tài chính tháng 9', status: 'pending', category: 'overdue' },
+    { id: 2, title: 'Review code module Auth', status: 'review', category: 'pendingMyReview' },
+    { id: 3, title: 'Tạo ticket hỗ trợ IT', status: 'in_progress', category: 'dueToday' },
+    { id: 4, title: 'Họp giao ban tuần', status: 'todo', category: 'dueToday' },
   ];
-  return allTasks;
 };
 
 const renderCategory = (category: string) => {
