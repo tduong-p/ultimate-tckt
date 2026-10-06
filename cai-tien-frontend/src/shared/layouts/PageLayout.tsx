@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '@atlaskit/css-reset';
-import { token, setGlobalTheme } from '@atlaskit/tokens';
+import { token } from '@atlaskit/tokens';
+import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
 import Avatar from '@atlaskit/avatar';
 import Button from '@atlaskit/button/new';
 
@@ -62,8 +63,8 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           <div style={{ cursor: 'pointer', fontSize: '20px' }} onClick={toggleTheme}>
             {theme === 'light' ? '🌙' : '☀️'}
           </div>
-          <Button appearance="primary" className="desktop-only">+ Đề xuất hoạt động</Button>
-          <Button appearance="primary" className="mobile-only">+</Button>
+          <div className="desktop-only"><Button appearance="primary">+ Đề xuất hoạt động</Button></div>
+          <div className="mobile-only"><Button appearance="primary">+</Button></div>
           <Avatar size="small" />
         </div>
       </header>

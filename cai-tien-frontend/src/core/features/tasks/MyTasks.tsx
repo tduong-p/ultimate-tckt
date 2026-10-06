@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Spinner from '@atlaskit/spinner';
 import Flag from '@atlaskit/flag';
 import Lozenge from '@atlaskit/lozenge';
 import Button from '@atlaskit/button/new';
-import Avatar from '@atlaskit/avatar';
+
 import { token } from '@atlaskit/tokens';
 
 // --- DATA ---
