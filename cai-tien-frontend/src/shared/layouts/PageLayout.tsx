@@ -6,7 +6,8 @@ import Button from '@atlaskit/button/new';
 
 export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Default to open on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setGlobalTheme({ colorMode: theme });
@@ -31,8 +32,8 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Hamburger Menu (Mobile Only) */}
-          <div className="mobile-only" style={{ cursor: 'pointer', fontSize: '24px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
+          {/* Hamburger Menu (Always visible now) */}
+          <div style={{ cursor: 'pointer', fontSize: '24px', color: token('color.icon', '#42526E'), width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '3px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
             ☰
           </div>
 
@@ -69,16 +70,16 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar */}
-        <aside className={`mobile-sidebar-overlay ${sidebarOpen ? 'open' : ''}`} style={{ 
-          width: '240px', 
+        <aside className={`sidebar-container ${sidebarOpen ? 'open' : 'collapsed'}`} style={{ 
           backgroundColor: token('color.background.neutral.subtle', '#F4F5F7'),
           borderRight: `1px solid ${token('color.border', '#EBECF0')}`,
           display: 'flex',
           flexDirection: 'column',
           padding: token('space.200', '16px'),
-          overflowY: 'auto'
+          overflowY: 'auto',
+          flexShrink: 0
         }}>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, width: '208px' }}>
             <li style={{ padding: '8px 12px', fontWeight: 600, color: token('color.text.selected', '#0052CC'), backgroundColor: token('color.background.selected', '#DEEBFF'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>📊</span> Tổng quan
             </li>
@@ -128,7 +129,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           </ul>
           
           {/* Bottom Avatar Area */}
-          <div style={{ borderTop: `1px solid ${token('color.border', '#EBECF0')}`, paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ borderTop: `1px solid ${token('color.border', '#EBECF0')}`, paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '208px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Avatar size="medium" />
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -143,7 +144,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         </aside>
 
         {/* Main Content Area */}
-        <main className="mobile-no-padding" style={{ flex: 1, overflowY: 'auto', backgroundColor: token('elevation.surface', '#FFFFFF'), padding: token('space.400', '32px') }}>
+        <main className="mobile-no-padding" style={{ flex: 1, overflowY: 'auto', backgroundColor: token('elevation.surface', '#FFFFFF'), padding: token('space.400', '32px'), transition: 'all 0.3s ease' }}>
           {children}
         </main>
       </div>
