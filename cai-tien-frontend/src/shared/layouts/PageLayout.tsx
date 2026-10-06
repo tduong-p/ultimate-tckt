@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '@atlaskit/css-reset';
-import { token } from '@atlaskit/tokens';
+import { token, setGlobalTheme } from '@atlaskit/tokens';
 import Avatar from '@atlaskit/avatar';
 import Button from '@atlaskit/button/new';
 
 export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setGlobalTheme({ colorMode: theme });
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(t => t === 'light' ? 'dark' : 'light');
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', backgroundColor: token('color.background.neutral.subtle', '#F4F5F7') }}>
       
@@ -20,16 +31,22 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Hamburger Menu (Mobile Only) */}
+          <div className="mobile-only" style={{ cursor: 'pointer', fontSize: '24px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
+            ☰
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '24px', height: '24px', backgroundColor: '#172B4D', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 'bold', fontSize: '14px' }}>T</div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <h1 style={{ color: token('color.text', '#172B4D'), margin: 0, fontSize: '14px', fontWeight: 600, lineHeight: 1 }}>TCKT Activity Hub</h1>
-              <span style={{ fontSize: '11px', color: token('color.text.subtle', '#5E6C84') }}>Ban Tổ chức - Kiểm tra</span>
+              <span className="desktop-only" style={{ fontSize: '11px', color: token('color.text.subtle', '#5E6C84') }}>Ban Tổ chức - Kiểm tra</span>
             </div>
           </div>
           <input 
             type="text" 
             placeholder="Tìm kiếm nhanh..." 
+            className="desktop-only"
             style={{ 
               width: '400px', 
               padding: '6px 12px', 
@@ -41,14 +58,18 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Button appearance="primary">+ Đề xuất hoạt động</Button>
+          <div style={{ cursor: 'pointer', fontSize: '20px' }} onClick={toggleTheme}>
+            {theme === 'light' ? '🌙' : '☀️'}
+          </div>
+          <Button appearance="primary" className="desktop-only">+ Đề xuất hoạt động</Button>
+          <Button appearance="primary" className="mobile-only">+</Button>
           <Avatar size="small" />
         </div>
       </header>
       
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar */}
-        <aside style={{ 
+        <aside className={`mobile-sidebar-overlay ${sidebarOpen ? 'open' : ''}`} style={{ 
           width: '240px', 
           backgroundColor: token('color.background.neutral.subtle', '#F4F5F7'),
           borderRight: `1px solid ${token('color.border', '#EBECF0')}`,
@@ -122,7 +143,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         </aside>
 
         {/* Main Content Area */}
-        <main style={{ flex: 1, overflowY: 'auto', backgroundColor: token('elevation.surface', '#FFFFFF'), padding: token('space.400', '32px') }}>
+        <main className="mobile-no-padding" style={{ flex: 1, overflowY: 'auto', backgroundColor: token('elevation.surface', '#FFFFFF'), padding: token('space.400', '32px') }}>
           {children}
         </main>
       </div>
