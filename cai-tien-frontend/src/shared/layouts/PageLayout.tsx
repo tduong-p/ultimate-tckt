@@ -3,10 +3,29 @@ import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
 import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
 import Avatar from '@atlaskit/avatar';
-import Button from '@atlaskit/button/new';
+import Badge from '@atlaskit/badge';
 
-// Icon imports
-import MenuIcon from '@atlaskit/icon/core/menu';
+// Page Layout
+import {
+  PageLayout as PageLayoutWrapper,
+  Main,
+  TopNavigation,
+  LeftSidebar,
+  Content
+} from '@atlaskit/page-layout';
+
+// Atlassian Navigation
+import {
+  AtlassianNavigation,
+  PrimaryButton,
+  CustomProductHome,
+} from '@atlaskit/atlassian-navigation';
+import { AtlassianIcon, AtlassianLogo } from '@atlaskit/logo';
+
+// Menu
+import { Navigation, ButtonItem, Section, HeadingItem } from '@atlaskit/menu';
+
+// Icons
 import ThemeIcon from '@atlaskit/icon/core/theme';
 import DashboardIcon from '@atlaskit/icon/core/dashboard';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
@@ -22,10 +41,22 @@ import SendIcon from '@atlaskit/icon/core/send';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
 import NotificationIcon from '@atlaskit/icon/core/notification';
+import MenuIcon from '@atlaskit/icon/core/menu';
+
+const ProductHome = () => (
+  <CustomProductHome
+    href="/"
+    iconAlt="Atlassian Logo"
+    logoAlt="Atlassian Logo"
+    iconUrl="https://atlassian.design/favicon.ico"
+    logoUrl="https://atlassian.design/favicon.ico"
+    siteTitle="TCKT Activity Hub"
+  />
+);
 
 export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     setGlobalTheme({ colorMode: theme });
@@ -36,148 +67,78 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', backgroundColor: token('color.background.neutral.subtle', '#F4F5F7') }}>
-      
-      {/* Top Navigation */}
-      <header style={{ 
-        backgroundColor: token('elevation.surface', '#FFFFFF'), 
-        padding: `0 ${token('space.200', '16px')}`, 
-        height: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: `1px solid ${token('color.border', '#EBECF0')}`,
-        flexShrink: 0
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Hamburger Menu */}
-          <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '3px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <MenuIcon label="Menu" />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '24px', height: '24px', backgroundColor: '#172B4D', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 'bold', fontSize: '14px' }}>T</div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <h1 style={{ color: token('color.text', '#172B4D'), margin: 0, fontSize: '14px', fontWeight: 600, lineHeight: 1 }}>TCKT Activity Hub</h1>
-              <span className="desktop-only" style={{ fontSize: '11px', color: token('color.text.subtle', '#5E6C84') }}>Ban Tổ chức - Kiểm tra</span>
+    <PageLayoutWrapper>
+      <TopNavigation
+        isFixed={true}
+        id="confluence-navigation"
+      >
+        <AtlassianNavigation
+          label="Site navigation"
+          primaryItems={[
+            <PrimaryButton>Đề xuất hoạt động</PrimaryButton>
+          ]}
+          renderProductHome={ProductHome}
+          renderSettings={() => (
+            <div onClick={toggleTheme} style={{ cursor: 'pointer', padding: '8px' }}>
+              <ThemeIcon label="Toggle Theme" />
             </div>
+          )}
+          renderProfile={() => <Avatar size="small" />}
+        />
+      </TopNavigation>
+      <Content>
+        <LeftSidebar
+          isFixed={true}
+          isCollapsed={isSidebarCollapsed}
+          width={240}
+          id="project-navigation"
+          onResize={(state) => {
+            if (state.isOpen !== !isSidebarCollapsed) {
+              setIsSidebarCollapsed(!state.isOpen);
+            }
+          }}
+        >
+          <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', borderBottom: `1px solid ${token('color.border', '#EBECF0')}` }}>
+             <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }} onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+               <MenuIcon label="Toggle Sidebar" />
+             </div>
           </div>
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm nhanh..." 
-            className="desktop-only"
-            style={{ 
-              width: '400px', 
-              padding: '6px 12px', 
-              borderRadius: '4px', 
-              border: `1px solid ${token('color.border.input', '#DFE1E6')}`,
-              backgroundColor: token('color.background.input', '#FAFBFC'),
-              marginLeft: '16px'
-            }} 
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={toggleTheme}>
-            <ThemeIcon label="Toggle Theme" />
+          <Navigation>
+            <Section>
+              <ButtonItem iconBefore={<DashboardIcon label="" size="medium" />}>Tổng quan</ButtonItem>
+              <ButtonItem iconBefore={<CheckCircleIcon label="" size="medium" />}>Việc hôm nay</ButtonItem>
+              <ButtonItem iconBefore={<CalendarIcon label="" size="medium" />}>Lịch hoạt động</ButtonItem>
+              <ButtonItem iconBefore={<FolderClosedIcon label="" size="medium" />}>Hoạt động & Dự án</ButtonItem>
+              <ButtonItem iconBefore={<TaskIcon label="" size="medium" />}>Công việc của tôi</ButtonItem>
+              <ButtonItem iconBefore={<PeopleGroupIcon label="" size="medium" />}>Các Tổ</ButtonItem>
+              <ButtonItem iconBefore={<PersonIcon label="" size="medium" />}>Thành viên</ButtonItem>
+              <ButtonItem iconBefore={<FileIcon label="" size="medium" />}>Tài liệu</ButtonItem>
+              <ButtonItem iconBefore={<ChartBarIcon label="" size="medium" />}>Báo cáo</ButtonItem>
+              <ButtonItem iconBefore={<ArchiveBoxIcon label="" size="medium" />}>Lưu trữ</ButtonItem>
+            </Section>
+            <Section>
+              <HeadingItem>SẮP CÓ</HeadingItem>
+              <ButtonItem 
+                iconBefore={<SendIcon label="" size="medium" />}
+                elemAfter={<Badge>Sắp có</Badge>}
+              >Giao việc</ButtonItem>
+              <ButtonItem 
+                iconBefore={<InboxIcon label="" size="medium" />}
+                elemAfter={<Badge>Sắp có</Badge>}
+              >Trình</ButtonItem>
+              <ButtonItem 
+                iconBefore={<BookWithBookmarkIcon label="" size="medium" />}
+                elemAfter={<Badge>Sắp có</Badge>}
+              >Nhật ký trực ban</ButtonItem>
+            </Section>
+          </Navigation>
+        </LeftSidebar>
+        <Main>
+          <div style={{ padding: token('space.400', '32px') }}>
+            {children}
           </div>
-          <div className="desktop-only"><Button appearance="primary">+ Đề xuất hoạt động</Button></div>
-          <div className="mobile-only"><Button appearance="primary">+</Button></div>
-          <Avatar size="small" />
-        </div>
-      </header>
-      
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left Sidebar */}
-        <aside className={`sidebar-container ${sidebarOpen ? 'open' : 'collapsed'}`} style={{ 
-          backgroundColor: token('color.background.neutral.subtle', '#F4F5F7'),
-          borderRight: `1px solid ${token('color.border', '#EBECF0')}`,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: token('space.200', '16px'),
-          overflowY: 'auto',
-          flexShrink: 0
-        }}>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, width: '208px' }}>
-            <li style={{ padding: '8px 12px', fontWeight: 600, color: token('color.text.selected', '#0052CC'), backgroundColor: token('color.background.selected', '#DEEBFF'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon.selected', '#0052CC'), display: 'flex'}}><DashboardIcon label="" size="small" /></div>
-              Tổng quan
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><CheckCircleIcon label="" size="small" /></div>
-              Việc hôm nay
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><CalendarIcon label="" size="small" /></div>
-              Lịch hoạt động
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><FolderClosedIcon label="" size="small" /></div>
-              Hoạt động & Dự án
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><TaskIcon label="" size="small" /></div>
-              Công việc của tôi
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><PeopleGroupIcon label="" size="small" /></div>
-              Các Tổ
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><PersonIcon label="" size="small" /></div>
-              Thành viên
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><FileIcon label="" size="small" /></div>
-              Tài liệu
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><ChartBarIcon label="" size="small" /></div>
-              Báo cáo
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><ArchiveBoxIcon label="" size="small" /></div>
-              Lưu trữ
-            </li>
-
-            <div style={{ height: '16px' }}></div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: token('color.text.subtlest', '#5E6C84'), textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '12px' }}>SẮP CÓ</div>
-            
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><SendIcon label="" size="small" /></div> Giao việc</div>
-              <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><InboxIcon label="" size="small" /></div> Trình</div>
-              <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
-            </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><BookWithBookmarkIcon label="" size="small" /></div> Nhật ký trực ban</div>
-              <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
-            </li>
-          </ul>
-          
-          {/* Bottom Avatar Area */}
-          <div style={{ borderTop: `1px solid ${token('color.border', '#EBECF0')}`, paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '208px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Avatar size="medium" />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: token('color.text', '#172B4D') }}>Phạm Việt Bách</span>
-                <span style={{ fontSize: '12px', color: token('color.text.subtle', '#5E6C84') }}>Tổ trưởng</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '4px' }}>
-               <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <NotificationIcon label="Notifications" />
-               </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="mobile-no-padding" style={{ flex: 1, overflowY: 'auto', backgroundColor: token('elevation.surface', '#FFFFFF'), padding: token('space.400', '32px'), transition: 'all 0.3s ease' }}>
-          {children}
-        </main>
-      </div>
-    </div>
+        </Main>
+      </Content>
+    </PageLayoutWrapper>
   );
 };
