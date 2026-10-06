@@ -6,6 +6,8 @@ import Lozenge from '@atlaskit/lozenge';
 import Button from '@atlaskit/button/new';
 
 import { token } from '@atlaskit/tokens';
+import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
+import Badge from '@atlaskit/badge';
 
 // --- DATA ---
 interface Task {
@@ -79,14 +81,17 @@ export const MyTasks: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '24px', borderBottom: `2px solid ${token('color.border', '#EBECF0')}`, marginBottom: '24px', fontSize: '14px', fontWeight: 500, color: token('color.text.subtle', '#5E6C84') }}>
-          <div style={{ paddingBottom: '8px', cursor: 'pointer' }}>Dòng thời gian</div>
-          <div style={{ paddingBottom: '8px', cursor: 'pointer' }}>Kế hoạch</div>
-          <div style={{ paddingBottom: '8px', cursor: 'pointer', color: token('color.text.selected', '#0052CC'), borderBottom: `2px solid ${token('color.border.selected', '#0052CC')}`, marginBottom: '-2px' }}>Danh sách</div>
-          <div style={{ paddingBottom: '8px', cursor: 'pointer' }}>Bảng</div>
-          <div style={{ paddingBottom: '8px', cursor: 'pointer' }}>Thành viên</div>
-        </div>
-
+        <Tabs id="project-tabs" defaultSelected={2}>
+          <TabList>
+            <Tab>Dòng thời gian</Tab>
+            <Tab>Kế hoạch</Tab>
+            <Tab>Danh sách</Tab>
+            <Tab>Bảng</Tab>
+            <Tab>Thành viên</Tab>
+          </TabList>
+          <TabPanel><div>Chưa có dữ liệu</div></TabPanel>
+          <TabPanel><div>Chưa có dữ liệu</div></TabPanel>
+          <TabPanel>
         {/* Toolbar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -155,6 +160,10 @@ export const MyTasks: React.FC = () => {
             );
           })}
         </div>
+          </TabPanel>
+          <TabPanel><div>Chưa có dữ liệu</div></TabPanel>
+          <TabPanel><div>Chưa có dữ liệu</div></TabPanel>
+        </Tabs>
 
       </div>
 
