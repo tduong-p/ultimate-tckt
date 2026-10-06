@@ -1,0 +1,44 @@
+/* Global responsive styles */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .mobile-col {
+    flex-direction: column !important;
+  }
+
+  .mobile-sidebar-overlay {
+    position: fixed !important;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .mobile-sidebar-overlay.open {
+    transform: translateX(0);
+  }
+
+  .mobile-no-padding {
+    padding: 0 !important;
+  }
+
+  .mobile-padding-16 {
+    padding: 16px !important;
+  }
+
+  .mobile-gap-16 {
+    gap: 16px !important;
+  }
+}
