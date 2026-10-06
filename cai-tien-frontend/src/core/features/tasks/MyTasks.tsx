@@ -55,10 +55,10 @@ export const MyTasks: React.FC = () => {
   const groups = ['Cần bạn xử lý', 'Sắp đến hạn'];
 
   return (
-    <div style={{ display: 'flex', gap: '32px', padding: '0 24px', paddingBottom: '40px' }}>
+    <div className="mobile-col mobile-gap-16 mobile-padding-16" style={{ display: 'flex', gap: '32px', padding: '0 24px', paddingBottom: '40px' }}>
       
       {/* Left Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowX: 'auto' }}>
         {/* Project Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', marginTop: '16px' }}>
           <div style={{ width: '40px', height: '40px', backgroundColor: token('color.background.brand.bold', '#0052CC'), borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
