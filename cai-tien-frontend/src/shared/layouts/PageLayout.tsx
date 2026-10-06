@@ -5,9 +5,26 @@ import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
 import Avatar from '@atlaskit/avatar';
 import Button from '@atlaskit/button/new';
 
+// Icon imports
+import MenuIcon from '@atlaskit/icon/core/menu';
+import ThemeIcon from '@atlaskit/icon/core/theme';
+import DashboardIcon from '@atlaskit/icon/core/dashboard';
+import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
+import CalendarIcon from '@atlaskit/icon/core/calendar';
+import FolderClosedIcon from '@atlaskit/icon/core/folder-closed';
+import TaskIcon from '@atlaskit/icon/core/task';
+import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
+import PersonIcon from '@atlaskit/icon/core/person';
+import FileIcon from '@atlaskit/icon/core/file';
+import ChartBarIcon from '@atlaskit/icon/core/chart-bar';
+import ArchiveBoxIcon from '@atlaskit/icon/core/archive-box';
+import SendIcon from '@atlaskit/icon/core/send';
+import InboxIcon from '@atlaskit/icon/core/inbox';
+import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
+import NotificationIcon from '@atlaskit/icon/core/notification';
+
 export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  // Default to open on desktop
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -33,9 +50,9 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Hamburger Menu (Always visible now) */}
-          <div style={{ cursor: 'pointer', fontSize: '24px', color: token('color.icon', '#42526E'), width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '3px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
-            ☰
+          {/* Hamburger Menu */}
+          <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '3px' }} onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <MenuIcon label="Menu" />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -60,8 +77,8 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ cursor: 'pointer', fontSize: '20px' }} onClick={toggleTheme}>
-            {theme === 'light' ? '🌙' : '☀️'}
+          <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={toggleTheme}>
+            <ThemeIcon label="Toggle Theme" />
           </div>
           <div className="desktop-only"><Button appearance="primary">+ Đề xuất hoạt động</Button></div>
           <div className="mobile-only"><Button appearance="primary">+</Button></div>
@@ -81,50 +98,60 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           flexShrink: 0
         }}>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, width: '208px' }}>
-            <li style={{ padding: '8px 12px', fontWeight: 600, color: token('color.text.selected', '#0052CC'), backgroundColor: token('color.background.selected', '#DEEBFF'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📊</span> Tổng quan
+            <li style={{ padding: '8px 12px', fontWeight: 600, color: token('color.text.selected', '#0052CC'), backgroundColor: token('color.background.selected', '#DEEBFF'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon.selected', '#0052CC'), display: 'flex'}}><DashboardIcon label="" size="small" /></div>
+              Tổng quan
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>☀️</span> Việc hôm nay
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><CheckCircleIcon label="" size="small" /></div>
+              Việc hôm nay
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📅</span> Lịch hoạt động
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><CalendarIcon label="" size="small" /></div>
+              Lịch hoạt động
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🗂️</span> Hoạt động & Dự án
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><FolderClosedIcon label="" size="small" /></div>
+              Hoạt động & Dự án
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>✅</span> Công việc của tôi
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><TaskIcon label="" size="small" /></div>
+              Công việc của tôi
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>👥</span> Các Tổ
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><PeopleGroupIcon label="" size="small" /></div>
+              Các Tổ
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>👤</span> Thành viên
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><PersonIcon label="" size="small" /></div>
+              Thành viên
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📄</span> Tài liệu
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><FileIcon label="" size="small" /></div>
+              Tài liệu
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📈</span> Báo cáo
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><ChartBarIcon label="" size="small" /></div>
+              Báo cáo
             </li>
-            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🗃️</span> Lưu trữ
+            <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><ArchiveBoxIcon label="" size="small" /></div>
+              Lưu trữ
             </li>
 
             <div style={{ height: '16px' }}></div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: token('color.text.subtlest', '#5E6C84'), textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '12px' }}>SẮP CÓ</div>
             
             <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span>📤</span> Giao việc</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><SendIcon label="" size="small" /></div> Giao việc</div>
               <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
             </li>
             <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span>📥</span> Trình</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><InboxIcon label="" size="small" /></div> Trình</div>
               <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
             </li>
             <li style={{ padding: '8px 12px', color: token('color.text.subtle', '#5E6C84'), borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span>📝</span> Nhật ký trực ban</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{color: token('color.icon', '#42526E'), display: 'flex'}}><BookWithBookmarkIcon label="" size="small" /></div> Nhật ký trực ban</div>
               <span style={{ fontSize: '11px', backgroundColor: '#DFE1E6', padding: '2px 6px', borderRadius: '12px', color: '#172B4D' }}>Sắp có</span>
             </li>
           </ul>
@@ -139,7 +166,9 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               </div>
             </div>
             <div style={{ display: 'flex', gap: '4px' }}>
-               <span style={{ cursor: 'pointer' }}>🔔</span>
+               <div style={{ cursor: 'pointer', color: token('color.icon', '#42526E'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <NotificationIcon label="Notifications" />
+               </div>
             </div>
           </div>
         </aside>
