@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-07
 related_code: [infra/compose/**, infra/nginx/**, infra/.env.example, core/src/config/database.js]
 ---
 
@@ -21,9 +21,9 @@ Tài liệu này mô tả hai môi trường chạy trên cùng một VM: tên m
 
 | Domain | Ứng dụng | Môi trường |
 |---|---|---|
-| `tckt-hub-staging.duckdns.org` | core (TCKT) | staging |
+| `tckt-hub-staging.dyclub.tech` | core (TCKT) | staging |
 | `tckt-hub.duckdns.org` | core (TCKT) | production |
-| `ctd-hoso-staging.duckdns.org` | ctd-api | staging |
+| `ctd-hoso-staging.dyclub.tech` | ctd-api | staging |
 | `ctd-hoso.duckdns.org` | ctd-api | production |
 
 Nginx định tuyến theo `Host` header/SNI. Site config: `ultimate-tckt-<env>-core.conf`, `ultimate-tckt-<env>-ctd.conf` (nguồn tại `infra/nginx/<env>/{core,ctd}.conf`). SSL cấp bằng certbot.
@@ -124,3 +124,4 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.5 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |
 | 1.6 | 2026-10-05 | Noti chạy cả ở production (cổng 8101, allowlist bắt buộc, `PROD_NOTI_ENABLED`); mục 4a thêm phần production (SPEC-MAIL-001) | DYC |
 | 1.7 | 2026-10-05 | Thêm biến `NOTI_ALWAYS_CC` (tuỳ chọn) vào bảng biến Noti | DYC |
+| 1.8 | 2026-10-07 | Staging chuyển sang domain `dyclub.tech` (`tckt-hub-staging`, `ctd-hoso-staging`); production giữ duckdns | DYC |

@@ -30,7 +30,7 @@ services:
       SESSION_SECRET: ${CORE_SESSION_SECRET:?}
       SETTINGS_ENCRYPTION_KEY: ${CORE_SETTINGS_ENCRYPTION_KEY:?}
       DEVOPS_EMAILS: ${CORE_DEVOPS_EMAILS:-}
-      APP_BASE_URL: https://tckt-hub-staging.duckdns.org
+      APP_BASE_URL: https://tckt-hub-staging.dyclub.tech
       APP_ENV: staging
       EMAIL_NOTIFICATIONS_ENABLED: "false"
       # Thông báo đi qua Noti (docs/dev/email-cron.md). Chưa có key thì Core không gửi gì, vẫn chạy bình thường.
@@ -77,7 +77,7 @@ services:
       - ctd-db
     environment: &noti-env
       NOTI_DATABASE_URL: postgresql+psycopg://${NOTI_DB_USER:?}:${NOTI_DB_PASSWORD:?}@ctd-db:5432/${NOTI_DB_NAME:?}
-      NOTI_APP_BASE_URL: https://tckt-hub-staging.duckdns.org
+      NOTI_APP_BASE_URL: https://tckt-hub-staging.dyclub.tech
       NOTI_MAIL_DRIVER: ${NOTI_MAIL_DRIVER:-console}
       NOTI_MAIL_FROM: ${NOTI_MAIL_FROM:-noti@example.invalid}
       NOTI_RECIPIENT_ALLOWLIST: ${NOTI_RECIPIENT_ALLOWLIST:-}
