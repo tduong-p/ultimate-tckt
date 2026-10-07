@@ -33,8 +33,8 @@ và xét duyệt hồ sơ Đảng (module **Công tác Đảng — CTD**), gộp
 
 | | staging | production |
 |---|---|---|
-| Tên miền core | `tckt-hub-staging.duckdns.org` | `tckt-hub.duckdns.org` |
-| Tên miền CTD | `ctd-hoso-staging.duckdns.org` | `ctd-hoso.duckdns.org` |
+| Tên miền core | `tckt-hub-staging.dyclub.tech` | `tckt-hub.duckdns.org` |
+| Tên miền CTD | `ctd-hoso-staging.dyclub.tech` | `ctd-hoso.duckdns.org` |
 | Cổng core (127.0.0.1) | 3000 | 3001 |
 | Cổng ctd-api (127.0.0.1) | 8000 | 8001 |
 | Cổng core-db (127.0.0.1) | 3306 | 3307 |

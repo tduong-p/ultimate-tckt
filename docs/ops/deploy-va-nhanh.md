@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 4.2
+version: 4.3
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-07
 related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh, infra/scripts/lib.sh]
 ---
 
@@ -302,10 +302,10 @@ Bước nào không đạt thì dừng; không có ngoại lệ kiểu "merge r�
 Chạy trên staging trước khi merge (G5) và trên production sau khi deploy. Dựa trên SPEC-PILOT-001 §7.3, chỉnh theo code hiện tại.
 
 ```bash
-H=tckt-hub.duckdns.org            # staging: tckt-hub-staging.duckdns.org
+H=tckt-hub.duckdns.org            # staging: tckt-hub-staging.dyclub.tech
 curl -fsS "https://$H/api/health"; echo
 curl -fsS "https://$H/api/version"; echo
-curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hoso-staging.duckdns.org
+curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hoso-staging.dyclub.tech
 ```
 
 1. Hai `health` trả 200. `/api/version` chỉ trả version của `core/package.json` và một chuỗi build cố định, **không** có SHA: kiểm bản đang
@@ -473,3 +473,4 @@ kiểm kết quả giữa các bước. CTD không cần restore (không có mig
 | 4.0 | 2026-10-03 | Viết lại mục 7 thành runbook phát hành đợt 1 (cổng G1–G6, backup/restore đúng đường dẫn và vào DB sạch, cổng/tên miền đúng, smoke, rollback không dùng `git reset`); mục 1–2: job `infra` không chờ test; mục 6: log Core nằm trong container | DYC |
 | 4.1 | 2026-10-03 | Thêm O1/O2: nghiệm thu vận hành #55 (xoay secret, hash lộ) và #54 (set_password, kiểm sau restart); G1 dùng CI + test hồi quy; tag sau phát hành theo từng dịch vụ; rollback `ctd-api` kiểm image trước #54 | DYC |
 | 4.2 | 2026-10-05 | `deploy-noti` chạy cho production khi `PROD_NOTI_ENABLED`; cổng Noti production 8101 (SPEC-MAIL-001) | DYC |
+| 4.3 | 2026-10-07 | Tên miền staging trong lệnh smoke đổi sang `dyclub.tech` | DYC |
