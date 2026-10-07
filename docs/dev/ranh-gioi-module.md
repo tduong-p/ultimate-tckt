@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-MOD-001
 title: Ranh giới module và quy tắc thay đổi liên module
-version: 1.8
+version: 1.9
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-07
 related_code: [.github/CODEOWNERS, .github/ISSUE_TEMPLATE/**, core/src/routes/index.js]
 ---
 
@@ -22,7 +22,7 @@ trong **một module** thì làm luôn; việc chạm **module khác** hoặc **
 | **Điều hành** (TCKT) | `core/src/routes/{activities,tasks,teams,documents,reports,users,notifications}.js`, phần bootstrap/my-tasks/weight-presets trong `core/src/routes/system.js`, `core/src/policies/**`, `core/src/services/{task-attachments,deadline-notifications}.js`, `core/public/**` (frontend cũ) | |
 | **Thông báo (Noti)** | `core/src/notifier.js` (facade phía Core), `core/src/services/deadline-notifications.js`; service `services/noti-api/**` (SPEC-NOTI-001) | Hợp đồng API Noti là hợp đồng dùng chung |
 | **CTD** (Công tác Đảng) | `services/ctd-api/**` (backend + frontend) | |
-| **Web** (frontend chung) | `web/**` (chưa tạo) | |
+| **Web** (frontend chung) | `web/**` | |
 | **Hạ tầng & CI** | `infra/**`, `.github/**` | Luôn là hợp đồng dùng chung. |
 | **Tài liệu & tooling** | `docs/**`, `tools/**`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.agents/**`, `.claude/**`, `.kiro/**` | Sửa nội dung tài liệu của module mình: làm luôn. Đổi **quy tắc** tài liệu/tooling: raise. |
 
@@ -67,3 +67,4 @@ Riêng `core/tests/helpers/**` là hợp đồng dùng chung.
 | 1.7 | 2026-10-03 | Gỡ marker xung đột merge lọt vào từ PR #40; nội dung giữ nguyên | DYC |
 | 1.6 | 2026-10-02 | Cập nhật ranh giới module dieu-hanh | DYC |
 | 1.8 | 2026-10-03 | Sửa dòng lịch sử 1.6 bị lỗi mã hoá và nằm nhầm trong bảng module; luật không đổi | DYC |
+| 1.9 | 2026-10-07 | Khởi tạo module Web tại web/** (thay thế POC cai-tien-frontend) | DYC |

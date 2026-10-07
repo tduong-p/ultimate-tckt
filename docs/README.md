@@ -21,6 +21,7 @@
 | [ADR-0012-001](adr/0012-he-thong-tai-lieu-markdown-version-ci.md) | Hệ thống tài liệu Markdown có version, kiểm bằng CI | 1.0 | active | dev, ai |
 | [ADR-0013-001](adr/0013-go-email-cu-va-onesignal.md) | Gỡ module email cũ và OneSignal khỏi Core | 1.0 | active | dev, ai |
 | [ADR-0014-001](adr/0014-noti-service.md) | Service Noti — gửi thông báo email theo template qua HTTP API | 1.0 | active | dev, ai |
+| [ADR-0015-001](adr/0015-poc-frontend-react-atlaskit.md) | Cho phép xây dựng POC frontend React + Atlaskit | 1.0 | active | dev, ai |
 
 ## ai
 
@@ -58,7 +59,7 @@
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 1.7 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
-| [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
+| [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 2.20 | active | dev, ai |
 
 ## onboarding
@@ -90,7 +91,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.6 | active | dev, ba |
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.7 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
@@ -144,6 +145,16 @@
 | [PLAN-NOTI-003](specs/2026-10-05-core-noti-49-plan.md) | Kế hoạch — sửa phần Core của | 1.1 | active | dev, ai |
 | [SPEC-NOTI-003](specs/2026-10-05-noti-49-design.md) | Thiết kế — sửa phần bên trong Noti của | 1.1 | active | dev, ai |
 | [PLAN-NOTI-004](specs/2026-10-05-noti-49-plan.md) | Kế hoạch — sửa phần bên trong Noti của | 1.1 | active | dev, ai |
+| [SPEC-POC-001](specs/2026-10-05-web-poc-react-atlaskit-design.md) | Thiết kế — POC Frontend React + Atlaskit (Sub-project 1) | 1.0 | active | dev, ai |
+| [PLAN-POC-002](specs/2026-10-05-web-poc-react-atlaskit-plan-2.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 2 - API Integration) | 1.0 | active | dev, ai |
+| [PLAN-POC-003](specs/2026-10-05-web-poc-react-atlaskit-plan-3.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 3 - Mock Data) | 1.0 | active | dev, ai |
+| [PLAN-POC-004](specs/2026-10-05-web-poc-react-atlaskit-plan-4.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 4 - Atlassian UI Shell) | 1.0 | active | dev, ai |
+| [PLAN-POC-005](specs/2026-10-05-web-poc-react-atlaskit-plan-5.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 5 - Full Jira UI Clone) | 1.0 | active | dev, ai |
+| [PLAN-POC-001](specs/2026-10-05-web-poc-react-atlaskit-plan.md) | Kế hoạch triển khai — POC Frontend React + Atlaskit | 1.0 | active | dev, ai |
+| [PLAN-POC-006](specs/2026-10-06-web-poc-react-atlaskit-plan-6.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 6 - Wireframe Layout) | 1.0 | active | dev, ai |
+| [PLAN-POC-007](specs/2026-10-06-web-poc-react-atlaskit-plan-7.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive) | 1.0 | active | dev, ai |
+| [PLAN-POC-008](specs/2026-10-06-web-poc-react-atlaskit-plan-8.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 8 - Full Atlassian Design System) | 1.0 | active | dev, ai |
+| [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |

@@ -1,0 +1,85 @@
+﻿/* Global responsive styles */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  .mobile-only-block {
+    display: block !important;
+  }
+
+  .mobile-col {
+    flex-direction: column !important;
+  }
+  
+  .mobile-row {
+    flex-direction: row !important;
+  }
+
+  .mobile-order-1 {
+    order: 1 !important;
+  }
+
+  .mobile-order-2 {
+    order: 2 !important;
+  }
+
+  .mobile-scroll-x {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 8px !important;
+  }
+
+  .mobile-no-padding {
+    padding: 0 !important;
+  }
+  
+  .mobile-no-margin {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 24px !important;
+  }
+  
+  .mobile-w-full {
+    width: 100% !important;
+  }
+
+  .mobile-padding-16 {
+    padding: 16px !important;
+  }
+
+  .mobile-gap-16 {
+    gap: 16px !important;
+  }
+  
+  .mobile-fab {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 1000 !important;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.2) !important;
+    border-radius: 24px !important;
+  }
+}
+html, body, #root { height: 100%; margin: 0; }
+/* Micro-interactions */
+.task-row {
+  transition: background-color 0.15s ease;
+}
+.task-row:hover {
+  background-color: var(--ds-background-neutral-subtle, #FAFBFC) !important;
+}
+.task-row-selected {
+  background-color: var(--ds-background-selected, #E9F2FF) !important;
+}
