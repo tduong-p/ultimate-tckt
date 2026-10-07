@@ -45,3 +45,10 @@ Dựa trên quyết định tại `ADR-0015-001`, tài liệu này mô tả thi�
 - **Error Handling:** 
   - Khởi tạo một ErrorBoundary ở cấp cao nhất của trang.
   - Trong trường hợp API lỗi (mất kết nối, HTTP 500), `react-query` trả về trạng thái `isError`, giao diện sẽ hiện empty state cảnh báo thay vì làm sập trang.
+
+## Lịch sử phiên bản
+
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-05 | Thiết kế ban đầu POC Frontend React + Atlaskit | DYC |
+

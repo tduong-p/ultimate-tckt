@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@atlaskit/app-provider": "^8.0.0",
     "@atlaskit/atlassian-navigation": "^6.4.10",
     "@atlaskit/avatar": "^30.0.3",
     "@atlaskit/badge": "^22.0.0",

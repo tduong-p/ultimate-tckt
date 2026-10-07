@@ -410,3 +410,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 git add cai-tien-frontend/src/core/features/tasks/ cai-tien-frontend/src/core/main.tsx
 git commit -m "feat: build My Tasks screen using atlaskit dynamic table"
 ```
+
+## Lịch sử phiên bản
+
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-05 | Kế hoạch triển khai ban đầu POC Frontend React + Atlaskit | DYC |
+

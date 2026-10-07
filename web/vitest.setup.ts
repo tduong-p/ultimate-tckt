@@ -1,4 +1,4 @@
-import '@testing-library/react';
+﻿import '@testing-library/react';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -13,3 +13,7 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 });
+global.IntersectionObserver = class IntersectionObserver { constructor() {} observe() {} unobserve() {} disconnect() {} };
+
+global.ResizeObserver = class ResizeObserver { constructor() {} observe() {} unobserve() {} disconnect() {} };
+
