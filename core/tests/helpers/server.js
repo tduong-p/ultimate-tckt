@@ -33,9 +33,10 @@ function makeClient(baseUrl) {
   return { request, login };
 }
 
-function startTestServer(db) {
-  // notiSender: null — không bao giờ gửi sang Noti thật dù .env máy dev có NOTI_URL/NOTI_API_KEY.
-  const { app } = createApplication({ db, config: testConfig, notiSender: null });
+// notiSender mặc định null — không bao giờ gửi sang Noti thật dù .env máy dev có NOTI_URL/NOTI_API_KEY.
+// Test cần xem email đi đâu thì truyền một hàm giả (event => …) để ghi lại event.
+function startTestServer(db, { notiSender = null } = {}) {
+  const { app } = createApplication({ db, config: testConfig, notiSender });
   const server = http.createServer(app);
   return new Promise(resolve => {
     server.listen(0, '127.0.0.1', () => {

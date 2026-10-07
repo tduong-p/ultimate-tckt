@@ -1,5 +1,5 @@
 key: activity.participant_added
-subject: "[DYC] (ACT-{{ activity.id }}) Bạn được thêm vào hoạt động: {{ activity.title }}"
+subject: "[{{ activity.title }}]"
 required:
   - actor
   - responsibility

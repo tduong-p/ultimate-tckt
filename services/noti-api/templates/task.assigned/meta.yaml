@@ -1,13 +1,13 @@
 key: task.assigned
-subject: "[DYC] (TCKT-{{ task.id }}) {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - actor
   - task.id
   - task.title
   - task.path
+  - activity.title
 optional:
   - task.deadline
-  - activity.title
 data_example:
   actor: "Nguyễn Văn B"
   task:

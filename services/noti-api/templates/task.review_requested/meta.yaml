@@ -1,11 +1,10 @@
 key: task.review_requested
-subject: "[DYC] (TCKT-{{ task.id }}) Yêu cầu nghiệm thu: {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - actor
   - task.id
   - task.title
   - task.path
-optional:
   - activity.title
 data_example:
   actor: "Trần Văn C"

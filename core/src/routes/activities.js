@@ -121,7 +121,7 @@ router.post('/api/activities/:id/updates',auth,asyncRoute(async(req,res)=>{
   let taggedUsers=[];
   if(taggedUserIds.length){
     const marks=taggedUserIds.map(()=>'?').join(',');
-    const [users]=await db.query(`SELECT id,name,role FROM users WHERE is_active=1 AND id IN (${marks})`,taggedUserIds);
+    const [users]=await db.query(`SELECT id,name,email,role FROM users WHERE is_active=1 AND id IN (${marks})`,taggedUserIds);
     if(users.length!==taggedUserIds.length)return res.status(400).json({error:'One or more tagged people are unavailable.'});
     for(const user of users)if(!(await visibleActivity(user,req.params.id)))return res.status(400).json({error:`${user.name} cannot view this activity.`});
     taggedUsers=users;
@@ -143,16 +143,22 @@ router.post('/api/activities/:id/updates',auth,asyncRoute(async(req,res)=>{
     await conn.commit();
   }catch(error){await conn.rollback();throw error}finally{conn.release()}
   res.status(201).json({ok:true,id:updateId});
-  if(taskId)try{
-    const [[tasks],[owners]]=await Promise.all([
+  try{
+    const [[tasks],[owners]]=taskId?await Promise.all([
       db.execute('SELECT t.id,t.title,t.activity_id,t.assigned_by,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id WHERE t.id=? AND t.activity_id=?',[taskId,req.params.id]),
       db.execute('SELECT DISTINCT u.id,u.name,u.email FROM users u JOIN tasks t ON t.id=? LEFT JOIN task_assignees ta ON ta.task_id=t.id AND ta.user_id=u.id WHERE u.is_active=1 AND u.id!=? AND (ta.user_id IS NOT NULL OR u.id=t.assigned_by)',[taskId,req.actor.id])
-    ]);
-    const task=tasks[0];
-    if(task)for(const owner of owners){
-      notifier.notify({event:'task.response',recipient:owner,actorId:req.actor.id,data:{actor:req.actor.name,response:{kind,body},task:{id:task.id,title:task.title,path:`/#activity/${req.params.id}`},activity:{title:task.activity_title}},sourceKey:`task-response:${updateId}:${owner.id}`});
+    ]):[[[]],[[]]];
+    const task=tasks[0],path=`/#activity/${req.params.id}`;
+    // Người được gắn thẻ nhận email mention thay cho email phản hồi công việc của cùng bình luận.
+    for(const user of taggedUsers){
+      notifier.notify({event:'comment.mentioned',recipient:user,actorId:req.actor.id,data:{actor:req.actor.name,comment:{body},activity:{title:activity.title,path},...(task?{task:{id:task.id,title:task.title}}:{})},sourceKey:`comment-mention:${updateId}:${user.id}`});
     }
-  }catch(error){logger.error(`Unable to prepare task ${taskId} response notifications.`,error)}
+    const mentioned=new Set(taggedUsers.map(user=>Number(user.id)));
+    if(task)for(const owner of owners){
+      if(mentioned.has(Number(owner.id)))continue;
+      notifier.notify({event:'task.response',recipient:owner,actorId:req.actor.id,data:{actor:req.actor.name,response:{kind,body},task:{id:task.id,title:task.title,path},activity:{title:task.activity_title}},sourceKey:`task-response:${updateId}:${owner.id}`});
+    }
+  }catch(error){logger.error(`Unable to prepare update ${updateId} email notifications.`,error)}
 }));
 
 router.post('/api/activities/:id/tasks', auth, managerOrEventLead, asyncRoute(async (req, res) => {
@@ -188,7 +194,7 @@ router.post('/api/activities/:id/tasks', auth, managerOrEventLead, asyncRoute(as
   try {
     const marks = allAssigneeIds.map(() => '?').join(',');
     const [[users], [activities]] = await Promise.all([
-      db.query(`SELECT id,name,email FROM users WHERE id IN (${marks})`, allAssigneeIds),
+      db.query(`SELECT id,name,email FROM users WHERE is_active=1 AND id IN (${marks})`, allAssigneeIds),
       db.execute('SELECT title FROM activities WHERE id=?', [req.params.id])
     ]);
     const task = { id: taskId, activity_id: Number(req.params.id), activity_title: activities[0]?.title || 'Hoạt động', title, deadline, priority: priority || 'medium', deliverable };
