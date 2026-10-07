@@ -15,10 +15,11 @@ EXPECTED_TEMPLATES = {
     "task.overdue",
     "task.unacknowledged",
     "system.test",
+    "comment.mentioned",
 }
 
 
-def test_registry_has_all_11_templates():
+def test_registry_has_all_12_templates():
     reg = load_registry(ROOT)
     assert set(reg.templates.keys()) == EXPECTED_TEMPLATES
 

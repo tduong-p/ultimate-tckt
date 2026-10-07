@@ -1,5 +1,5 @@
 key: task.response
-subject: "[DYC] (TCKT-{{ task.id }}) Phản hồi công việc: {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - actor
   - response.kind
@@ -7,7 +7,6 @@ required:
   - task.id
   - task.title
   - task.path
-optional:
   - activity.title
 data_example:
   actor: "Trần Văn C"

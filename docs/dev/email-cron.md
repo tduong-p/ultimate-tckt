@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 6.2
+version: 7.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-07
 related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/deadline-notifications.js, core/src/services/reminder-rules.js, core/src/services/notification-recipients.js, core/src/email.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js, core/src/config/database.js]
 ---
 
@@ -43,7 +43,7 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
   `Noti request failed: <tên lỗi>`; quá 5 s ghi `timeout`. Log không chứa key (lỗi của `fetch` bị bỏ message vì có thể chứa header).
 - `toNotiPayload` sửa dữ liệu trước khi gửi: mã thô thành chữ (`activity.decided.action`: `approve`/`reject`/`request_changes`;
   `task.reviewed.decision`: `approve`/`reject`/`cancel`; `task.response.response.kind`), `Date` của mysql2 thành `YYYY-MM-DD`
-  (thêm ` HH:mm` nếu có giờ), bỏ giá trị `null`/`undefined`/chuỗi rỗng, cắt `response.body` và `feedback` còn 4000 ký tự (Noti từ chối
+  (thêm ` HH:mm` nếu có giờ), bỏ giá trị `null`/`undefined`/chuỗi rỗng, cắt `response.body`, `comment.body` và `feedback` còn 4000 ký tự (Noti từ chối
   body > 64 KB), gắn nhãn tiếng Việt cho loại và mức ưu tiên của đề án (`activity.type`, `activity.priority`). Mã lạ giữ nguyên.
 - `core/tests/noti-sender.test.js` đọc `required` trong `services/noti-api/templates/<event>/meta.yaml`: thêm event hay đổi
   template mà thiếu trường thì test này đỏ.
@@ -57,6 +57,7 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 | `activity.decided` | `routes/activities.js` (duyệt / từ chối / yêu cầu sửa) | `activity-decided:<activityId>:<proposalId\|deleted>:<creatorId>` |
 | `task.assigned` | `routes/activities.js` (giao việc) | `task-assigned:<taskId>:<userId>` |
 | `task.response` | `routes/activities.js` (phản hồi) | `task-response:<updateId>:<userId>` |
+| `comment.mentioned` | `routes/activities.js` (gắn thẻ trong bình luận hoạt động hoặc công việc) | `comment-mention:<updateId>:<userId>` |
 | `task.review_requested` | `routes/activities.js` (log-task), `routes/tasks.js` (nộp nghiệm thu) | `task-review:<taskId>:<reviewerId>:<thời điểm request>` |
 | `task.reviewed` | `routes/tasks.js` (nghiệm thu) | `task-reviewed:<taskId>:<userId>:<decision>:<thời điểm request>` |
 | `task.deadline_soon` | scheduler | `task-deadline-<1d\|today>:<taskId>:<userId>:<ngày hạn>` |
@@ -66,6 +67,30 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 Mọi route truyền `actorId` (người thao tác) để facade bỏ thông báo tự gửi cho chính họ. Người nhận của
 `task.review_requested` lấy từ `findReviewRecipients` (`core/src/services/notification-recipients.js`); `activity.proposed` dùng truy vấn riêng (admin + vice_admin đang hoạt động) và mang
 `type`, `deadline`, `priority` và đi tới admin + vice_admin; `activity.decided` khi hoạt động đã xoá thì không có `path`.
+
+### Subject và thread
+
+Mọi email của cùng một công việc có **cùng một subject** `[<tên hoạt động>] <tên công việc>`, mọi email chỉ về hoạt động có
+subject `[<tên hoạt động>]`, để Gmail/Outlook gom thành một thread. Loại sự kiện (quá hạn, nghiệm thu…) và mã `TCKT-<id>` nằm
+trong thân thư, không nằm trong subject. Vì vậy mọi event `task.*` **bắt buộc** có `activity.title` (thiếu thì Noti trả `400`).
+`comment.mentioned` dùng subject của công việc khi bình luận gắn công việc, ngược lại dùng subject của hoạt động.
+
+### Người nhận
+
+| `event` | Người nhận |
+|---|---|
+| `activity.proposed` | admin + vice_admin đang hoạt động |
+| `activity.decided` | người tạo hoạt động |
+| `activity.participant_added` | người được thêm (trừ người đã `confirmed` từ trước); route chỉ cho thêm user đang hoạt động |
+| `task.assigned` | mọi người được giao **đang hoạt động** (cả thông báo trong ứng dụng) |
+| `task.review_requested` | `findReviewRecipients`: tổ trưởng/tổ phó + trưởng BTC, không còn ai thì admin |
+| `task.reviewed` | mọi người được giao đang hoạt động |
+| `task.response` | người giao việc + người được giao, trừ người đăng và trừ người đã nhận `comment.mentioned` cho cùng bình luận |
+| `comment.mentioned` | người được gắn thẻ (route đã kiểm tra đang hoạt động và xem được hoạt động; không tự gắn thẻ mình) |
+| `task.deadline_soon`, `task.overdue` | từng người được giao đang hoạt động của task chưa xong |
+| `task.unacknowledged` | người giao việc, mỗi thành viên chưa xác nhận một thư |
+
+Ngoài các luật trên, facade bỏ người nhận trùng `actorId` (xem đầu tài liệu).
 
 ### Scheduler nhắc hạn (`deadline-notifications.js` + `reminder-rules.js`)
 
@@ -83,7 +108,6 @@ Với `sourceKey` có "thời điểm request" thì khoá chỉ chống gọi l�
 
 - `notifications.email_status` nay do scheduler dùng làm trạng thái gửi (xem trên); các thông báo do route tạo không ghi cột này.
   Dòng `pending` mồ côi (người nhận hết hiệu lực, task đã đóng) không có gì tự dọn. `push_status` còn trong schema nhưng luôn `NULL`.
-- Push thẻ tên trong bình luận đã bỏ cùng OneSignal; chưa có template email tương ứng.
 - Driver Noti trên staging là `console`: thư chỉ ra log `noti-worker`, chưa tới hộp thư thật.
 - `task.overdue` vẫn gửi lại mỗi ngày cho mọi task quá hạn chưa xong. Trước khi bật mail thật cần quyết có nên nhắc quá hạn hằng ngày không.
 - `ctd-api` có mailer riêng (`services/ctd-api/backend/app/infra/mailer.py`), nằm ngoài phạm vi tài liệu này.
@@ -109,3 +133,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 6.0 | 2026-10-05 | #49: khoá `sourceKey` mới (`task-deadline-1d\|today`, `unacknowledged` có epoch); scheduler nhắc theo ngày lịch, khung 07:00–21:59, gửi tuần tự, dùng `email_status`; notifier lọc tự gửi/email lỗi và thử lại; nêu `actorId`, người nhận review | DYC |
 | 6.1 | 2026-10-05 | Sửa mô tả khung giờ (ngoài khung không tạo gì), người nhận `activity.proposed`, hai nhãn `activity.type`/`activity.priority`; thêm kiểm tra giờ một lần mỗi lượt và dừng gửi sau lỗi tạm thời | DYC |
 | 6.2 | 2026-10-05 | Production có Noti trong compose; `CORE_NOTI_API_KEY` trống = tắt gửi (SPEC-MAIL-001) | DYC |
+| 7.0 | 2026-10-07 | Subject gom thread `[hoạt động] công việc`, `activity.title` bắt buộc cho `task.*`; thêm `comment.mentioned`; bảng người nhận; `task.assigned` bỏ user không hoạt động | DYC |
