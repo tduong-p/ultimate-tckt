@@ -59,7 +59,7 @@
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.8 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.20 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.21 | active | dev, ai |
 
 ## onboarding
 
