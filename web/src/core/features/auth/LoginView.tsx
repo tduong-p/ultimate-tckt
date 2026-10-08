@@ -5,6 +5,7 @@ import { token } from '@atlaskit/tokens';
 import { loginUser } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ThemeToggle } from '../../../shared/components/ThemeToggle';
+import { MicrosoftLottieLogo } from '../../../shared/components/MicrosoftLottieLogo';
 
 interface LoginViewProps {
   onLoginSuccess?: () => void;
@@ -370,13 +371,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               transition: 'background-color 0.15s ease',
             }}
           >
-            {/* Microsoft 4-color Square Icon */}
-            <svg width="18" height="18" viewBox="0 0 21 21" fill="none" aria-hidden="true">
-              <rect x="1" y="1" width="9" height="9" fill="#F25022" />
-              <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
-              <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
-              <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
-            </svg>
+            {/* Animated Microsoft Start Lottie Logo */}
+            <MicrosoftLottieLogo size={20} />
             <span>{isVi ? 'Đăng nhập bằng tài khoản HUST' : 'Sign in with Microsoft HUST'}</span>
           </a>
 

@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts]
+related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts, web/src/shared/components/MicrosoftLottieLogo.tsx]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -47,7 +47,8 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   - Tiêu đề H2: `Đăng nhập vào không gian làm việc`.
   - Phụ đề: `Sử dụng tài khoản trường để tiếp tục.`
 - **Nút Microsoft HUST SSO**:
-  - Nút lớn toàn chiều rộng (Full-width Button) với biểu tượng Microsoft / HUST, liên kết tới `/auth/microsoft`.
+  - Nút lớn toàn chiều rộng (Full-width Button) với biểu tượng Microsoft Start hoạt ảnh Lottie (`MicrosoftLottieLogo` dựa trên `microsoft-start.json`), liên kết tới `/auth/microsoft`.
+  - Hiệu ứng hoạt ảnh: 4 ô màu đặc trưng (Đỏ, Xanh lục, Xanh lam, Vàng) với hiệu ứng sóng ánh sáng (shine sweep) lướt qua định kỳ sống động.
   - Nhãn: `Đăng nhập bằng tài khoản HUST`.
 - **Đường phân cách (Divider)**:
   - Đường line mờ với nhãn ở giữa: `HOẶC SỬ DỤNG TÀI KHOẢN NỘI BỘ`.
@@ -83,18 +84,20 @@ flowchart TD
 
 ## 4. Kiểm thử
 1. **Unit test API Layer**: Kiểm thử `loginUser` (`POST /api/login`) và `logoutUser` (`POST /api/logout`) thành công và thất bại.
-2. **Unit test LoginView, LottieLoading & ThemeToggle**:
+2. **Unit test LoginView, LottieLoading, ThemeToggle & MicrosoftLottieLogo**:
    - Kiểm tra render đầy đủ các thành phần cột trái và cột phải.
    - Kiểm tra submit form với thông tin hợp lệ -> gọi `loginUser` và gọi callback `onLoginSuccess`.
    - Kiểm tra submit form thất bại -> hiển thị thông điệp lỗi.
-   - Kiểm tra nút Microsoft SSO trỏ đúng `/auth/microsoft`.
+   - Kiểm tra nút Microsoft SSO trỏ đúng `/auth/microsoft` và chứa biểu tượng hoạt ảnh `MicrosoftLottieLogo`.
    - Kiểm tra component `LottieLoading` hiển thị đúng kích cỡ, thông điệp và container.
    - Kiểm tra component `ThemeToggle` hỗ trợ các thuộc tính chuyển trạng thái ARIA switch (`aria-checked`), callback `onToggle`, và hoạt động tự chủ (uncontrolled).
+   - Kiểm tra component `MicrosoftLottieLogo` render kích thước tùy chỉnh và container đúng chuẩn.
 3. **Integration test Session Gating**:
    - `main.test.tsx` kiểm tra khi session `user: null` -> render `LoginView`.
    - Khi session `user: { name: 'Admin', ... }` -> render `PageLayout` với các module chính.
 
 ## Lịch sử phiên bản
+- **1.3 (2026-10-08)**: Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO.
 - **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi chế độ Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`) cho thanh điều hướng và màn hình đăng nhập.
 - **1.1 (2026-10-08)**: Bổ sung hiệu ứng hoạt ảnh Lottie Loading (`loading.lottie`) trong màn hình đăng nhập và khởi tạo ứng dụng.
 - **1.0 (2026-10-08)**: Khởi tạo thiết kế màn hình đăng nhập hiện đại 2 cột cho TCKT Activity Hub.
