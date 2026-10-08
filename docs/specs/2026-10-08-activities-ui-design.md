@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ACTIVITIES-001
 title: Design — Activities & Projects Screen UI (Hoạt động & Dự án)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -36,4 +36,7 @@ The "Hoạt động & Dự án" screen enables members and leaders to view, plan
   - Visual progress bar indicator
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế giao diện Hoạt động & Dự án.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Hoạt động & Dự án | DYC |
+| 1.1 | 2026-10-08 | Tích hợp React Query với API activities/teams thực tế, xóa mock | DYC |

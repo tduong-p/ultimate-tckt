@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-CALENDAR-001
 title: Plan — Calendar Screen UI Implementation
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -29,4 +29,7 @@ related_code: [web/src/core/features/calendar/**]
 - Verify full test suite.
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo kế hoạch triển khai giao diện Lịch chung.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Lịch chung | DYC |
+| 1.1 | 2026-10-08 | Tích hợp React Query với API /api/activities và /api/teams, xóa mock | DYC |

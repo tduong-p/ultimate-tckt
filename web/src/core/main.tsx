@@ -18,8 +18,8 @@ import { ArchiveView } from './features/archive/ArchiveView';
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  const [currentView, setCurrentView] = React.useState('archive');
+export const App = () => {
+  const [currentView, setCurrentView] = React.useState('dashboard');
   return (
     <PageLayout currentView={currentView} onNavigate={setCurrentView}>
       {currentView === 'dashboard' && <Dashboard />}
@@ -36,12 +36,15 @@ const App = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppProvider>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </AppProvider>
-  </React.StrictMode>
-);
+const rootEl = document.getElementById('root');
+if (rootEl) {
+  ReactDOM.createRoot(rootEl).render(
+    <React.StrictMode>
+      <AppProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </AppProvider>
+    </React.StrictMode>
+  );
+}

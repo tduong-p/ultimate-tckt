@@ -1,3 +1,14 @@
+---
+doc_id: PLAN-WEB-002
+title: Kế hoạch triển khai — Dashboard UI (Atlassian Design System)
+version: 1.1
+status: active
+audience: [dev, ai]
+owner: AI
+updated: 2026-10-08
+related_code: [web/src/core/features/dashboard/**]
+---
+
 # Dashboard UI Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -214,3 +225,9 @@ Expected: PASS
 git add web/src/core/features/dashboard/Dashboard.tsx web/src/core/features/dashboard/Dashboard.test.tsx
 git commit -m "feat(web): add updates widgets to right column"
 ```
+
+## Lịch sử phiên bản
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch cho trang Tổng quan | AI |
+| 1.1 | 2026-10-08 | Kết nối Dashboard với API GET /api/bootstrap và xóa KPI mock | AI |

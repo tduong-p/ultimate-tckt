@@ -1,9 +1,12 @@
-﻿---
-title: "Create Activity Modal UI Design"
-version: 1.0.0
+---
+doc_id: SPEC-ACTMODAL-001
+title: Thiết kế — Create Activity Modal UI Design
+version: 1.1
+status: active
+audience: [dev, ai]
+owner: DYC
 updated: 2026-10-08
-related_code:
-  - "web/src/core/features/dashboard/CreateActivityModal.tsx"
+related_code: [web/src/core/features/dashboard/CreateActivityModal.tsx]
 ---
 
 # Create Activity Modal UI Design
@@ -42,3 +45,9 @@ The modal uses the standard Atlassian ModalDialog component.
 - Clicking "+ Đề xuất hoạt động" on the Dashboard opens the modal.
 - Clicking the close (X) icon or clicking outside the modal closes it.
 - Clicking "Tạo đề xuất" currently closes the modal (as this is a static UI).
+
+## Lịch sử phiên bản
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế modal Đề xuất hoạt động | DYC |
+| 1.1 | 2026-10-08 | Tích hợp mutation tạo hoạt động với API POST /api/activities | DYC |

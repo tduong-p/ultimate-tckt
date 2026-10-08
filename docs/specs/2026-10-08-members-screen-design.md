@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-MEMBERS-001
 title: Design — Members Screen UI (Thành viên)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -35,4 +35,7 @@ The "Thành viên" screen recognizes and manages members, their roles, team affi
   - Management actions: `Sửa`, `Xóa`
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế giao diện Thành viên.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Thành viên | DYC |
+| 1.1 | 2026-10-08 | Tích hợp React Query với API /api/people và /api/teams, xóa mock | DYC |

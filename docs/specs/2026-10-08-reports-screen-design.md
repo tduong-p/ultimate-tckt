@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-REPORTS-001
 title: Design — Reports Screen UI (Báo cáo)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -28,4 +28,7 @@ The "Báo cáo" screen allows leaders to export activities, tasks, and member pa
   - **Export Action**: Button "Xuất báo cáo Excel" (Primary button)
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế giao diện Báo cáo.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Báo cáo | DYC |
+| 1.1 | 2026-10-08 | Tích hợp React Query với API /api/teams và URL download export Excel | DYC |

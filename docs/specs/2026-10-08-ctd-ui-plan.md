@@ -1,7 +1,7 @@
 ---
-doc_id: PLAN-CTD-UI-001
+doc_id: PLAN-CTDUI-001
 title: Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -42,4 +42,7 @@ related_code: [web/src/ctd/**, web/ctd.html]
 - Kiểm tra dev server và merge vào nhánh `staging` local.
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo kế hoạch triển khai giao diện CTD theo Atlassian Design System.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện CTD theo Atlassian Design System | DYC |
+| 1.1 | 2026-10-08 | Chuẩn hóa định dạng doc_id và bảng lịch sử phiên bản | DYC |

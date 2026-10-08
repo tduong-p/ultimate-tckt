@@ -1,9 +1,12 @@
-﻿---
-title: "Create Activity Modal Implementation Plan"
-version: 1.0.0
+---
+doc_id: PLAN-ACTMODAL-001
+title: Kế hoạch triển khai — Create Activity Modal UI
+version: 1.1
+status: active
+audience: [dev, ai]
+owner: DYC
 updated: 2026-10-08
-related_code:
-  - "web/src/core/features/dashboard/CreateActivityModal.tsx"
+related_code: [web/src/core/features/dashboard/CreateActivityModal.tsx]
 ---
 
 # Create Activity Modal Implementation Plan
@@ -31,3 +34,9 @@ related_code:
   - Wire up the + Đề xuất hoạt động button to open the modal.
   - Render <CreateActivityModal onClose={() => setIsModalOpen(false)} /> when isModalOpen is true.
 - **Tests**: Update Dashboard.test.tsx to verify clicking the button opens the modal.
+
+## Lịch sử phiên bản
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch modal Đề xuất hoạt động | DYC |
+| 1.1 | 2026-10-08 | Tích hợp mutation tạo hoạt động với API POST /api/activities | DYC |
