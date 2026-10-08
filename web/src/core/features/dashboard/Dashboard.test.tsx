@@ -1,6 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 
 afterEach(() => {
@@ -32,5 +32,12 @@ describe('Dashboard', () => {
     expect(screen.getByText('Lịch sự kiện & Deadline')).toBeDefined();
     expect(screen.getByText('Hoạt động đang diễn ra', { selector: 'h2' })).toBeDefined();
     expect(screen.getByText('Nhật ký hoạt động')).toBeDefined();
+  });
+
+  it('opens CreateActivityModal when clicking button', () => {
+    render(<Dashboard />);
+    expect(screen.queryByText('ĐỀ XUẤT MỚI')).toBeNull();
+    fireEvent.click(screen.getByText('+ Đề xuất hoạt động'));
+    expect(screen.getByText('ĐỀ XUẤT MỚI')).toBeDefined();
   });
 });

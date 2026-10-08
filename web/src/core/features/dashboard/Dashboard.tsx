@@ -1,4 +1,5 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
+import { CreateActivityModal } from './CreateActivityModal';
 import Button from '@atlaskit/button/new';
 import { token } from '@atlaskit/tokens';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
@@ -170,6 +171,7 @@ const UpdatesWidgets = () => (
 );
 
 export const Dashboard: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div style={{ padding: '0', position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -179,7 +181,7 @@ export const Dashboard: React.FC = () => {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button appearance="primary">+ Đề xuất hoạt động</Button>
+          <Button appearance="primary" onClick={() => setIsModalOpen(true)}>+ Đề xuất hoạt động</Button>
           <Button appearance="default">Lịch sự kiện</Button>
           <Button appearance="default">Hoạt động</Button>
         </div>
@@ -187,6 +189,7 @@ export const Dashboard: React.FC = () => {
       <KPICards />
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <TaskWidget />
+        {isModalOpen && <CreateActivityModal onClose={() => setIsModalOpen(false)} />}
         <UpdatesWidgets />
       </div>
     </div>
