@@ -1,37 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
+import Lozenge from '@atlaskit/lozenge';
+import Spinner from '@atlaskit/spinner';
+import InboxIcon from '@atlaskit/icon/core/inbox';
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+  QueryClientContext,
+} from '@tanstack/react-query';
+import { fetchDocuments, type DocumentItem } from '../../api';
 
-export const DocumentsView: React.FC = () => {
+const defaultDocumentsQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+export const DocumentsViewContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [yearFilter, setYearFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
 
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['core-documents', { q: searchQuery, year: yearFilter, team_id: teamFilter }],
+    queryFn: () =>
+      fetchDocuments({
+        q: searchQuery.trim() || undefined,
+        year: yearFilter !== 'all' ? yearFilter : undefined,
+        team_id: teamFilter !== 'all' ? teamFilter : undefined,
+      }),
+  });
+
+  const yearOptions = useMemo(() => {
+    const list = data?.years || [];
+    return [
+      { label: 'Tất cả các năm', value: 'all' },
+      ...list.map((y) => ({ label: String(y), value: String(y) })),
+    ];
+  }, [data?.years]);
+
+  const teamOptions = useMemo(() => {
+    const list = data?.filterTeams || [];
+    return [
+      { label: 'Tất cả các Tổ', value: 'all' },
+      ...list.map((t) => ({ label: t.name, value: String(t.id) })),
+    ];
+  }, [data?.filterTeams]);
+
+  const documents: DocumentItem[] = data?.documents || [];
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '24px'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '24px',
+        }}
+      >
         <div>
-          <h1 style={{
-            margin: 0,
-            fontSize: '24px',
-            fontWeight: 600,
-            color: token('color.text', '#172B4D'),
-            letterSpacing: '-0.2px'
-          }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '24px',
+              fontWeight: 600,
+              color: token('color.text', '#172B4D'),
+              letterSpacing: '-0.2px',
+            }}
+          >
             Văn bản
           </h1>
-          <p style={{
-            margin: '6px 0 0 0',
-            fontSize: '14px',
-            color: token('color.text.subtle', '#5E6C84')
-          }}>
+          <p
+            style={{
+              margin: '6px 0 0 0',
+              fontSize: '14px',
+              color: token('color.text.subtle', '#5E6C84'),
+            }}
+          >
             Danh mục liên kết văn bản do các Tổ TCKT ban hành.
           </p>
         </div>
@@ -42,13 +95,15 @@ export const DocumentsView: React.FC = () => {
       </div>
 
       {/* Toolbar: Search and Filters */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'center',
-        marginBottom: '24px',
-        flexWrap: 'wrap'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+        }}
+      >
         <div style={{ flex: '1 1 320px' }}>
           <input
             type="text"
@@ -65,7 +120,7 @@ export const DocumentsView: React.FC = () => {
               color: token('color.text', '#172B4D'),
               backgroundColor: token('elevation.surface', '#FFFFFF'),
               outline: 'none',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
             }}
           />
         </div>
@@ -73,54 +128,183 @@ export const DocumentsView: React.FC = () => {
         <div style={{ width: '180px' }}>
           <Select
             defaultValue={{ label: 'Tất cả các năm', value: 'all' }}
-            options={[
-              { label: 'Tất cả các năm', value: 'all' },
-              { label: '2026', value: '2026' },
-              { label: '2025', value: '2025' }
-            ]}
+            options={yearOptions}
             onChange={(opt: any) => setYearFilter(opt?.value || 'all')}
           />
         </div>
 
-        <div style={{ width: '180px' }}>
+        <div style={{ width: '220px' }}>
           <Select
             defaultValue={{ label: 'Tất cả các Tổ', value: 'all' }}
-            options={[
-              { label: 'Tất cả các Tổ', value: 'all' },
-              { label: 'Phát triển Đảng và Chuyển đổi số', value: 'ptd_cds' },
-              { label: 'Tổ chức và Phát triển Đoàn', value: 'tc_ptd' },
-              { label: 'Giám sát, Kiểm tra và Điểm rèn luyện', value: 'gs_kt' },
-              { label: 'Tuyên giáo - Truyền thông', value: 'tg_tt' }
-            ]}
+            options={teamOptions}
             onChange={(opt: any) => setTeamFilter(opt?.value || 'all')}
           />
         </div>
       </div>
 
-      {/* Empty State Box */}
-      <div style={{
-        maxWidth: '560px',
-        backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
-        border: `1px solid ${token('color.border', '#DFE1E6')}`,
-        borderRadius: '4px',
-        padding: '20px 24px',
-        boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)')
-      }}>
-        <div style={{
-          fontSize: '15px',
-          fontWeight: 600,
-          color: token('color.text', '#172B4D'),
-          marginBottom: '6px'
-        }}>
-          Không tìm thấy văn bản
+      {/* Content Area */}
+      {isLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
+          <Spinner size="large" />
         </div>
-        <div style={{
-          fontSize: '13px',
-          color: token('color.text.subtle', '#5E6C84')
-        }}>
-          Hãy thêm văn bản đầu tiên hoặc thay đổi bộ lọc.
+      ) : error ? (
+        <div
+          style={{
+            padding: '16px',
+            backgroundColor: token('color.background.danger', '#FFEBE6'),
+            color: token('color.text.danger', '#BF2600'),
+            borderRadius: '4px',
+          }}
+        >
+          Không thể tải danh sách văn bản. Vui lòng thử lại sau.
         </div>
-      </div>
+      ) : documents.length === 0 ? (
+        /* Empty State Box */
+        <div
+          data-testid="documents-empty-state"
+          style={{
+            maxWidth: '560px',
+            backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
+            border: `1px solid ${token('color.border', '#DFE1E6')}`,
+            borderRadius: '4px',
+            padding: '20px 24px',
+            boxShadow: token(
+              'elevation.shadow.raised',
+              '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'
+            ),
+            display: 'flex',
+            gap: '14px',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div
+            style={{
+              color: token('color.icon', '#42526E'),
+              marginTop: '2px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <InboxIcon label="" />
+          </div>
+          <div>
+            <div
+              style={{
+                fontSize: '15px',
+                fontWeight: 600,
+                color: token('color.text', '#172B4D'),
+                marginBottom: '6px',
+              }}
+            >
+              Không tìm thấy văn bản
+            </div>
+            <div
+              style={{
+                fontSize: '13px',
+                color: token('color.text.subtle', '#5E6C84'),
+              }}
+            >
+              Hãy thêm văn bản đầu tiên hoặc thay đổi bộ lọc.
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Documents List */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {documents.map((doc) => (
+            <div
+              key={doc.id}
+              data-testid={`document-item-${doc.id}`}
+              style={{
+                backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
+                border: `1px solid ${token('color.border', '#DFE1E6')}`,
+                borderRadius: '6px',
+                padding: '16px 20px',
+                boxShadow: token(
+                  'elevation.shadow.raised',
+                  '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'
+                ),
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: '16px',
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <a
+                    href={doc.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      color: token('color.link', '#0052CC'),
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {doc.name}
+                  </a>
+                  {doc.team_name && (
+                    <Lozenge appearance="inprogress">{doc.team_name}</Lozenge>
+                  )}
+                  <Lozenge appearance="default">Năm {doc.applicable_year}</Lozenge>
+                  {doc.visibility === 'all_teams' ? (
+                    <Lozenge appearance="success">Tất cả các Tổ</Lozenge>
+                  ) : (
+                    <Lozenge appearance="moved">Nội bộ Tổ</Lozenge>
+                  )}
+                </div>
+                {doc.description && (
+                  <p
+                    style={{
+                      margin: '4px 0 0 0',
+                      fontSize: '13px',
+                      color: token('color.text.subtle', '#5E6C84'),
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {doc.description}
+                  </p>
+                )}
+              </div>
+              <div>
+                <a
+                  href={doc.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Button appearance="subtle">Mở liên kết ↗</Button>
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
+};
+
+export const DocumentsView: React.FC = () => {
+  const queryClient = React.useContext(QueryClientContext);
+
+  if (!queryClient) {
+    return (
+      <QueryClientProvider client={defaultDocumentsQueryClient}>
+        <DocumentsViewContent />
+      </QueryClientProvider>
+    );
+  }
+
+  return <DocumentsViewContent />;
 };

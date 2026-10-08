@@ -1,18 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import DownloadIcon from '@atlaskit/icon/core/download';
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+  QueryClientContext,
+} from '@tanstack/react-query';
+import { fetchTeams, getReportExportUrl, type TeamItem } from '../../api';
 
-export const ReportsView: React.FC = () => {
+const defaultReportsQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const toIsoDate = (str: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, d, m, y] = match;
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  return str;
+};
+
+export const ReportsViewContent: React.FC = () => {
   const [startDate, setStartDate] = useState('09/08/2026');
   const [endDate, setEndDate] = useState('10/08/2026');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [isExported, setIsExported] = useState(false);
 
+  const { data: teams } = useQuery({
+    queryKey: ['core-teams'],
+    queryFn: fetchTeams,
+  });
+
+  const teamOptions = useMemo(() => {
+    const list: TeamItem[] = teams || [];
+    return [
+      { label: 'Tất cả các Tổ có thể xem', value: 'all' },
+      ...list.map((t) => ({ label: t.name, value: String(t.id) })),
+    ];
+  }, [teams]);
+
+  const exportUrl = useMemo(() => {
+    return getReportExportUrl({
+      start: toIsoDate(startDate),
+      end: toIsoDate(endDate),
+      team_id: selectedTeam !== 'all' ? selectedTeam : undefined,
+      lang: 'vi',
+    });
+  }, [startDate, endDate, selectedTeam]);
+
   const handleExport = () => {
     setIsExported(true);
+    if (typeof document !== 'undefined') {
+      const link = document.createElement('a');
+      link.href = exportUrl;
+      link.setAttribute('download', '');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
     setTimeout(() => setIsExported(false), 3000);
   };
 
@@ -182,13 +238,7 @@ export const ReportsView: React.FC = () => {
             inputId="team-select"
             aria-label="Tổ"
             defaultValue={{ label: 'Tất cả các Tổ có thể xem', value: 'all' }}
-            options={[
-              { label: 'Tất cả các Tổ có thể xem', value: 'all' },
-              { label: 'Phát triển Đảng và Chuyển đổi số', value: 'ptd_cds' },
-              { label: 'Tổ chức và Phát triển Đoàn', value: 'tc_ptd' },
-              { label: 'Giám sát, Kiểm tra và Điểm rèn luyện', value: 'gs_kt' },
-              { label: 'Tuyên giáo - Truyền thông', value: 'tg_tt' },
-            ]}
+            options={teamOptions}
             onChange={(opt: any) => setSelectedTeam(opt?.value || 'all')}
           />
         </div>
@@ -205,8 +255,8 @@ export const ReportsView: React.FC = () => {
           Tệp Excel gồm tổng hợp hoạt động và chi tiết công việc, tham gia của thành viên đối với các hoạt động diễn ra trong khoảng thời gian này.
         </p>
 
-        {/* Action Button */}
-        <div>
+        {/* Action Button & Export Link */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <Button
             appearance="primary"
             onClick={handleExport}
@@ -217,10 +267,22 @@ export const ReportsView: React.FC = () => {
             </span>
           </Button>
 
+          <a
+            href={exportUrl}
+            download
+            data-testid="export-direct-link"
+            style={{
+              fontSize: '13px',
+              color: token('color.link', '#0052CC'),
+              textDecoration: 'none',
+            }}
+          >
+            Tải trực tiếp
+          </a>
+
           {isExported && (
             <span
               style={{
-                marginLeft: '12px',
                 fontSize: '13px',
                 color: token('color.text.success', '#006644'),
                 fontWeight: 500,
@@ -233,4 +295,18 @@ export const ReportsView: React.FC = () => {
       </div>
     </div>
   );
+};
+
+export const ReportsView: React.FC = () => {
+  const queryClient = React.useContext(QueryClientContext);
+
+  if (!queryClient) {
+    return (
+      <QueryClientProvider client={defaultReportsQueryClient}>
+        <ReportsViewContent />
+      </QueryClientProvider>
+    );
+  }
+
+  return <ReportsViewContent />;
 };
