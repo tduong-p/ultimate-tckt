@@ -28,6 +28,7 @@ import SettingsIcon from '@atlaskit/icon/core/settings';
 import WarningIcon from '@atlaskit/icon/core/warning';
 import NotificationIcon from '@atlaskit/icon/core/notification';
 import AppSwitcherIcon from '@atlaskit/icon/core/app-switcher';
+import LogOutIcon from '@atlaskit/icon/core/log-out';
 
 const CustomLogo = () => <span style={{ fontSize: '18px', fontWeight: 600, marginLeft: '4px', whiteSpace: 'nowrap' }}>TCKT Activity Hub</span>;
 
@@ -35,7 +36,27 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
-export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: string; onNavigate?: (view: string) => void }> = ({ children, currentView = 'dashboard', onNavigate }) => {
+export interface PageLayoutProps {
+  children: React.ReactNode;
+  currentView?: string;
+  onNavigate?: (view: string) => void;
+  user?: {
+    id?: number;
+    name: string;
+    email?: string;
+    role?: string;
+    avatar_color?: string;
+  } | null;
+  onLogout?: () => void;
+}
+
+export const PageLayout: React.FC<PageLayoutProps> = ({
+  children,
+  currentView = 'dashboard',
+  onNavigate,
+  user,
+  onLogout,
+}) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   useEffect(() => { setGlobalTheme({ colorMode: theme }); }, [theme]);
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
@@ -58,8 +79,33 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
             </div>
           )}
           renderProfile={() => (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar size="small" appearance="circle" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
+              {user && (
+                <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
+                  {user.name}
+                </span>
+              )}
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  aria-label="Đăng xuất tài khoản"
+                  style={{
+                    marginLeft: '4px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: token('color.text.subtle', '#6B778C'),
+                  }}
+                  title="Đăng xuất"
+                >
+                  <LogOutIcon label="Đăng xuất" />
+                </button>
+              )}
             </div>
           )}
         />
@@ -89,7 +135,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
                 </Section>
               </MenuGroup>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', alignItems: 'center', padding: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center', padding: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
               <div title="Cài đặt (Admin, ĐYC)" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
                 <SettingsIcon label="Cài đặt" />
               </div>
@@ -99,6 +145,17 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
               <div title="Báo Bug" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
                 <WarningIcon label="Báo Bug" />
               </div>
+              {onLogout && (
+                <div
+                  title="Đăng xuất"
+                  onClick={onLogout}
+                  style={{ cursor: 'pointer', color: token('color.icon.danger', '#BF2600') }}
+                  role="button"
+                  aria-label="Đăng xuất"
+                >
+                  <LogOutIcon label="Đăng xuất" />
+                </div>
+              )}
             </div>
           </div>
         </LeftSidebar>
