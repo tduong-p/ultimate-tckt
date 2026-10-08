@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.7
+version: 5.8
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-08
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -56,6 +56,10 @@ Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả
 | GET | `/api/units`, `/api/units/:id/members` | `units.js` |
 | PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
+
+`GET /api/teams` trả các Tổ đang hoạt động trong phạm vi đơn vị của người xem (`scopeFor(...,'teams')`, gồm đơn vị được
+`unit_visibility_policies` cho xem), kèm `member_count`, `active_count` và `can_manage` (người gọi là Tổ trưởng/Tổ phó).
+Form tạo/sửa hoạt động lấy ô "Tổ chủ trì" từ danh sách này, nên danh sách rỗng sẽ chặn lưu.
 
 Middleware quyền áp cho từng route: xem `docs/dev/phan-quyen.md`. Không có route nào bỏ qua `auth` trừ
 `/api/health`, `/api/version`, `/api/login`, `/auth/microsoft*`.
@@ -481,3 +485,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.5 | 2026-10-03 | Ghi nhận 4 route teams.js gọi syncTcktMembershipFromRole đồng bộ membership TCKT (R1, G1) | DYC |
 | 5.6 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (R1) | DYC |
 | 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
+| 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
