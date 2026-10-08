@@ -14,4 +14,12 @@ describe('CreateActivityModal', () => {
     expect(screen.getByText('ĐỀ XUẤT MỚI')).toBeDefined();
     expect(screen.getByText('Chọn Tổ chủ trì và tất cả các Tổ phối hợp tham gia.')).toBeDefined();
   });
+
+  it('renders form fields', () => {
+    render(<CreateActivityModal onClose={() => {}} />);
+    expect(screen.getByText('Tiêu đề')).toBeDefined();
+    expect(screen.getByText('Tổ chủ trì')).toBeDefined();
+    expect(screen.getByText('Ngày bắt đầu')).toBeDefined();
+    expect(screen.getByText('Tạo đề xuất')).toBeDefined();
+  });
 });
