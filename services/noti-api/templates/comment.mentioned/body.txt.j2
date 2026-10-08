@@ -1,0 +1,14 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actor }} đã nhắc đến bạn trong một bình luận:
+{% if task is defined and task.get('title') %}
+- Công việc: (TCKT-{{ task.id }}) {{ task.title }}
+{% endif %}
+- Hoạt động: {{ activity.title }}
+- Nội dung:
+{{ comment.body }}
+
+Xem chi tiết tại: {{ base_url }}{{ activity.path }}
+{% endblock %}

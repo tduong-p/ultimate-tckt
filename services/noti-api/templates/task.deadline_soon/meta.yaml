@@ -1,13 +1,13 @@
 key: task.deadline_soon
-subject: "[DYC] (TCKT-{{ task.id }}) Sắp đến hạn ({{ window }}): {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - window
   - task.id
   - task.title
   - task.path
+  - activity.title
 optional:
   - task.deadline
-  - activity.title
 ttl: 86400
 data_example:
   window: "1 ngày"

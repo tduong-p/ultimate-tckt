@@ -318,7 +318,7 @@ def test_worker_links_use_configured_app_base_url(db, make_client, monkeypatch):
     from noti.config import settings
     monkeypatch.setattr(settings, "app_base_url", "https://dyc.test/")
     c, _ = make_client()
-    data = {"actor": "B", "task": {"id": 7, "title": "Poster", "path": "/#activity/3"}}
+    data = {"actor": "B", "task": {"id": 7, "title": "Poster", "path": "/#activity/3"}, "activity": {"title": "Mùa hè xanh"}}
     n = create_notification(db, c.id, template="task.assigned", data=data)
     create_recipient(db, n.id, "user@example.com")
     db.commit()

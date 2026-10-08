@@ -9,7 +9,7 @@ def body(**over):
     base = {
         "template": "task.assigned",
         "recipients": [{"email": "an@example.com", "name": "An"}],
-        "data": {"actor": "Bình", "task": {"id": 1, "title": "Poster", "path": "/#activity/3"}},
+        "data": {"actor": "Bình", "task": {"id": 1, "title": "Poster", "path": "/#activity/3"}, "activity": {"title": "Mùa hè xanh"}},
         "dedupe_key": "task-assigned:1:7",
     }
     base.update(over)
@@ -34,7 +34,7 @@ def test_create_then_replay_then_conflict(client, make_client):
 
     r3 = client.post(
         "/v1/notifications",
-        json=body(data={"actor": "Khác", "task": {"id": 1, "title": "Poster", "path": "/#a"}}),
+        json=body(data={"actor": "Khác", "task": {"id": 1, "title": "Poster", "path": "/#a"}, "activity": {"title": "Mùa hè xanh"}}),
         headers=auth(key),
     )
     assert r3.status_code == 409
@@ -156,7 +156,7 @@ def test_templates_listing_filtered(client, make_client):
     r_all = client.get("/v1/templates", headers=auth(key_all))
     assert r_all.status_code == 200
     keys = [t["key"] for t in r_all.json()["templates"]]
-    assert len(keys) == 11
+    assert len(keys) == 12
 
     _, key_restricted = make_client("restricted_user", allowed=("task.assigned",))
     r_res = client.get("/v1/templates", headers=auth(key_restricted))

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.20
+version: 2.22
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-08
 related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -23,7 +23,7 @@ cd core && npm test
 ```
 
 Helper dùng chung ở `core/tests/helpers/`: `db.js` (`createTestDatabase` — dựng DB tạm từ `db.sql` + chạy `migrateDatabase` để tạo các bảng Đa đơn vị; nạp `.env` tự động qua `dotenv` để đọc cấu hình DB test),
-`server.js` (`startTestServer` — dựng Express app thật, trả về client HTTP giả lập session), `fixtures.js`
+`server.js` (`startTestServer(db, { notiSender })` — dựng Express app thật, trả về client HTTP giả lập session; truyền `notiSender` giả để bắt email gửi đi), `fixtures.js`
 (`createTeam`, `createUser`, `createActivity`… tạo dữ liệu mẫu tối thiểu). Mỗi test nên tự dựng dữ liệu qua
 fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
@@ -31,7 +31,9 @@ Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
 frontend cũ và API), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (gồm ca `org_units.id` là INT có dấu như DB staging), `units.context.test.js` (ngữ cảnh đơn vị và session view),
 `units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị), `noti-sender.test.js` (payload gửi Noti đủ trường
-`required` của từng template trong `services/noti-api/templates/`, không cần MySQL).
+`required` của từng template trong `services/noti-api/templates/`, không cần MySQL), `notifications.email-recipients.test.js`
+(email nào đi tới ai: gắn thẻ, phản hồi công việc, nghiệm thu, giao việc), `teams.mgmt.test.js` (quản lý Tổ; `GET /api/teams`
+dùng user có id khác unit id để số trùng không che lỗi thứ tự tham số SQL).
 
 frontend cũ và API), `migrate.test.js` (migration idempotent), `runtime.startup.test.js` (lỗi migration khi
 khởi động phải làm Core thoát).
@@ -121,3 +123,5 @@ nào, kể cả mật khẩu mặc định.
 | 2.18 | 2026-10-03 | `my-tasks-today.test.js` dùng `dateInVietnam()` thay ngày local, hết đỏ chập chờn sau 17:00 UTC | DYC |
 | 2.19 | 2026-10-05 | #49: thêm `reminder-rules`, `notification-recipients` và mở rộng test notifier, noti-sender, email, users, scheduler | DYC |
 | 2.20 | 2026-10-05 | Thêm mục test hạ tầng Noti production | DYC |
+| 2.21 | 2026-10-07 | `startTestServer` nhận `notiSender`; thêm `notifications.email-recipients.test.js` | DYC |
+| 2.22 | 2026-10-08 | `teams.mgmt.test.js` thêm test `GET /api/teams` với user id khác unit id (hotfix PR #79) | DYC |

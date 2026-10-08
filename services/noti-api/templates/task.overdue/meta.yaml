@@ -1,12 +1,12 @@
 key: task.overdue
-subject: "[DYC] (TCKT-{{ task.id }}) Quá hạn: {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - task.id
   - task.title
   - task.path
+  - activity.title
 optional:
   - task.deadline
-  - activity.title
 data_example:
   task:
     id: 120

@@ -23,11 +23,13 @@ const callSites = [
   { event: 'activity.decided', data: { actor: 'Bình', action: 'approve', feedback: '', activity: { id: 3, title: 'MHX', path: '/#activity/3' } }, sourceKey: 'activity-decided:3:9:7' },
   { event: 'task.assigned', data: { actor: 'Bình', task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-assigned:5:7' },
   { event: 'task.response', data: { actor: 'Bình', response: { kind: 'comment', body: 'Xong bản nháp' }, task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-response:11:7' },
-  { event: 'task.review_requested', data: { actor: 'Bình', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: undefined } }, sourceKey: 'task-review:5:7:1' },
-  { event: 'task.reviewed', data: { actor: 'Bình', decision: 'reject', feedback: 'Sửa màu', task: { id: 5, title: 'Poster', path: '/#activity/3' } }, sourceKey: 'task-reviewed:5:7:reject:1' },
+  { event: 'task.review_requested', data: { actor: 'Bình', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-review:5:7:1' },
+  { event: 'task.reviewed', data: { actor: 'Bình', decision: 'reject', feedback: 'Sửa màu', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-reviewed:5:7:reject:1' },
   { event: 'task.deadline_soon', data: { window: '1 ngày', task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-deadline-1d:5:7:2026-10-14' },
   { event: 'task.overdue', data: { task: { id: 5, title: 'Poster', path: '/#activity/3', deadline }, activity: { title: 'MHX' } }, sourceKey: 'task-overdue:5:7:2026-10-16' },
   { event: 'task.unacknowledged', data: { memberName: 'Cường', task: { id: 5, title: 'Poster', path: '/#activity/3' }, activity: { title: 'MHX' } }, sourceKey: 'task-unacknowledged:5:8:1791000000' },
+  { event: 'comment.mentioned', data: { actor: 'Bình', comment: { body: 'Nhờ xem giúp' }, activity: { title: 'MHX', path: '/#activity/3' }, task: { id: 5, title: 'Poster' } }, sourceKey: 'comment-mention:11:7' },
+  { event: 'comment.mentioned', data: { actor: 'Bình', comment: { body: 'Nhờ xem giúp' }, activity: { title: 'MHX', path: '/#activity/3' } }, sourceKey: 'comment-mention:12:7' },
   { event: 'activity.decided', data: { actor: 'Bình', action: 'reject', feedback: 'Thiếu kinh phí', activity: { id: 3, title: 'MHX' } }, sourceKey: 'activity-decided:3:9:8' },
 ];
 
@@ -132,6 +134,12 @@ test('a long task response body is cut so Noti does not reject it (64 KB limit)'
   const { data } = toNotiPayload({ event: 'task.response', recipient, sourceKey: 'k', data: { response: { kind: 'comment', body: 'ả'.repeat(10000) } } });
   assert.ok(data.response.body.length <= 4000);
   assert.ok(data.response.body.endsWith('…'));
+});
+
+test('a long mention comment is cut to 4000 characters', () => {
+  const { data } = toNotiPayload({ event: 'comment.mentioned', recipient, sourceKey: 'k', data: { comment: { body: 'ả'.repeat(10000) } } });
+  assert.equal(data.comment.body.length, 4000);
+  assert.ok(data.comment.body.endsWith('…'));
 });
 
 test('5xx, 429 and network failures are transient; 400/401/413 are not', async () => {

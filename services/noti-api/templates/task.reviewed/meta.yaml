@@ -1,14 +1,14 @@
 key: task.reviewed
-subject: "[DYC] (TCKT-{{ task.id }}) Kết quả nghiệm thu: {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - actor
   - decision
   - task.id
   - task.title
   - task.path
+  - activity.title
 optional:
   - feedback
-  - activity.title
 data_example:
   actor: "Nguyễn Văn B"
   decision: "Đã nghiệm thu đạt"

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 1.7
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-07
 related_code: [services/noti-api/**]
 ---
 
@@ -217,7 +217,10 @@ curl http://localhost:8000/v1/templates \
 1. Tạo thư mục `templates/<tên_sự_kiện>/`.
 2. Tạo file `meta.yaml`:
    - `key`: trùng tên thư mục.
-   - `subject`: tiêu đề Jinja, bắt đầu bằng mã chuẩn như `[DYC] (TCKT-{{ task.id }}) {{ task.title }}`.
+   - `subject`: tiêu đề Jinja, **giống hệt nhau** cho mọi template cùng đối tượng để mail client gom thread:
+     `[{{ activity.title }}] {{ task.title }}` cho template về công việc (khi đó `activity.title` phải nằm trong `required`),
+     `[{{ activity.title }}]` cho template về hoạt động. Loại sự kiện ghi trong thân thư, không ghi vào subject
+     (`tests/test_thread_subject.py` kiểm tra).
    - `required`: danh sách đường dẫn biến bắt buộc (hỗ trợ nested, vd `task.title`).
    - `optional`: danh sách đường dẫn biến tuỳ chọn.
    - `ttl`: thời gian sống tính bằng giây (tuỳ chọn).
@@ -259,3 +262,4 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 | 1.4 | 2026-10-02 | Core đã gọi Noti ở staging qua `core/src/noti-sender.js` | DYC |
 | 1.6 | 2026-10-05 | Noti có trong compose production (cổng 8101, `PROD_NOTI_ENABLED`); allowlist production bắt buộc khác rỗng | DYC |
 | 1.7 | 2026-10-05 | Thêm `NOTI_ALWAYS_CC`: CC cố định cho mọi thư, thêm sau allowlist (mục 2.6) | DYC |
+| 2.0 | 2026-10-07 | Quy tắc subject mới gom thread theo hoạt động/công việc (bỏ `[DYC] (TCKT-id)`); thêm template `comment.mentioned` | DYC |

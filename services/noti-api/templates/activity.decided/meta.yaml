@@ -1,5 +1,5 @@
 key: activity.decided
-subject: "[DYC] (ACT-{{ activity.id }}) Kết quả duyệt đề án: {{ activity.title }}"
+subject: "[{{ activity.title }}]"
 required:
   - actor
   - action
