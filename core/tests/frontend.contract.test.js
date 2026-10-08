@@ -396,3 +396,12 @@ test('the skip link focuses content without changing the route', () => {
   assert.match(assets['app.js'], /\$\('\.skip-link'\)\?\.addEventListener\('click',e=>\{e\.preventDefault\(\);\$\('#content'\)\.focus\(\)\}\)/,
     'activating the skip link must not set #content as a route (it would show the lost page)');
 });
+
+test('activity detail finds the participants header without relying on the volunteer button', () => {
+  // The Volunteer button is omitted once the viewer already participates; looking the header up through it threw
+  // "Cannot read properties of null (reading 'closest')" and blanked the whole activity page.
+  const detail = assets['app.js'].slice(assets['app.js'].indexOf('async function activityDetail('));
+  assert.doesNotMatch(detail, /\$\('#volunteer'\)\.closest\(/);
+  assert.match(detail, /<div class="panel-head" id="participants-head"><h2>Participants<\/h2>/);
+  assert.match(detail, /const participantHead=\$\('#participants-head'\);/);
+});
