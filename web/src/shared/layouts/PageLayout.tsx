@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
 import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
@@ -68,7 +68,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
                 <Section>
                   <ButtonItem isSelected={currentView === 'dashboard'} onClick={() => onNavigate?.('dashboard')} iconBefore={<DashboardIcon label="" />}>Tổng quan</ButtonItem>
                   <ButtonItem isSelected={currentView === 'my-tasks-today'} onClick={() => onNavigate?.('my-tasks-today')} iconBefore={<CheckCircleIcon label="" />}>Việc hôm nay</ButtonItem>
-                  <ButtonItem iconBefore={<CalendarIcon label="" />}>Lịch hoạt động</ButtonItem>
+                  <ButtonItem isSelected={currentView === 'calendar'} onClick={() => onNavigate?.('calendar')} iconBefore={<CalendarIcon label="" />}>Lịch hoạt động</ButtonItem>
                   <ButtonItem iconBefore={<FolderClosedIcon label="" />}>Hoạt động & Dự án</ButtonItem>
                   <ButtonItem iconBefore={<TaskIcon label="" />}>Công việc của tôi</ButtonItem>
                   <ButtonItem iconBefore={<PeopleGroupIcon label="" />}>Các Tổ</ButtonItem>
