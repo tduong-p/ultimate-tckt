@@ -37,7 +37,7 @@ const KPICards: React.FC<KPICardsProps> = ({ stats, tasks = [] }) => {
 
   const totalTasks = openTasks + completedMonth;
   const efficiencyPct = totalTasks > 0 ? Math.min(Math.round((completedMonth / totalTasks) * 100), 100) : 100;
-  const totalWeights = tasks.reduce((sum, tk) => sum + Number((tk as any).weight || 1), 0);
+  const totalWeights = tasks.reduce((sum, tk) => sum + Number(tk.weight || 1), 0);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>

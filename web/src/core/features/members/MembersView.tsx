@@ -77,15 +77,23 @@ export const MembersViewContent: React.FC = () => {
   const [teamFilter, setTeamFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
 
-  const { data: members, isLoading: isLoadingMembers } = useQuery({
+  const { data: members, isLoading: isLoadingMembers, isError: isErrorMembers } = useQuery({
     queryKey: ['members'],
     queryFn: fetchMembers,
   });
 
-  const { data: teams } = useQuery({
+  const { data: teams, isError: isErrorTeams } = useQuery({
     queryKey: ['teams'],
     queryFn: fetchTeams,
   });
+
+  if (isErrorMembers || isErrorTeams) {
+    return (
+      <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
+        Lỗi tải dữ liệu thành viên
+      </div>
+    );
+  }
 
   const teamOptions = useMemo(() => {
     const options = [{ label: 'Tất cả các Tổ', value: 'all' }];

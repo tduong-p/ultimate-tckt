@@ -12,10 +12,18 @@ import {
 import { fetchTeams, type TeamItem } from '../../api';
 
 export const TeamsViewContent: React.FC = () => {
-  const { data: teams, isLoading } = useQuery({
+  const { data: teams, isLoading, isError } = useQuery({
     queryKey: ['teams'],
     queryFn: fetchTeams,
   });
+
+  if (isError) {
+    return (
+      <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
+        Lỗi tải dữ liệu Tổ
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>

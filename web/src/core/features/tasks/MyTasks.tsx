@@ -17,7 +17,7 @@ const getStatusAppearance = (status: string) => {
   switch (status?.toLowerCase()) {
     case 'chờ duyệt':
     case 'review':
-      return 'inprogress';
+      return 'moved';
     case 'quá hạn':
     case 'cancelled':
     case 'hủy':

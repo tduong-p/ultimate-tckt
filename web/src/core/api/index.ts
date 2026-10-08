@@ -109,6 +109,7 @@ export function getReportExportUrl(params: ReportExportParams): string {
   if (
     params.team_id !== undefined &&
     params.team_id !== null &&
+    params.team_id !== '' &&
     params.team_id !== 'all' &&
     params.team_id !== 0 &&
     params.team_id !== '0'

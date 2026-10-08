@@ -103,6 +103,7 @@ export interface TaskItem {
   assignee_ids?: string;
   submitted_for_review_at?: string | null;
   completed_at?: string | null;
+  weight?: number | string;
 }
 
 export interface DocumentItem {

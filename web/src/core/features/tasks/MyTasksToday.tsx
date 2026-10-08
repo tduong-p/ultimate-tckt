@@ -36,7 +36,6 @@ const getStatusLabel = (status: string) => {
 
 const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
   <div
-    key={task.id}
     style={{
       backgroundColor: token('elevation.surface', '#FFFFFF'),
       border: `1px solid ${token('color.border', '#DFE1E6')}`,
