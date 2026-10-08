@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import Modal, { ModalBody, ModalHeader, ModalTitle, ModalFooter, ModalTransition } from '@atlaskit/modal-dialog';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
@@ -15,7 +15,7 @@ interface Props {
 
 export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   return (
-    <ModalTransition>
+    <>
       {isOpen && (
         <Modal onClose={onClose} width="large">
         <ModalHeader>
@@ -152,6 +152,6 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </Form>
       </Modal>
       )}
-    </ModalTransition>
+    </>
   );
 };
