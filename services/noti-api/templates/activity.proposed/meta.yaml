@@ -1,5 +1,5 @@
 key: activity.proposed
-subject: "[DYC] (ACT-{{ activity.id }}) Đề án hoạt động: {{ activity.title }}"
+subject: "[{{ activity.title }}]"
 required:
   - actor
   - activity.id

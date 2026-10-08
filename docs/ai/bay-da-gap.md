@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.12
+version: 1.14
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-08
 related_code: []
 ---
 
@@ -134,6 +134,22 @@ trạng thái Noti (đếm `sent`, thống kê) phải xử lý `suppressed` nh�
 Còn một rủi ro đã biết, đã ghi trong SPEC-NOTI-001 §7: nếu thư đã đi mà DB hỏng lâu hơn khoá 5 phút, `recover()` trả dòng
 về `pending` và thư có thể đi thêm một lần. Đừng "sửa" bằng cách cho lỗi ghi `sent` kích hoạt retry; điều đó còn tệ hơn.
 
+## Thứ tự tham số SQL khi ghép `scopeFor`: `?` trong `SELECT` đứng trước `?` trong `WHERE`
+
+`GET /api/teams` có `EXISTS(... mine.user_id=? ...)` trong `SELECT` nhưng truyền `[...s.params, req.actor.id]`, nên
+`user_id` nhận unit id và `t.unit_id` nhận user id. Tài khoản admin id 3 trùng unit TCKT id 3 nên vẫn chạy đúng; mọi
+tài khoản khác nhận danh sách Tổ rỗng → form "Sửa hoạt động" có ô "Tổ chủ trì" trống, không lưu được (production
+2026-10-08). Bài học: params phải theo đúng thứ tự `?` xuất hiện trong câu SQL, không theo thứ tự "scope trước"; test
+dùng user có id khác unit id để không bị trùng số che lỗi.
+
+## Tìm phần tử bằng một nút chỉ hiện có điều kiện làm trắng cả trang
+
+`activityDetail` lấy khung "Participants" bằng `$('#volunteer').closest('.panel-head')`, nhưng nút "Volunteer" bị ẩn
+khi người xem đã là người tham gia → `null.closest` ném lỗi, trang chi tiết chỉ còn "Không thể tải trang — Cannot read
+properties of null (reading 'closest')" (production 2026-10-08, Tổ phó mở hoạt động mình tham gia). Sửa: khung có
+`id="participants-head"` và tra thẳng theo id. Bài học: đừng dùng phần tử render có điều kiện làm mốc để tìm phần tử
+khác; mốc phải là thứ luôn được render, hoặc dùng `?.` khi phần tử thật sự có thể vắng.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -151,3 +167,5 @@ về `pending` và thư có thể đi thêm một lần. Đừng "sửa" bằng 
 | 1.10 | 2026-10-03 | Thêm bẫy: test dùng ngày local của máy chạy đỏ từ 17:00 UTC vì Core tính ngày theo giờ VN | DYC |
 | 1.11 | 2026-10-05 | #49: scheduler dùng `email_status` (pending mồ côi); thêm bẫy `tasks.deadline` là `DATE` nên nhắc theo ngày lịch, không theo giờ | DYC |
 | 1.12 | 2026-10-05 | #49 Noti: thêm bẫy `suppressed` thay `sent` cho thư bị allowlist, và rủi ro gửi lặp khi DB hỏng sau gửi | DYC |
+| 1.13 | 2026-10-08 | Thêm bẫy thứ tự tham số SQL khi ghép `scopeFor` (`/api/teams` trả rỗng cho mọi tài khoản trừ id trùng unit id) | DYC |
+| 1.14 | 2026-10-08 | Thêm bẫy tra phần tử qua nút render có điều kiện (`#volunteer`) làm trắng trang chi tiết hoạt động | DYC |

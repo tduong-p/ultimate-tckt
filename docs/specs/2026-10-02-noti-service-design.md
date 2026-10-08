@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-NOTI-001
 title: Thiết kế service Noti — gửi thông báo email theo template qua HTTP API
-version: 1.9
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-07
 related_code: [services/noti-api/**]
 ---
 
@@ -182,7 +182,7 @@ templates/
 - **Autoescape bật cho HTML.** Subject và bản chữ thuần **không** được autoescape của HTML, nên: subject/tên người nhận **bị loại ký tự `\r` `\n`** (chặn chèn header), tên người nhận đi qua `email.utils.formataddr`. Test bắt buộc có tiêu đề chứa `<script>`, dấu ngoặc kép và `\r\n`.
 - Mỗi email có **bản HTML và bản chữ thuần**. Sau khi render, HTML được **inline CSS** (nhiều trình đọc mail bỏ qua thẻ `<style>`).
 - **Khung chung** chứa tên (`DYC`), màu, logo (để trống ở v1), chân trang; đổi bộ nhận diện chỉ sửa `_layout/` và biến thương hiệu.
-- **Subject** có mã định danh cố định ở đầu, ví dụ `[DYC] (TCKT-120) Làm poster`, để mail client gom thread như Jira.
+- **Subject** giống hệt nhau cho mọi email cùng đối tượng để mail client gom thread: `[<tên hoạt động>] <tên công việc>` cho email về công việc, `[<tên hoạt động>]` cho email về hoạt động. Loại sự kiện và mã `TCKT-<id>` nằm trong thân thư.
 - **Template ban đầu**, chỉ gồm những gì Core thực sự gọi hôm nay (đối chiếu từng điểm gọi trong plan A):
 
 | Template | Điểm gọi hiện tại của Core |
@@ -192,6 +192,7 @@ templates/
 | `activity.decided` | duyệt / từ chối / yêu cầu sửa đề án |
 | `task.assigned` | giao việc |
 | `task.response` | phản hồi công việc |
+| `comment.mentioned` | gắn thẻ người trong bình luận hoạt động hoặc công việc |
 | `task.review_requested` | nộp nghiệm thu (2 chỗ) |
 | `task.reviewed` | kết quả nghiệm thu |
 | `task.deadline_soon` | scheduler: sắp đến hạn (nhắc theo ngày lịch, `window` là nhãn như "1 ngày") |
@@ -301,3 +302,4 @@ Theo `AGENTS.md` §3, các việc sau **không tự làm**, đưa vào issue `.g
 | 1.1 | 2026-10-02 | Áp dụng rà soát độc lập: 409 thay 422, hash chuẩn hoá, `attempts` khi lấy, expiry/priority, 429, trạng thái tổng, bảo mật Graph/staging/đường dẫn/header, giảm lưu giữ dữ liệu, ops; hoãn khối diff; rút danh sách template theo điểm gọi thật; bỏ OneSignal | DYC |
 | 1.0 | 2026-10-02 | Bản đầu, chốt qua brainstorming | DYC |
 | 1.9 | 2026-10-05 | Thêm `NOTI_ALWAYS_CC` (§10) | DYC |
+| 2.0 | 2026-10-07 | Subject gom thread theo hoạt động/công việc (bỏ `[DYC] (TCKT-id)`); thêm template `comment.mentioned` | DYC |

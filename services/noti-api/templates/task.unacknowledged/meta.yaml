@@ -1,11 +1,10 @@
 key: task.unacknowledged
-subject: "[DYC] (TCKT-{{ task.id }}) Chưa xác nhận nhận việc: {{ task.title }}"
+subject: "[{{ activity.title }}] {{ task.title }}"
 required:
   - memberName
   - task.id
   - task.title
   - task.path
-optional:
   - activity.title
 data_example:
   memberName: "Trần Văn C"

@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-SOON-001
 title: Plan — màn hình "Đang phát triển" cho UI Core legacy
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-08
 related_code: [core/public/**, core/tests/frontend.contract.test.js]
 ---
 
@@ -262,3 +262,4 @@ document.addEventListener('click',e=>{const trigger=e.target.closest('[data-soon
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu | DYC |
+| 1.1 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
