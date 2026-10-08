@@ -165,6 +165,8 @@
 | [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.0 | active | dev, ai |
 | [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.0 | active | dev, ai |
+| [SPEC-REPORTS-001](specs/2026-10-08-reports-screen-design.md) | Design — Reports Screen UI (Báo cáo) | 1.0 | active | dev, ai |
+| [PLAN-REPORTS-001](specs/2026-10-08-reports-screen-plan.md) | Plan — Reports Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-TEAMS-001](specs/2026-10-08-teams-screen-design.md) | Design — Teams Screen UI (Các Tổ) | 1.0 | active | dev, ai |
 | [PLAN-TEAMS-001](specs/2026-10-08-teams-screen-plan.md) | Plan — Teams Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |

@@ -13,11 +13,12 @@ import { MyTasksView } from './features/tasks/MyTasksView';
 import { TeamsView } from './features/teams/TeamsView';
 import { MembersView } from './features/members/MembersView';
 import { DocumentsView } from './features/documents/DocumentsView';
+import { ReportsView } from './features/reports/ReportsView';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [currentView, setCurrentView] = React.useState('documents');
+  const [currentView, setCurrentView] = React.useState('reports');
   return (
     <PageLayout currentView={currentView} onNavigate={setCurrentView}>
       {currentView === 'dashboard' && <Dashboard />}
@@ -28,6 +29,7 @@ const App = () => {
       {currentView === 'teams' && <TeamsView />}
       {currentView === 'members' && <MembersView />}
       {currentView === 'documents' && <DocumentsView />}
+      {currentView === 'reports' && <ReportsView />}
     </PageLayout>
   );
 };
