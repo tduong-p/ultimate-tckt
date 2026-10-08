@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
 import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
@@ -35,7 +35,7 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
-export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: string; onNavigate?: (view: string) => void }> = ({ children, currentView = 'dashboard', onNavigate }) => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   useEffect(() => { setGlobalTheme({ colorMode: theme }); }, [theme]);
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
@@ -66,8 +66,8 @@ export const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  <ButtonItem iconBefore={<DashboardIcon label="" />}>Tổng quan</ButtonItem>
-                  <ButtonItem iconBefore={<CheckCircleIcon label="" />}>Việc hôm nay</ButtonItem>
+                  <ButtonItem isSelected={currentView === 'dashboard'} onClick={() => onNavigate?.('dashboard')} iconBefore={<DashboardIcon label="" />}>Tổng quan</ButtonItem>
+                  <ButtonItem isSelected={currentView === 'my-tasks-today'} onClick={() => onNavigate?.('my-tasks-today')} iconBefore={<CheckCircleIcon label="" />}>Việc hôm nay</ButtonItem>
                   <ButtonItem iconBefore={<CalendarIcon label="" />}>Lịch hoạt động</ButtonItem>
                   <ButtonItem iconBefore={<FolderClosedIcon label="" />}>Hoạt động & Dự án</ButtonItem>
                   <ButtonItem iconBefore={<TaskIcon label="" />}>Công việc của tôi</ButtonItem>
