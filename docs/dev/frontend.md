@@ -1,18 +1,19 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.8
+version: 1.9
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [core/public/**, services/ctd-api/frontend/src/**]
 ---
 
 # Frontend
 
-Repo có **hai frontend riêng biệt hiện tại**, cộng một frontend chung dự kiến (`web/`, chưa tạo — xem
-`docs/dev/kien-truc.md`).
+Repo có **hai frontend riêng biệt hiện tại**, cộng frontend chung `web/` (React + Vite + Atlaskit, đang thay dần UI Core —
+xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
+(job CI `test-web`, xem `docs/dev/test.md`).
 
 ## Core — `core/public/` (JavaScript thuần, chỉ bảo trì)
 
@@ -82,3 +83,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.6 | 2026-10-02 | `notifications.js` là chuông trong ứng dụng; bỏ OneSignal và trang Setting email | DYC |
 | 1.7 | 2026-10-03 | Màn hình "Đang phát triển" (`COMING_SOON`): cách thêm/gỡ chỗ chặn, trang "Lạc đoàn" | DYC |
 | 1.8 | 2026-10-08 | Thêm quy tắc: không tra phần tử qua phần tử render có điều kiện (hotfix PR #81, `#volunteer`) | DYC |
+| 1.9 | 2026-10-09 | `web/` đã có (PR 83); trỏ tới cách test và job CI `test-web` | DYC |

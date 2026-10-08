@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.8
+version: 1.9
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-09
 related_code: [.github/**]
 ---
 
@@ -36,7 +36,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 3. Ruleset nhánh `main`
 
 - Yêu cầu Pull Request trước khi merge (không cho push thẳng).
-- Yêu cầu các status check sau phải xanh trước khi merge: `changes`, `test-core`, `test-ctd`, `docs` (job bị skip theo path filter vẫn tính là đạt).
+- Yêu cầu các status check sau phải xanh trước khi merge: `changes`, `test-core`, `test-ctd`, `docs` (job bị skip theo path filter vẫn tính là đạt). Job `test-web` (frontend `web/`) chạy trong CI nhưng chưa được thêm vào danh sách bắt buộc.
 - Chặn force-push và xoá nhánh.
 - Không cần bypass list: `docs.yml` chỉ gắn tag `docs-v*` và tạo GitHub Release, không commit vào `main`.
 
@@ -60,7 +60,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 
 ## 7. Kiểm tra sau khi cấu hình xong
 
-- Push thử một commit nhỏ vào `staging` → CI chạy `test-core`/`test-ctd`/`test-noti` (tuỳ path filter), build image nếu liên quan, deploy nếu `DEPLOY_ENABLED=true`.
+- Push thử một commit nhỏ vào `staging` → CI chạy `test-core`/`test-web`/`test-ctd`/`test-noti` (tuỳ path filter), build image nếu liên quan, deploy nếu `DEPLOY_ENABLED=true`.
 - Thử tạo PR vào `main` không đủ check → bị chặn merge.
 - Thử push thẳng vào `main` → bị từ chối bởi ruleset.
 
@@ -88,3 +88,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.6 | 2026-09-27 | Mục 8: App đọc PR/diff/commit cho kênh thông báo, không thêm quyền | DYC (soạn cùng Claude) |
 | 1.7 | 2026-10-02 | Thêm package `ultimate-tckt-noti` và job `test-noti` | DYC |
 | 1.8 | 2026-10-05 | Thêm biến repo `PROD_NOTI_ENABLED` | DYC |
+| 1.9 | 2026-10-09 | Thêm job `test-web` (chưa nằm trong check bắt buộc của ruleset) | DYC |

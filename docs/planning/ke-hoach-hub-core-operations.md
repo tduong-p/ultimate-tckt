@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.8
+version: 2.9
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [core/**, web/**, core/src/config/migrate-units.js, core/src/config/database.js, core/app.js, core/src/date-vn.js]
 ---
 
@@ -1289,3 +1289,4 @@ npm run docs:check         # Documentation validation
 | 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống - xem DEV-TZ-001 (docs/dev/mui-gio.md) | DYC |
 | 2.7 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 2.9 | 2026-10-09 | Ghi nhận PR 83: frontend `web/` (React + Vite + Atlaskit) có các màn Core đầu tiên (Tổng quan, Hoạt động, Lịch, Lưu trữ, Văn bản, Thành viên, Tổ, Nhiệm vụ của tôi, Báo cáo) dùng API thật, onboarding HUST, job CI `test-web`; cách phục vụ `web/` (mục `/app`) chưa chốt; phạm vi kế hoạch không đổi | DYC |

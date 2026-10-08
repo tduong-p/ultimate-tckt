@@ -1,11 +1,11 @@
 ---
 doc_id: PB-HOT-001
 title: Playbook — hotfix production
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-09
 related_code: [.github/workflows/deploy.yml]
 ---
 
@@ -27,7 +27,7 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
    ```
 3. **Sửa tối thiểu** — chỉ sửa đúng phần gây sự cố, không tiện tay dọn dẹp/refactor thêm trong cùng hotfix.
 4. **Viết/chạy test tái hiện lỗi** theo [`sua-loi.md`](sua-loi.md) — kể cả hotfix cũng không được bỏ qua bước này.
-5. **Mở PR từ `hotfix/<mo-ta-ngan>` vào `main`** (không vào `staging`). CI (`deploy.yml`) chạy `test-core`/`test-ctd`/`test-noti` theo path filter như bình thường (Noti production chỉ deploy khi biến repo `PROD_NOTI_ENABLED` bật); ruleset `main` vẫn yêu cầu PR + check xanh, không có đường tắt bỏ qua CI.
+5. **Mở PR từ `hotfix/<mo-ta-ngan>` vào `main`** (không vào `staging`). CI (`deploy.yml`) chạy `test-core`/`test-web`/`test-ctd`/`test-noti` theo path filter như bình thường (Noti production chỉ deploy khi biến repo `PROD_NOTI_ENABLED` bật); ruleset `main` vẫn yêu cầu PR + check xanh, không có đường tắt bỏ qua CI.
 6. **Merge vào `main`** → CI tự build + deploy production (nếu `DEPLOY_ENABLED=true` và `PROD_DEPLOY_ENABLED=true`). Theo dõi health check qua `docs/ops/su-co.md`.
 7. **Merge ngược `main → staging` bằng PR ngay sau khi hotfix đã lên production** — bắt buộc, để `staging` không bị lệch lùi. Ruleset `protect-staging` chặn push thẳng (xem `docs/ops/github.md` mục 4), nên đi qua một nhánh đồng bộ:
    ```bash
@@ -61,3 +61,4 @@ Chỉ khi lỗi đang ảnh hưởng người dùng thật trên production (`tc
 | 1.2 | 2026-10-02 | Thêm `test-noti`; Noti chưa deploy production | DYC |
 | 1.3 | 2026-10-03 | Merge ngược `main → staging` qua PR từ nhánh đồng bộ (ruleset chặn push thẳng `staging`); kiểm bằng `origin/` | DYC |
 | 1.4 | 2026-10-05 | Noti production deploy theo `PROD_NOTI_ENABLED` | DYC |
+| 1.5 | 2026-10-09 | CI có thêm `test-web` theo path filter | DYC |

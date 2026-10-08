@@ -1,11 +1,11 @@
 ---
 doc_id: AI-CHK-001
 title: Cách kiểm tra trước khi coi là xong
-version: 1.10
+version: 1.11
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-09
 related_code: [.github/workflows/**, tools/**, tools/test-fixtures/**]
 ---
 
@@ -60,7 +60,7 @@ staging/production để chạy test.
 ## Cách đọc CI
 
 Workflow `.github/workflows/deploy.yml`: lọc theo đường dẫn thay đổi (`dorny/paths-filter`) → chạy
-`test-core` (MySQL 8 service), `test-ctd` và/hoặc `test-noti` (Postgres 16 service) tương ứng → nếu xanh mới build arm64
+`test-core` (MySQL 8 service), `test-web` (Vitest + `tsc`/`vite build`, không DB), `test-ctd` và/hoặc `test-noti` (Postgres 16 service) tương ứng → nếu xanh mới build arm64
 (buildx + QEMU) → deploy qua SSH chỉ khi biến repo `DEPLOY_ENABLED == 'true'` (production cần thêm `PROD_DEPLOY_ENABLED == 'true'`). Đổi gì trong `infra/**` sẽ kích
 hoạt `apply-infra.sh` thay vì `deploy.sh`. PR đỏ ở bước nào thì sửa đúng phần đó trước, không bỏ qua.
 
@@ -94,3 +94,4 @@ sau khi merge (push) chỉ kiểm frontmatter và bump version, vì mọi thay �
 | 1.8 | 2026-10-02 | Đổi payload hay template thông báo: chạy `noti-sender.test.js` | DYC |
 | 1.9 | 2026-10-03 | Đồng bộ main→staging: dump MySQL chỉ để ở máy, gỡ `backup_current.sql` khỏi main (#58) | DYC |
 | 1.10 | 2026-10-05 | Ghi test hạ tầng Noti production trong `tools/tests` | DYC |
+| 1.11 | 2026-10-09 | CI có job `test-web` cho `web/` | DYC |
