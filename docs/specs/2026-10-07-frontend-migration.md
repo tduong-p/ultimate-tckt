@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-001
 title: Frontend Migration (Atlassian Design System)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -68,3 +68,5 @@ git commit -m "feat(web): migrate frontend POC to official web module"
 |---|---|---|---|
 | 1.0 | 2026-10-07 | Kế hoạch chuyển đổi POC sang module web/ chính thức | DYC |
 | 1.1 | 2026-10-08 | Tích hợp toàn diện API Backend và xóa dữ liệu mock thử nghiệm trong web/** | DYC |
+| 1.2 | 2026-10-08 | Bổ sung màn hình đăng nhập hiện đại 2 cột và kiểm soát phiên | DYC |
+
