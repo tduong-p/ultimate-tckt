@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-CALENDAR-001
 title: Design — Calendar Screen UI (Lịch chung)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -22,8 +22,8 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 
 ### Toolbar Controls
 - **Date Navigation**:
-  - Previous (`<`) and Next (`>`) buttons (tháng/năm tùy theo chế độ xem).
-  - Current period label: "Tháng 10 năm 2026" (hoặc "Năm 2026" ở chế độ Gantt).
+  - Previous (`<`) and Next (`>`) buttons duyệt qua từng tháng.
+  - Current period label: "Tháng 10 năm 2026".
   - Quick action button: "Hôm nay" (Today).
 - **Filters & View Modes**:
   - Filter by team dropdown: "Tất cả các Tổ" (All teams).
@@ -37,8 +37,8 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 
 ### Gantt Chart Timeline (Biểu đồ Gantt)
 - **Left Column**: Danh sách hoạt động (tiêu đề, tên Tổ, hạn chót).
-- **Timeline Grid**: Trục thời gian 12 tháng (Thg 1 - Thg 12) với vạch chia tháng và đường mốc "Hôm nay".
-- **Color-Coded Activity Bars**: Mỗi hoạt động được gán một màu sắc riêng biệt từ bảng 16 màu tương phản cao (GANTT_COLORS) để người dùng dễ phân biệt trực quan.
+- **Timeline Grid**: Trục thời gian chi tiết theo từng ngày trong tháng được chọn (ngày 1 đến ngày 28/30/31 kèm thứ trong tuần T2-CN), phân biệt màu nền ngày cuối tuần và đường kẻ mốc "Hôm nay".
+- **Color-Coded Activity Bars**: Mỗi hoạt động được gán một màu sắc riêng biệt từ bảng 16 màu tương phản cao (GANTT_COLORS) kéo dài từ ngày bắt đầu đến hạn chót trong tháng để người dùng dễ phân biệt trực quan.
 - **Loading State**: Sử dụng `LottieLoading` đồng bộ toàn hệ thống thay thế spinner tròn cũ.
 
 ## Lịch sử phiên bản
@@ -47,3 +47,4 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Lịch chung | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/activities và /api/teams, xóa mock | DYC |
 | 1.2 | 2026-10-08 | Bổ sung chế độ xem Biểu đồ Gantt phân màu riêng cho từng hoạt động và tích hợp Lottie loading | DYC |
+| 1.3 | 2026-10-08 | Chuyển trục thời gian Biểu đồ Gantt từ các tháng trong năm sang các ngày trong tháng đang chọn | DYC |

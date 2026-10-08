@@ -144,20 +144,20 @@ describe('CalendarView', () => {
     expect(container.querySelector('[data-testid="task-icon"]')).toBeNull();
   });
 
-  it('switches to Gantt chart view and displays activities with distinct colors', async () => {
+  it('switches to Gantt chart view and displays activities with distinct colors across days of the month', async () => {
     renderWithClient(<CalendarView />);
 
     const ganttBtn = screen.getByText('Biểu đồ Gantt');
     fireEvent.click(ganttBtn);
 
     expect(await screen.findByTestId('gantt-chart-container')).toBeDefined();
-    expect(screen.getByText('Năm 2026')).toBeDefined();
+    expect(screen.getByText('Tháng 10 năm 2026')).toBeDefined();
     expect(screen.getByText('Danh sách hoạt động (2)')).toBeDefined();
 
-    // Check 12 months header
-    expect(screen.getByText('Thg 1')).toBeDefined();
-    expect(screen.getByText('Thg 10')).toBeDefined();
-    expect(screen.getByText('Thg 12')).toBeDefined();
+    // Check days of month in timeline header
+    expect(screen.getAllByText('1').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('31').length).toBeGreaterThan(0);
 
     // Check activity bars
     const bar1 = screen.getByTestId('gantt-bar-1');
