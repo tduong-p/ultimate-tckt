@@ -12,6 +12,7 @@ import type {
   DocumentFilterParams,
   ArchiveFilterParams,
   ReportExportParams,
+  SessionUser,
 } from './types';
 
 export * from './types';
@@ -97,15 +98,17 @@ export async function fetchArchive(params?: ArchiveFilterParams): Promise<Activi
   return response.data;
 }
 
-/**
- * Generate direct download URL for exporting reports in Excel format.
- * Endpoint: GET /api/reports/export
- */
-export function getReportExportUrl(params: ReportExportParams): string {
-  const searchParams = new URLSearchParams();
-  searchParams.set('start', params.start);
-  searchParams.set('end', params.end);
+function readBlobText(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(blob);
+  });
+}
 
+function reportExportParams(params: ReportExportParams): Record<string, string> {
+  const query: Record<string, string> = { start: params.start, end: params.end };
   if (
     params.team_id !== undefined &&
     params.team_id !== null &&
@@ -114,12 +117,45 @@ export function getReportExportUrl(params: ReportExportParams): string {
     params.team_id !== 0 &&
     params.team_id !== '0'
   ) {
-    searchParams.set('team_id', String(params.team_id));
+    query.team_id = String(params.team_id);
   }
+  query.lang = params.lang || 'vi';
+  return query;
+}
 
-  searchParams.set('lang', params.lang || 'vi');
+/**
+ * Generate direct download URL for exporting reports in Excel format.
+ * Endpoint: GET /api/reports/export
+ */
+export function getReportExportUrl(params: ReportExportParams): string {
+  return `/api/reports/export?${new URLSearchParams(reportExportParams(params)).toString()}`;
+}
 
-  return `/api/reports/export?${searchParams.toString()}`;
+/**
+ * Download the Excel report as a Blob so the caller can surface server errors (400/403)
+ * instead of silently saving a JSON error body as a file.
+ * Endpoint: GET /api/reports/export
+ */
+export async function downloadReportExport(params: ReportExportParams): Promise<Blob> {
+  try {
+    const response = await apiClient.get<Blob>('/reports/export', {
+      params: reportExportParams(params),
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (err) {
+    const body = (err as { response?: { data?: unknown } })?.response?.data;
+    let message = 'Không xuất được báo cáo. Vui lòng thử lại.';
+    if (body instanceof Blob) {
+      try {
+        const parsed = JSON.parse(await readBlobText(body));
+        if (parsed?.error) message = String(parsed.error);
+      } catch {
+        // body is not JSON; keep the generic message
+      }
+    }
+    throw new Error(message);
+  }
 }
 
 /**

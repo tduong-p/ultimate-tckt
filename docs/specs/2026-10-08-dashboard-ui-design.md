@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: AI
@@ -18,7 +18,7 @@ related_code: [web/src/core/features/dashboard/**]
 The Dashboard will be implemented in web/src/core/features/dashboard/Dashboard.tsx. It will use mock data for the UI POC.
 
 ### 1. Header Section
-- **Greeting:** A simple greeting text e.g., 'Xin chào Phạm Việt Bách! Bạn có 0 nhiệm vụ cần làm.' (The large department title is EXPLICITLY REMOVED as requested).
+- **Greeting:** A simple greeting text e.g., 'Xin chào <tên người dùng trong phiên>! Bạn có 0 nhiệm vụ cần làm.' — tên lấy từ prop `userName` (`session.user.name`), không hard-code (The large department title is EXPLICITLY REMOVED as requested).
 - **Actions (Right-aligned):** 
   - '+ Đề xuất hoạt động' (Primary Button)
   - 'Lịch sự kiện' (Default Button)
@@ -56,3 +56,4 @@ A stack of 3 distinct cards:
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo spec cho trang Tổng quan | AI |
 | 1.1 | 2026-10-08 | Kết nối Dashboard với API GET /api/bootstrap và xóa KPI mock | AI |
+| 1.2 | 2026-10-08 | Lời chào lấy tên người dùng từ phiên (`userName`), hai nút điều hướng sang Lịch chung/Hoạt động qua `onNavigate` | DYC |

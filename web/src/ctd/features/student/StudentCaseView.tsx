@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Lozenge from '@atlaskit/lozenge';
-import Badge from '@atlaskit/badge';
 import FileIcon from '@atlaskit/icon/core/file';
 import CloudArrowUpIcon from '@atlaskit/icon/core/cloud-arrow-up';
-import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
 import { CtdCase, DocumentItem } from '../../data/ctdMockData';
 
 interface StudentCaseViewProps {

@@ -6,15 +6,16 @@ import Lozenge from '@atlaskit/lozenge';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ActivityDetailModal } from './ActivityDetailModal';
+import {
+  formatVnDate,
+  todayVnKey,
+  toVnDateKey,
+  vnDateKeyToLocalDate,
+} from '../../../shared/utils/date';
 
 interface CalendarCell {
   day: number;
@@ -22,31 +23,6 @@ interface CalendarCell {
   isToday?: boolean;
   isoDate: string;
 }
-
-const defaultCalendarQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-const formatDateDisplay = (dateStr?: string | null): string => {
-  if (!dateStr) return '';
-  try {
-    const parts = dateStr.slice(0, 10).split('-');
-    if (parts.length >= 3) {
-      const year = parts[0];
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
-    }
-  } catch {
-    // fallback
-  }
-  return dateStr;
-};
 
 const getStatusLozenge = (status?: string) => {
   switch (status) {
@@ -109,62 +85,51 @@ interface GanttPosition {
   deadlineDisplay: string;
 }
 
+const toKey = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const shiftKey = (key: string, days: number): string => {
+  const d = vnDateKeyToLocalDate(key);
+  d.setDate(d.getDate() + days);
+  return toKey(d);
+};
+
+/** Vị trí thanh Gantt trong tháng; null nếu hoạt động không giao với tháng đang xem. */
 const calculateGanttDayPosition = (
   act: ActivityItem,
   year: number,
   month: number,
   daysInMonth: number
-): GanttPosition => {
-  const monthStart = new Date(year, month, 1, 0, 0, 0).getTime();
-  const monthEnd = new Date(year, month, daysInMonth, 23, 59, 59).getTime();
+): GanttPosition | null => {
+  let startKey = toVnDateKey(act.start_date);
+  let endKey = toVnDateKey(act.deadline);
+  if (!startKey && !endKey) return null;
+  if (!endKey) endKey = shiftKey(startKey, 2);
+  if (!startKey) startKey = shiftKey(endKey, -3);
+  if (endKey < startKey) endKey = startKey;
 
-  let startTs: number;
-  let endTs: number;
+  const monthStartKey = toKey(new Date(year, month, 1));
+  const monthEndKey = toKey(new Date(year, month, daysInMonth));
+  if (endKey < monthStartKey || startKey > monthEndKey) return null;
 
-  if (act.start_date && act.deadline) {
-    startTs = new Date(act.start_date).getTime();
-    endTs = new Date(act.deadline).getTime();
-  } else if (act.start_date) {
-    startTs = new Date(act.start_date).getTime();
-    endTs = startTs + 2 * 24 * 60 * 60 * 1000;
-  } else if (act.deadline) {
-    endTs = new Date(act.deadline).getTime();
-    startTs = endTs - 3 * 24 * 60 * 60 * 1000;
-  } else {
-    startTs = new Date(year, month, 8).getTime();
-    endTs = startTs + 2 * 24 * 60 * 60 * 1000;
-  }
-
-  // Fallback for invalid parsed dates
-  if (isNaN(startTs)) startTs = new Date(year, month, 1).getTime();
-  if (isNaN(endTs)) endTs = startTs + 2 * 24 * 60 * 60 * 1000;
-
-  if (endTs < startTs) {
-    endTs = startTs + 24 * 60 * 60 * 1000;
-  }
-
-  // Clamp within the month
-  const clampedStart = Math.max(monthStart, Math.min(monthEnd, startTs));
-  const clampedEnd = Math.max(monthStart, Math.min(monthEnd, endTs));
-
-  const startDay = new Date(clampedStart).getDate();
-  const endDay = new Date(clampedEnd).getDate();
+  const startDay = startKey < monthStartKey ? 1 : vnDateKeyToLocalDate(startKey).getDate();
+  const endDay = endKey > monthEndKey ? daysInMonth : vnDateKeyToLocalDate(endKey).getDate();
 
   const leftPercent = ((startDay - 1) / daysInMonth) * 100;
-  const daySpan = Math.max(1, endDay - startDay + 1);
+  const daySpan = endDay - startDay + 1;
   const widthPercent = Math.min(100 - leftPercent, Math.max(3.5, (daySpan / daysInMonth) * 100));
 
   return {
     leftPercent,
     widthPercent,
-    startDateDisplay: formatDateDisplay(act.start_date || new Date(startTs).toISOString().slice(0, 10)),
-    deadlineDisplay: formatDateDisplay(act.deadline || new Date(endTs).toISOString().slice(0, 10)),
+    startDateDisplay: formatVnDate(startKey),
+    deadlineDisplay: formatVnDate(endKey),
   };
 };
 
-export const CalendarViewContent: React.FC = () => {
+export const CalendarView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'month' | 'list' | 'gantt'>('month');
-  const [currentDate, setCurrentDate] = useState(() => new Date(2026, 9, 8)); // Oct 8, 2026
+  const [currentDate, setCurrentDate] = useState(() => vnDateKeyToLocalDate(todayVnKey()));
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
 
@@ -195,6 +160,8 @@ export const CalendarViewContent: React.FC = () => {
     return list.filter((act) => String(act.team_id) === String(selectedTeam));
   }, [activities, selectedTeam]);
 
+  const todayKey = todayVnKey();
+
   // Compute month title
   const monthName = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
 
@@ -208,7 +175,7 @@ export const CalendarViewContent: React.FC = () => {
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date(2026, 9, 8));
+    setCurrentDate(vnDateKeyToLocalDate(todayVnKey()));
   };
 
   // Generate calendar grid cells for Month view (Monday-based)
@@ -232,8 +199,8 @@ export const CalendarViewContent: React.FC = () => {
       const cellMonth = cur.getMonth();
       const cellDay = cur.getDate();
       const isCurrentMonth = cellMonth === month;
-      const isToday = cellYear === 2026 && cellMonth === 9 && cellDay === 8;
       const isoDate = `${cellYear}-${String(cellMonth + 1).padStart(2, '0')}-${String(cellDay).padStart(2, '0')}`;
+      const isToday = isoDate === todayKey;
 
       cells.push({
         day: cellDay,
@@ -246,7 +213,7 @@ export const CalendarViewContent: React.FC = () => {
     }
 
     return cells;
-  }, [currentDate]);
+  }, [currentDate, todayKey]);
 
   // Generate days array for Gantt chart view (Days 1 to daysInMonth of current month)
   const ganttDays = useMemo(() => {
@@ -260,7 +227,7 @@ export const CalendarViewContent: React.FC = () => {
       const dateObj = new Date(y, m, d);
       const dow = dateObj.getDay();
       const isWeekend = dow === 0 || dow === 6;
-      const isToday = y === 2026 && m === 9 && d === 8;
+      const isToday = toKey(dateObj) === todayKey;
       days.push({
         day: d,
         dayOfWeek: dowNames[dow],
@@ -269,15 +236,17 @@ export const CalendarViewContent: React.FC = () => {
       });
     }
     return days;
-  }, [currentDate]);
+  }, [currentDate, todayKey]);
 
   // Group activities by date (start_date or deadline)
   const activitiesByDate = useMemo(() => {
     const map = new Map<string, ActivityItem[]>();
     for (const act of filteredActivities) {
       const dates = new Set<string>();
-      if (act.start_date) dates.add(act.start_date.slice(0, 10));
-      if (act.deadline) dates.add(act.deadline.slice(0, 10));
+      const startKey = toVnDateKey(act.start_date);
+      const deadlineKey = toVnDateKey(act.deadline);
+      if (startKey) dates.add(startKey);
+      if (deadlineKey) dates.add(deadlineKey);
 
       for (const d of dates) {
         if (!map.has(d)) map.set(d, []);
@@ -286,6 +255,15 @@ export const CalendarViewContent: React.FC = () => {
     }
     return map;
   }, [filteredActivities]);
+
+  const ganttActivities = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    return filteredActivities.flatMap((act) => {
+      const position = calculateGanttDayPosition(act, year, month, ganttDays.length);
+      return position ? [{ act, position }] : [];
+    });
+  }, [filteredActivities, currentDate, ganttDays.length]);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
@@ -633,7 +611,7 @@ export const CalendarViewContent: React.FC = () => {
                         color: token('color.text.subtle', '#5E6C84'),
                       }}
                     >
-                      Hạn chót: {formatDateDisplay(act.deadline)}
+                      Hạn chót: {formatVnDate(act.deadline)}
                     </span>
                   </div>
                 </div>
@@ -699,7 +677,7 @@ export const CalendarViewContent: React.FC = () => {
                     alignItems: 'center',
                   }}
                 >
-                  Danh sách hoạt động ({filteredActivities.length})
+                  Danh sách hoạt động ({ganttActivities.length})
                 </div>
 
                 {/* Day-by-day timeline header */}
@@ -779,7 +757,7 @@ export const CalendarViewContent: React.FC = () => {
               </div>
 
               {/* Gantt Rows */}
-              {filteredActivities.length === 0 ? (
+              {ganttActivities.length === 0 ? (
                 <div
                   data-testid="calendar-empty-state"
                   style={{
@@ -799,14 +777,8 @@ export const CalendarViewContent: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ position: 'relative' }}>
-                  {filteredActivities.map((act, idx) => {
+                  {ganttActivities.map(({ act, position }, idx) => {
                     const color = GANTT_COLORS[idx % GANTT_COLORS.length];
-                    const position = calculateGanttDayPosition(
-                      act,
-                      currentDate.getFullYear(),
-                      currentDate.getMonth(),
-                      ganttDays.length
-                    );
 
                     return (
                       <div
@@ -974,18 +946,4 @@ export const CalendarViewContent: React.FC = () => {
       />
     </div>
   );
-};
-
-export const CalendarView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultCalendarQueryClient}>
-        <CalendarViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <CalendarViewContent />;
 };

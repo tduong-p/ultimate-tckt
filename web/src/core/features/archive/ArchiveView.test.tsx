@@ -23,6 +23,7 @@ const mockArchiveActivities: api.ActivityItem[] = [
     team_name: 'Tổ chức và Phát triển Đoàn',
     status: 'completed',
     type: 'event',
+    priority: 'medium',
     deadline: '2026-06-30',
     participant_count: 120,
     task_count: 10,
@@ -37,6 +38,7 @@ const mockArchiveActivities: api.ActivityItem[] = [
     team_name: 'Tuyên giáo - Truyền thông',
     status: 'completed',
     type: 'assigned',
+    priority: 'medium',
     deadline: '2026-05-15',
     participant_count: 65,
     task_count: 6,
@@ -115,5 +117,20 @@ describe('ArchiveView', () => {
     // STRICT RULE: No checkbox icon or TaskIcon in empty states
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
     expect(container.querySelector('[data-testid="task-icon"]')).toBeNull();
+  });
+
+  it('chỉ gọi API một lần với từ khoá cuối khi gõ liên tục', async () => {
+    renderWithClient(<ArchiveView />);
+    await waitFor(() => expect(api.fetchArchive).toHaveBeenCalledTimes(1));
+    const input = screen.getByPlaceholderText('Tìm hoạt động, kết quả và bài học trước đây...');
+
+    fireEvent.change(input, { target: { value: 'h' } });
+    fireEvent.change(input, { target: { value: 'hộ' } });
+    fireEvent.change(input, { target: { value: 'hội' } });
+
+    await waitFor(() =>
+      expect(api.fetchArchive).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'hội' }))
+    );
+    expect(api.fetchArchive).toHaveBeenCalledTimes(2);
   });
 });

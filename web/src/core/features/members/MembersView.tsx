@@ -4,12 +4,7 @@ import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { fetchMembers, fetchTeams, type MemberItem, type TeamItem } from '../../api';
 
 const getInitials = (name?: string): string => {
@@ -72,18 +67,18 @@ const getRoleStyle = (role?: string) => {
   }
 };
 
-export const MembersViewContent: React.FC = () => {
+export const MembersView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [teamFilter, setTeamFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
 
   const { data: members, isLoading: isLoadingMembers, isError: isErrorMembers } = useQuery({
-    queryKey: ['members'],
+    queryKey: ['core-members'],
     queryFn: fetchMembers,
   });
 
   const { data: teams, isError: isErrorTeams } = useQuery({
-    queryKey: ['teams'],
+    queryKey: ['core-teams'],
     queryFn: fetchTeams,
   });
 
@@ -445,27 +440,4 @@ export const MembersViewContent: React.FC = () => {
       )}
     </div>
   );
-};
-
-const defaultMembersQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export const MembersView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultMembersQueryClient}>
-        <MembersViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <MembersViewContent />;
 };

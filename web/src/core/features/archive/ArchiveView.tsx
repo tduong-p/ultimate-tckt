@@ -3,27 +3,15 @@ import { token } from '@atlaskit/tokens';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchArchive, type ActivityItem } from '../../api';
-
-const defaultArchiveQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { toVnDateKey } from '../../../shared/utils/date';
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 
 const formatDateDisplay = (dateStr?: string | null): string => {
   if (!dateStr) return '';
   try {
-    const parts = dateStr.slice(0, 10).split('-');
+    const parts = toVnDateKey(dateStr).split('-');
     if (parts.length >= 3) {
       const year = parts[0];
       const month = parseInt(parts[1], 10);
@@ -36,12 +24,14 @@ const formatDateDisplay = (dateStr?: string | null): string => {
   return dateStr;
 };
 
-export const ArchiveViewContent: React.FC = () => {
+export const ArchiveView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedQuery = useDebouncedValue(searchQuery.trim());
 
   const { data: activities, isLoading, error } = useQuery({
-    queryKey: ['core-archive', { q: searchQuery }],
-    queryFn: () => fetchArchive({ q: searchQuery.trim() || undefined }),
+    queryKey: ['core-archive', { q: debouncedQuery }],
+    queryFn: () => fetchArchive({ q: debouncedQuery || undefined }),
+    placeholderData: keepPreviousData,
   });
 
   const archiveList: ActivityItem[] = activities || [];
@@ -268,18 +258,4 @@ export const ArchiveViewContent: React.FC = () => {
       )}
     </div>
   );
-};
-
-export const ArchiveView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultArchiveQueryClient}>
-        <ArchiveViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <ArchiveViewContent />;
 };

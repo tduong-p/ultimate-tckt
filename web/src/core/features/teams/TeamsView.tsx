@@ -3,17 +3,12 @@ import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { fetchTeams, type TeamItem } from '../../api';
 
-export const TeamsViewContent: React.FC = () => {
+export const TeamsView: React.FC = () => {
   const { data: teams, isLoading, isError } = useQuery({
-    queryKey: ['teams'],
+    queryKey: ['core-teams'],
     queryFn: fetchTeams,
   });
 
@@ -233,27 +228,4 @@ export const TeamsViewContent: React.FC = () => {
       )}
     </div>
   );
-};
-
-const defaultTeamsQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export const TeamsView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultTeamsQueryClient}>
-        <TeamsViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <TeamsViewContent />;
 };

@@ -5,36 +5,25 @@ import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 import { fetchDocuments, type DocumentItem } from '../../api';
 
-const defaultDocumentsQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export const DocumentsViewContent: React.FC = () => {
+export const DocumentsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedQuery = useDebouncedValue(searchQuery.trim());
   const [yearFilter, setYearFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['core-documents', { q: searchQuery, year: yearFilter, team_id: teamFilter }],
+    queryKey: ['core-documents', { q: debouncedQuery, year: yearFilter, team_id: teamFilter }],
     queryFn: () =>
       fetchDocuments({
-        q: searchQuery.trim() || undefined,
+        q: debouncedQuery || undefined,
         year: yearFilter !== 'all' ? yearFilter : undefined,
         team_id: teamFilter !== 'all' ? teamFilter : undefined,
       }),
+    placeholderData: keepPreviousData,
   });
 
   const yearOptions = useMemo(() => {
@@ -291,18 +280,4 @@ export const DocumentsViewContent: React.FC = () => {
       )}
     </div>
   );
-};
-
-export const DocumentsView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultDocumentsQueryClient}>
-        <DocumentsViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <DocumentsViewContent />;
 };

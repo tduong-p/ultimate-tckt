@@ -4,8 +4,6 @@ import Button from '@atlaskit/button/new';
 import Lozenge from '@atlaskit/lozenge';
 import Badge from '@atlaskit/badge';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
-import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
-import CrossCircleIcon from '@atlaskit/icon/core/cross-circle';
 import FileIcon from '@atlaskit/icon/core/file';
 import { CtdCase, STATUS_CONFIG } from '../../data/ctdMockData';
 

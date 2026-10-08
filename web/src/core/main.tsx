@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AppProvider from '@atlaskit/app-provider';
-import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import '@atlaskit/css-reset';
 import '../shared/styles/responsive.css';
 import { LottieLoading } from '../shared/components/LottieLoading';
@@ -19,14 +19,37 @@ import { ReportsView } from './features/reports/ReportsView';
 import { ArchiveView } from './features/archive/ArchiveView';
 import { fetchSession, logoutUser } from './api';
 
-const defaultQueryClient = new QueryClient();
+const SESSION_KEY = ['session'];
+
+// Bỏ mọi dữ liệu của người dùng cũ rồi đánh dấu chưa đăng nhập để App hiện màn đăng nhập.
+function resetToLoggedOut(queryClient: QueryClient) {
+  queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== SESSION_KEY[0] });
+  queryClient.setQueryData(SESSION_KEY, { user: null });
+}
+
+function isUnauthorized(error: unknown): boolean {
+  return (error as { response?: { status?: number } })?.response?.status === 401;
+}
+
+export function createCoreQueryClient(): QueryClient {
+  const queryClient: QueryClient = new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (isUnauthorized(error)) resetToLoggedOut(queryClient);
+      },
+    }),
+  });
+  return queryClient;
+}
+
+const defaultQueryClient = createCoreQueryClient();
 
 export const App = () => {
   const [currentView, setCurrentView] = React.useState('dashboard');
   const queryClient = useQueryClient();
 
   const { data: session, isLoading, refetch } = useQuery({
-    queryKey: ['session'],
+    queryKey: SESSION_KEY,
     queryFn: fetchSession,
   });
 
@@ -36,7 +59,7 @@ export const App = () => {
     } catch {
       // ignore
     }
-    queryClient.setQueryData(['session'], { user: null });
+    resetToLoggedOut(queryClient);
   };
 
   const handleLoginSuccess = () => {
@@ -58,7 +81,7 @@ export const App = () => {
       user={session.user}
       onLogout={handleLogout}
     >
-      {currentView === 'dashboard' && <Dashboard />}
+      {currentView === 'dashboard' && <Dashboard userName={session.user.name} onNavigate={setCurrentView} />}
       {currentView === 'my-tasks-today' && <MyTasksToday />}
       {currentView === 'calendar' && <CalendarView />}
       {currentView === 'activities' && <ActivitiesView />}

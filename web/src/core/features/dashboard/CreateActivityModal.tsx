@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
 import Textfield from '@atlaskit/textfield';
@@ -6,30 +6,19 @@ import Select from '@atlaskit/select';
 import { Checkbox } from '@atlaskit/checkbox';
 import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchTeams, createActivity, type CreateActivityPayload } from '../../api';
+
+type SelectOption<V> = { label: string; value: V };
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const defaultModalQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false, refetchOnWindowFocus: false },
-    mutations: { retry: false },
-  },
-});
-
-export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose }) => {
+export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const { data: teams = [], isLoading: isLoadingTeams } = useQuery({
     queryKey: ['core-teams'],
@@ -54,9 +43,19 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
   }));
 
   const handleSubmit = (formData: Record<string, any>) => {
-    const leadTeamId = Number(
-      formData.leadTeam?.value ?? formData.leadTeam ?? (teamOptions[0]?.value || 1)
-    );
+    const leadTeamId = Number(formData.leadTeam?.value);
+    const title = String(formData.title || '').trim();
+    const description = String(formData.description || '').trim();
+    const deadline = String(formData.deadline || '');
+    if (!title || !description || !deadline) {
+      setFormError('Vui lòng nhập tiêu đề, mô tả và hạn chung.');
+      return;
+    }
+    if (!leadTeamId) {
+      setFormError('Vui lòng chọn Tổ chủ trì.');
+      return;
+    }
+    setFormError(null);
 
     const rawType = formData.activityType?.value || formData.activityType || 'event';
     const type =
@@ -85,17 +84,16 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
     const teamIds = Array.from(new Set([leadTeamId, ...selectedTeams])).filter(Boolean);
 
     const payload: CreateActivityPayload = {
-      title: (formData.title || '').trim(),
-      description: (formData.description || '').trim(),
+      title,
+      description,
       type,
       team_id: leadTeamId,
       team_ids: teamIds,
-      deadline: formData.deadline || '',
+      deadline,
       start_date: formData.startDate || null,
       priority,
       location: formData.location ? String(formData.location).trim() : null,
       requested_by: formData.requestedBy ? String(formData.requestedBy).trim() : null,
-      event_lead_id: formData.headOfEvent?.value ? Number(formData.headOfEvent.value) : null,
       proposal_document_url: formData.activityProfile
         ? String(formData.activityProfile).trim()
         : null,
@@ -196,7 +194,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
 
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <Field
+                      <Field<SelectOption<string> | null>
                         name="activityType"
                         label="Loại hoạt động"
                         defaultValue={{
@@ -222,7 +220,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                       </Field>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <Field name="leadTeam" label="Tổ chủ trì" defaultValue={null}>
+                      <Field<SelectOption<number> | null> name="leadTeam" label="Tổ chủ trì" defaultValue={null}>
                         {({ fieldProps }) => (
                           <Select
                             {...fieldProps}
@@ -235,7 +233,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                     </div>
                   </div>
 
-                  <Field
+                  <Field<number[]>
                     name="participatingTeams"
                     label="Các Tổ tham gia"
                     defaultValue={[]}
@@ -287,27 +285,6 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                         </div>
                       );
                     }}
-                  </Field>
-
-                  <Field
-                    name="headOfEvent"
-                    label="Trưởng Ban Tổ Chức (không bắt buộc)"
-                    defaultValue={{
-                      label: 'Không chọn (phân công theo Ban chủ trì)',
-                      value: '',
-                    }}
-                  >
-                    {({ fieldProps }) => (
-                      <Select
-                        {...fieldProps}
-                        options={[
-                          {
-                            label: 'Không chọn (phân công theo Ban chủ trì)',
-                            value: '',
-                          },
-                        ]}
-                      />
-                    )}
                   </Field>
 
                   <div style={{ display: 'flex', gap: '16px' }}>
@@ -379,7 +356,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
 
                   <div style={{ display: 'flex', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <Field
+                      <Field<SelectOption<string> | null>
                         name="priority"
                         label="Mức ưu tiên"
                         defaultValue={{ label: 'Trung bình', value: 'medium' }}
@@ -464,7 +441,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                     )}
                   </Field>
 
-                  <Field name="description" label="Mô tả" defaultValue="">
+                  <Field<string, HTMLTextAreaElement> name="description" label="Mô tả" defaultValue="">
                     {({ fieldProps }) => (
                       <TextArea
                         {...fieldProps}
@@ -481,6 +458,19 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                   flexShrink: 0,
                 }}
               >
+                {formError && (
+                  <div
+                    role="alert"
+                    style={{
+                      color: token('color.text.danger', '#DE350B'),
+                      marginBottom: '12px',
+                      fontSize: '13px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {formError}
+                  </div>
+                )}
                 {createMutation.isError && (
                   <div
                     style={{
@@ -498,7 +488,7 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
                     type="submit"
                     appearance="primary"
                     isLoading={createMutation.isPending}
-                    style={{ width: '100%' }}
+                    shouldFitContainer
                   >
                     Tạo đề xuất
                   </Button>
@@ -510,20 +500,4 @@ export const CreateActivityModalContent: React.FC<Props> = ({ isOpen, onClose })
       </div>
     </div>
   );
-};
-
-export const CreateActivityModal: React.FC<Props> = (props) => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!props.isOpen) return null;
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultModalQueryClient}>
-        <CreateActivityModalContent {...props} />
-      </QueryClientProvider>
-    );
-  }
-
-  return <CreateActivityModalContent {...props} />;
 };

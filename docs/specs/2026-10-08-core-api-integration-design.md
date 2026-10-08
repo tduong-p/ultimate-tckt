@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-CAPI-001
 title: Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -86,10 +86,18 @@ Tạo module quản lý API tách biệt, sử dụng `apiClient` (`axios` với
 - Chạy `npm test` trong `web/` đảm bảo 100% test case pass.
 - Đảm bảo `npm run docs:index` và `npm run docs:check` pass trước khi hoàn thành.
 
+## Bổ sung 1.2 — phiên, cache, ngày
+
+- `createCoreQueryClient()` (trong `core/main.tsx`) gắn `QueryCache.onError`: lỗi HTTP 401 ở bất kỳ query nào → xoá mọi query trừ `session` và đặt `session.user = null` để quay về màn đăng nhập. Đăng xuất cũng đi qua cùng hàm này nên dữ liệu của người dùng trước không còn trong cache.
+- Mọi màn dùng chung `QueryClientProvider` ở `main.tsx`; không tạo QueryClient dự phòng trong component. Query key thống nhất tiền tố `core-` (`core-teams`, `core-members`, `core-my-tasks-today`, …).
+- `downloadReportExport(params)` tải báo cáo dạng blob qua `apiClient`; lỗi máy chủ được đọc từ body JSON và ném `Error(message)`.
+- Cột DATE từ Core trả về dạng ISO UTC (`2026-10-07T17:00:00.000Z` = 08/10 giờ VN). Mọi chỗ hiển thị/so sánh ngày dùng `toVnDateKey`/`formatVnDate`/`todayVnKey` trong `web/src/shared/utils/date.ts`, không `slice(0, 10)` hay `new Date().toISOString()`.
+- Ô tìm kiếm (Hoạt động, Lưu trữ, Văn bản) dùng `useDebouncedValue` (300 ms) + `keepPreviousData`; lọc do máy chủ làm.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế tích hợp API và dọn dẹp dữ liệu rác cho TCKT Activity Hub | DYC |
 | 1.1 | 2026-10-08 | Bổ sung API xác thực loginUser/logoutUser và kiểm soát phiên | DYC |
-
+| 1.2 | 2026-10-08 | Thêm `downloadReportExport`, xử lý 401 toàn cục + xoá cache khi đăng xuất, thống nhất query key `core-*`, tiện ích ngày `shared/utils/date` | DYC |

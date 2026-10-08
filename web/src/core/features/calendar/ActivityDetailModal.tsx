@@ -6,6 +6,7 @@ import CrossIcon from '@atlaskit/icon/core/cross';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import type { ActivityItem } from '../../api';
+import { toVnDateKey } from '../../../shared/utils/date';
 
 export interface ActivityDetailModalProps {
   activity: ActivityItem | null;
@@ -16,7 +17,7 @@ export interface ActivityDetailModalProps {
 const formatDateDisplay = (dateStr?: string | null): string => {
   if (!dateStr) return 'Chưa thiết lập';
   try {
-    const parts = dateStr.slice(0, 10).split('-');
+    const parts = toVnDateKey(dateStr).split('-');
     if (parts.length >= 3) {
       const year = parts[0];
       const month = parseInt(parts[1], 10);

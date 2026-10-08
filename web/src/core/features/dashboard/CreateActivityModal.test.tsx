@@ -81,18 +81,43 @@ describe('CreateActivityModal', () => {
     expect(await screen.findByText('Tuyên huấn và Sự kiện')).toBeDefined();
   });
 
-  it('submits activity proposal and closes modal on success', async () => {
+  const fillRequiredFields = () => {
+    fireEvent.change(screen.getByPlaceholderText(/Ngày hội Kỹ thuật/i), {
+      target: { value: 'Chiến dịch Mùa hè xanh 2026' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Hoạt động hướng đến mục tiêu gì/i), {
+      target: { value: 'Tổ chức các hoạt động tình nguyện ý nghĩa' },
+    });
+    fireEvent.change(screen.getByLabelText(/Hạn chung/i), { target: { value: '2026-11-30' } });
+  };
+
+  const chooseLeadTeam = async (name: string) => {
+    const input = screen.getByLabelText(/Tổ chủ trì/i);
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown', keyCode: 40 });
+    const option = await screen.findByRole('option', { name });
+    fireEvent.click(option);
+  };
+
+  it('không gửi đề xuất khi chưa chọn Tổ chủ trì', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    expect(await screen.findByText('Vui lòng chọn Tổ chủ trì.')).toBeDefined();
+    expect(api.createActivity).not.toHaveBeenCalled();
+  });
+
+  it('gửi đề xuất với đúng Tổ chủ trì đã chọn và đóng modal', async () => {
     const handleClose = vi.fn();
     renderWithClient(<CreateActivityModal isOpen={true} onClose={handleClose} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
 
-    const titleInput = screen.getByPlaceholderText(/Ngày hội Kỹ thuật/i);
-    fireEvent.change(titleInput, { target: { value: 'Chiến dịch Mùa hè xanh 2026' } });
-
-    const descInput = screen.getByPlaceholderText(/Hoạt động hướng đến mục tiêu gì/i);
-    fireEvent.change(descInput, { target: { value: 'Tổ chức các hoạt động tình nguyện ý nghĩa' } });
-
-    const submitBtn = screen.getByRole('button', { name: /Tạo đề xuất/i });
-    fireEvent.click(submitBtn);
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
 
     await waitFor(() => {
       expect(api.createActivity).toHaveBeenCalledWith(
@@ -100,10 +125,12 @@ describe('CreateActivityModal', () => {
           title: 'Chiến dịch Mùa hè xanh 2026',
           description: 'Tổ chức các hoạt động tình nguyện ý nghĩa',
           type: 'event',
+          deadline: '2026-11-30',
+          team_id: 2,
+          team_ids: [2],
         })
       );
     });
-
     await waitFor(() => {
       expect(handleClose).toHaveBeenCalled();
     });

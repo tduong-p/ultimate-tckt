@@ -10,7 +10,7 @@ vi.mock('../../api', async () => {
   return {
     ...actual,
     fetchTeams: vi.fn(),
-    getReportExportUrl: vi.fn(actual.getReportExportUrl),
+    downloadReportExport: vi.fn(),
   };
 });
 
@@ -31,10 +31,15 @@ describe('ReportsView', () => {
       },
     });
     vi.mocked(api.fetchTeams).mockResolvedValue(mockTeams);
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-08T03:00:00.000Z'));
+    URL.createObjectURL = vi.fn(() => 'blob:report');
+    URL.revokeObjectURL = vi.fn();
   });
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
   const renderWithClient = (ui: React.ReactElement) => {
@@ -55,50 +60,38 @@ describe('ReportsView', () => {
     ).toBeDefined();
   });
 
-  it('renders date inputs with default values and team selector', async () => {
+  it('mặc định khoảng thời gian là tháng hiện tại theo giờ Việt Nam', () => {
     renderWithClient(<ReportsView />);
-    const startInput = screen.getByLabelText('Ngày bắt đầu') as HTMLInputElement;
-    const endInput = screen.getByLabelText('Ngày kết thúc') as HTMLInputElement;
-
-    expect(startInput).toBeDefined();
-    expect(startInput.value).toBe('09/08/2026');
-    expect(endInput).toBeDefined();
-    expect(endInput.value).toBe('10/08/2026');
-
+    expect((screen.getByLabelText('Ngày bắt đầu') as HTMLInputElement).value).toBe('01/10/2026');
+    expect((screen.getByLabelText('Ngày kết thúc') as HTMLInputElement).value).toBe('08/10/2026');
     expect(screen.getByText('Tổ')).toBeDefined();
-    expect(
-      screen.getByText(
-        'Tệp Excel gồm tổng hợp hoạt động và chi tiết công việc, tham gia của thành viên đối với các hoạt động diễn ra trong khoảng thời gian này.'
-      )
-    ).toBeDefined();
-
-    await waitFor(() => {
-      expect(api.fetchTeams).toHaveBeenCalled();
-    });
   });
 
-  it('handles clicking the export button and generates export URL', () => {
+  it('tải tệp qua API với khoảng thời gian đã chọn rồi báo thành công', async () => {
+    vi.mocked(api.downloadReportExport).mockResolvedValue(new Blob(['xlsx']));
     renderWithClient(<ReportsView />);
-    const exportBtn = screen.getByText('Xuất báo cáo Excel');
-    expect(exportBtn).toBeDefined();
+    await waitFor(() => expect(api.fetchTeams).toHaveBeenCalled());
 
-    fireEvent.click(exportBtn);
-    expect(screen.getByText('Đang tạo tệp Excel...')).toBeDefined();
-    expect(api.getReportExportUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        start: '2026-08-09',
-        end: '2026-08-10',
-        lang: 'vi',
-      })
+    fireEvent.click(screen.getByText('Xuất báo cáo Excel'));
+
+    expect(api.downloadReportExport).toHaveBeenCalledWith(
+      expect.objectContaining({ start: '2026-10-01', end: '2026-10-08', lang: 'vi' })
     );
+    expect(await screen.findByText('Đã tải tệp Excel.')).toBeDefined();
+    expect(URL.createObjectURL).toHaveBeenCalled();
   });
 
-  it('provides a direct download link matching getReportExportUrl', () => {
+  it('hiện lỗi từ máy chủ thay vì báo thành công khi xuất thất bại', async () => {
+    vi.mocked(api.downloadReportExport).mockRejectedValue(
+      new Error('Bạn không có quyền xuất báo cáo của Tổ này.')
+    );
     renderWithClient(<ReportsView />);
-    const directLink = screen.getByTestId('export-direct-link') as HTMLAnchorElement;
-    expect(directLink).toBeDefined();
-    expect(directLink.href).toContain('/api/reports/export');
-    expect(directLink.href).toContain('start=2026-08-09');
-    expect(directLink.href).toContain('end=2026-08-10');
+
+    fireEvent.click(screen.getByText('Xuất báo cáo Excel'));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Bạn không có quyền xuất báo cáo của Tổ này.'
+    );
+    expect(screen.queryByText('Đã tải tệp Excel.')).toBeNull();
   });
 });

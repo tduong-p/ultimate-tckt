@@ -28,7 +28,7 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 4.5 | active | ai, dev |
-| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.14 | active | ai, dev |
+| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.15 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.10 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.3 | active | ai, dev |
 
@@ -159,15 +159,15 @@
 | [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-ARCHIVE-001](specs/2026-10-08-archive-screen-design.md) | Design — Archive Screen UI (Kho lưu trữ hoạt động) | 1.1 | active | dev, ai |
 | [PLAN-ARCHIVE-001](specs/2026-10-08-archive-screen-plan.md) | Plan — Archive Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.3 | active | dev, ai |
+| [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.4 | active | dev, ai |
 | [PLAN-CALENDAR-001](specs/2026-10-08-calendar-ui-plan.md) | Plan — Calendar Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-CAPI-001](specs/2026-10-08-core-api-integration-design.md) | Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.1 | active | dev, ai |
+| [SPEC-CAPI-001](specs/2026-10-08-core-api-integration-design.md) | Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.2 | active | dev, ai |
 | [PLAN-CAPI-001](specs/2026-10-08-core-api-integration-plan.md) | Kế hoạch triển khai — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.1 | active | dev, ai |
-| [SPEC-ACTMODAL-001](specs/2026-10-08-create-activity-modal-design.md) | Thiết kế — Create Activity Modal UI Design | 1.1 | active | dev, ai |
+| [SPEC-ACTMODAL-001](specs/2026-10-08-create-activity-modal-design.md) | Thiết kế — Create Activity Modal UI Design | 1.2 | active | dev, ai |
 | [PLAN-ACTMODAL-001](specs/2026-10-08-create-activity-modal-plan.md) | Kế hoạch triển khai — Create Activity Modal UI | 1.1 | active | dev, ai |
 | [SPEC-CTDUI-001](specs/2026-10-08-ctd-ui-design.md) | Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.1 | active | dev, ai |
 | [PLAN-CTDUI-001](specs/2026-10-08-ctd-ui-plan.md) | Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.1 | active | dev, ai |
-| [SPEC-WEB-002](specs/2026-10-08-dashboard-ui-design.md) | Dashboard UI Design (Atlassian Design System) | 1.1 | active | dev, ai |
+| [SPEC-WEB-002](specs/2026-10-08-dashboard-ui-design.md) | Dashboard UI Design (Atlassian Design System) | 1.2 | active | dev, ai |
 | [PLAN-WEB-002](specs/2026-10-08-dashboard-ui-plan.md) | Kế hoạch triển khai — Dashboard UI (Atlassian Design System) | 1.1 | active | dev, ai |
 | [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.1 | active | dev, ai |
 | [PLAN-DOCS-001](specs/2026-10-08-documents-screen-plan.md) | Plan — Documents Screen UI Implementation | 1.1 | active | dev, ai |
@@ -175,9 +175,9 @@
 | [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.5 | active | dev, ai |
 | [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.1 | active | dev, ai |
 | [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.1 | active | dev, ai |
+| [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.2 | active | dev, ai |
 | [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-REPORTS-001](specs/2026-10-08-reports-screen-design.md) | Design — Reports Screen UI (Báo cáo) | 1.1 | active | dev, ai |
+| [SPEC-REPORTS-001](specs/2026-10-08-reports-screen-design.md) | Design — Reports Screen UI (Báo cáo) | 1.2 | active | dev, ai |
 | [PLAN-REPORTS-001](specs/2026-10-08-reports-screen-plan.md) | Plan — Reports Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-TEAMS-001](specs/2026-10-08-teams-screen-design.md) | Design — Teams Screen UI (Các Tổ) | 1.1 | active | dev, ai |
 | [PLAN-TEAMS-001](specs/2026-10-08-teams-screen-plan.md) | Plan — Teams Screen UI Implementation | 1.1 | active | dev, ai |

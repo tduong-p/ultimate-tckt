@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery, QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { CreateActivityModal } from './CreateActivityModal';
 import Button from '@atlaskit/button/new';
 import { token } from '@atlaskit/tokens';
@@ -15,14 +15,7 @@ import Avatar from '@atlaskit/avatar';
 import ProgressBar from '@atlaskit/progress-bar';
 import { fetchBootstrap, fetchMyTasksToday } from '../../api';
 import type { TaskItem, ActivityItem, ActivityLogItem, BootstrapStats } from '../../api';
-
-const defaultDashboardQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
+import { formatVnDate, todayVnKey, toVnDateKey } from '../../../shared/utils/date';
 
 interface KPICardsProps {
   stats?: BootstrapStats;
@@ -130,7 +123,7 @@ const TaskListPanel: React.FC<{
             </div>
             <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span>{task.activity_title || task.team_name || 'Hoạt động'}</span>
-              {task.deadline && <span>• Hạn: {task.deadline.slice(0, 10)}</span>}
+              {task.deadline && <span>• Hạn: {formatVnDate(task.deadline)}</span>}
               {task.assignee_name && <span>• {task.assignee_name}</span>}
             </div>
           </div>
@@ -173,16 +166,14 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
       ? dueToday
       : all.filter(t => {
           if (!t.deadline) return false;
-          const todayStr = new Date().toISOString().slice(0, 10);
-          return t.deadline.startsWith(todayStr);
+          return toVnDateKey(t.deadline) === todayVnKey();
         });
 
     const ovd = overdue.length > 0
       ? overdue
       : all.filter(t => {
           if (!t.deadline || t.status === 'done' || t.status === 'cancelled') return false;
-          const todayStr = new Date().toISOString().slice(0, 10);
-          return t.deadline.slice(0, 10) < todayStr;
+          return toVnDateKey(t.deadline) < todayVnKey();
         });
 
     return {
@@ -241,7 +232,7 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
 const formatEventDate = (dateStr?: string | null) => {
   if (!dateStr) return { month: 'THÁNG --', day: '--' };
   try {
-    const parts = dateStr.slice(0, 10).split('-');
+    const parts = toVnDateKey(dateStr).split('-');
     if (parts.length >= 3) {
       return { month: `THÁNG ${parseInt(parts[1], 10)}`, day: parts[2] };
     }
@@ -388,7 +379,12 @@ const UpdatesWidgets: React.FC<UpdatesWidgetsProps> = ({ upcoming = [], activity
   );
 };
 
-const DashboardContent: React.FC = () => {
+interface DashboardProps {
+  userName?: string;
+  onNavigate?: (view: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ userName, onNavigate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: bootstrapData } = useQuery({
@@ -408,15 +404,15 @@ const DashboardContent: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-            Xin chào Phạm Việt Bách! Bạn có {openTasksCount} nhiệm vụ cần làm.
+            Xin chào{userName ? ` ${userName}` : ''}! Bạn có {openTasksCount} nhiệm vụ cần làm.
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button appearance="primary" onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}>
             + Đề xuất hoạt động
           </Button>
-          <Button appearance="default">Lịch sự kiện</Button>
-          <Button appearance="default">Hoạt động</Button>
+          <Button appearance="default" onClick={() => onNavigate?.('calendar')}>Lịch sự kiện</Button>
+          <Button appearance="default" onClick={() => onNavigate?.('activities')}>Hoạt động</Button>
         </div>
       </div>
 
@@ -436,18 +432,4 @@ const DashboardContent: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export const Dashboard: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultDashboardQueryClient}>
-        <DashboardContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <DashboardContent />;
 };

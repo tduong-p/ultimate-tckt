@@ -115,4 +115,27 @@ describe('MyTasksToday', () => {
     expect(screen.getByText('Báo cáo chi đoàn tháng 9')).toBeDefined();
     expect(screen.getByText('Duyệt bài đăng kỷ niệm ngày truyền thống')).toBeDefined();
   });
+
+  it('hiển thị hạn theo ngày Việt Nam và nhãn đúng cho trạng thái open của Core', async () => {
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue({
+      dueToday: [
+        {
+          id: 201,
+          activity_id: 1,
+          team_id: 2,
+          title: 'Việc mới giao',
+          status: 'open',
+          priority: 'medium',
+          deadline: '2026-10-08T17:00:00.000Z',
+        },
+      ],
+      overdue: [],
+      pendingMyReview: [],
+    });
+    renderWithClient(<MyTasksToday />);
+
+    expect(await screen.findByText('Việc mới giao')).toBeDefined();
+    expect(screen.getByText(/Hạn: 09\/10\/2026/)).toBeDefined();
+    expect(screen.getByText(/Cần làm/i)).toBeDefined();
+  });
 });

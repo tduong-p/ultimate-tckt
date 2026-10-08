@@ -1,32 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchActivities, type ActivityItem } from '../../api';
 import { CreateActivityModal } from '../dashboard/CreateActivityModal';
-
-const defaultActivitiesQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { toVnDateKey } from '../../../shared/utils/date';
+import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 
 const formatDateDisplay = (dateStr?: string | null): string => {
   if (!dateStr) return '';
   try {
-    const parts = dateStr.slice(0, 10).split('-');
+    const parts = toVnDateKey(dateStr).split('-');
     if (parts.length >= 3) {
       const year = parts[0];
       const month = parseInt(parts[1], 10);
@@ -66,43 +54,24 @@ const getTypeLabel = (type?: string): string => {
   return type || 'Sự kiện đơn vị';
 };
 
-export const ActivitiesViewContent: React.FC = () => {
+export const ActivitiesView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
-  const { data: activities, isLoading, error } = useQuery({
-    queryKey: ['core-activities', { q: searchQuery, status: statusFilter, type: typeFilter }],
+  const debouncedQuery = useDebouncedValue(searchQuery.trim());
+
+  const { data: activities = [], isLoading, error } = useQuery({
+    queryKey: ['core-activities', { q: debouncedQuery, status: statusFilter, type: typeFilter }],
     queryFn: () =>
       fetchActivities({
-        q: searchQuery.trim() || undefined,
+        q: debouncedQuery || undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
         type: typeFilter !== 'all' ? typeFilter : undefined,
       }),
+    placeholderData: keepPreviousData,
   });
-
-  const filteredActivities = useMemo(() => {
-    if (!activities) return [];
-    return activities.filter((act) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchTitle = act.title?.toLowerCase().includes(q);
-        const matchDesc = act.description?.toLowerCase().includes(q);
-        const matchTeam =
-          act.team_name?.toLowerCase().includes(q) ||
-          act.team_names?.toLowerCase().includes(q);
-        if (!matchTitle && !matchDesc && !matchTeam) return false;
-      }
-      if (statusFilter !== 'all' && act.status !== statusFilter) {
-        return false;
-      }
-      if (typeFilter !== 'all' && act.type !== typeFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [activities, searchQuery, statusFilter, typeFilter]);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
@@ -204,7 +173,19 @@ export const ActivitiesViewContent: React.FC = () => {
       {/* Activities Grid or Empty State */}
       {isLoading ? (
         <LottieLoading message="Đang tải danh sách hoạt động..." size={140} />
-      ) : filteredActivities.length === 0 ? (
+      ) : error ? (
+        <div
+          role="alert"
+          style={{
+            padding: '16px',
+            backgroundColor: token('color.background.danger', '#FFEBE6'),
+            color: token('color.text.danger', '#BF2600'),
+            borderRadius: '4px',
+          }}
+        >
+          Không thể tải danh sách hoạt động. Vui lòng thử lại sau.
+        </div>
+      ) : activities.length === 0 ? (
         <div
           style={{
             backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
@@ -220,7 +201,7 @@ export const ActivitiesViewContent: React.FC = () => {
           }}
         >
           <div style={{ color: token('color.icon.subtle', '#6B778C') }}>
-            <InboxIcon label="" size="large" />
+            <InboxIcon label="" />
           </div>
           <div
             style={{
@@ -258,7 +239,7 @@ export const ActivitiesViewContent: React.FC = () => {
             gap: '20px',
           }}
         >
-          {filteredActivities.map((activity: ActivityItem) => {
+          {activities.map((activity: ActivityItem) => {
             const percent =
               activity.task_count && activity.task_count > 0
                 ? Math.min(
@@ -412,18 +393,4 @@ export const ActivitiesViewContent: React.FC = () => {
       />
     </div>
   );
-};
-
-export const ActivitiesView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultActivitiesQueryClient}>
-        <ActivitiesViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <ActivitiesViewContent />;
 };

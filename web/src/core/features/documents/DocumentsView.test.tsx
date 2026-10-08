@@ -121,4 +121,19 @@ describe('DocumentsView', () => {
       );
     });
   });
+
+  it('chỉ gọi API một lần với từ khoá cuối khi gõ liên tục', async () => {
+    renderWithClient(<DocumentsView />);
+    await waitFor(() => expect(api.fetchDocuments).toHaveBeenCalledTimes(1));
+    const input = screen.getByPlaceholderText('Tìm văn bản...');
+
+    fireEvent.change(input, { target: { value: 'h' } });
+    fireEvent.change(input, { target: { value: 'hộ' } });
+    fireEvent.change(input, { target: { value: 'hội' } });
+
+    await waitFor(() =>
+      expect(api.fetchDocuments).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'hội' }))
+    );
+    expect(api.fetchDocuments).toHaveBeenCalledTimes(2);
+  });
 });

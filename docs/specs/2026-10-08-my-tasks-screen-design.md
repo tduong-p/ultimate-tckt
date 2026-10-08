@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-MYTASKS-001
 title: Design — My Tasks Screen UI (Công việc của tôi)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -35,3 +35,4 @@ The "Công việc của tôi" screen displays tasks assigned to the current memb
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Công việc của tôi | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/my-tasks-today thực tế, xóa mock | DYC |
+| 1.2 | 2026-10-08 | Trạng thái `open` của Core hiển thị "Cần làm"; hạn chót định dạng theo giờ Việt Nam | DYC |

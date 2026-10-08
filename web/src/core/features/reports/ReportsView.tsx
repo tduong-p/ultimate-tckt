@@ -4,22 +4,9 @@ import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import DownloadIcon from '@atlaskit/icon/core/download';
-import {
-  useQuery,
-  QueryClient,
-  QueryClientProvider,
-  QueryClientContext,
-} from '@tanstack/react-query';
-import { fetchTeams, getReportExportUrl, type TeamItem } from '../../api';
-
-const defaultReportsQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { useQuery } from '@tanstack/react-query';
+import { fetchTeams, downloadReportExport, type TeamItem } from '../../api';
+import { formatVnDate, todayVnKey } from '../../../shared/utils/date';
 
 const toIsoDate = (str: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
@@ -31,11 +18,17 @@ const toIsoDate = (str: string): string => {
   return str;
 };
 
-export const ReportsViewContent: React.FC = () => {
-  const [startDate, setStartDate] = useState('09/08/2026');
-  const [endDate, setEndDate] = useState('10/08/2026');
+type ExportState =
+  | { kind: 'idle' }
+  | { kind: 'pending' }
+  | { kind: 'done' }
+  | { kind: 'error'; message: string };
+
+export const ReportsView: React.FC = () => {
+  const [startDate, setStartDate] = useState(() => formatVnDate(`${todayVnKey().slice(0, 8)}01`));
+  const [endDate, setEndDate] = useState(() => formatVnDate(todayVnKey()));
   const [selectedTeam, setSelectedTeam] = useState('all');
-  const [isExported, setIsExported] = useState(false);
+  const [exportState, setExportState] = useState<ExportState>({ kind: 'idle' });
 
   const { data: teams } = useQuery({
     queryKey: ['core-teams'],
@@ -50,26 +43,32 @@ export const ReportsViewContent: React.FC = () => {
     ];
   }, [teams]);
 
-  const exportUrl = useMemo(() => {
-    return getReportExportUrl({
-      start: toIsoDate(startDate),
-      end: toIsoDate(endDate),
-      team_id: selectedTeam !== 'all' ? selectedTeam : undefined,
-      lang: 'vi',
-    });
-  }, [startDate, endDate, selectedTeam]);
-
-  const handleExport = () => {
-    setIsExported(true);
-    if (typeof document !== 'undefined') {
+  const handleExport = async () => {
+    const start = toIsoDate(startDate);
+    const end = toIsoDate(endDate);
+    setExportState({ kind: 'pending' });
+    try {
+      const blob = await downloadReportExport({
+        start,
+        end,
+        team_id: selectedTeam !== 'all' ? selectedTeam : undefined,
+        lang: 'vi',
+      });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = exportUrl;
-      link.setAttribute('download', '');
+      link.href = url;
+      link.download = `bao-cao-${start}-${end}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setExportState({ kind: 'done' });
+    } catch (err) {
+      setExportState({
+        kind: 'error',
+        message: err instanceof Error ? err.message : 'Không xuất được báo cáo. Vui lòng thử lại.',
+      });
     }
-    setTimeout(() => setIsExported(false), 3000);
   };
 
   return (
@@ -260,6 +259,7 @@ export const ReportsViewContent: React.FC = () => {
           <Button
             appearance="primary"
             onClick={handleExport}
+            isDisabled={exportState.kind === 'pending'}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <DownloadIcon label="" />
@@ -267,20 +267,13 @@ export const ReportsViewContent: React.FC = () => {
             </span>
           </Button>
 
-          <a
-            href={exportUrl}
-            download
-            data-testid="export-direct-link"
-            style={{
-              fontSize: '13px',
-              color: token('color.link', '#0052CC'),
-              textDecoration: 'none',
-            }}
-          >
-            Tải trực tiếp
-          </a>
+          {exportState.kind === 'pending' && (
+            <span style={{ fontSize: '13px', color: token('color.text.subtle', '#5E6C84') }}>
+              Đang tạo tệp Excel...
+            </span>
+          )}
 
-          {isExported && (
+          {exportState.kind === 'done' && (
             <span
               style={{
                 fontSize: '13px',
@@ -288,25 +281,24 @@ export const ReportsViewContent: React.FC = () => {
                 fontWeight: 500,
               }}
             >
-              Đang tạo tệp Excel...
+              Đã tải tệp Excel.
+            </span>
+          )}
+
+          {exportState.kind === 'error' && (
+            <span
+              role="alert"
+              style={{
+                fontSize: '13px',
+                color: token('color.text.danger', '#AE2E24'),
+                fontWeight: 500,
+              }}
+            >
+              {exportState.message}
             </span>
           )}
         </div>
       </div>
     </div>
   );
-};
-
-export const ReportsView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultReportsQueryClient}>
-        <ReportsViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <ReportsViewContent />;
 };

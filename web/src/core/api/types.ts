@@ -94,7 +94,7 @@ export interface TaskItem {
   deadline: string;
   start_date?: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent' | string;
-  status: 'todo' | 'in_progress' | 'review' | 'done' | 'cancelled' | string;
+  status: 'open' | 'in_progress' | 'review' | 'done' | 'cancelled' | string;
   created_at?: string;
   updated_at?: string;
   activity_title?: string;

@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
-import { useQuery, QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { token } from '@atlaskit/tokens';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { fetchMyTasksToday, TaskItem } from '../../api';
+import { formatVnDate } from '../../../shared/utils/date';
 
 const getStatusAppearance = (status: string) => {
   switch (status?.toLowerCase()) {
@@ -24,6 +25,7 @@ const getStatusAppearance = (status: string) => {
 
 const getStatusLabel = (status: string) => {
   switch (status?.toLowerCase()) {
+    case 'open':
     case 'todo': return 'Cần làm';
     case 'in_progress': return 'Đang làm';
     case 'review': return 'Chờ duyệt';
@@ -33,9 +35,9 @@ const getStatusLabel = (status: string) => {
   }
 };
 
-const MyTasksViewContent: React.FC = () => {
+export const MyTasksView: React.FC = () => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['my-tasks-today'],
+    queryKey: ['core-my-tasks-today'],
     queryFn: fetchMyTasksToday,
   });
 
@@ -166,7 +168,7 @@ const MyTasksViewContent: React.FC = () => {
                   <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: token('color.text.subtle', '#6B778C'), flexWrap: 'wrap' }}>
                     {task.activity_title && <span>Hoạt động: {task.activity_title}</span>}
                     {task.team_name && <span>Tổ: {task.team_name}</span>}
-                    {task.deadline && <span>Hạn: {task.deadline.slice(0, 10)}</span>}
+                    {task.deadline && <span>Hạn: {formatVnDate(task.deadline)}</span>}
                     {task.assignee_name && <span>Phụ trách: {task.assignee_name}</span>}
                   </div>
                 </div>
@@ -187,27 +189,4 @@ const MyTasksViewContent: React.FC = () => {
       </div>
     </div>
   );
-};
-
-const defaultViewQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-export const MyTasksView: React.FC = () => {
-  const queryClient = React.useContext(QueryClientContext);
-
-  if (!queryClient) {
-    return (
-      <QueryClientProvider client={defaultViewQueryClient}>
-        <MyTasksViewContent />
-      </QueryClientProvider>
-    );
-  }
-
-  return <MyTasksViewContent />;
 };

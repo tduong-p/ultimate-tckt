@@ -1,6 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { CtdApp } from './main';
 
 describe('CtdApp', () => {

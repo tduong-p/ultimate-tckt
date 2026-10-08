@@ -107,7 +107,10 @@ describe('ActivitiesView', () => {
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
   });
 
-  it('filters activities by search query', async () => {
+  it('hiển thị kết quả máy chủ trả về cho từ khoá tìm kiếm', async () => {
+    vi.mocked(api.fetchActivities).mockImplementation(async (params) =>
+      params?.q ? mockActivities.filter((a) => a.title.includes(params.q as string)) : mockActivities
+    );
     renderWithClient(<ActivitiesView />);
 
     expect(await screen.findByText('Chiến dịch Mùa hè xanh 2026')).toBeDefined();
@@ -126,5 +129,20 @@ describe('ActivitiesView', () => {
     const button = screen.getByText('+ Đề xuất hoạt động');
     fireEvent.click(button);
     expect(await screen.findByText('ĐỀ XUẤT MỚI')).toBeDefined();
+  });
+
+  it('chỉ gọi API một lần với từ khoá cuối khi gõ liên tục', async () => {
+    renderWithClient(<ActivitiesView />);
+    await waitFor(() => expect(api.fetchActivities).toHaveBeenCalledTimes(1));
+    const input = screen.getByPlaceholderText('Tìm kiếm hoạt động...');
+
+    fireEvent.change(input, { target: { value: 'h' } });
+    fireEvent.change(input, { target: { value: 'hộ' } });
+    fireEvent.change(input, { target: { value: 'hội' } });
+
+    await waitFor(() =>
+      expect(api.fetchActivities).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'hội' }))
+    );
+    expect(api.fetchActivities).toHaveBeenCalledTimes(2);
   });
 });

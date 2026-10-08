@@ -125,15 +125,25 @@ describe('Dashboard', () => {
     cleanup();
   });
 
-  it('renders the greeting with dynamic task count and header buttons', async () => {
-    renderWithClient(<Dashboard />);
+  it('chào đúng tên người đang đăng nhập kèm số nhiệm vụ', async () => {
+    renderWithClient(<Dashboard userName="Nguyễn Thị Hoa" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Xin chào Phạm Việt Bách! Bạn có 5 nhiệm vụ cần làm/i)).toBeDefined();
+      expect(screen.getByText(/Xin chào Nguyễn Thị Hoa! Bạn có 5 nhiệm vụ cần làm/i)).toBeDefined();
     });
+    expect(screen.queryByText(/Phạm Việt Bách/)).toBeNull();
     expect(screen.getByText('+ Đề xuất hoạt động')).toBeDefined();
-    expect(screen.getByText('Lịch sự kiện')).toBeDefined();
-    expect(screen.getByText('Hoạt động')).toBeDefined();
+  });
+
+  it('nút Lịch sự kiện và Hoạt động chuyển sang màn tương ứng', () => {
+    const onNavigate = vi.fn();
+    renderWithClient(<Dashboard userName="Nguyễn Thị Hoa" onNavigate={onNavigate} />);
+
+    fireEvent.click(screen.getByText('Lịch sự kiện'));
+    expect(onNavigate).toHaveBeenCalledWith('calendar');
+
+    fireEvent.click(screen.getByText('Hoạt động'));
+    expect(onNavigate).toHaveBeenCalledWith('activities');
   });
 
   it('renders 4 KPI cards with dynamic API data', async () => {

@@ -24,6 +24,7 @@ const mockActivities: api.ActivityItem[] = [
     team_color: '#0052CC',
     status: 'approved',
     type: 'event',
+    priority: 'medium',
     deadline: '2026-10-08',
     start_date: '2026-10-08',
   },
@@ -36,6 +37,7 @@ const mockActivities: api.ActivityItem[] = [
     team_color: '#00875A',
     status: 'active',
     type: 'assigned',
+    priority: 'medium',
     deadline: '2026-10-20',
   },
 ];
@@ -50,6 +52,8 @@ describe('CalendarView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-08T03:00:00.000Z'));
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -61,6 +65,7 @@ describe('CalendarView', () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
   const renderWithClient = (ui: React.ReactElement) => {
@@ -252,5 +257,43 @@ describe('CalendarView', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('activity-detail-modal')).toBeNull();
     });
+  });
+
+  it('mở tháng hiện tại theo ngày hệ thống và nút Hôm nay quay về đúng tháng đó', () => {
+    vi.setSystemTime(new Date('2026-12-15T03:00:00.000Z'));
+    renderWithClient(<CalendarView />);
+    expect(screen.getByText('Tháng 12 năm 2026')).toBeDefined();
+
+    fireEvent.click(screen.getByLabelText('Tháng sau'));
+    expect(screen.getByText('Tháng 1 năm 2027')).toBeDefined();
+
+    fireEvent.click(screen.getByText('Hôm nay'));
+    expect(screen.getByText('Tháng 12 năm 2026')).toBeDefined();
+  });
+
+  it('đặt hoạt động vào đúng ngày giờ Việt Nam khi Core trả timestamp UTC', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[1], id: 3, deadline: '2026-10-19T17:00:00.000Z' },
+    ]);
+    renderWithClient(<CalendarView />);
+
+    const pill = await screen.findByTestId('activity-pill-3');
+    expect(pill.closest('[data-testid="calendar-cell-2026-10-20"]')).not.toBeNull();
+
+    fireEvent.click(screen.getByText('Danh sách'));
+    expect(await screen.findByText('Hạn chót: 20/10/2026')).toBeDefined();
+  });
+
+  it('Gantt không vẽ hoạt động nằm hoàn toàn ngoài tháng đang xem', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      ...mockActivities,
+      { ...mockActivities[0], id: 4, title: 'Hoạt động tháng 9', start_date: '2026-09-01', deadline: '2026-09-05' },
+    ]);
+    renderWithClient(<CalendarView />);
+
+    fireEvent.click(screen.getByText('Biểu đồ Gantt'));
+    expect(await screen.findByTestId('gantt-bar-1')).toBeDefined();
+    expect(screen.queryByTestId('gantt-bar-4')).toBeNull();
+    expect(screen.getByText('Danh sách hoạt động (2)')).toBeDefined();
   });
 });

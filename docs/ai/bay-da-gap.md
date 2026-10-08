@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.14
+version: 1.15
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -150,6 +150,10 @@ properties of null (reading 'closest')" (production 2026-10-08, Tổ phó mở h
 `id="participants-head"` và tra thẳng theo id. Bài học: đừng dùng phần tử render có điều kiện làm mốc để tìm phần tử
 khác; mốc phải là thứ luôn được render, hoặc dùng `?.` khi phần tử thật sự có thể vắng.
 
+## Frontend cắt chuỗi ngày ISO UTC từ Core → lệch một ngày
+
+mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 08/10 giờ VN thành `2026-10-07T17:00:00.000Z`. `web/` bản đầu (PR 83) dùng `deadline.slice(0, 10)` và `new Date().toISOString()` để hiển thị, xếp ô lịch và tính "Hôm nay" → mọi hạn chót lệch về hôm trước, "Hôm nay" sai từ 0h đến 7h sáng. Sửa: dùng `toVnDateKey`/`formatVnDate`/`todayVnKey` trong `web/src/shared/utils/date.ts` (Intl theo `Asia/Ho_Chi_Minh`). Bài học: ngày từ Core luôn đổi về giờ VN trước khi cắt/so sánh; test giả lập giờ bằng `vi.useFakeTimers({ toFake: ['Date'] })`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -169,3 +173,4 @@ khác; mốc phải là thứ luôn được render, hoặc dùng `?.` khi phầ
 | 1.12 | 2026-10-05 | #49 Noti: thêm bẫy `suppressed` thay `sent` cho thư bị allowlist, và rủi ro gửi lặp khi DB hỏng sau gửi | DYC |
 | 1.13 | 2026-10-08 | Thêm bẫy thứ tự tham số SQL khi ghép `scopeFor` (`/api/teams` trả rỗng cho mọi tài khoản trừ id trùng unit id) | DYC |
 | 1.14 | 2026-10-08 | Thêm bẫy tra phần tử qua nút render có điều kiện (`#volunteer`) làm trắng trang chi tiết hoạt động | DYC |
+| 1.15 | 2026-10-08 | Thêm bẫy frontend cắt chuỗi ngày ISO UTC từ Core làm lệch một ngày | DYC |

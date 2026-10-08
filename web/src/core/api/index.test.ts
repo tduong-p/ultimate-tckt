@@ -11,6 +11,7 @@ import {
   fetchDocuments,
   fetchArchive,
   getReportExportUrl,
+  downloadReportExport,
   loginUser,
   logoutUser,
 } from './index';
@@ -157,6 +158,31 @@ describe('Core API Services', () => {
 
       expect(apiClient.get).toHaveBeenCalledWith('/archive', { params });
       expect(result).toEqual(mockArchive);
+    });
+  });
+
+  describe('downloadReportExport', () => {
+    it('tải tệp Excel dạng blob qua apiClient', async () => {
+      const blob = new Blob(['xlsx']);
+      vi.mocked(apiClient.get).mockResolvedValueOnce({ data: blob });
+
+      const result = await downloadReportExport({ start: '2026-10-01', end: '2026-10-08', team_id: 'all', lang: 'vi' });
+
+      expect(apiClient.get).toHaveBeenCalledWith('/reports/export', {
+        params: { start: '2026-10-01', end: '2026-10-08', lang: 'vi' },
+        responseType: 'blob',
+      });
+      expect(result).toBe(blob);
+    });
+
+    it('ném lỗi mang thông điệp từ máy chủ khi bị từ chối', async () => {
+      vi.mocked(apiClient.get).mockRejectedValueOnce({
+        response: { data: new Blob([JSON.stringify({ error: 'Choose a valid report date range.' })]) },
+      });
+
+      await expect(
+        downloadReportExport({ start: '2026-10-08', end: '2026-10-01', lang: 'vi' })
+      ).rejects.toThrow('Choose a valid report date range.');
     });
   });
 

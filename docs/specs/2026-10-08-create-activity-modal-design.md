@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ACTMODAL-001
 title: Thiết kế — Create Activity Modal UI Design
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -51,3 +51,4 @@ The modal uses the standard Atlassian ModalDialog component.
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế modal Đề xuất hoạt động | DYC |
 | 1.1 | 2026-10-08 | Tích hợp mutation tạo hoạt động với API POST /api/activities | DYC |
+| 1.2 | 2026-10-08 | Bắt buộc tiêu đề, mô tả, hạn chung và Tổ chủ trì (không còn mặc định Tổ 1); bỏ trường Người phụ trách | DYC |
