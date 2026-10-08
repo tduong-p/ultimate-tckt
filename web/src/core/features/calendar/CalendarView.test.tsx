@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarView } from './CalendarView';
 import * as api from '../../api';
@@ -183,5 +183,74 @@ describe('CalendarView', () => {
     // STRICT RULE: No checkbox icon or TaskIcon in empty states
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
     expect(container.querySelector('[data-testid="task-icon"]')).toBeNull();
+  });
+
+  it('opens activity detail modal when clicking an activity pill in month view and closes it', async () => {
+    renderWithClient(<CalendarView />);
+
+    const pill = await screen.findByTestId('activity-pill-1');
+    fireEvent.click(pill);
+
+    // Detail modal should be visible
+    const modal = await screen.findByTestId('activity-detail-modal');
+    expect(modal).toBeDefined();
+    expect(within(modal).getByText('#HĐ-1')).toBeDefined();
+    expect(within(modal).getByText('Họp giao ban Đoàn đầu tháng 10')).toBeDefined();
+    expect(within(modal).getByText('Đánh giá tiến độ công việc và phân công nhiệm vụ mới.')).toBeDefined();
+
+    // Close modal
+    const closeBtn = screen.getByTestId('activity-detail-modal-close-footer');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('activity-detail-modal')).toBeNull();
+    });
+  });
+
+  it('opens activity detail modal when clicking an activity in list view', async () => {
+    renderWithClient(<CalendarView />);
+
+    const listBtn = screen.getByText('Danh sách');
+    fireEvent.click(listBtn);
+
+    const listItem = await screen.findByTestId('list-activity-2');
+    fireEvent.click(listItem);
+
+    const modal = await screen.findByTestId('activity-detail-modal');
+    expect(modal).toBeDefined();
+    expect(within(modal).getByText('#HĐ-2')).toBeDefined();
+    expect(within(modal).getByText('Hội thảo Đổi mới Phương thức Sinh hoạt Chi đoàn')).toBeDefined();
+    expect(within(modal).getByText('Chuyên đề nâng cao chất lượng sinh hoạt Đoàn.')).toBeDefined();
+
+    // Close via overlay
+    const overlay = screen.getByTestId('activity-detail-modal-overlay');
+    fireEvent.click(overlay);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('activity-detail-modal')).toBeNull();
+    });
+  });
+
+  it('opens activity detail modal when clicking an activity bar in Gantt view', async () => {
+    renderWithClient(<CalendarView />);
+
+    const ganttBtn = screen.getByText('Biểu đồ Gantt');
+    fireEvent.click(ganttBtn);
+
+    const bar = await screen.findByTestId('gantt-bar-1');
+    fireEvent.click(bar);
+
+    const modal = await screen.findByTestId('activity-detail-modal');
+    expect(modal).toBeDefined();
+    expect(within(modal).getByText('#HĐ-1')).toBeDefined();
+    expect(within(modal).getByText('Họp giao ban Đoàn đầu tháng 10')).toBeDefined();
+    expect(within(modal).getByText('Tổ chức và Phát triển Đoàn')).toBeDefined();
+
+    const closeBtn = screen.getByTestId('activity-detail-modal-close-footer');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('activity-detail-modal')).toBeNull();
+    });
   });
 });

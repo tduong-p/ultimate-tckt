@@ -14,6 +14,7 @@ import {
 } from '@tanstack/react-query';
 import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
+import { ActivityDetailModal } from './ActivityDetailModal';
 
 interface CalendarCell {
   day: number;
@@ -165,6 +166,7 @@ export const CalendarViewContent: React.FC = () => {
   const [viewMode, setViewMode] = useState<'month' | 'list' | 'gantt'>('month');
   const [currentDate, setCurrentDate] = useState(() => new Date(2026, 9, 8)); // Oct 8, 2026
   const [selectedTeam, setSelectedTeam] = useState('all');
+  const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
 
   // Days of week (Monday to Sunday)
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -505,6 +507,7 @@ export const CalendarViewContent: React.FC = () => {
                           key={act.id}
                           title={`${act.title} (${act.team_name || ''})`}
                           data-testid={`activity-pill-${act.id}`}
+                          onClick={() => setSelectedActivity(act)}
                           style={{
                             fontSize: '11px',
                             padding: '2px 5px',
@@ -517,6 +520,7 @@ export const CalendarViewContent: React.FC = () => {
                             textOverflow: 'ellipsis',
                             fontWeight: 500,
                             lineHeight: 1.3,
+                            cursor: 'pointer',
                           }}
                         >
                           {act.title}
@@ -582,6 +586,7 @@ export const CalendarViewContent: React.FC = () => {
               <div
                 key={act.id}
                 data-testid={`list-activity-${act.id}`}
+                onClick={() => setSelectedActivity(act)}
                 style={{
                   backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
                   border: `1px solid ${token('color.border', '#DFE1E6')}`,
@@ -595,6 +600,7 @@ export const CalendarViewContent: React.FC = () => {
                     'elevation.shadow.raised',
                     '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'
                   ),
+                  cursor: 'pointer',
                 }}
               >
                 <div>
@@ -827,7 +833,9 @@ export const CalendarViewContent: React.FC = () => {
                             overflow: 'hidden',
                             boxSizing: 'border-box',
                             flexShrink: 0,
+                            cursor: 'pointer',
                           }}
+                          onClick={() => setSelectedActivity(act)}
                         >
                           <div
                             style={{
@@ -918,10 +926,12 @@ export const CalendarViewContent: React.FC = () => {
                           {/* The Color-Coded Activity Gantt Bar */}
                           <div
                             data-testid={`gantt-bar-${act.id}`}
+                            onClick={() => setSelectedActivity(act)}
                             style={{
                               position: 'absolute',
                               left: `${position.leftPercent}%`,
                               width: `${position.widthPercent}%`,
+                              minWidth: '72px',
                               height: '28px',
                               backgroundColor: color.bg,
                               border: `1px solid ${color.border}`,
@@ -955,6 +965,13 @@ export const CalendarViewContent: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        activity={selectedActivity}
+        isOpen={Boolean(selectedActivity)}
+        onClose={() => setSelectedActivity(null)}
+      />
     </div>
   );
 };
