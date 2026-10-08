@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx]
+related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -54,9 +54,11 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
 - **Các trường nhập liệu (Form Fields)**:
   - `Địa chỉ email`: Textfield với nhãn rõ ràng, placeholder `vidu@hust.edu.vn`, tự động kiểm tra định dạng.
   - `Mật khẩu`: Textfield dạng password, nhãn `Mật khẩu`.
-- **Nút Đăng nhập**:
+- **Nút Đăng nhập và Hiệu ứng tải (Lottie Loading)**:
   - Nút ADS Primary toàn chiều rộng: `Đăng nhập →`.
   - Có trạng thái tải (`isLoading`) khi đang gửi yêu cầu xác thực tới backend.
+  - Khi đang xác thực, hiển thị lớp phủ mờ (backdrop overlay) với hoạt ảnh Lottie Loading cao cấp (`LottieLoading` dựa trên file vector `loading.lottie`), kèm thông điệp "Đang xác thực thông tin..." / "Signing in...".
+  - Khi ứng dụng root tải trạng thái phiên ban đầu trong `main.tsx`, sử dụng `<LottieLoading fullScreen message="Đang tải không gian làm việc..." />` thay cho Spinner mặc định.
 
 ## 3. Kiến trúc Luồng Dữ liệu và Phiên làm việc (Session Gating)
 
@@ -79,15 +81,17 @@ flowchart TD
 
 ## 4. Kiểm thử
 1. **Unit test API Layer**: Kiểm thử `loginUser` (`POST /api/login`) và `logoutUser` (`POST /api/logout`) thành công và thất bại.
-2. **Unit test LoginView**:
+2. **Unit test LoginView & LottieLoading**:
    - Kiểm tra render đầy đủ các thành phần cột trái và cột phải.
    - Kiểm tra submit form với thông tin hợp lệ -> gọi `loginUser` và gọi callback `onLoginSuccess`.
    - Kiểm tra submit form thất bại -> hiển thị thông điệp lỗi.
    - Kiểm tra nút Microsoft SSO trỏ đúng `/auth/microsoft`.
+   - Kiểm tra component `LottieLoading` hiển thị đúng kích cỡ, thông điệp và container.
 3. **Integration test Session Gating**:
    - `main.test.tsx` kiểm tra khi session `user: null` -> render `LoginView`.
    - Khi session `user: { name: 'Admin', ... }` -> render `PageLayout` với các module chính.
 
 ## Lịch sử phiên bản
+- **1.1 (2026-10-08)**: Bổ sung hiệu ứng hoạt ảnh Lottie Loading (`loading.lottie`) trong màn hình đăng nhập và khởi tạo ứng dụng.
 - **1.0 (2026-10-08)**: Khởi tạo thiết kế màn hình đăng nhập hiện đại 2 cột cho TCKT Activity Hub.
 

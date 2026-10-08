@@ -1,7 +1,6 @@
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import React from 'react';
 
 describe('PageLayout', () => {
   afterEach(() => {

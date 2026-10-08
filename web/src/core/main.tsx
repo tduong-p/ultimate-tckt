@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AppProvider from '@atlaskit/app-provider';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
-import Spinner from '@atlaskit/spinner';
 import '@atlaskit/css-reset';
 import '../shared/styles/responsive.css';
+import { LottieLoading } from '../shared/components/LottieLoading';
 import { PageLayout } from '../shared/layouts/PageLayout';
 import { LoginView } from './features/auth/LoginView';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -44,11 +44,7 @@ export const App = () => {
   };
 
   if (isLoading) {
-    return (
-      <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
-        <Spinner size="large" />
-      </div>
-    );
+    return <LottieLoading fullScreen message="Đang tải không gian làm việc..." size={180} />;
   }
 
   if (!session?.user) {

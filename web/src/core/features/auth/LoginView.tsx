@@ -3,6 +3,7 @@ import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import { token } from '@atlaskit/tokens';
 import { loginUser } from '../../api';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 
 interface LoginViewProps {
   onLoginSuccess?: () => void;
@@ -280,7 +281,27 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* Form Container */}
-        <div style={{ width: '100%', maxWidth: '380px' }}>
+        <div style={{ width: '100%', maxWidth: '380px', position: 'relative' }}>
+          {isLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                top: -16,
+                left: -16,
+                right: -16,
+                bottom: -16,
+                backgroundColor: 'rgba(255, 255, 255, 0.88)',
+                backdropFilter: 'blur(3px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 20,
+                borderRadius: '8px',
+              }}
+            >
+              <LottieLoading size={140} message={isVi ? 'Đang xác thực thông tin...' : 'Signing in...'} />
+            </div>
+          )}
           <span
             style={{
               fontSize: '11px',
