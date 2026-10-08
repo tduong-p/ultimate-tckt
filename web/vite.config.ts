@@ -16,6 +16,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         core: resolve(__dirname, 'core.html'),
+        ctd: resolve(__dirname, 'ctd.html'),
       },
     },
   },

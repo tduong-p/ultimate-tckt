@@ -57,7 +57,31 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
               <ThemeIcon label="Toggle Theme" />
             </div>
           )}
-          renderProfile={() => <Avatar size="small" appearance="circle" />}
+          renderProfile={() => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => { window.location.href = '/ctd.html'; }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: '#DE350B',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '3px',
+                  padding: '4px 8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+                title="Chuyển sang Phân hệ Công tác Đảng (CTD)"
+              >
+                Sang CTD →
+              </button>
+              <Avatar size="small" appearance="circle" />
+            </div>
+          )}
         />
       </TopNavigation>
       <Content>
