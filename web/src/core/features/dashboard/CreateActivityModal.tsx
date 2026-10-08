@@ -1,5 +1,4 @@
 import React from 'react';
-import Modal, { ModalBody, ModalHeader, ModalTitle, ModalFooter, ModalTransition } from '@atlaskit/modal-dialog';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
 import Textfield from '@atlaskit/textfield';
@@ -16,23 +15,25 @@ interface Props {
 export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   return (
     <>
+      
       {isOpen && (
-        <Modal onClose={onClose} width="large">
-        <ModalHeader>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(9, 30, 66, 0.54)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }} onClick={onClose}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '3px', width: '800px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 16px -4px rgba(9, 30, 66, 0.25)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '24px 24px 16px 24px', flexShrink: 0 }}>
           <div style={{ padding: '16px 24px 0 24px', width: '100%' }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: token('color.text.brand', '#0052CC'), textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
               ĐỀ XUẤT MỚI
             </div>
-            <ModalTitle>Đề xuất hoạt động</ModalTitle>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 500 }}>Đề xuất hoạt động</h2>
             <p style={{ marginTop: '8px', color: token('color.text.subtle', '#42526E'), fontSize: '14px' }}>
               Chọn Tổ chủ trì và tất cả các Tổ phối hợp tham gia.
             </p>
           </div>
-        </ModalHeader>
+        </div>
         <Form onSubmit={(data) => { console.log(data); onClose(); }}>
           {({ formProps }) => (
             <form {...formProps}>
-              <ModalBody>
+              <div style={{ padding: '0 24px', overflowY: 'auto', flex: 1 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '16px' }}>
                   
                   <Field name="title" label="Tiêu đề" defaultValue="">
@@ -139,19 +140,21 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   </Field>
 
                 </div>
-              </ModalBody>
-              <ModalFooter>
+              </div>
+              <div style={{ padding: '16px 24px 24px 24px', flexShrink: 0 }}>
                 <div style={{ width: '100%', padding: '0 24px 24px 24px' }}>
                   <Button type="submit" appearance="primary" style={{ width: '100%' }}>
                     Tạo đề xuất
                   </Button>
                 </div>
-              </ModalFooter>
+              </div>
             </form>
           )}
         </Form>
-      </Modal>
+      </div>
+        </div>
       )}
+
     </>
   );
 };
