@@ -1,5 +1,5 @@
 ---
-doc_id: PLAN-CORE-API-001
+doc_id: PLAN-CAPI-001
 title: Kế hoạch triển khai — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
 version: 1.0
 status: active
@@ -253,3 +253,9 @@ Expected: Xanh (pass).
 
 - [ ] **Step 3: Commit hoàn thành**
 Commit các cập nhật tài liệu.
+
+## Lịch sử phiên bản
+
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai tích hợp API và dọn dẹp dữ liệu rác cho TCKT Activity Hub | DYC |

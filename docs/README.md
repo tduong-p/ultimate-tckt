@@ -91,7 +91,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.7 | active | dev, ba |
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.8 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
@@ -154,15 +154,15 @@
 | [PLAN-POC-006](specs/2026-10-06-web-poc-react-atlaskit-plan-6.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 6 - Wireframe Layout) | 1.0 | active | dev, ai |
 | [PLAN-POC-007](specs/2026-10-06-web-poc-react-atlaskit-plan-7.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive) | 1.0 | active | dev, ai |
 | [PLAN-POC-008](specs/2026-10-06-web-poc-react-atlaskit-plan-8.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 8 - Full Atlassian Design System) | 1.0 | active | dev, ai |
-| [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.0 | active | dev, ai |
+| [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.1 | active | dev, ai |
 | [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.0 | active | dev, ai |
 | [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-ARCHIVE-001](specs/2026-10-08-archive-screen-design.md) | Design — Archive Screen UI (Kho lưu trữ hoạt động) | 1.0 | active | dev, ai |
 | [PLAN-ARCHIVE-001](specs/2026-10-08-archive-screen-plan.md) | Plan — Archive Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.0 | active | dev, ai |
 | [PLAN-CALENDAR-001](specs/2026-10-08-calendar-ui-plan.md) | Plan — Calendar Screen UI Implementation | 1.0 | active | dev, ai |
-| [SPEC-CORE-API-001](specs/2026-10-08-core-api-integration-design.md) | Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.0 | active | dev, ai |
-| [PLAN-CORE-API-001](specs/2026-10-08-core-api-integration-plan.md) | Kế hoạch triển khai — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.0 | active | dev, ai |
+| [SPEC-CAPI-001](specs/2026-10-08-core-api-integration-design.md) | Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.0 | active | dev, ai |
+| [PLAN-CAPI-001](specs/2026-10-08-core-api-integration-plan.md) | Kế hoạch triển khai — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.0 | active | dev, ai |
 | [SPEC-CTD-UI-001](specs/2026-10-08-ctd-ui-design.md) | Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.0 | active | dev, ai |
 | [PLAN-CTD-UI-001](specs/2026-10-08-ctd-ui-plan.md) | Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.0 | active | dev, ai |
 | [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.0 | active | dev, ai |

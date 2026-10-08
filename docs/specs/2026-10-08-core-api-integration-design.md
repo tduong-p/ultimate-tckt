@@ -1,5 +1,5 @@
 ---
-doc_id: SPEC-CORE-API-001
+doc_id: SPEC-CAPI-001
 title: Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
 version: 1.0
 status: active
@@ -87,4 +87,7 @@ Tạo module quản lý API tách biệt, sử dụng `apiClient` (`axios` với
 - Đảm bảo `npm run docs:index` và `npm run docs:check` pass trước khi hoàn thành.
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế tích hợp API và dọn dẹp dữ liệu rác cho TCKT Activity Hub.
+
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế tích hợp API và dọn dẹp dữ liệu rác cho TCKT Activity Hub | DYC |

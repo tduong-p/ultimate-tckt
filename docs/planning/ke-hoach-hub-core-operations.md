@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.7
+version: 2.8
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-07
+updated: 2026-10-08
 related_code: [core/**, web/**, core/src/config/migrate-units.js, core/src/config/database.js, core/app.js, core/src/date-vn.js]
 ---
 
@@ -1288,3 +1288,4 @@ npm run docs:check         # Documentation validation
 | 2.5 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
 | 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống - xem DEV-TZ-001 (docs/dev/mui-gio.md) | DYC |
 | 2.7 | 2026-10-07 | Khởi tạo module web/** chính thức chuyển đổi từ POC frontend React Atlaskit | DYC |
+| 2.8 | 2026-10-08 | Tích hợp toàn diện API Backend và xóa dữ liệu mock thử nghiệm trong web/** | DYC |
