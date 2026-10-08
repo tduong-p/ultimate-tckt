@@ -51,6 +51,7 @@ const cut = text => (typeof text === 'string' && text.length > MAX_TEXT ? `${tex
 
 function truncateLongText(data) {
   if (data.response && typeof data.response === 'object' && 'body' in data.response) data.response.body = cut(data.response.body);
+  if (data.comment && typeof data.comment === 'object' && 'body' in data.comment) data.comment.body = cut(data.comment.body);
   if ('feedback' in data) data.feedback = cut(data.feedback);
   return data;
 }

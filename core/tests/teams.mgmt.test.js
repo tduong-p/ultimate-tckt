@@ -283,3 +283,27 @@ test('membership removed through /api/units stays removed after a later team ope
   assert.equal(res.status, 200);
   assert.equal(await tcktMembershipCount(pool, target.id), 0);
 }));
+
+test('GET /api/teams returns unit teams when user id differs from unit id', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool, { name: 'Tổ Hiển Thị Phó Ban' });
+  const [[tckt]] = await pool.execute("SELECT id FROM org_units WHERE code='TCKT'");
+  let viceAdmin;
+  do viceAdmin = await createUser(pool, { role: 'vice_admin' }); while (viceAdmin.id === tckt.id);
+  await client.login(viceAdmin.email, viceAdmin.password);
+
+  const res = await client.request('GET', '/api/teams');
+  assert.equal(res.status, 200);
+  assert.ok(res.json.some(t => t.id === teamId), 'vice_admin must see teams of their unit');
+}));
+
+test('GET /api/teams marks can_manage for the team the caller leads', () => withServer(async ({ pool, client }) => {
+  const teamId = await createTeam(pool, { name: 'Tổ Trưởng Quản Lý' });
+  const [[tckt]] = await pool.execute("SELECT id FROM org_units WHERE code='TCKT'");
+  let leader;
+  do leader = await createUser(pool, { role: 'leader', team_id: teamId }); while (leader.id === tckt.id);
+  await client.login(leader.email, leader.password);
+
+  const res = await client.request('GET', '/api/teams');
+  assert.equal(res.status, 200);
+  assert.equal(Number(res.json.find(t => t.id === teamId)?.can_manage), 1);
+}));

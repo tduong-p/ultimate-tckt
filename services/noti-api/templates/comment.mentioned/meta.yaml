@@ -1,0 +1,20 @@
+key: comment.mentioned
+subject: "[{{ activity.title }}]{% if task is defined and task.get('title') %} {{ task.title }}{% endif %}"
+required:
+  - actor
+  - comment.body
+  - activity.title
+  - activity.path
+optional:
+  - task.id
+  - task.title
+data_example:
+  actor: "Trần Văn C"
+  comment:
+    body: "Nhờ bạn xem giúp bản thảo poster trước thứ Sáu."
+  activity:
+    title: "Tập huấn cán bộ Đoàn"
+    path: "/#activity/3"
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
