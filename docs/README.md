@@ -155,6 +155,8 @@
 | [PLAN-POC-007](specs/2026-10-06-web-poc-react-atlaskit-plan-7.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive) | 1.0 | active | dev, ai |
 | [PLAN-POC-008](specs/2026-10-06-web-poc-react-atlaskit-plan-8.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 8 - Full Atlassian Design System) | 1.0 | active | dev, ai |
 | [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.0 | active | dev, ai |
+| [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.0 | active | dev, ai |
+| [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.0 | active | dev, ai |
 | [PLAN-CALENDAR-001](specs/2026-10-08-calendar-ui-plan.md) | Plan — Calendar Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
