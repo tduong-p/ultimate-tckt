@@ -43,27 +43,20 @@ function createLegacyGate(db) {
       return next();
     }
 
+    // Check if current unit has dieu-hanh module enabled
+    if (unit && unit.id) {
+      const [moduleRows] = await db.execute(
+        'SELECT 1 FROM unit_modules WHERE unit_id = ? AND module_id = ?',
+        [unit.id, 'dieu-hanh']
+      );
+      if (moduleRows.length > 0) {
+        return next();
+      }
+    }
+
     // TCKT members have full access (backward compatibility)
     if (hasTcktMembership(memberships)) {
       return next();
-    }
-
-    // Check if current unit has dieu-hanh module enabled
-    if (unit && unit.id) {
-      try {
-        const [moduleRows] = await db.execute(
-          'SELECT 1 FROM unit_modules WHERE unit_id = ? AND module_id = ?',
-          [unit.id, 'dieu-hanh']
-        );
-        if (moduleRows.length > 0) {
-          return next();
-        }
-      } catch (err) {
-        if (err?.code === 'ECONNREFUSED' || err?.name === 'AggregateError' || String(err?.message || '').includes('ECONNREFUSED')) {
-          return next();
-        }
-        throw err;
-      }
     }
 
     // DYC members: read-only with audit logging

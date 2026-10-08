@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts, web/src/shared/components/MicrosoftLottieLogo.tsx, core/src/routes/system.js, core/src/middleware/unit-context.js]
+related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts, web/src/shared/components/MicrosoftLottieLogo.tsx]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -63,18 +63,6 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   - Khi đang xác thực, hiển thị lớp phủ mờ (backdrop overlay) với hoạt ảnh Lottie Loading cao cấp (`LottieLoading` dựa trên file vector `loading.lottie`), kèm thông điệp "Đang xác thực thông tin..." / "Signing in...".
   - Khi ứng dụng root tải trạng thái phiên ban đầu trong `main.tsx`, sử dụng `<LottieLoading fullScreen message="Đang tải không gian làm việc..." />` thay cho Spinner mặc định.
 
-### 2.3. Hỗ trợ Tài khoản Kiểm thử Local (Local Test Account)
-- **Tài khoản mặc định sẵn sàng sử dụng**:
-  - Email: `admin@hust.edu.vn`
-  - Mật khẩu: `123456`
-  - Quyền hạn: `admin` (Ban Tổ chức - Kiểm tra)
-- **Tiện ích giao diện (UI Quick Fill)**:
-  - Bổ sung khung hướng dẫn nhỏ bên dưới nút đăng nhập hiển thị thông tin tài khoản kiểm thử local.
-  - Nút `[Điền nhanh]` (Quick Fill) tự động điền email và mật khẩu vào form chỉ với 1 click, giúp việc kiểm thử trên trình duyệt nhanh chóng và thuận tiện.
-- **Khả năng chịu lỗi đa tầng (Dual Resilience)**:
-  - Backend `core/`: Hỗ trợ đăng nhập trực tiếp với thông tin tài khoản kiểm thử, cấp phiên làm việc `admin` và context đơn vị TCKT, đồng thời xử lý lỗi kết nối MySQL (`ECONNREFUSED` / `AggregateError`) an toàn trả về dữ liệu mẫu để môi trường dev chạy độc lập mà không crash.
-  - Frontend `web/`: Hàm `loginUser` và `fetchSession` hỗ trợ fallback ngoại tuyến lưu phiên trong `sessionStorage` giúp giao diện hoạt động mượt mà ngay cả khi backend chưa khởi động.
-
 ## 3. Kiến trúc Luồng Dữ liệu và Phiên làm việc (Session Gating)
 
 ```mermaid
@@ -104,12 +92,12 @@ flowchart TD
    - Kiểm tra component `LottieLoading` hiển thị đúng kích cỡ, thông điệp và container.
    - Kiểm tra component `ThemeToggle` hỗ trợ các thuộc tính chuyển trạng thái ARIA switch (`aria-checked`), callback `onToggle`, và hoạt động tự chủ (uncontrolled).
    - Kiểm tra component `MicrosoftLottieLogo` render kích thước tùy chỉnh và container đúng chuẩn.
-   - Kiểm tra khung tài khoản kiểm thử local render chính xác và nút `[Điền nhanh]` tự động điền form.
 3. **Integration test Session Gating**:
    - `main.test.tsx` kiểm tra khi session `user: null` -> render `LoginView`.
    - Khi session `user: { name: 'Admin', ... }` -> render `PageLayout` với các module chính.
 
 ## Lịch sử phiên bản
+- **1.5 (2026-10-08)**: Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging.
 - **1.4 (2026-10-08)**: Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev.
 - **1.3 (2026-10-08)**: Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO.
 - **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi chế độ Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`) cho thanh điều hướng và màn hình đăng nhập.

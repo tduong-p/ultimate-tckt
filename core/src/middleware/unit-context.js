@@ -44,33 +44,7 @@ function createUnitContextMiddleware(db) {
       const user = req.session && req.session.user;
       if (!user) return next();
 
-      let memberships = [];
-      try {
-        memberships = await listMemberships(db, user.id);
-      } catch (err) {
-        if (user.id === 1 || err.code === 'ECONNREFUSED' || err.code === 'PROTOCOL_CONNECTION_LOST' || err.name === 'AggregateError' || String(err.message || '').includes('ECONNREFUSED')) {
-          memberships = [{
-            unit_id: 1,
-            code: 'TCKT',
-            name: 'Tổ Chức - Kiểm Tra',
-            kind: 'tckt',
-            role: user.role || 'admin'
-          }];
-        } else {
-          throw err;
-        }
-      }
-
-      if (!memberships.length && user.id === 1) {
-        memberships = [{
-          unit_id: 1,
-          code: 'TCKT',
-          name: 'Tổ Chức - Kiểm Tra',
-          kind: 'tckt',
-          role: user.role || 'admin'
-        }];
-      }
-
+      const memberships = await listMemberships(db, user.id);
       req.memberships = memberships;
 
       if (!memberships.length) {
