@@ -7,10 +7,10 @@ export const MyTasksToday: React.FC = () => {
   return (
     <div style={{ maxWidth: '1000px', margin: '0', paddingTop: '16px' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 600, color: token('color.text', '#172B4D'), marginBottom: '8px' }}>
-        CÃ´ng viá»‡c hÃ´m nay
+        Công việc hôm nay
       </h1>
       <p style={{ fontSize: '14px', color: token('color.text.subtle', '#5E6C84'), marginBottom: '32px' }}>
-        CÃ´ng viá»‡c Ä‘áº¿n háº¡n hÃ´m nay, quÃ¡ háº¡n, hoáº·c Ä‘ang chá»  báº¡n duyá»‡t.
+        Công việc đến hạn hôm nay, quá hạn, hoặc đang chờ bạn duyệt.
       </p>
 
       {/* Due Today Card */}
@@ -24,7 +24,7 @@ export const MyTasksToday: React.FC = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: token('color.text', '#172B4D') }}>
-            Ä áº¿n háº¡n hÃ´m nay
+            Đến hạn hôm nay
           </h2>
           <Badge appearance="default">0</Badge>
         </div>
@@ -42,7 +42,7 @@ export const MyTasksToday: React.FC = () => {
             <TaskIcon label="Task" />
           </div>
           <span style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D') }}>
-            KhÃ´ng cÃ³ viá»‡c Ä‘áº¿n háº¡n hÃ´m nay
+            Không có việc đến hạn hôm nay
           </span>
         </div>
       </div>
@@ -57,7 +57,7 @@ export const MyTasksToday: React.FC = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: token('color.text', '#172B4D') }}>
-            QuÃ¡ háº¡n
+            Quá hạn
           </h2>
           <Badge appearance="default">0</Badge>
         </div>
@@ -75,7 +75,7 @@ export const MyTasksToday: React.FC = () => {
             <TaskIcon label="Task" />
           </div>
           <span style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D') }}>
-            KhÃ´ng cÃ³ viá»‡c quÃ¡ háº¡n
+            Không có việc quá hạn
           </span>
         </div>
       </div>
