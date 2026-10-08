@@ -121,3 +121,22 @@ export function getReportExportUrl(params: ReportExportParams): string {
 
   return `/api/reports/export?${searchParams.toString()}`;
 }
+
+/**
+ * Authenticate with email and password.
+ * Endpoint: POST /api/login
+ */
+export async function loginUser(payload: { email: string; password: string }): Promise<{ user: SessionUser }> {
+  const response = await apiClient.post<{ user: SessionUser }>('/login', payload);
+  return response.data;
+}
+
+/**
+ * Sign out of current user session.
+ * Endpoint: POST /api/logout
+ */
+export async function logoutUser(): Promise<{ ok: boolean }> {
+  const response = await apiClient.post<{ ok: boolean }>('/logout');
+  return response.data;
+}
+
