@@ -7,6 +7,9 @@ import DashboardIcon from '@atlaskit/icon/core/dashboard';
 import TaskIcon from '@atlaskit/icon/core/task';
 import WarningIcon from '@atlaskit/icon/core/warning';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
+import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
+import CalendarIcon from '@atlaskit/icon/core/calendar';
+import Avatar from '@atlaskit/avatar';
 
 const TaskWidget = () => (
   <div style={{ flex: '1 1 60%', backgroundColor: token('elevation.surface', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', padding: '16px' }}>
@@ -88,6 +91,83 @@ const KPICards = () => (
   </div>
 );
 
+const UpdatesWidgets = () => (
+  <div style={{ flex: '0 0 35%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    {/* Calendar Widget */}
+    <div style={{ backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', padding: '16px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: token('color.text', '#172B4D') }}>Lịch sự kiện & Deadline</h2>
+        <a href="#" style={{ fontSize: '12px', color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Lịch đầy đủ &gt;</a>
+      </div>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ backgroundColor: token('color.background.neutral', '#DFE1E6'), borderRadius: '4px', textAlign: 'center', padding: '8px', minWidth: '48px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 600, color: token('color.text.subtle', '#42526E') }}>THÁNG 8</div>
+          <div style={{ fontSize: '18px', fontWeight: 600, color: token('color.text', '#172B4D') }}>09</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D'), marginBottom: '4px' }}>Triển khai tạo tài khoản chi đoàn K71 & Hướng dẫn Đoàn viên chuyển sinh hoạt trên QLDV</div>
+          <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E') }}>Giám sát, Kiểm tra...</div>
+        </div>
+        <div style={{ color: token('color.icon', '#42526E') }}><ChevronRightIcon label="Go" /></div>
+      </div>
+    </div>
+
+    {/* Ongoing Activities Widget */}
+    <div style={{ backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', padding: '16px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: token('color.text', '#172B4D') }}>Hoạt động đang diễn ra</h2>
+        <a href="#" style={{ fontSize: '12px', color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Tất cả &gt;</a>
+      </div>
+      <div>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <Lozenge appearance="success">Đã Duyệt</Lozenge>
+        </div>
+        <div style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D'), marginBottom: '12px' }}>
+          Triển khai tạo tài khoản chi đoàn K71 & Hướng dẫn Đoàn viên chuyển sinh hoạt trên QLDV
+        </div>
+        <div style={{ height: '6px', backgroundColor: token('color.background.neutral', '#DFE1E6'), borderRadius: '3px', overflow: 'hidden', marginBottom: '12px' }}>
+          <div style={{ height: '100%', width: '40%', backgroundColor: token('color.background.neutral.bold', '#42526E') }}></div>
+        </div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <a href="#" style={{ fontSize: '13px', color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Bảng Kanban</a>
+          <a href="#" style={{ fontSize: '13px', color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Chi tiết</a>
+        </div>
+      </div>
+    </div>
+
+    {/* Activity Stream Widget */}
+    <div style={{ backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', padding: '16px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
+      <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, marginBottom: '16px', color: token('color.text', '#172B4D') }}>Nhật ký hoạt động</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Avatar size="medium" name="Nguyễn Văn Gia Huy" />
+          <div>
+            <div style={{ fontSize: '14px', color: token('color.text', '#172B4D') }}>
+              <span style={{ fontWeight: 600 }}>Nguyễn Văn Gia Huy</span> <Lozenge appearance="inprogress">Review Note</Lozenge>
+            </div>
+            <div style={{ fontSize: '13px', color: token('color.text', '#172B4D'), marginTop: '4px' }}>Đã duyệt đạt.</div>
+            <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>
+              <a href="#" style={{ color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Triển khai tạo tài khoản chi đoàn K71...</a> • Quá hạn 1 ngày
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Avatar size="medium" name="Phan Hoàng Trung Nghĩa" />
+          <div>
+            <div style={{ fontSize: '14px', color: token('color.text', '#172B4D') }}>
+              <span style={{ fontWeight: 600 }}>Phan Hoàng Trung Nghĩa</span> <Lozenge appearance="success">Minh Chứng</Lozenge>
+            </div>
+            <div style={{ fontSize: '13px', color: token('color.text', '#172B4D'), marginTop: '4px' }}>Đã nộp minh chứng.</div>
+            <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>
+              <a href="#" style={{ color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Triển khai tạo tài khoản chi đoàn K71...</a> • Quá hạn 2 ngày
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const Dashboard: React.FC = () => {
   return (
     <div style={{ padding: '0', position: 'relative' }}>
@@ -106,6 +186,7 @@ export const Dashboard: React.FC = () => {
       <KPICards />
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <TaskWidget />
+        <UpdatesWidgets />
       </div>
     </div>
   );
