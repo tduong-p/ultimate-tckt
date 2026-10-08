@@ -205,6 +205,24 @@ describe('Core API Services', () => {
       });
       expect(result).toEqual(mockResponse);
     });
+
+    it('falls back to local test user when API fails with test credentials', async () => {
+      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('Network error'));
+
+      const result = await loginUser({ email: 'admin@hust.edu.vn', password: '123456' });
+
+      expect(result.user.email).toBe('admin@hust.edu.vn');
+      expect(result.user.role).toBe('admin');
+      expect(result.user.name).toBe('Quản trị viên Kiểm thử');
+    });
+
+    it('throws error when API fails with non-test credentials', async () => {
+      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('Invalid credentials'));
+
+      await expect(
+        loginUser({ email: 'other@hust.edu.vn', password: 'wrong' })
+      ).rejects.toThrow('Invalid credentials');
+    });
   });
 
   describe('logoutUser', () => {

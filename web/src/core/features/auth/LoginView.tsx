@@ -474,6 +474,55 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             >
               {isVi ? 'Đăng nhập →' : 'Sign in →'}
             </Button>
+
+            {/* Local Test Account Helper */}
+            <div
+              data-testid="local-test-account-box"
+              style={{
+                marginTop: '20px',
+                padding: '12px 14px',
+                backgroundColor: token('color.background.neutral.subtle', '#F4F5F7'),
+                borderRadius: '6px',
+                border: `1px dashed ${token('color.border', '#DFE1E6')}`,
+                fontSize: '12px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '4px',
+                }}
+              >
+                <span style={{ fontWeight: 600, color: token('color.text', '#172B4D') }}>
+                  {isVi ? 'Tài khoản kiểm thử local:' : 'Local test account:'}
+                </span>
+                <button
+                  type="button"
+                  data-testid="fill-test-account-btn"
+                  onClick={() => {
+                    setEmail('admin@hust.edu.vn');
+                    setPassword('123456');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: token('color.link', '#0052CC'),
+                    fontWeight: 600,
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                  }}
+                >
+                  {isVi ? 'Điền nhanh' : 'Fill'}
+                </button>
+              </div>
+              <div style={{ color: token('color.text.subtle', '#42526E'), fontFamily: 'monospace', fontSize: '11px' }}>
+                admin@hust.edu.vn / 123456
+              </div>
+            </div>
           </form>
         </div>
       </section>

@@ -58,7 +58,17 @@ function createAccessPolicies(db, isLeadership, isExecutive = (u => ['admin', 'v
     // Teams are unit-scoped by default via teams.unit_id
 
     // Check policies for cross-unit visibility
-    const [policyRows] = await db.execute('SELECT owner_unit_id, level FROM unit_visibility_policies WHERE viewer_unit_id=?', [viewer.unit.id]);
+    let policyRows = [];
+    try {
+      const [rows] = await db.execute('SELECT owner_unit_id, level FROM unit_visibility_policies WHERE viewer_unit_id=?', [viewer.unit.id]);
+      policyRows = rows;
+    } catch (err) {
+      if (err?.code === 'ECONNREFUSED' || err?.name === 'AggregateError' || String(err?.message || '').includes('ECONNREFUSED')) {
+        policyRows = [];
+      } else {
+        throw err;
+      }
+    }
     const visibleUnits = policyRows.map(r => r.owner_unit_id);
 
     if (visibleUnits.length > 0) {

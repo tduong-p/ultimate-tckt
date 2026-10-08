@@ -111,4 +111,24 @@ describe('LoginView Component', () => {
     expect(screen.getByText(/WORK TOGETHER · REMEMBER TOGETHER/i)).toBeDefined();
     expect(screen.getByText(/Sign in to your workspace/i)).toBeDefined();
   });
+
+  it('renders local test account helper and fills credentials on click', () => {
+    render(<LoginView onLoginSuccess={mockOnLoginSuccess} />);
+
+    expect(screen.getByTestId('local-test-account-box')).toBeDefined();
+    expect(screen.getByText(/Tài khoản kiểm thử local:/i)).toBeDefined();
+    expect(screen.getByText(/admin@hust\.edu\.vn \/ 123456/i)).toBeDefined();
+
+    const emailInput = screen.getByLabelText(/Địa chỉ email/i) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(/Mật khẩu/i) as HTMLInputElement;
+    const fillButton = screen.getByTestId('fill-test-account-btn');
+
+    expect(emailInput.value).toBe('');
+    expect(passwordInput.value).toBe('');
+
+    fireEvent.click(fillButton);
+
+    expect(emailInput.value).toBe('admin@hust.edu.vn');
+    expect(passwordInput.value).toBe('123456');
+  });
 });
