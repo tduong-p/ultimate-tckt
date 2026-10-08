@@ -181,7 +181,7 @@ export const Dashboard: React.FC = () => {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button appearance="primary" onClick={() => { console.log('Opening modal!'); setIsModalOpen(true); }}>+ Đề xuất hoạt động</Button>
+          <Button appearance="primary" onClick={(e) => { e.stopPropagation(); console.log('Opening modal!'); setIsModalOpen(true); }}>+ Đề xuất hoạt động</Button>
           <Button appearance="default">Lịch sự kiện</Button>
           <Button appearance="default">Hoạt động</Button>
         </div>
@@ -189,7 +189,7 @@ export const Dashboard: React.FC = () => {
       <KPICards />
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <TaskWidget />
-        <CreateActivityModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <CreateActivityModal isOpen={isModalOpen} onClose={() => { console.log('Closing modal!'); setIsModalOpen(false); }} />
         <UpdatesWidgets />
       </div>
     </div>
