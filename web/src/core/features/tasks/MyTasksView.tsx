@@ -1,6 +1,5 @@
 import React from 'react';
 import { token } from '@atlaskit/tokens';
-import TaskIcon from '@atlaskit/icon/core/task';
 
 export const MyTasksView: React.FC = () => {
   return (
@@ -68,14 +67,8 @@ export const MyTasksView: React.FC = () => {
           backgroundColor: token('color.background.neutral.subtle', '#F4F5F7'),
           borderRadius: '4px',
           padding: '20px 24px',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '14px',
           border: `1px solid ${token('color.border', '#DFE1E6')}`
         }}>
-          <div style={{ color: token('color.icon', '#42526E'), display: 'flex', marginTop: '2px' }}>
-            <TaskIcon label="Task" />
-          </div>
           <div>
             <div style={{
               fontSize: '14px',
