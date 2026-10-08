@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import Button from '@atlaskit/button/new';
 import { token } from '@atlaskit/tokens';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
@@ -10,6 +10,7 @@ import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import Avatar from '@atlaskit/avatar';
+import ProgressBar from '@atlaskit/progress-bar';
 
 const TaskWidget = () => (
   <div style={{ flex: '1 1 60%', backgroundColor: token('elevation.surface', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', padding: '16px' }}>
@@ -125,8 +126,8 @@ const UpdatesWidgets = () => (
         <div style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D'), marginBottom: '12px' }}>
           Triển khai tạo tài khoản chi đoàn K71 & Hướng dẫn Đoàn viên chuyển sinh hoạt trên QLDV
         </div>
-        <div style={{ height: '6px', backgroundColor: token('color.background.neutral', '#DFE1E6'), borderRadius: '3px', overflow: 'hidden', marginBottom: '12px' }}>
-          <div style={{ height: '100%', width: '40%', backgroundColor: token('color.background.neutral.bold', '#42526E') }}></div>
+        <div style={{ marginBottom: '12px' }}>
+          <ProgressBar value={0.4} appearance="default" />
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <a href="#" style={{ fontSize: '13px', color: token('color.link', '#0052CC'), textDecoration: 'none' }}>Bảng Kanban</a>
@@ -178,7 +179,7 @@ export const Dashboard: React.FC = () => {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button appearance="primary">Đề xuất hoạt động</Button>
+          <Button appearance="primary">+ Đề xuất hoạt động</Button>
           <Button appearance="default">Lịch sự kiện</Button>
           <Button appearance="default">Hoạt động</Button>
         </div>

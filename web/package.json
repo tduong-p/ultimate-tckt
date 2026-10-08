@@ -24,6 +24,7 @@
     "@atlaskit/page-header": "^13.3.4",
     "@atlaskit/page-layout": "^5.5.5",
     "@atlaskit/primitives": "^22.5.4",
+    "@atlaskit/progress-bar": "^5.3.7",
     "@atlaskit/spinner": "^20.4.4",
     "@atlaskit/tabs": "^21.3.0",
     "@atlaskit/tokens": "^20.2.0",

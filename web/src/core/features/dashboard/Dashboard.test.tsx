@@ -11,7 +11,7 @@ describe('Dashboard', () => {
   it('renders the greeting and header buttons', () => {
     render(<Dashboard />);
     expect(screen.getByText(/Xin chào Phạm Việt Bách/i)).toBeDefined();
-    expect(screen.getByText('Đề xuất hoạt động')).toBeDefined();
+    expect(screen.getByText('+ Đề xuất hoạt động')).toBeDefined();
   });
 
   it('renders 4 KPI cards', () => {
