@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ARCHIVE-001
 title: Design — Archive Screen UI (Kho lưu trữ hoạt động)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -31,4 +31,7 @@ The "Lưu trữ" (Archive) screen serves as the knowledge repository of complete
   - Subtitle: "Hoạt động hoàn thành sẽ được đưa vào kho lưu trữ." (13px, subtle text).
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế giao diện Kho lưu trữ hoạt động.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Kho lưu trữ hoạt động | DYC |
+| 1.1 | 2026-10-08 | Tích hợp React Query với API /api/archive thực tế, xóa mock | DYC |

@@ -1,5 +1,5 @@
 ---
-doc_id: SPEC-CTD-UI-001
+doc_id: SPEC-CTDUI-001
 title: Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System
 version: 1.0
 status: active
@@ -76,4 +76,6 @@ Hệ thống hỗ trợ 2 nhóm đối tượng chính theo use case chuẩn c�
 ---
 
 ## Lịch sử phiên bản
-- 1.0 (2026-10-08): Khởi tạo tài liệu thiết kế giao diện CTD theo Atlassian Design System.
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện CTD theo Atlassian Design System | DYC |

@@ -1,7 +1,7 @@
-﻿---
+---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: AI
@@ -55,3 +55,4 @@ A stack of 3 distinct cards:
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo spec cho trang Tổng quan | AI |
+| 1.1 | 2026-10-08 | Kết nối Dashboard với API GET /api/bootstrap và xóa KPI mock | AI |
