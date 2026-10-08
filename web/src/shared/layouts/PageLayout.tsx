@@ -87,14 +87,22 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                   onClick={onLogout}
                   aria-label="Đăng xuất tài khoản"
                   style={{
-                    marginLeft: '4px',
+                    marginLeft: '6px',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '4px',
+                    padding: '6px',
+                    borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
-                    color: token('color.text.subtle', '#6B778C'),
+                    color: token('color.icon.danger', '#DE350B'),
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = token('color.background.danger.subtle', '#FFEBE6');
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                   title="Đăng xuất"
                 >
@@ -130,7 +138,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                 </Section>
               </MenuGroup>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center', padding: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', alignItems: 'center', padding: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
               <div title="Cài đặt (Admin, ĐYC)" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
                 <SettingsIcon label="Cài đặt" />
               </div>
@@ -140,17 +148,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               <div title="Báo Bug" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
                 <WarningIcon label="Báo Bug" />
               </div>
-              {onLogout && (
-                <div
-                  title="Đăng xuất"
-                  onClick={onLogout}
-                  style={{ cursor: 'pointer', color: token('color.icon.danger', '#BF2600') }}
-                  role="button"
-                  aria-label="Đăng xuất"
-                >
-                  <LogOutIcon label="Đăng xuất" />
-                </div>
-              )}
             </div>
           </div>
         </LeftSidebar>

@@ -44,8 +44,10 @@ describe('PageLayout', () => {
 
     const logoutBtn = screen.getByRole('button', { name: /Đăng xuất tài khoản/i });
     expect(logoutBtn).toBeDefined();
-    fireEvent.click(logoutBtn);
+    // Verify only 1 logout element exists (header only, none in sidebar footer)
+    expect(screen.getAllByTitle('Đăng xuất').length).toBe(1);
 
+    fireEvent.click(logoutBtn);
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
 });
