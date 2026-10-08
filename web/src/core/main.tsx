@@ -1,10 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AppProvider from '@atlaskit/app-provider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
+import Spinner from '@atlaskit/spinner';
 import '@atlaskit/css-reset';
 import '../shared/styles/responsive.css';
 import { PageLayout } from '../shared/layouts/PageLayout';
+import { LoginView } from './features/auth/LoginView';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { MyTasksToday } from './features/tasks/MyTasksToday';
 import { CalendarView } from './features/calendar/CalendarView';
@@ -15,13 +17,51 @@ import { MembersView } from './features/members/MembersView';
 import { DocumentsView } from './features/documents/DocumentsView';
 import { ReportsView } from './features/reports/ReportsView';
 import { ArchiveView } from './features/archive/ArchiveView';
+import { fetchSession, logoutUser } from './api';
 
-const queryClient = new QueryClient();
+const defaultQueryClient = new QueryClient();
 
 export const App = () => {
   const [currentView, setCurrentView] = React.useState('dashboard');
+  const queryClient = useQueryClient();
+
+  const { data: session, isLoading, refetch } = useQuery({
+    queryKey: ['session'],
+    queryFn: fetchSession,
+  });
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // ignore
+    }
+    queryClient.setQueryData(['session'], { user: null });
+  };
+
+  const handleLoginSuccess = () => {
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
+        <Spinner size="large" />
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <PageLayout currentView={currentView} onNavigate={setCurrentView}>
+    <PageLayout
+      currentView={currentView}
+      onNavigate={setCurrentView}
+      user={session.user}
+      onLogout={handleLogout}
+    >
       {currentView === 'dashboard' && <Dashboard />}
       {currentView === 'my-tasks-today' && <MyTasksToday />}
       {currentView === 'calendar' && <CalendarView />}
@@ -41,7 +81,7 @@ if (rootEl) {
   ReactDOM.createRoot(rootEl).render(
     <React.StrictMode>
       <AppProvider>
-        <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={defaultQueryClient}>
           <App />
         </QueryClientProvider>
       </AppProvider>

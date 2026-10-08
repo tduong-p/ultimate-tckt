@@ -1,4 +1,4 @@
-﻿/* Global responsive styles */
+/* Global responsive styles */
 .mobile-only {
   display: none !important;
 }
@@ -82,4 +82,13 @@ html, body, #root { height: 100%; margin: 0; }
 }
 .task-row-selected {
   background-color: var(--ds-background-selected, #E9F2FF) !important;
+}
+
+@media (max-width: 860px) {
+  .login-container-responsive {
+    grid-template-columns: 1fr !important;
+  }
+  .login-hero-col {
+    display: none !important;
+  }
 }

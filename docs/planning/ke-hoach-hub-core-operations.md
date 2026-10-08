@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.8
+version: 2.9
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1289,3 +1289,5 @@ npm run docs:check         # Documentation validation
 | 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống - xem DEV-TZ-001 (docs/dev/mui-gio.md) | DYC |
 | 2.7 | 2026-10-07 | Khởi tạo module web/** chính thức chuyển đổi từ POC frontend React Atlaskit | DYC |
 | 2.8 | 2026-10-08 | Tích hợp toàn diện API Backend và xóa dữ liệu mock thử nghiệm trong web/** | DYC |
+| 2.9 | 2026-10-08 | Xây dựng giao diện đăng nhập hiện đại 2 cột và kiểm soát phiên (session gating, logout) | DYC |
+

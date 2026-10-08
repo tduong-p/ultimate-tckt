@@ -11,6 +11,8 @@ import {
   fetchDocuments,
   fetchArchive,
   getReportExportUrl,
+  loginUser,
+  logoutUser,
 } from './index';
 
 vi.mock('../../shared/utils/api', () => ({
@@ -189,4 +191,31 @@ describe('Core API Services', () => {
       expect(url).toBe('/api/reports/export?start=2026-09-01&end=2026-10-01&lang=vi');
     });
   });
+
+  describe('loginUser', () => {
+    it('calls POST /login with credentials and returns user payload', async () => {
+      const mockResponse = { user: { id: 1, name: 'Admin', email: 'admin@hust.edu.vn', role: 'admin' } };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await loginUser({ email: 'admin@hust.edu.vn', password: 'secretpassword' });
+
+      expect(apiClient.post).toHaveBeenCalledWith('/login', {
+        email: 'admin@hust.edu.vn',
+        password: 'secretpassword',
+      });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('logoutUser', () => {
+    it('calls POST /logout and returns ok status', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+
+      const result = await logoutUser();
+
+      expect(apiClient.post).toHaveBeenCalledWith('/logout');
+      expect(result).toEqual({ ok: true });
+    });
+  });
 });
+

@@ -211,3 +211,9 @@ export interface ReportExportParams {
   team_id?: number | string;
   lang?: string;
 }
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
