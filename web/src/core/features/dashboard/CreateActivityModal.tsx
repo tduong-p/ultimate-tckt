@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
 import Textfield from '@atlaskit/textfield';
@@ -6,6 +6,7 @@ import Select from '@atlaskit/select';
 import { Checkbox } from '@atlaskit/checkbox';
 import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
+import { createPortal } from 'react-dom';
 
 interface Props {
   isOpen: boolean;
