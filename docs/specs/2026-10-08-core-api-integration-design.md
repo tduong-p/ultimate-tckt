@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-CAPI-001
 title: Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/**, web/src/shared/**]
 ---
 
@@ -94,6 +94,14 @@ Tạo module quản lý API tách biệt, sử dụng `apiClient` (`axios` với
 - Cột DATE từ Core trả về dạng ISO UTC (`2026-10-07T17:00:00.000Z` = 08/10 giờ VN). Mọi chỗ hiển thị/so sánh ngày dùng `toVnDateKey`/`formatVnDate`/`todayVnKey` trong `web/src/shared/utils/date.ts`, không `slice(0, 10)` hay `new Date().toISOString()`.
 - Ô tìm kiếm (Hoạt động, Lưu trữ, Văn bản) dùng `useDebouncedValue` (300 ms) + `keepPreviousData`; lọc do máy chủ làm.
 
+## Bổ sung 1.3 — retry, mutation, onboarding, kiểu dữ liệu
+
+- `createCoreQueryClient()` đặt `retry` mặc định: không thử lại lỗi 4xx (401/403/400), thử lại tối đa 2 lần cho 5xx/lỗi mạng. `MutationCache.onError` dùng chung xử lý 401 với `QueryCache` → mọi thao tác ghi hết phiên cũng về màn đăng nhập.
+- `downloadReportExport` ném `ApiError` (có `response.status`), thông điệp đã dịch sang tiếng Việt cho các lỗi đã biết.
+- `submitStudentClass(classNumber)` (POST `/api/onboarding/student-class`) và `acknowledgeFacultyNotice()` (POST `/api/onboarding/faculty-notice`) trả `SessionUser` mới.
+- `SessionUser` có `onboarding`, `cohort`, `entrance_year`, `class_number`, `hust_account_type` (theo `withHustIdentity`). `SessionData.units` = `{ current, memberships }` đúng như `unit-context.js`.
+- `ActivityItem.type`, `team_id`… là optional vì `/api/activities`, `/api/archive` trả dòng tóm tắt (`toSummaryView`) cho hoạt động đơn vị khác; có `progress_percent`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -101,3 +109,4 @@ Tạo module quản lý API tách biệt, sử dụng `apiClient` (`axios` với
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế tích hợp API và dọn dẹp dữ liệu rác cho TCKT Activity Hub | DYC |
 | 1.1 | 2026-10-08 | Bổ sung API xác thực loginUser/logoutUser và kiểm soát phiên | DYC |
 | 1.2 | 2026-10-08 | Thêm `downloadReportExport`, xử lý 401 toàn cục + xoá cache khi đăng xuất, thống nhất query key `core-*`, tiện ích ngày `shared/utils/date` | DYC |
+| 1.3 | 2026-10-09 | Retry chỉ cho 5xx/mạng; 401 từ mutation cũng về đăng nhập; `ApiError`; API onboarding; `SessionData.units.memberships`; trường tóm tắt hoạt động là optional | DYC |

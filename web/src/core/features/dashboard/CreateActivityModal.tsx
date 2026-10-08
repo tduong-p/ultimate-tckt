@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
 import Textfield from '@atlaskit/textfield';
@@ -7,7 +7,7 @@ import { Checkbox } from '@atlaskit/checkbox';
 import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTeams, createActivity, type CreateActivityPayload } from '../../api';
+import { fetchTeams, fetchBootstrap, createActivity, type CreateActivityPayload } from '../../api';
 
 type SelectOption<V> = { label: string; value: V };
 
@@ -16,6 +16,19 @@ interface Props {
   onClose: () => void;
 }
 
+// Core trả các lỗi tạo hoạt động bằng tiếng Anh; dịch những câu người dùng có thể gặp.
+const VI_CREATE_ERRORS: Record<string, string> = {
+  'Complete all required fields and select at least one team.':
+    'Vui lòng điền đủ các trường bắt buộc và chọn ít nhất một Tổ.',
+  'Team leaders and vice leaders may only propose work for teams they lead.':
+    'Tổ trưởng/Tổ phó chỉ được đề xuất cho các Tổ mình phụ trách.',
+  'The activity proposal document must be a valid http:// or https:// link.':
+    'Liên kết văn bản đề xuất phải bắt đầu bằng http:// hoặc https://.',
+  'The public image must be a valid http:// or https:// link.':
+    'Liên kết ảnh công khai phải bắt đầu bằng http:// hoặc https://.',
+  'You do not have permission for this action.': 'Bạn không có quyền thực hiện thao tác này.',
+};
+
 export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
@@ -23,6 +36,15 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { data: teams = [], isLoading: isLoadingTeams } = useQuery({
     queryKey: ['core-teams'],
     queryFn: fetchTeams,
+    enabled: isOpen,
+  });
+
+  // Quyền quyết định Tổ nào được chọn: admin/vice_admin (canCreateAccount) thấy mọi Tổ,
+  // Tổ trưởng/Tổ phó chỉ được đề xuất cho Tổ mình lead (backend trả 403 nếu có Tổ khác,
+  // kể cả Tổ phối hợp).
+  const { data: bootstrap, isLoading: isLoadingCaps } = useQuery({
+    queryKey: ['core-bootstrap'],
+    queryFn: fetchBootstrap,
     enabled: isOpen,
   });
 
@@ -35,12 +57,29 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
     },
   });
 
+  const resetMutation = createMutation.reset;
+  useEffect(() => {
+    if (!isOpen) {
+      setFormError(null);
+      resetMutation();
+    }
+  }, [isOpen, resetMutation]);
+
   if (!isOpen) return null;
 
-  const teamOptions = teams.map((t) => ({
-    label: t.name,
-    value: t.id,
-  }));
+  const isExecutive = Boolean(bootstrap?.capabilities?.canCreateAccount);
+  const isLoadingList = isLoadingTeams || isLoadingCaps;
+  const teamOptions = teams
+    .filter((t) => isExecutive || Boolean(t.can_manage))
+    .map((t) => ({
+      label: t.name,
+      value: t.id,
+    }));
+  const serverError = (createMutation.error as { response?: { data?: { error?: string } } } | null)
+    ?.response?.data?.error;
+  const mutationError = serverError
+    ? VI_CREATE_ERRORS[serverError] ?? serverError
+    : 'Không thể tạo đề xuất. Vui lòng kiểm tra lại thông tin.';
 
   const handleSubmit = (formData: Record<string, any>) => {
     const leadTeamId = Number(formData.leadTeam?.value);
@@ -53,6 +92,11 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
     if (!leadTeamId) {
       setFormError('Vui lòng chọn Tổ chủ trì.');
+      return;
+    }
+    const startDate = String(formData.startDate || '');
+    if (startDate && startDate > deadline) {
+      setFormError('Ngày bắt đầu phải trước hoặc bằng hạn chung.');
       return;
     }
     setFormError(null);
@@ -124,7 +168,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: token('elevation.surface', '#fff'),
           borderRadius: '3px',
           width: '800px',
           maxHeight: '90vh',
@@ -226,7 +270,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                             {...fieldProps}
                             placeholder="Chọn một Tổ"
                             options={teamOptions}
-                            isLoading={isLoadingTeams}
+                            isLoading={isLoadingList}
                           />
                         )}
                       </Field>
@@ -277,9 +321,9 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                                 color: token('color.text.subtle', '#6B778C'),
                               }}
                             >
-                              {isLoadingTeams
+                              {isLoadingList
                                 ? 'Đang tải danh sách Tổ...'
-                                : 'Không có Tổ nào'}
+                                : 'Không có Tổ nào bạn được phép đề xuất'}
                             </span>
                           )}
                         </div>
@@ -422,7 +466,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         <Checkbox
                           isChecked={Boolean(fieldProps.value)}
                           onChange={(e) => fieldProps.onChange(e.target.checked)}
-                          label="Show this activity on the public landing page"
+                          label="Hiển thị hoạt động này trên trang công khai"
                         />
                       </div>
                     )}
@@ -430,7 +474,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
                   <Field
                     name="publicImageUrl"
-                    label="Public image URL (optional)"
+                    label="Liên kết ảnh công khai (không bắt buộc)"
                     defaultValue=""
                   >
                     {({ fieldProps }) => (
@@ -473,6 +517,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 )}
                 {createMutation.isError && (
                   <div
+                    role="alert"
                     style={{
                       color: token('color.text.danger', '#DE350B'),
                       marginBottom: '12px',
@@ -480,7 +525,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       textAlign: 'center',
                     }}
                   >
-                    Không thể tạo đề xuất. Vui lòng kiểm tra lại thông tin.
+                    {mutationError}
                   </div>
                 )}
                 <div style={{ width: '100%', padding: '0 24px' }}>

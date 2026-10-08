@@ -15,22 +15,23 @@ import Avatar from '@atlaskit/avatar';
 import ProgressBar from '@atlaskit/progress-bar';
 import { fetchBootstrap, fetchMyTasksToday } from '../../api';
 import type { TaskItem, ActivityItem, ActivityLogItem, BootstrapStats } from '../../api';
-import { formatVnDate, todayVnKey, toVnDateKey } from '../../../shared/utils/date';
+import { formatVnDate, toVnDateKey } from '../../../shared/utils/date';
+import {
+  getTaskPriorityAppearance,
+  getTaskPriorityLabel,
+  getTaskStatusAppearance,
+  getTaskStatusLabel,
+} from '../tasks/taskLabels';
 
 interface KPICardsProps {
   stats?: BootstrapStats;
-  tasks?: TaskItem[];
 }
 
-const KPICards: React.FC<KPICardsProps> = ({ stats, tasks = [] }) => {
+const KPICards: React.FC<KPICardsProps> = ({ stats }) => {
   const activeActivities = stats?.activeActivities ?? 0;
   const openTasks = stats?.openTasks ?? 0;
   const overdueTasks = stats?.overdueTasks ?? 0;
   const completedMonth = stats?.completedMonth ?? 0;
-
-  const totalTasks = openTasks + completedMonth;
-  const efficiencyPct = totalTasks > 0 ? Math.min(Math.round((completedMonth / totalTasks) * 100), 100) : 100;
-  const totalWeights = tasks.reduce((sum, tk) => sum + Number(tk.weight || 1), 0);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
@@ -66,17 +67,15 @@ const KPICards: React.FC<KPICardsProps> = ({ stats, tasks = [] }) => {
         <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Nhiệm vụ quá hạn</div>
       </div>
       
-      {/* 4. Hiệu suất hoàn thành */}
+      {/* 4. Hoàn thành tháng này (đếm theo phạm vi hoạt động người dùng xem được) */}
       <div style={{ padding: '16px', backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div style={{ color: token('color.icon.success', '#36B37E') }}><CheckCircleIcon label="" /></div>
-          <Lozenge appearance="success">{totalWeights}đ</Lozenge>
+          <Lozenge appearance="success">Tháng này</Lozenge>
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{efficiencyPct}%</div>
-        <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Hiệu suất hoàn thành</div>
-        <div style={{ marginTop: '8px', height: '4px', backgroundColor: token('color.background.neutral', '#DFE1E6'), borderRadius: '2px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${efficiencyPct}%`, backgroundColor: token('color.background.success.bold', '#00875A') }}></div>
-        </div>
+        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{completedMonth}</div>
+        <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Hoàn thành tháng này</div>
+        <div style={{ fontSize: '11px', color: token('color.text.subtlest', '#6B778C'), marginTop: '4px' }}>Tính trên các hoạt động bạn xem được</div>
       </div>
     </div>
   );
@@ -129,12 +128,12 @@ const TaskListPanel: React.FC<{
           </div>
           <div style={{ marginLeft: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
             {task.priority && (
-              <Lozenge appearance={task.priority === 'urgent' || task.priority === 'high' ? 'removed' : 'default'}>
-                {task.priority}
+              <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
+                {getTaskPriorityLabel(task.priority)}
               </Lozenge>
             )}
-            <Lozenge appearance={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'inprogress' : 'default'}>
-              {task.status}
+            <Lozenge appearance={getTaskStatusAppearance(task.status)}>
+              {getTaskStatusLabel(task.status)}
             </Lozenge>
           </div>
         </div>
@@ -152,7 +151,9 @@ interface TaskWidgetProps {
 const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], overdue = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { allTasks, openTasks, todayTasks, overdueTasks, doneTasks } = useMemo(() => {
+  // "Hôm nay"/"Quá hạn" chỉ lấy từ /api/my-tasks-today (việc của chính người dùng);
+  // bootstrap.tasks có thể gồm việc của cả Tổ nên không dùng làm dữ liệu dự phòng.
+  const { allTasks, openTasks } = useMemo(() => {
     const taskMap = new Map<number, TaskItem>();
     tasks.forEach(t => taskMap.set(t.id, t));
     dueToday.forEach(t => taskMap.set(t.id, t));
@@ -160,30 +161,10 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
 
     const all = Array.from(taskMap.values());
     const open = all.filter(t => t.status !== 'done' && t.status !== 'cancelled');
-    const done = all.filter(t => t.status === 'done');
-
-    const today = dueToday.length > 0
-      ? dueToday
-      : all.filter(t => {
-          if (!t.deadline) return false;
-          return toVnDateKey(t.deadline) === todayVnKey();
-        });
-
-    const ovd = overdue.length > 0
-      ? overdue
-      : all.filter(t => {
-          if (!t.deadline || t.status === 'done' || t.status === 'cancelled') return false;
-          return toVnDateKey(t.deadline) < todayVnKey();
-        });
-
-    return {
-      allTasks: all,
-      openTasks: open,
-      todayTasks: today,
-      overdueTasks: ovd,
-      doneTasks: done,
-    };
+    return { allTasks: all, openTasks: open };
   }, [tasks, dueToday, overdue]);
+  const todayTasks = dueToday;
+  const overdueTasks = overdue;
 
   return (
     <div style={{ flex: '1 1 60%', backgroundColor: token('elevation.surface', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', padding: '16px' }}>
@@ -202,7 +183,6 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
           <Tab>Cần làm ({openTasks.length})</Tab>
           <Tab>Hôm nay ({todayTasks.length})</Tab>
           <Tab>Quá hạn ({overdueTasks.length})</Tab>
-          <Tab>Đã xong ({doneTasks.length})</Tab>
           <Tab>Tất cả ({allTasks.length})</Tab>
         </TabList>
         <TabPanel>
@@ -213,9 +193,6 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
         </TabPanel>
         <TabPanel>
           <TaskListPanel tasks={overdueTasks} searchQuery={searchQuery} />
-        </TabPanel>
-        <TabPanel>
-          <TaskListPanel tasks={doneTasks} searchQuery={searchQuery} />
         </TabPanel>
         <TabPanel>
           <TaskListPanel tasks={allTasks} searchQuery={searchQuery} />
@@ -282,7 +259,7 @@ const UpdatesWidgets: React.FC<UpdatesWidgetsProps> = ({ upcoming = [], activity
                       {evt.team_names || evt.team_name || 'TCKT'}
                     </div>
                   </div>
-                  <div style={{ color: token('color.icon', '#42526E') }}><ChevronRightIcon label="Go" /></div>
+                  <div style={{ color: token('color.icon', '#42526E') }}><ChevronRightIcon label="" /></div>
                 </div>
               );
             })}
@@ -404,19 +381,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName, onNavigate }) =>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-            Xin chào{userName ? ` ${userName}` : ''}! Bạn có {openTasksCount} nhiệm vụ cần làm.
+            Xin chào{userName ? ` ${userName}` : ''}! Có {openTasksCount} nhiệm vụ đang mở trong phạm vi của bạn.
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button appearance="primary" onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}>
-            + Đề xuất hoạt động
-          </Button>
+          {bootstrapData?.capabilities?.canCreateActivity && (
+            <Button appearance="primary" onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}>
+              + Đề xuất hoạt động
+            </Button>
+          )}
           <Button appearance="default" onClick={() => onNavigate?.('calendar')}>Lịch sự kiện</Button>
           <Button appearance="default" onClick={() => onNavigate?.('activities')}>Hoạt động</Button>
         </div>
       </div>
 
-      <KPICards stats={bootstrapData?.stats} tasks={bootstrapData?.tasks} />
+      <KPICards stats={bootstrapData?.stats} />
 
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <TaskWidget

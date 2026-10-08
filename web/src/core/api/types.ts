@@ -8,6 +8,12 @@ export interface SessionUser {
   class_number?: string | null;
   faculty_notice_acknowledged_at?: string | null;
   is_active?: number | boolean;
+  is_devops?: number | boolean;
+  /** Các field dưới đây do `withHustIdentity` (core/src/auth/hust-identity.js) thêm vào. */
+  hust_account_type?: string | null;
+  entrance_year?: number | null;
+  cohort?: string | null;
+  onboarding?: { type: 'faculty_notice' | 'student_class'; required: boolean } | null;
 }
 
 export interface SessionUnit {
@@ -17,14 +23,31 @@ export interface SessionUnit {
   kind: string;
 }
 
+/** Phần tử `units.memberships` do `sessionView` trả về (core/src/middleware/unit-context.js). */
+export interface SessionMembership {
+  unit_id: number;
+  code: string;
+  name: string;
+  kind: string;
+  role: string;
+}
+
 export interface SessionData {
   user: SessionUser | null;
   units?: {
     current: SessionUnit | null;
-    available: SessionUnit[];
+    memberships: SessionMembership[];
   };
   capabilities?: Record<string, boolean>;
 }
+
+export type ActivityStatus =
+  | 'proposed'
+  | 'changes_requested'
+  | 'approved'
+  | 'active'
+  | 'completed'
+  | 'cancelled';
 
 export interface ActivityItem {
   id: number;
@@ -33,8 +56,9 @@ export interface ActivityItem {
   is_public?: boolean | number;
   public_image_url?: string | null;
   proposal_document_url?: string | null;
-  type: 'event' | 'assigned' | string;
-  team_id: number;
+  /** Thiếu ở dòng tóm tắt (`toSummaryView`) của hoạt động thuộc đơn vị khác. */
+  type?: 'event' | 'assigned' | string;
+  team_id?: number;
   creator_id?: number;
   start_date?: string | null;
   deadline: string;
@@ -42,7 +66,7 @@ export interface ActivityItem {
   requested_by?: string | null;
   location?: string | null;
   event_lead_id?: number | null;
-  status: 'proposed' | 'approved' | 'active' | 'completed' | 'cancelled' | string;
+  status: ActivityStatus | string;
   created_at?: string;
   updated_at?: string;
   unit_id?: number;
@@ -56,6 +80,9 @@ export interface ActivityItem {
   participant_count?: number;
   result_summary?: string | null;
   last_update?: string | null;
+  /** Chỉ có ở dòng tóm tắt (`toSummaryView`) của hoạt động thuộc đơn vị khác. */
+  progress_percent?: number;
+  directive_id?: number | null;
 }
 
 export interface TeamItem {

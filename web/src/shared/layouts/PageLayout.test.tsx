@@ -50,4 +50,31 @@ describe('PageLayout', () => {
     fireEvent.click(logoutBtn);
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
+
+  it('không hiện các nút chưa có chức năng (Cài đặt, Chuyển vai trò, Báo Bug, Thông báo)', () => {
+    render(<PageLayout><div>Content</div></PageLayout>);
+    expect(screen.queryByTitle('Cài đặt (Admin, ĐYC)')).toBeNull();
+    expect(screen.queryByTitle('Chuyển vai trò')).toBeNull();
+    expect(screen.queryByTitle('Báo Bug')).toBeNull();
+    expect(screen.queryByLabelText('Notifications')).toBeNull();
+    expect(screen.queryByLabelText('Thông báo')).toBeNull();
+  });
+
+  it('mục Báo cáo chỉ hiện khi canViewReports là true', () => {
+    const { rerender } = render(<PageLayout><div>Content</div></PageLayout>);
+    expect(screen.queryByText('Báo cáo')).toBeNull();
+
+    rerender(<PageLayout canViewReports={false}><div>Content</div></PageLayout>);
+    expect(screen.queryByText('Báo cáo')).toBeNull();
+
+    rerender(<PageLayout canViewReports><div>Content</div></PageLayout>);
+    expect(screen.getByText('Báo cáo')).toBeDefined();
+  });
+
+  it('bấm mục Báo cáo chuyển sang màn reports', () => {
+    const onNavigate = vi.fn();
+    render(<PageLayout canViewReports onNavigate={onNavigate}><div>Content</div></PageLayout>);
+    fireEvent.click(screen.getByText('Báo cáo'));
+    expect(onNavigate).toHaveBeenCalledWith('reports');
+  });
 });

@@ -1,9 +1,10 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Dashboard } from './Dashboard';
 import * as api from '../../api';
+import { todayVnKey } from '../../../shared/utils/date';
 
 vi.mock('../../api', async () => {
   const actual = await vi.importActual('../../api');
@@ -11,6 +12,7 @@ vi.mock('../../api', async () => {
     ...actual,
     fetchBootstrap: vi.fn(),
     fetchMyTasksToday: vi.fn(),
+    fetchTeams: vi.fn().mockResolvedValue([]),
   };
 });
 
@@ -129,10 +131,22 @@ describe('Dashboard', () => {
     renderWithClient(<Dashboard userName="Nguyễn Thị Hoa" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Xin chào Nguyễn Thị Hoa! Bạn có 5 nhiệm vụ cần làm/i)).toBeDefined();
+      expect(screen.getByText(/Xin chào Nguyễn Thị Hoa! Có 5 nhiệm vụ đang mở trong phạm vi của bạn/i)).toBeDefined();
     });
     expect(screen.queryByText(/Phạm Việt Bách/)).toBeNull();
-    expect(screen.getByText('+ Đề xuất hoạt động')).toBeDefined();
+    expect(await screen.findByText('+ Đề xuất hoạt động')).toBeDefined();
+  });
+
+  it('ẩn nút Đề xuất hoạt động khi không có quyền tạo hoạt động', async () => {
+    vi.mocked(api.fetchBootstrap).mockResolvedValue({
+      ...mockBootstrapData,
+      capabilities: { canCreateActivity: false, canCreateAccount: false },
+    });
+    renderWithClient(<Dashboard userName="Nguyễn Thị Hoa" />);
+
+    await screen.findByText(/Có 5 nhiệm vụ đang mở trong phạm vi của bạn/);
+    expect(screen.queryByText('+ Đề xuất hoạt động')).toBeNull();
+    expect(screen.getByText('Lịch sự kiện')).toBeDefined();
   });
 
   it('nút Lịch sự kiện và Hoạt động chuyển sang màn tương ứng', () => {
@@ -153,13 +167,55 @@ describe('Dashboard', () => {
       expect(screen.getByText('3')).toBeDefined(); // activeActivities
       expect(screen.getByText('5')).toBeDefined(); // openTasks
       expect(screen.getByText('1')).toBeDefined(); // overdueTasks
-      expect(screen.getByText('44%')).toBeDefined(); // 4 / (5 + 4) = 44%
+      expect(screen.getByText('4')).toBeDefined(); // completedMonth
     });
 
     expect(screen.getAllByText('Hoạt động đang diễn ra').length).toBeGreaterThan(0);
     expect(screen.getByText('Nhiệm vụ đang mở')).toBeDefined();
     expect(screen.getByText('Nhiệm vụ quá hạn')).toBeDefined();
-    expect(screen.getByText('Hiệu suất hoàn thành')).toBeDefined();
+    expect(screen.getByText('Hoàn thành tháng này')).toBeDefined();
+    expect(screen.getByText(/các hoạt động bạn xem được/i)).toBeDefined();
+    expect(screen.queryByText('Hiệu suất hoàn thành')).toBeNull();
+    expect(screen.queryByText(/%$/)).toBeNull();
+    expect(screen.queryByText(/\dđ$/)).toBeNull();
+  });
+
+  it('nhãn trạng thái và mức ưu tiên hiển thị bằng tiếng Việt', async () => {
+    renderWithClient(<Dashboard />);
+    await screen.findByText('Khảo sát địa bàn tình nguyện');
+    expect(screen.getByText('Cao')).toBeDefined();
+    expect(screen.queryByText('high')).toBeNull();
+    expect(screen.queryByText('todo')).toBeNull();
+    expect(screen.getAllByText('Cần làm').length).toBeGreaterThan(0);
+  });
+
+  it('không có tab Đã xong', async () => {
+    renderWithClient(<Dashboard />);
+    await screen.findByText('Khảo sát địa bàn tình nguyện');
+    expect(screen.queryByText(/^Đã xong/)).toBeNull();
+  });
+
+  it('tab Hôm nay và Quá hạn chỉ dùng dữ liệu my-tasks-today, không mượn bootstrap.tasks', async () => {
+    const today = todayVnKey();
+    vi.mocked(api.fetchBootstrap).mockResolvedValue({
+      ...mockBootstrapData,
+      tasks: [
+        { ...mockBootstrapData.tasks[0], id: 301, title: 'Việc của Tổ hạn hôm nay', deadline: today },
+        { ...mockBootstrapData.tasks[0], id: 302, title: 'Việc của Tổ đã quá hạn', deadline: '2020-01-01' },
+      ],
+    });
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue({ dueToday: [], overdue: [], pendingMyReview: [] });
+    renderWithClient(<Dashboard />);
+    await screen.findByText('Việc của Tổ hạn hôm nay');
+
+    fireEvent.click(screen.getByRole('tab', { name: /^Hôm nay/ }));
+    expect(screen.getByRole('tab', { name: 'Hôm nay (0)' }).getAttribute('aria-selected')).toBe('true');
+    expect(within(screen.getByRole('tabpanel')).queryByText('Việc của Tổ hạn hôm nay')).toBeNull();
+    expect(within(screen.getByRole('tabpanel')).getByText('Không tìm thấy công việc nào')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('tab', { name: /^Quá hạn/ }));
+    expect(screen.getByRole('tab', { name: 'Quá hạn (0)' })).toBeDefined();
+    expect(within(screen.getByRole('tabpanel')).queryByText('Việc của Tổ đã quá hạn')).toBeNull();
   });
 
   it('renders left column task widget with tasks from API', async () => {
@@ -238,10 +294,10 @@ describe('Dashboard', () => {
     expect(screen.getByText('Khảo sát địa bàn tình nguyện')).toBeDefined();
   });
 
-  it('opens CreateActivityModal when clicking button', () => {
+  it('opens CreateActivityModal when clicking button', async () => {
     renderWithClient(<Dashboard />);
     expect(screen.queryByText('ĐỀ XUẤT MỚI')).toBeNull();
-    fireEvent.click(screen.getByText('+ Đề xuất hoạt động'));
+    fireEvent.click(await screen.findByText('+ Đề xuất hoạt động'));
     expect(screen.getByText('ĐỀ XUẤT MỚI')).toBeDefined();
   });
 });

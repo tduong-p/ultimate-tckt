@@ -11,6 +11,11 @@ import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '.
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ActivityDetailModal } from './ActivityDetailModal';
 import {
+  getActivityStatusMeta,
+  getActivityTypeShortLabel,
+  participatesInTeam,
+} from '../activities/activityLabels';
+import {
   formatVnDate,
   todayVnKey,
   toVnDateKey,
@@ -25,38 +30,11 @@ interface CalendarCell {
 }
 
 const getStatusLozenge = (status?: string) => {
-  switch (status) {
-    case 'approved':
-      return <Lozenge appearance="success">Đã Duyệt</Lozenge>;
-    case 'active':
-    case 'in_progress':
-      return <Lozenge appearance="inprogress">Đang diễn ra</Lozenge>;
-    case 'completed':
-      return <Lozenge appearance="success">Hoàn thành</Lozenge>;
-    case 'cancelled':
-      return <Lozenge appearance="removed">Đã hủy</Lozenge>;
-    case 'proposed':
-    default:
-      return <Lozenge appearance="default">Đề xuất</Lozenge>;
-  }
+  const meta = getActivityStatusMeta(status);
+  return <Lozenge appearance={meta.appearance}>{meta.label}</Lozenge>;
 };
 
-const getStatusText = (status?: string): string => {
-  switch (status) {
-    case 'approved':
-      return 'Đã duyệt';
-    case 'active':
-    case 'in_progress':
-      return 'Đang diễn ra';
-    case 'completed':
-      return 'Hoàn thành';
-    case 'cancelled':
-      return 'Đã hủy';
-    case 'proposed':
-    default:
-      return 'Đề xuất';
-  }
-};
+const getStatusText = (status?: string): string => getActivityStatusMeta(status).text;
 
 // 16 distinct, high-contrast, beautiful accessible colors for Gantt activity bars
 export const GANTT_COLORS = [
@@ -157,8 +135,13 @@ export const CalendarView: React.FC = () => {
   const filteredActivities = useMemo(() => {
     const list: ActivityItem[] = activities || [];
     if (selectedTeam === 'all') return list;
-    return list.filter((act) => String(act.team_id) === String(selectedTeam));
-  }, [activities, selectedTeam]);
+    const team = (teams || []).find((t) => String(t.id) === String(selectedTeam));
+    return list.filter((act) =>
+      team
+        ? participatesInTeam(act, team)
+        : String(act.team_id) === String(selectedTeam)
+    );
+  }, [activities, selectedTeam, teams]);
 
   const todayKey = todayVnKey();
 
@@ -483,7 +466,7 @@ export const CalendarView: React.FC = () => {
                       {dayActivities.slice(0, 2).map((act) => (
                         <div
                           key={act.id}
-                          title={`${act.title} (${act.team_name || ''})`}
+                          title={act.team_name ? `${act.title} (${act.team_name})` : act.title}
                           data-testid={`activity-pill-${act.id}`}
                           onClick={() => setSelectedActivity(act)}
                           style={{
@@ -624,7 +607,7 @@ export const CalendarView: React.FC = () => {
                       color: token('color.text.subtle', '#5E6C84'),
                     }}
                   >
-                    {act.type === 'event' ? 'Sự kiện' : 'Chỉ đạo'}
+                    {getActivityTypeShortLabel(act.type)}
                   </span>
                 </div>
               </div>

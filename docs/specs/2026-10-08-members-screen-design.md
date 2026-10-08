@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-MEMBERS-001
 title: Design — Members Screen UI (Thành viên)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/members/MembersView.tsx]
 ---
 
@@ -19,7 +19,6 @@ The "Thành viên" screen recognizes and manages members, their roles, team affi
 ### Header
 - **Title**: "Thành viên"
 - **Subtitle**: "Recognize every member's participation."
-- **Action Button**: "+ Tạo tài khoản" (Primary button)
 
 ### Search & Filters Toolbar
 - **Search Bar**: "Tìm thành viên..."
@@ -39,3 +38,4 @@ The "Thành viên" screen recognizes and manages members, their roles, team affi
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Thành viên | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/people và /api/teams, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Bỏ nút "+ Tạo tài khoản" (chưa có chức năng); chữ tiếng Anh còn sót đổi sang tiếng Việt | DYC |

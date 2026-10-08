@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-ARCHIVE-001
 title: Design — Archive Screen UI (Kho lưu trữ hoạt động)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/archive/ArchiveView.tsx]
 ---
 
@@ -35,3 +35,4 @@ The "Lưu trữ" (Archive) screen serves as the knowledge repository of complete
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Kho lưu trữ hoạt động | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/archive thực tế, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Dòng tóm tắt đơn vị khác hiện "Tiến độ N%" từ `progress_percent`; nhãn trạng thái dùng chung `activityLabels.ts`; tìm kiếm debounce | DYC |

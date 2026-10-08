@@ -296,4 +296,69 @@ describe('CalendarView', () => {
     expect(screen.queryByTestId('gantt-bar-4')).toBeNull();
     expect(screen.getByText('Danh sách hoạt động (2)')).toBeDefined();
   });
+
+  it('bộ lọc Tổ giữ lại hoạt động mà Tổ chỉ phối hợp (team_names), không chỉ Tổ chủ trì', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[0], team_names: 'Tổ chức và Phát triển Đoàn, Tuyên giáo - Truyền thông' },
+      { ...mockActivities[1], team_names: 'Tuyên giáo - Truyền thông' },
+      {
+        id: 3,
+        title: 'Hoạt động của Tổ khác',
+        team_id: 9,
+        team_name: 'Tổ khác',
+        team_names: 'Tổ khác',
+        status: 'approved',
+        type: 'event',
+        priority: 'medium',
+        deadline: '2026-10-12',
+      },
+    ]);
+    renderWithClient(<CalendarView />);
+    await screen.findByText('Hoạt động của Tổ khác');
+    await screen.findByText('Họp giao ban Đoàn đầu tháng 10');
+
+    const teamSelect = screen.getAllByRole('combobox')[0];
+    fireEvent.focus(teamSelect);
+    fireEvent.keyDown(teamSelect, { key: 'ArrowDown' });
+    fireEvent.click(await screen.findByText('Tuyên giáo - Truyền thông', { selector: '[class*="option"], [id*="option"]' }));
+
+    await waitFor(() => expect(screen.queryByText('Hoạt động của Tổ khác')).toBeNull());
+    // chủ trì (id 2) và phối hợp (id 1) đều còn
+    expect(screen.getByText('Hội thảo Đổi mới Phương thức Sinh hoạt Chi đoàn')).toBeDefined();
+    expect(screen.getByText('Họp giao ban Đoàn đầu tháng 10')).toBeDefined();
+  });
+
+  it('hiển thị "Cần chỉnh sửa" cho changes_requested trong danh sách và modal', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[0], status: 'changes_requested' },
+    ]);
+    renderWithClient(<CalendarView />);
+    fireEvent.click(screen.getByText('Danh sách'));
+    expect(await screen.findByText('Cần chỉnh sửa')).toBeDefined();
+    expect(screen.queryByText('Đề xuất')).toBeNull();
+  });
+
+  it('dòng tóm tắt thiếu type/team không hiện nhãn loại hay Tổ sai', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      {
+        id: 7,
+        title: 'Hoạt động đơn vị khác',
+        status: 'active',
+        priority: 'medium',
+        deadline: '2026-10-15',
+        progress_percent: 30,
+      },
+    ]);
+    renderWithClient(<CalendarView />);
+    fireEvent.click(screen.getByText('Danh sách'));
+    expect(await screen.findByText('Hoạt động đơn vị khác')).toBeDefined();
+    expect(screen.queryByText('Chỉ đạo')).toBeNull();
+    expect(screen.queryByText('Sự kiện')).toBeNull();
+
+    fireEvent.click(screen.getByText('Hoạt động đơn vị khác'));
+    const modal = await screen.findByTestId('activity-detail-modal');
+    expect(within(modal).queryByText('Chỉ đạo')).toBeNull();
+    expect(within(modal).queryByText('Sự kiện')).toBeNull();
+    expect(within(modal).queryByText('Chưa phân công')).toBeNull();
+  });
 });

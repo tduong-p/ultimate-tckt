@@ -5,6 +5,7 @@ import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchArchive, type ActivityItem } from '../../api';
+import { getActivityTypeLabel } from '../activities/activityLabels';
 import { toVnDateKey } from '../../../shared/utils/date';
 import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 
@@ -202,10 +203,8 @@ export const ArchiveView: React.FC = () => {
                       <Lozenge appearance="inprogress">{item.team_name}</Lozenge>
                     )}
                     <Lozenge appearance="success">Hoàn thành</Lozenge>
-                    {item.type && (
-                      <Lozenge appearance="default">
-                        {item.type === 'event' ? 'Sự kiện đơn vị' : 'Chỉ đạo cấp trên'}
-                      </Lozenge>
+                    {getActivityTypeLabel(item.type) && (
+                      <Lozenge appearance="default">{getActivityTypeLabel(item.type)}</Lozenge>
                     )}
                     {item.deadline && (
                       <span
@@ -232,10 +231,14 @@ export const ArchiveView: React.FC = () => {
                   {typeof item.participant_count === 'number' && (
                     <span>{item.participant_count} người tham gia</span>
                   )}
-                  {typeof item.task_count === 'number' && (
+                  {typeof item.task_count === 'number' ? (
                     <span>
                       {item.done_count ?? item.task_count}/{item.task_count} việc xong
                     </span>
+                  ) : (
+                    typeof item.progress_percent === 'number' && (
+                      <span>Tiến độ {item.progress_percent}%</span>
+                    )
                   )}
                 </div>
               </div>

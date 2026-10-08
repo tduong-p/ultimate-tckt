@@ -1,15 +1,17 @@
 ---
 doc_id: SPEC-POC-001
 title: Thiết kế — POC Frontend React + Atlaskit (Sub-project 1)
-version: 1.0
-status: active
+version: 1.1
+status: deprecated
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-09
 related_code: []
 ---
 
 # Thiết kế — POC Frontend React + Atlaskit (Sub-project 1)
+
+> **Đã ngừng dùng:** POC này đã được thay bằng module `web/` — xem [2026-10-07-frontend-migration.md](2026-10-07-frontend-migration.md). Giữ lại làm lịch sử, không làm theo.
 
 Dựa trên quyết định tại `ADR-0015-001`, tài liệu này mô tả thiết kế chi tiết cho Sub-project 1 của việc đập đi xây lại toàn bộ frontend sang React và Atlassian Design System. Sub-project 1 giới hạn trong việc khởi tạo kiến trúc đa ứng dụng (Multi-page app) và xây dựng màn hình thử nghiệm "My Tasks" của hệ Core.
 
@@ -51,4 +53,4 @@ Dựa trên quyết định tại `ADR-0015-001`, tài liệu này mô tả thi�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-05 | Thiết kế ban đầu POC Frontend React + Atlaskit | DYC |
-
+| 1.1 | 2026-10-09 | Đánh dấu deprecated: POC đã được thay bằng module `web/` | DYC |

@@ -4,7 +4,7 @@ import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import DownloadIcon from '@atlaskit/icon/core/download';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchTeams, downloadReportExport, type TeamItem } from '../../api';
 import { formatVnDate, todayVnKey } from '../../../shared/utils/date';
 
@@ -18,17 +18,10 @@ const toIsoDate = (str: string): string => {
   return str;
 };
 
-type ExportState =
-  | { kind: 'idle' }
-  | { kind: 'pending' }
-  | { kind: 'done' }
-  | { kind: 'error'; message: string };
-
 export const ReportsView: React.FC = () => {
   const [startDate, setStartDate] = useState(() => formatVnDate(`${todayVnKey().slice(0, 8)}01`));
   const [endDate, setEndDate] = useState(() => formatVnDate(todayVnKey()));
   const [selectedTeam, setSelectedTeam] = useState('all');
-  const [exportState, setExportState] = useState<ExportState>({ kind: 'idle' });
 
   const { data: teams } = useQuery({
     queryKey: ['core-teams'],
@@ -43,17 +36,16 @@ export const ReportsView: React.FC = () => {
     ];
   }, [teams]);
 
-  const handleExport = async () => {
-    const start = toIsoDate(startDate);
-    const end = toIsoDate(endDate);
-    setExportState({ kind: 'pending' });
-    try {
-      const blob = await downloadReportExport({
+  // Dùng mutation để lỗi 401 đi qua MutationCache của App (quay về màn đăng nhập).
+  const exportMutation = useMutation({
+    mutationFn: ({ start, end }: { start: string; end: string }) =>
+      downloadReportExport({
         start,
         end,
         team_id: selectedTeam !== 'all' ? selectedTeam : undefined,
         lang: 'vi',
-      });
+      }),
+    onSuccess: (blob, { start, end }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -61,14 +53,13 @@ export const ReportsView: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      setExportState({ kind: 'done' });
-    } catch (err) {
-      setExportState({
-        kind: 'error',
-        message: err instanceof Error ? err.message : 'Không xuất được báo cáo. Vui lòng thử lại.',
-      });
-    }
+      // Thu hồi ngay sau click có thể huỷ lượt tải trên Firefox/Safari.
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    },
+  });
+
+  const handleExport = () => {
+    exportMutation.mutate({ start: toIsoDate(startDate), end: toIsoDate(endDate) });
   };
 
   return (
@@ -259,7 +250,7 @@ export const ReportsView: React.FC = () => {
           <Button
             appearance="primary"
             onClick={handleExport}
-            isDisabled={exportState.kind === 'pending'}
+            isDisabled={exportMutation.isPending}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <DownloadIcon label="" />
@@ -267,13 +258,13 @@ export const ReportsView: React.FC = () => {
             </span>
           </Button>
 
-          {exportState.kind === 'pending' && (
+          {exportMutation.isPending && (
             <span style={{ fontSize: '13px', color: token('color.text.subtle', '#5E6C84') }}>
               Đang tạo tệp Excel...
             </span>
           )}
 
-          {exportState.kind === 'done' && (
+          {exportMutation.isSuccess && (
             <span
               style={{
                 fontSize: '13px',
@@ -285,7 +276,7 @@ export const ReportsView: React.FC = () => {
             </span>
           )}
 
-          {exportState.kind === 'error' && (
+          {exportMutation.isError && (
             <span
               role="alert"
               style={{
@@ -294,7 +285,9 @@ export const ReportsView: React.FC = () => {
                 fontWeight: 500,
               }}
             >
-              {exportState.message}
+              {exportMutation.error instanceof Error
+                ? exportMutation.error.message
+                : 'Không xuất được báo cáo. Vui lòng thử lại.'}
             </span>
           )}
         </div>

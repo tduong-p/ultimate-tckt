@@ -133,4 +133,22 @@ describe('ArchiveView', () => {
     );
     expect(api.fetchArchive).toHaveBeenCalledTimes(2);
   });
+
+  it('dòng tóm tắt đơn vị khác: không nhãn loại, hiện tiến độ từ progress_percent', async () => {
+    vi.mocked(api.fetchArchive).mockResolvedValue([
+      {
+        id: 300,
+        title: 'Hoạt động lưu trữ đơn vị khác',
+        status: 'completed',
+        priority: 'medium',
+        deadline: '2026-04-01',
+        progress_percent: 100,
+      },
+    ]);
+    renderWithClient(<ArchiveView />);
+    expect(await screen.findByText('Hoạt động lưu trữ đơn vị khác')).toBeDefined();
+    expect(screen.queryByText('Sự kiện đơn vị')).toBeNull();
+    expect(screen.queryByText('Chỉ đạo cấp trên')).toBeNull();
+    expect(screen.getByText('Tiến độ 100%')).toBeDefined();
+  });
 });

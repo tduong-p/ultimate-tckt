@@ -1,6 +1,5 @@
 import React from 'react';
 import { token } from '@atlaskit/tokens';
-import Button from '@atlaskit/button/new';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { useQuery } from '@tanstack/react-query';
@@ -213,12 +212,6 @@ export const TeamsView: React.FC = () => {
                         đang chạy
                       </div>
                     </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                    <Button appearance="subtle">Xem hoạt động</Button>
-                    <Button appearance="default">Quản lý</Button>
                   </div>
                 </div>
               </div>

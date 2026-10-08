@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-CALENDAR-001
 title: Design — Calendar Screen UI (Lịch chung)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/calendar/**]
 ---
 
@@ -49,3 +49,4 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 | 1.2 | 2026-10-08 | Bổ sung chế độ xem Biểu đồ Gantt phân màu riêng cho từng hoạt động và tích hợp Lottie loading | DYC |
 | 1.3 | 2026-10-08 | Chuyển trục thời gian Biểu đồ Gantt từ các tháng trong năm sang các ngày trong tháng đang chọn | DYC |
 | 1.4 | 2026-10-08 | Ngày hiển thị/xếp ô và "Hôm nay" theo giờ Việt Nam (`shared/utils/date`); Gantt chỉ vẽ hoạt động giao với tháng đang xem | DYC |
+| 1.5 | 2026-10-09 | Bộ lọc Tổ gồm cả Tổ phối hợp (so theo `team_names`); trạng thái `changes_requested`; không hiện loại/Tổ cho dòng tóm tắt đơn vị khác | DYC |

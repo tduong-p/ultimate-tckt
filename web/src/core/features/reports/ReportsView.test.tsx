@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReportsView } from './ReportsView';
 import * as api from '../../api';
 
@@ -74,8 +74,10 @@ describe('ReportsView', () => {
 
     fireEvent.click(screen.getByText('Xuất báo cáo Excel'));
 
-    expect(api.downloadReportExport).toHaveBeenCalledWith(
-      expect.objectContaining({ start: '2026-10-01', end: '2026-10-08', lang: 'vi' })
+    await waitFor(() =>
+      expect(api.downloadReportExport).toHaveBeenCalledWith(
+        expect.objectContaining({ start: '2026-10-01', end: '2026-10-08', lang: 'vi' })
+      )
     );
     expect(await screen.findByText('Đã tải tệp Excel.')).toBeDefined();
     expect(URL.createObjectURL).toHaveBeenCalled();
@@ -93,5 +95,42 @@ describe('ReportsView', () => {
       'Bạn không có quyền xuất báo cáo của Tổ này.'
     );
     expect(screen.queryByText('Đã tải tệp Excel.')).toBeNull();
+  });
+
+  it('báo lỗi 401 khi xuất cho lớp phiên (MutationCache) để quay về đăng nhập', async () => {
+    const onMutationError = vi.fn();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+      mutationCache: new MutationCache({ onError: onMutationError }),
+    });
+    const unauthorized = Object.assign(new Error('Vui lòng đăng nhập để tiếp tục.'), {
+      response: { status: 401 },
+    });
+    vi.mocked(api.downloadReportExport).mockRejectedValue(unauthorized);
+    renderWithClient(<ReportsView />);
+
+    fireEvent.click(screen.getByText('Xuất báo cáo Excel'));
+
+    await waitFor(() => expect(onMutationError).toHaveBeenCalled());
+    expect(onMutationError.mock.calls[0][0]).toBe(unauthorized);
+  });
+
+  it('chỉ thu hồi URL tệp sau khi trình duyệt đã nhận lệnh tải', async () => {
+    vi.mocked(api.downloadReportExport).mockResolvedValue(new Blob(['xlsx']));
+    let revokedRightAfterClick: number | undefined;
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {
+        queueMicrotask(() => {
+          revokedRightAfterClick = vi.mocked(URL.revokeObjectURL).mock.calls.length;
+        });
+      });
+    renderWithClient(<ReportsView />);
+
+    fireEvent.click(screen.getByText('Xuất báo cáo Excel'));
+
+    await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:report'));
+    expect(revokedRightAfterClick).toBe(0);
+    clickSpy.mockRestore();
   });
 });

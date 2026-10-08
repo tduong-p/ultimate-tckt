@@ -10,6 +10,7 @@ vi.mock('../../api', async () => {
   return {
     ...actual,
     fetchTeams: vi.fn(),
+    fetchBootstrap: vi.fn(),
     createActivity: vi.fn(),
   };
 });
@@ -20,14 +21,25 @@ const mockTeams: api.TeamItem[] = [
     name: 'Phát triển Đảng và Chuyển đổi số',
     color: '#0052CC',
     is_active: 1,
+    can_manage: 0,
   },
   {
     id: 2,
     name: 'Tuyên huấn và Sự kiện',
     color: '#00875A',
     is_active: 1,
+    can_manage: 1,
   },
 ];
+
+const bootstrapWith = (canCreateAccount: boolean): api.BootstrapData => ({
+  stats: { activeActivities: 0, openTasks: 0, overdueTasks: 0, completedMonth: 0 },
+  upcoming: [],
+  tasks: [],
+  activity: [],
+  teams: [],
+  capabilities: { canCreateActivity: true, canCreateAccount },
+});
 
 describe('CreateActivityModal', () => {
   let queryClient: QueryClient;
@@ -42,6 +54,7 @@ describe('CreateActivityModal', () => {
     });
     vi.mocked(api.fetchTeams).mockResolvedValue(mockTeams);
     vi.mocked(api.createActivity).mockResolvedValue({ id: 101 });
+    vi.mocked(api.fetchBootstrap).mockResolvedValue(bootstrapWith(true));
   });
 
   afterEach(() => {
@@ -134,5 +147,105 @@ describe('CreateActivityModal', () => {
     await waitFor(() => {
       expect(handleClose).toHaveBeenCalled();
     });
+  });
+
+  it('Tổ trưởng chỉ thấy Tổ mình quản lý, admin thấy mọi Tổ', async () => {
+    vi.mocked(api.fetchBootstrap).mockResolvedValue(bootstrapWith(false));
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    expect(await screen.findByText('Tuyên huấn và Sự kiện')).toBeDefined();
+    expect(screen.queryByText('Phát triển Đảng và Chuyển đổi số')).toBeNull();
+    cleanup();
+
+    vi.mocked(api.fetchBootstrap).mockResolvedValue(bootstrapWith(true));
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    expect(await screen.findByText('Phát triển Đảng và Chuyển đổi số')).toBeDefined();
+    expect(await screen.findByText('Tuyên huấn và Sự kiện')).toBeDefined();
+  });
+
+  it('hiện lỗi từ backend khi tạo đề xuất thất bại', async () => {
+    vi.mocked(api.createActivity).mockRejectedValue({
+      response: { data: { error: 'Bạn chỉ được đề xuất cho Tổ mình phụ trách.' } },
+    });
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    expect(await screen.findByText('Bạn chỉ được đề xuất cho Tổ mình phụ trách.')).toBeDefined();
+  });
+
+  it('dịch lỗi tiếng Anh của Core sang tiếng Việt', async () => {
+    vi.mocked(api.createActivity).mockRejectedValue({
+      response: {
+        status: 403,
+        data: { error: 'Team leaders and vice leaders may only propose work for teams they lead.' },
+      },
+    });
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    expect(
+      await screen.findByText('Tổ trưởng/Tổ phó chỉ được đề xuất cho các Tổ mình phụ trách.')
+    ).toBeDefined();
+  });
+
+  it('báo lỗi khi ngày bắt đầu sau hạn chung và không gửi', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    fireEvent.change(screen.getByLabelText(/Ngày bắt đầu/i), { target: { value: '2026-12-15' } });
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    expect(await screen.findByText('Ngày bắt đầu phải trước hoặc bằng hạn chung.')).toBeDefined();
+    expect(api.createActivity).not.toHaveBeenCalled();
+  });
+
+  it('mở lại modal thì lỗi và dữ liệu form được xoá', async () => {
+    const ui = (open: boolean) => (
+      <QueryClientProvider client={queryClient}>
+        <CreateActivityModal isOpen={open} onClose={() => {}} />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(ui(true));
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fireEvent.change(screen.getByPlaceholderText(/Ngày hội Kỹ thuật/i), { target: { value: 'Nháp cũ' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+    expect(await screen.findByText('Vui lòng nhập tiêu đề, mô tả và hạn chung.')).toBeDefined();
+
+    rerender(ui(false));
+    rerender(ui(true));
+
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    expect(screen.queryByText('Vui lòng nhập tiêu đề, mô tả và hạn chung.')).toBeNull();
+    expect((screen.getByPlaceholderText(/Ngày hội Kỹ thuật/i) as HTMLInputElement).value).toBe('');
+  });
+
+  it('mở lại modal sau lỗi máy chủ thì không còn hiện lỗi cũ', async () => {
+    vi.mocked(api.createActivity).mockRejectedValue({
+      response: { status: 400, data: { error: 'Complete all required fields and select at least one team.' } },
+    });
+    const ui = (open: boolean) => (
+      <QueryClientProvider client={queryClient}>
+        <CreateActivityModal isOpen={open} onClose={() => {}} />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(ui(true));
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+    const serverMessage = 'Vui lòng điền đủ các trường bắt buộc và chọn ít nhất một Tổ.';
+    expect(await screen.findByText(serverMessage)).toBeDefined();
+
+    rerender(ui(false));
+    rerender(ui(true));
+
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    expect(screen.queryByText(serverMessage)).toBeNull();
   });
 });

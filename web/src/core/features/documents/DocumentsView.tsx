@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
-import Button from '@atlaskit/button/new';
+import { LinkButton } from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
@@ -77,10 +77,6 @@ export const DocumentsView: React.FC = () => {
             Danh mục liên kết văn bản do các Tổ TCKT ban hành.
           </p>
         </div>
-
-        <Button appearance="primary">
-          + Thêm văn bản
-        </Button>
       </div>
 
       {/* Toolbar: Search and Filters */}
@@ -265,14 +261,14 @@ export const DocumentsView: React.FC = () => {
                 )}
               </div>
               <div>
-                <a
+                <LinkButton
+                  appearance="subtle"
                   href={doc.link_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
                 >
-                  <Button appearance="subtle">Mở liên kết ↗</Button>
-                </a>
+                  Mở liên kết ↗
+                </LinkButton>
               </div>
             </div>
           ))}

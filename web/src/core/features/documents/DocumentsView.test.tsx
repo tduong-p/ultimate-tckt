@@ -71,11 +71,24 @@ describe('DocumentsView', () => {
     );
   };
 
-  it('renders header title, subtitle and action button', () => {
+  it('renders header title and subtitle without a dead "Thêm văn bản" button', () => {
     renderWithClient(<DocumentsView />);
     expect(screen.getByText('Văn bản')).toBeDefined();
     expect(screen.getByText('Danh mục liên kết văn bản do các Tổ TCKT ban hành.')).toBeDefined();
-    expect(screen.getByText('+ Thêm văn bản')).toBeDefined();
+    expect(screen.queryByText('+ Thêm văn bản')).toBeNull();
+  });
+
+  it('liên kết "Mở liên kết" là một thẻ <a> duy nhất, không lồng <button>', async () => {
+    const { container } = renderWithClient(<DocumentsView />);
+    await screen.findByText('Quy chế Tổ chức và Hoạt động TCKT 2026');
+    const links = screen.getAllByRole('link', { name: /Mở liên kết/ });
+    expect(links.length).toBeGreaterThan(0);
+    links.forEach((a) => {
+      expect(a.getAttribute('href')).toMatch(/^https?:/);
+      expect(a.getAttribute('target')).toBe('_blank');
+      expect(a.getAttribute('rel')).toContain('noopener');
+    });
+    expect(container.querySelector('a button')).toBeNull();
   });
 
   it('fetches and renders documents list from API', async () => {

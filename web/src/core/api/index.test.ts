@@ -14,6 +14,8 @@ import {
   downloadReportExport,
   loginUser,
   logoutUser,
+  submitStudentClass,
+  acknowledgeFacultyNotice,
 } from './index';
 
 vi.mock('../../shared/utils/api', () => ({
@@ -182,7 +184,17 @@ describe('Core API Services', () => {
 
       await expect(
         downloadReportExport({ start: '2026-10-08', end: '2026-10-01', lang: 'vi' })
-      ).rejects.toThrow('Choose a valid report date range.');
+      ).rejects.toThrow('Khoảng thời gian báo cáo không hợp lệ.');
+    });
+
+    it('giữ mã HTTP trên lỗi để lớp phiên nhận ra 401', async () => {
+      vi.mocked(apiClient.get).mockRejectedValueOnce({
+        response: { status: 401, data: new Blob([JSON.stringify({ error: 'Please sign in to continue.' })]) },
+      });
+
+      await expect(
+        downloadReportExport({ start: '2026-10-01', end: '2026-10-08', lang: 'vi' })
+      ).rejects.toMatchObject({ response: { status: 401 }, message: 'Vui lòng đăng nhập để tiếp tục.' });
     });
   });
 
@@ -251,5 +263,26 @@ describe('Core API Services', () => {
       expect(result).toEqual({ ok: true });
     });
   });
-});
 
+  describe('onboarding', () => {
+    it('gửi số lớp của sinh viên và trả về user mới', async () => {
+      const user = { id: 5, name: 'SV', email: 'a.b20230001@sis.hust.edu.vn', role: 'member', class_number: 'Điện 1' };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { user } });
+
+      const result = await submitStudentClass('Điện 1');
+
+      expect(apiClient.post).toHaveBeenCalledWith('/onboarding/student-class', { class_number: 'Điện 1' });
+      expect(result).toEqual(user);
+    });
+
+    it('xác nhận thông báo cho giảng viên', async () => {
+      const user = { id: 6, name: 'GV', email: 'gv@hust.edu.vn', role: 'member' };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { user } });
+
+      const result = await acknowledgeFacultyNotice();
+
+      expect(apiClient.post).toHaveBeenCalledWith('/onboarding/faculty-notice');
+      expect(result).toEqual(user);
+    });
+  });
+});

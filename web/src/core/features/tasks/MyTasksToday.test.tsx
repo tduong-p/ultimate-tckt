@@ -137,5 +137,6 @@ describe('MyTasksToday', () => {
     expect(await screen.findByText('Việc mới giao')).toBeDefined();
     expect(screen.getByText(/Hạn: 09\/10\/2026/)).toBeDefined();
     expect(screen.getByText(/Cần làm/i)).toBeDefined();
+    expect(screen.getByText('Trung bình')).toBeDefined();
   });
 });

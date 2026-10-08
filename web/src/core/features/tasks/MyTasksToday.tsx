@@ -7,34 +7,12 @@ import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { fetchMyTasksToday, TaskItem } from '../../api';
 import { formatVnDate } from '../../../shared/utils/date';
-
-const getStatusAppearance = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'done':
-      return 'success';
-    case 'in_progress':
-      return 'inprogress';
-    case 'review':
-      return 'moved';
-    case 'cancelled':
-    case 'overdue':
-      return 'removed';
-    default:
-      return 'default';
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'open':
-    case 'todo': return 'Cần làm';
-    case 'in_progress': return 'Đang làm';
-    case 'review': return 'Chờ duyệt';
-    case 'done': return 'Đã xong';
-    case 'cancelled': return 'Đã hủy';
-    default: return status || 'Mới';
-  }
-};
+import {
+  getTaskPriorityAppearance,
+  getTaskPriorityLabel,
+  getTaskStatusAppearance,
+  getTaskStatusLabel,
+} from './taskLabels';
 
 const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
   <div
@@ -62,12 +40,12 @@ const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', flexShrink: 0 }}>
       {task.priority && (
-        <Lozenge appearance={task.priority === 'urgent' || task.priority === 'high' ? 'removed' : 'default'}>
-          {task.priority}
+        <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
+          {getTaskPriorityLabel(task.priority)}
         </Lozenge>
       )}
-      <Lozenge appearance={getStatusAppearance(task.status)}>
-        {getStatusLabel(task.status)}
+      <Lozenge appearance={getTaskStatusAppearance(task.status)}>
+        {getTaskStatusLabel(task.status)}
       </Lozenge>
     </div>
   </div>

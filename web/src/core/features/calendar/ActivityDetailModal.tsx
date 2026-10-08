@@ -6,6 +6,7 @@ import CrossIcon from '@atlaskit/icon/core/cross';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import type { ActivityItem } from '../../api';
+import { getActivityStatusMeta, getActivityTypeShortLabel } from '../activities/activityLabels';
 import { toVnDateKey } from '../../../shared/utils/date';
 
 export interface ActivityDetailModalProps {
@@ -31,20 +32,8 @@ const formatDateDisplay = (dateStr?: string | null): string => {
 };
 
 const getStatusLozenge = (status?: string) => {
-  switch (status) {
-    case 'approved':
-      return <Lozenge appearance="success">Đã Duyệt</Lozenge>;
-    case 'active':
-    case 'in_progress':
-      return <Lozenge appearance="inprogress">Đang diễn ra</Lozenge>;
-    case 'completed':
-      return <Lozenge appearance="success">Hoàn thành</Lozenge>;
-    case 'cancelled':
-      return <Lozenge appearance="removed">Đã hủy</Lozenge>;
-    case 'proposed':
-    default:
-      return <Lozenge appearance="default">Đề xuất</Lozenge>;
-  }
+  const meta = getActivityStatusMeta(status);
+  return <Lozenge appearance={meta.appearance}>{meta.label}</Lozenge>;
 };
 
 export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
@@ -116,9 +105,11 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                 #HĐ-{activity.id}
               </span>
               {getStatusLozenge(activity.status)}
-              <Lozenge appearance={activity.type === 'event' ? 'inprogress' : 'default'}>
-                {activity.type === 'event' ? 'Sự kiện' : 'Chỉ đạo'}
-              </Lozenge>
+              {getActivityTypeShortLabel(activity.type) && (
+                <Lozenge appearance={activity.type === 'event' ? 'inprogress' : 'default'}>
+                  {getActivityTypeShortLabel(activity.type)}
+                </Lozenge>
+              )}
             </div>
             <h2
               style={{
@@ -204,7 +195,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                     {activity.team_name}
                   </span>
                 ) : (
-                  'Chưa phân công'
+                  'Không có thông tin'
                 )}
               </div>
             </div>

@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-ACTIVITIES-001
 title: Design — Activities & Projects Screen UI (Hoạt động & Dự án)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/activities/**]
 ---
 
@@ -19,11 +19,12 @@ The "Hoạt động & Dự án" screen enables members and leaders to view, plan
 ### Header
 - **Title**: "Hoạt động"
 - **Subtitle**: "Lập kế hoạch, phối hợp và theo dõi mọi hoạt động."
-- **Action Button**: "+ Đề xuất hoạt động" (Primary button, opens `CreateActivityModal`).
+- **Action Button**: "+ Đề xuất hoạt động" (Primary button, opens `CreateActivityModal`) — chỉ hiện khi `capabilities.canCreateActivity` (cả ở header lẫn empty state).
 
 ### Filter & Search Bar
 - **Search Input**: "Tìm kiếm hoạt động..."
-- **Status Filter**: Dropdown "Tất cả trạng thái" (All statuses)
+- **Status Filter**: Dropdown "Tất cả trạng thái"; các trạng thái theo enum DB `proposed`, `changes_requested` ("Cần chỉnh sửa"), `approved`, `active`, `completed` — nhãn và màu lozenge lấy từ `features/activities/activityLabels.ts`.
+- Tìm kiếm debounce 300 ms, máy chủ lọc (không lọc lại phía client).
 - **Type Filter**: Dropdown "Tất cả loại" (All types)
 
 ### Activity Cards Grid
@@ -33,10 +34,12 @@ The "Hoạt động & Dự án" screen enables members and leaders to view, plan
   - Status Lozenge (e.g. `Đã Duyệt` - Success)
   - Activity Title & Description snippet
   - Bottom metadata: Event type, participant count, date
-  - Visual progress bar indicator
+  - Visual progress bar indicator (ưu tiên `progress_percent` khi có)
+- Dòng tóm tắt hoạt động của đơn vị khác (`toSummaryView`) không có loại/Tổ/số công việc: không hiện nhãn loại hay Tổ sai, chỉ hiện phần có dữ liệu.
 
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Hoạt động & Dự án | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API activities/teams thực tế, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Trạng thái `changes_requested` ("Cần chỉnh sửa") và nhãn dùng chung `activityLabels.ts`; nút đề xuất theo `canCreateActivity`; dòng tóm tắt đơn vị khác; tìm kiếm debounce do máy chủ lọc | DYC |

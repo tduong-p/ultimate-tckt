@@ -92,6 +92,14 @@ describe('TeamsView', () => {
     expect(screen.getByText('12')).toBeDefined();
   });
 
+  it('không hiện nút "Xem hoạt động" / "Quản lý" chưa có chức năng', async () => {
+    renderWithClient(<TeamsView />);
+    await screen.findByText('Phát triển Đảng và Chuyển đổi số');
+    expect(screen.queryByText('Xem hoạt động')).toBeNull();
+    expect(screen.queryByText('Quản lý')).toBeNull();
+    expect(screen.queryAllByRole('button').length).toBe(0);
+  });
+
   it('renders empty state with InboxIcon and no checkbox/task icon when teams list is empty', async () => {
     vi.mocked(api.fetchTeams).mockResolvedValue([]);
     const { container } = renderWithClient(<TeamsView />);

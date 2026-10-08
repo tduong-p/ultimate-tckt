@@ -83,8 +83,10 @@ describe('MembersView', () => {
   it('renders header title, subtitle and action button', async () => {
     renderWithClient(<MembersView />);
     expect(screen.getByText('Thành viên')).toBeDefined();
-    expect(screen.getByText("Recognize every member's participation.")).toBeDefined();
-    expect(screen.getByText('+ Tạo tài khoản')).toBeDefined();
+    expect(screen.getByText('Ghi nhận sự tham gia của từng thành viên.')).toBeDefined();
+    // Chưa có chức năng tạo tài khoản ở frontend mới nên không hiện nút "chết".
+    expect(screen.queryByText('+ Tạo tài khoản')).toBeNull();
+    expect(screen.queryByText(/Recognize/)).toBeNull();
   });
 
   it('fetches and renders member cards from API', async () => {

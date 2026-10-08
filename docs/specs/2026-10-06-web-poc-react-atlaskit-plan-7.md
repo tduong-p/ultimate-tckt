@@ -1,15 +1,17 @@
 ---
 doc_id: PLAN-POC-007
 title: Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive)
-version: 1.0
-status: active
+version: 1.1
+status: deprecated
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-06
+updated: 2026-10-09
 related_code: []
 ---
 
 # POC Frontend React Dark Mode & Responsive Plan
+
+> **Đã ngừng dùng:** POC này đã được thay bằng module `web/` — xem [2026-10-07-frontend-migration.md](2026-10-07-frontend-migration.md). Giữ lại làm lịch sử, không làm theo.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -83,4 +85,4 @@ git commit -m "feat: optimize MyTasks view for mobile screens"
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-06 | Kế hoạch Dark Mode & Mobile Responsive Sub-project 7 | DYC |
-
+| 1.1 | 2026-10-09 | Đánh dấu deprecated: POC đã được thay bằng module `web/` | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.11
+version: 2.8
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1287,8 +1287,5 @@ npm run docs:check         # Documentation validation
 | 2.4 | 2026-10-03 | Sửa 4 route teams.js đồng bộ vai trò và membership TCKT (R1, G1) | DYC |
 | 2.5 | 2026-10-04 | Thêm `core/src/config/database.js` vào related_code - cấu hình timezone +07:00 cho MySQL pool | DYC |
 | 2.6 | 2026-10-04 | Thêm quy ước timezone toàn hệ thống - xem DEV-TZ-001 (docs/dev/mui-gio.md) | DYC |
-| 2.7 | 2026-10-07 | Khởi tạo module web/** chính thức chuyển đổi từ POC frontend React Atlaskit | DYC |
-| 2.8 | 2026-10-08 | Tích hợp toàn diện API Backend và xóa dữ liệu mock thử nghiệm trong web/** | DYC |
-| 2.9 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
-| 2.10 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
-| 2.11 | 2026-10-08 | Xây dựng giao diện đăng nhập hiện đại 2 cột và kiểm soát phiên (session gating, logout) | DYC |
+| 2.7 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
+| 2.8 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |

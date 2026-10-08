@@ -136,6 +136,26 @@ export function getReportExportUrl(params: ReportExportParams): string {
  * instead of silently saving a JSON error body as a file.
  * Endpoint: GET /api/reports/export
  */
+// Một số thông báo lỗi của Core vẫn là tiếng Anh; dịch những câu người dùng màn Báo cáo có thể gặp.
+const VI_ERROR_MESSAGES: Record<string, string> = {
+  'Choose a valid report date range.': 'Khoảng thời gian báo cáo không hợp lệ.',
+  'No reportable teams are available.': 'Bạn chưa quản lý Tổ nào để xuất báo cáo.',
+  'You cannot export a report for this team.': 'Bạn không có quyền xuất báo cáo của Tổ này.',
+  'You do not have permission for this action.': 'Bạn không có quyền thực hiện thao tác này.',
+  'Please sign in to continue.': 'Vui lòng đăng nhập để tiếp tục.',
+};
+
+/** Lỗi API đã có thông điệp tiếng Việt, vẫn giữ `response.status` để lớp phiên nhận ra 401. */
+export class ApiError extends Error {
+  response: { status?: number };
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.response = { status };
+  }
+}
+
 export async function downloadReportExport(params: ReportExportParams): Promise<Blob> {
   try {
     const response = await apiClient.get<Blob>('/reports/export', {
@@ -144,17 +164,17 @@ export async function downloadReportExport(params: ReportExportParams): Promise<
     });
     return response.data;
   } catch (err) {
-    const body = (err as { response?: { data?: unknown } })?.response?.data;
+    const res = (err as { response?: { status?: number; data?: unknown } })?.response;
     let message = 'Không xuất được báo cáo. Vui lòng thử lại.';
-    if (body instanceof Blob) {
+    if (res?.data instanceof Blob) {
       try {
-        const parsed = JSON.parse(await readBlobText(body));
-        if (parsed?.error) message = String(parsed.error);
+        const parsed = JSON.parse(await readBlobText(res.data));
+        if (parsed?.error) message = VI_ERROR_MESSAGES[parsed.error] ?? String(parsed.error);
       } catch {
         // body is not JSON; keep the generic message
       }
     }
-    throw new Error(message);
+    throw new ApiError(message, res?.status);
   }
 }
 
@@ -180,3 +200,23 @@ export async function logoutUser(): Promise<{ ok: boolean }> {
   }
 }
 
+
+/**
+ * Sinh viên HUST khai số lớp (bắt buộc sau đăng nhập cho tới khi khai xong).
+ * Endpoint: POST /api/onboarding/student-class
+ */
+export async function submitStudentClass(classNumber: string): Promise<SessionUser> {
+  const response = await apiClient.post<{ user: SessionUser }>('/onboarding/student-class', {
+    class_number: classNumber,
+  });
+  return response.data.user;
+}
+
+/**
+ * Giảng viên/cán bộ HUST xác nhận đã đọc thông báo.
+ * Endpoint: POST /api/onboarding/faculty-notice
+ */
+export async function acknowledgeFacultyNotice(): Promise<SessionUser> {
+  const response = await apiClient.post<{ user: SessionUser }>('/onboarding/faculty-notice');
+  return response.data.user;
+}

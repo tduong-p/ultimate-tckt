@@ -10,6 +10,7 @@ vi.mock('../../api', async () => {
   return {
     ...actual,
     fetchActivities: vi.fn(),
+    fetchBootstrap: vi.fn(),
     fetchTeams: vi.fn().mockResolvedValue([]),
     createActivity: vi.fn(),
   };
@@ -50,6 +51,16 @@ const mockActivities: api.ActivityItem[] = [
   },
 ];
 
+const mockCanCreate = (canCreateActivity: boolean) =>
+  vi.mocked(api.fetchBootstrap).mockResolvedValue({
+    stats: { activeActivities: 0, openTasks: 0, overdueTasks: 0, completedMonth: 0 },
+    upcoming: [],
+    tasks: [],
+    activity: [],
+    teams: [],
+    capabilities: { canCreateActivity, canCreateAccount: false },
+  });
+
 describe('ActivitiesView', () => {
   let queryClient: QueryClient;
 
@@ -61,6 +72,7 @@ describe('ActivitiesView', () => {
       },
     });
     vi.mocked(api.fetchActivities).mockResolvedValue(mockActivities);
+    mockCanCreate(true);
   });
 
   afterEach(() => {
@@ -75,11 +87,11 @@ describe('ActivitiesView', () => {
     );
   };
 
-  it('renders the header title, subtitle and action button', () => {
+  it('renders the header title, subtitle and action button', async () => {
     renderWithClient(<ActivitiesView />);
     expect(screen.getByText('Hoạt động')).toBeDefined();
     expect(screen.getByText('Lập kế hoạch, phối hợp và theo dõi mọi hoạt động.')).toBeDefined();
-    expect(screen.getByText('+ Đề xuất hoạt động')).toBeDefined();
+    expect(await screen.findByText('+ Đề xuất hoạt động')).toBeDefined();
   });
 
   it('fetches and displays activity cards from API', async () => {
@@ -126,7 +138,7 @@ describe('ActivitiesView', () => {
 
   it('opens CreateActivityModal when clicking + Đề xuất hoạt động button', async () => {
     renderWithClient(<ActivitiesView />);
-    const button = screen.getByText('+ Đề xuất hoạt động');
+    const button = await screen.findByText('+ Đề xuất hoạt động');
     fireEvent.click(button);
     expect(await screen.findByText('ĐỀ XUẤT MỚI')).toBeDefined();
   });
@@ -144,5 +156,64 @@ describe('ActivitiesView', () => {
       expect(api.fetchActivities).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'hội' }))
     );
     expect(api.fetchActivities).toHaveBeenCalledTimes(2);
+  });
+
+  it('hiển thị "Cần chỉnh sửa" cho hoạt động changes_requested (không rơi về Đề xuất)', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[0], id: 3, title: 'Hoạt động cần sửa', status: 'changes_requested' },
+    ]);
+    renderWithClient(<ActivitiesView />);
+    expect(await screen.findByText('• Cần chỉnh sửa')).toBeDefined();
+    expect(screen.queryByText('• Đề xuất')).toBeNull();
+  });
+
+  it('bộ lọc trạng thái có lựa chọn "Cần chỉnh sửa" và gửi changes_requested lên API', async () => {
+    renderWithClient(<ActivitiesView />);
+    await screen.findByText('Chiến dịch Mùa hè xanh 2026');
+    const statusSelect = screen.getAllByRole('combobox')[0];
+    fireEvent.focus(statusSelect);
+    fireEvent.keyDown(statusSelect, { key: 'ArrowDown' });
+    fireEvent.click(await screen.findByText('Cần chỉnh sửa'));
+    await waitFor(() =>
+      expect(api.fetchActivities).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'changes_requested' })
+      )
+    );
+  });
+
+  it('ẩn nút đề xuất ở header và empty state khi không có canCreateActivity', async () => {
+    mockCanCreate(false);
+    vi.mocked(api.fetchActivities).mockResolvedValue([]);
+    renderWithClient(<ActivitiesView />);
+    await screen.findByText('Chưa có hoạt động nào');
+    await waitFor(() => expect(api.fetchBootstrap).toHaveBeenCalled());
+    expect(screen.queryByText('+ Đề xuất hoạt động')).toBeNull();
+  });
+
+  it('hiện nút đề xuất ở header và empty state khi có canCreateActivity', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([]);
+    renderWithClient(<ActivitiesView />);
+    await screen.findByText('Chưa có hoạt động nào');
+    await waitFor(() => expect(screen.getAllByText('+ Đề xuất hoạt động')).toHaveLength(2));
+  });
+
+  it('dòng tóm tắt của đơn vị khác: không nhãn loại, không "Chung", dùng progress_percent', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      {
+        id: 9,
+        title: 'Hoạt động đơn vị bạn',
+        status: 'active',
+        priority: 'medium',
+        deadline: '2026-11-01',
+        progress_percent: 60,
+      },
+    ]);
+    renderWithClient(<ActivitiesView />);
+    expect(await screen.findByText('Hoạt động đơn vị bạn')).toBeDefined();
+    expect(screen.queryByText('Chung')).toBeNull();
+    expect(screen.queryByText('Sự kiện đơn vị')).toBeNull();
+    expect(screen.queryByText('Chỉ đạo cấp trên')).toBeNull();
+    expect(screen.queryByText(/người$/)).toBeNull();
+    expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('60');
   });
 });

@@ -6,7 +6,13 @@ import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { fetchActivities, type ActivityItem } from '../../api';
+import { fetchActivities, fetchBootstrap, type ActivityItem } from '../../api';
+import {
+  ACTIVITY_STATUS_FILTER_OPTIONS,
+  getActivityProgressPercent,
+  getActivityStatusMeta,
+  getActivityTypeLabel,
+} from './activityLabels';
 import { CreateActivityModal } from '../dashboard/CreateActivityModal';
 import { toVnDateKey } from '../../../shared/utils/date';
 import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
@@ -32,26 +38,8 @@ const formatDateDisplay = (dateStr?: string | null): string => {
 };
 
 const getStatusLozenge = (status?: string) => {
-  switch (status) {
-    case 'approved':
-      return <Lozenge appearance="success">• Đã Duyệt</Lozenge>;
-    case 'active':
-    case 'in_progress':
-      return <Lozenge appearance="inprogress">• Đang diễn ra</Lozenge>;
-    case 'completed':
-      return <Lozenge appearance="success">• Hoàn thành</Lozenge>;
-    case 'cancelled':
-      return <Lozenge appearance="removed">• Đã hủy</Lozenge>;
-    case 'proposed':
-    default:
-      return <Lozenge appearance="default">• Đề xuất</Lozenge>;
-  }
-};
-
-const getTypeLabel = (type?: string): string => {
-  if (type === 'event') return 'Sự kiện đơn vị';
-  if (type === 'assigned') return 'Chỉ đạo cấp trên';
-  return type || 'Sự kiện đơn vị';
+  const meta = getActivityStatusMeta(status);
+  return <Lozenge appearance={meta.appearance}>• {meta.label}</Lozenge>;
 };
 
 export const ActivitiesView: React.FC = () => {
@@ -72,6 +60,10 @@ export const ActivitiesView: React.FC = () => {
       }),
     placeholderData: keepPreviousData,
   });
+
+  // Dùng chung cache với Dashboard.
+  const { data: bootstrap } = useQuery({ queryKey: ['core-bootstrap'], queryFn: fetchBootstrap });
+  const canCreateActivity = bootstrap?.capabilities?.canCreateActivity === true;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
@@ -107,9 +99,11 @@ export const ActivitiesView: React.FC = () => {
           </p>
         </div>
 
-        <Button appearance="primary" onClick={() => setIsModalOpen(true)}>
-          + Đề xuất hoạt động
-        </Button>
+        {canCreateActivity && (
+          <Button appearance="primary" onClick={() => setIsModalOpen(true)}>
+            + Đề xuất hoạt động
+          </Button>
+        )}
       </div>
 
       {/* Search and Filters Bar */}
@@ -148,10 +142,7 @@ export const ActivitiesView: React.FC = () => {
             defaultValue={{ label: 'Tất cả trạng thái', value: 'all' }}
             options={[
               { label: 'Tất cả trạng thái', value: 'all' },
-              { label: 'Đề xuất', value: 'proposed' },
-              { label: 'Đã duyệt', value: 'approved' },
-              { label: 'Đang diễn ra', value: 'active' },
-              { label: 'Hoàn thành', value: 'completed' },
+              ...ACTIVITY_STATUS_FILTER_OPTIONS,
             ]}
             onChange={(opt: any) => setStatusFilter(opt?.value || 'all')}
           />
@@ -225,7 +216,7 @@ export const ActivitiesView: React.FC = () => {
               ? 'Không tìm thấy hoạt động phù hợp với bộ lọc hiện tại.'
               : 'Bắt đầu bằng cách tạo một đề xuất hoạt động mới cho tổ của bạn.'}
           </p>
-          {!searchQuery && statusFilter === 'all' && typeFilter === 'all' && (
+          {canCreateActivity && !searchQuery && statusFilter === 'all' && typeFilter === 'all' && (
             <Button appearance="primary" onClick={() => setIsModalOpen(true)}>
               + Đề xuất hoạt động
             </Button>
@@ -240,13 +231,9 @@ export const ActivitiesView: React.FC = () => {
           }}
         >
           {activities.map((activity: ActivityItem) => {
-            const percent =
-              activity.task_count && activity.task_count > 0
-                ? Math.min(
-                    100,
-                    Math.round(((activity.done_count || 0) / activity.task_count) * 100)
-                  )
-                : 0;
+            const percent = getActivityProgressPercent(activity);
+            const teamLabel = activity.team_names || activity.team_name;
+            const typeLabel = getActivityTypeLabel(activity.type);
 
             const accentColor =
               activity.team_color || token('color.background.brand.bold', '#0052CC');
@@ -304,8 +291,12 @@ export const ActivitiesView: React.FC = () => {
                         flex: 1,
                       }}
                     >
-                      <span style={{ color: accentColor, marginRight: '4px' }}>•</span>
-                      {activity.team_names || activity.team_name || 'Chung'}
+                      {teamLabel && (
+                        <>
+                          <span style={{ color: accentColor, marginRight: '4px' }}>•</span>
+                          {teamLabel}
+                        </>
+                      )}
                     </div>
                     {getStatusLozenge(activity.status)}
                   </div>
@@ -349,19 +340,29 @@ export const ActivitiesView: React.FC = () => {
                       gap: '8px',
                     }}
                   >
-                    <span>{getTypeLabel(activity.type)}</span>
-                    <span>•</span>
-                    <span>{activity.participant_count ?? 0} người</span>
-                    {activity.deadline && (
-                      <>
-                        <span>•</span>
-                        <span>{formatDateDisplay(activity.deadline)}</span>
-                      </>
-                    )}
+                    {[
+                      typeLabel,
+                      typeof activity.participant_count === 'number'
+                        ? `${activity.participant_count} người`
+                        : null,
+                      activity.deadline ? formatDateDisplay(activity.deadline) : null,
+                    ]
+                      .filter((part): part is string => !!part)
+                      .map((part, index) => (
+                        <React.Fragment key={part}>
+                          {index > 0 && <span>•</span>}
+                          <span>{part}</span>
+                        </React.Fragment>
+                      ))}
                   </div>
 
                   {/* Progress Bar Line */}
                   <div
+                    role="progressbar"
+                    aria-label="Tiến độ hoạt động"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={percent}
                     style={{
                       marginTop: '10px',
                       height: '4px',

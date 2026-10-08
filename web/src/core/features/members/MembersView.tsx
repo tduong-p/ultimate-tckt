@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
-import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
@@ -173,11 +172,9 @@ export const MembersView: React.FC = () => {
               color: token('color.text.subtle', '#5E6C84'),
             }}
           >
-            Recognize every member's participation.
+            Ghi nhận sự tham gia của từng thành viên.
           </p>
         </div>
-
-        <Button appearance="primary">+ Tạo tài khoản</Button>
       </div>
 
       {/* Toolbar: Search & Filters */}

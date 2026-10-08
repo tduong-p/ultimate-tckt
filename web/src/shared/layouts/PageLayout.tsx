@@ -23,10 +23,6 @@ import ArchiveBoxIcon from '@atlaskit/icon/core/archive-box';
 import SendIcon from '@atlaskit/icon/core/send';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
-import SettingsIcon from '@atlaskit/icon/core/settings';
-import WarningIcon from '@atlaskit/icon/core/warning';
-import NotificationIcon from '@atlaskit/icon/core/notification';
-import AppSwitcherIcon from '@atlaskit/icon/core/app-switcher';
 import LogOutIcon from '@atlaskit/icon/core/log-out';
 
 const CustomLogo = () => <span style={{ fontSize: '18px', fontWeight: 600, marginLeft: '4px', whiteSpace: 'nowrap' }}>TCKT Activity Hub</span>;
@@ -47,6 +43,8 @@ export interface PageLayoutProps {
     avatar_color?: string;
   } | null;
   onLogout?: () => void;
+  /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
+  canViewReports?: boolean;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({
@@ -55,6 +53,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   onNavigate,
   user,
   onLogout,
+  canViewReports = false,
 }) => {
   return (
     <PageLayoutWrapper>
@@ -63,11 +62,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           label="Site navigation"
           primaryItems={[]}
           renderProductHome={ProductHomeExample}
-          renderNotifications={() => (
-            <div style={{ cursor: 'pointer', padding: '8px', color: token('color.icon', '#42526E') }}>
-              <NotificationIcon label="Notifications" />
-            </div>
-          )}
           renderSettings={() => (
             <div style={{ display: 'flex', alignItems: 'center', padding: '0 6px' }}>
               <ThemeToggle size={52} />
@@ -127,7 +121,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                   <ButtonItem isSelected={currentView === 'teams'} onClick={() => onNavigate?.('teams')} iconBefore={<PeopleGroupIcon label="" />}>Các Tổ</ButtonItem>
                   <ButtonItem isSelected={currentView === 'members'} onClick={() => onNavigate?.('members')} iconBefore={<PersonIcon label="" />}>Thành viên</ButtonItem>
                   <ButtonItem isSelected={currentView === 'documents'} onClick={() => onNavigate?.('documents')} iconBefore={<FileIcon label="" />}>Tài liệu</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'reports'} onClick={() => onNavigate?.('reports')} iconBefore={<ChartBarIcon label="" />}>Báo cáo</ButtonItem>
+                  {canViewReports && <ButtonItem isSelected={currentView === 'reports'} onClick={() => onNavigate?.('reports')} iconBefore={<ChartBarIcon label="" />}>Báo cáo</ButtonItem>}
                   <ButtonItem isSelected={currentView === 'archive'} onClick={() => onNavigate?.('archive')} iconBefore={<ArchiveBoxIcon label="" />}>Lưu trữ</ButtonItem>
                 </Section>
                 <Section>
@@ -137,17 +131,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                   <ButtonItem iconBefore={<BookWithBookmarkIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Nhật ký trực ban</ButtonItem>
                 </Section>
               </MenuGroup>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', alignItems: 'center', padding: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
-              <div title="Cài đặt (Admin, ĐYC)" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
-                <SettingsIcon label="Cài đặt" />
-              </div>
-              <div title="Chuyển vai trò" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
-                <AppSwitcherIcon label="Chuyển vai trò" />
-              </div>
-              <div title="Báo Bug" style={{ cursor: 'pointer', color: token('color.icon', '#42526E') }}>
-                <WarningIcon label="Báo Bug" />
-              </div>
             </div>
           </div>
         </LeftSidebar>
