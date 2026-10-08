@@ -12,11 +12,12 @@ import { ActivitiesView } from './features/activities/ActivitiesView';
 import { MyTasksView } from './features/tasks/MyTasksView';
 import { TeamsView } from './features/teams/TeamsView';
 import { MembersView } from './features/members/MembersView';
+import { DocumentsView } from './features/documents/DocumentsView';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [currentView, setCurrentView] = React.useState('members');
+  const [currentView, setCurrentView] = React.useState('documents');
   return (
     <PageLayout currentView={currentView} onNavigate={setCurrentView}>
       {currentView === 'dashboard' && <Dashboard />}
@@ -26,6 +27,7 @@ const App = () => {
       {currentView === 'my-tasks' && <MyTasksView />}
       {currentView === 'teams' && <TeamsView />}
       {currentView === 'members' && <MembersView />}
+      {currentView === 'documents' && <DocumentsView />}
     </PageLayout>
   );
 };
