@@ -9,17 +9,19 @@ import { Dashboard } from './features/dashboard/Dashboard';
 import { MyTasksToday } from './features/tasks/MyTasksToday';
 import { CalendarView } from './features/calendar/CalendarView';
 import { ActivitiesView } from './features/activities/ActivitiesView';
+import { MyTasksView } from './features/tasks/MyTasksView';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [currentView, setCurrentView] = React.useState('activities');
+  const [currentView, setCurrentView] = React.useState('my-tasks');
   return (
     <PageLayout currentView={currentView} onNavigate={setCurrentView}>
       {currentView === 'dashboard' && <Dashboard />}
       {currentView === 'my-tasks-today' && <MyTasksToday />}
       {currentView === 'calendar' && <CalendarView />}
       {currentView === 'activities' && <ActivitiesView />}
+      {currentView === 'my-tasks' && <MyTasksView />}
     </PageLayout>
   );
 };

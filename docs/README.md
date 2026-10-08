@@ -159,6 +159,8 @@
 | [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.0 | active | dev, ai |
 | [PLAN-CALENDAR-001](specs/2026-10-08-calendar-ui-plan.md) | Plan — Calendar Screen UI Implementation | 1.0 | active | dev, ai |
+| [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.0 | active | dev, ai |
+| [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |

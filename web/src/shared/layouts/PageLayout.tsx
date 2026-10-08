@@ -70,7 +70,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
                   <ButtonItem isSelected={currentView === 'my-tasks-today'} onClick={() => onNavigate?.('my-tasks-today')} iconBefore={<CheckCircleIcon label="" />}>Việc hôm nay</ButtonItem>
                   <ButtonItem isSelected={currentView === 'calendar'} onClick={() => onNavigate?.('calendar')} iconBefore={<CalendarIcon label="" />}>Lịch hoạt động</ButtonItem>
                   <ButtonItem isSelected={currentView === 'activities'} onClick={() => onNavigate?.('activities')} iconBefore={<FolderClosedIcon label="" />}>Hoạt động & Dự án</ButtonItem>
-                  <ButtonItem iconBefore={<TaskIcon label="" />}>Công việc của tôi</ButtonItem>
+                  <ButtonItem isSelected={currentView === 'my-tasks'} onClick={() => onNavigate?.('my-tasks')} iconBefore={<TaskIcon label="" />}>Công việc của tôi</ButtonItem>
                   <ButtonItem iconBefore={<PeopleGroupIcon label="" />}>Các Tổ</ButtonItem>
                   <ButtonItem iconBefore={<PersonIcon label="" />}>Thành viên</ButtonItem>
                   <ButtonItem iconBefore={<FileIcon label="" />}>Tài liệu</ButtonItem>
