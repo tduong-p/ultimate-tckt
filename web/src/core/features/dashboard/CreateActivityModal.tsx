@@ -33,7 +33,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
         <Form onSubmit={(data) => { console.log(data); onClose(); }}>
           {({ formProps }) => (
-            <form {...formProps}>
+            <form {...formProps} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
               <div style={{ padding: '0 24px', overflowY: 'auto', flex: 1 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '16px' }}>
                   
