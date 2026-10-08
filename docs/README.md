@@ -165,8 +165,8 @@
 | [PLAN-CAPI-001](specs/2026-10-08-core-api-integration-plan.md) | Kế hoạch triển khai — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web) | 1.0 | active | dev, ai |
 | [SPEC-ACTMODAL-001](specs/2026-10-08-create-activity-modal-design.md) | Thiết kế — Create Activity Modal UI Design | 1.1 | active | dev, ai |
 | [PLAN-ACTMODAL-001](specs/2026-10-08-create-activity-modal-plan.md) | Kế hoạch triển khai — Create Activity Modal UI | 1.1 | active | dev, ai |
-| [SPEC-CTDUI-001](specs/2026-10-08-ctd-ui-design.md) | Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.0 | active | dev, ai |
-| [PLAN-CTDUI-001](specs/2026-10-08-ctd-ui-plan.md) | Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.0 | active | dev, ai |
+| [SPEC-CTDUI-001](specs/2026-10-08-ctd-ui-design.md) | Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.1 | active | dev, ai |
+| [PLAN-CTDUI-001](specs/2026-10-08-ctd-ui-plan.md) | Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.1 | active | dev, ai |
 | [SPEC-WEB-002](specs/2026-10-08-dashboard-ui-design.md) | Dashboard UI Design (Atlassian Design System) | 1.1 | active | dev, ai |
 | [PLAN-WEB-002](specs/2026-10-08-dashboard-ui-plan.md) | Kế hoạch triển khai — Dashboard UI (Atlassian Design System) | 1.1 | active | dev, ai |
 | [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.1 | active | dev, ai |

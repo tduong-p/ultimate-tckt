@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-CTDUI-001
 title: Thiết kế — Giao diện Công tác Đảng (CTD) theo Atlassian Design System
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -79,3 +79,4 @@ Hệ thống hỗ trợ 2 nhóm đối tượng chính theo use case chuẩn c�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện CTD theo Atlassian Design System | DYC |
+| 1.1 | 2026-10-08 | Chuẩn hóa định dạng doc_id và bảng lịch sử phiên bản | DYC |
