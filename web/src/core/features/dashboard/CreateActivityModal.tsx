@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import Modal, { ModalBody, ModalHeader, ModalTitle, ModalFooter, ModalTransition } from '@atlaskit/modal-dialog';
 import { token } from '@atlaskit/tokens';
 import Form, { Field } from '@atlaskit/form';
@@ -9,13 +9,15 @@ import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
 
 interface Props {
+  isOpen: boolean;
   onClose: () => void;
 }
 
-export const CreateActivityModal: React.FC<Props> = ({ onClose }) => {
+export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   return (
     <ModalTransition>
-      <Modal onClose={onClose} width="large">
+      {isOpen && (
+        <Modal onClose={onClose} width="large">
         <ModalHeader>
           <div style={{ padding: '16px 24px 0 24px', width: '100%' }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: token('color.text.brand', '#0052CC'), textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
@@ -149,6 +151,7 @@ export const CreateActivityModal: React.FC<Props> = ({ onClose }) => {
           )}
         </Form>
       </Modal>
+      )}
     </ModalTransition>
   );
 };
