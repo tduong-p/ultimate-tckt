@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.7
+version: 1.8
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-08
 related_code: [core/public/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -24,6 +24,10 @@ Không có build step, không framework: `app.js` (logic chính, SPA điều hư
 `core/tests/frontend.contract.test.js` kiểm hợp đồng giữa `app.js` và API — sửa API mà làm test này đỏ nghĩa là
 đã phá tương thích ngược với frontend cũ. Test này cũng chặn biến cục bộ che khuất helper cùng tên và việc
 `app.js` gọi nhầm helper chỉ tồn tại phía server.
+
+Không dùng phần tử render có điều kiện (nút chỉ hiện với một số người xem) làm mốc để tra phần tử khác: nó vắng
+thì `$()` trả `null` và cả trang hỏng. Gắn `id` riêng cho phần tử cần tra, hoặc dùng `?.` khi phần tử thật sự có thể
+vắng (bẫy đã gặp: `#volunteer` ở trang chi tiết hoạt động).
 
 **Màn hình "Đang phát triển"** (SPEC-SOON-001, `docs/specs/2026-10-03-core-coming-soon-design.md`): chỗ nào người
 dùng bấm được mà tính năng chưa có thì hiện màn hình chặn thay vì lỗi. Nội dung nằm trong bảng `COMING_SOON` ở
@@ -77,3 +81,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.5 | 2026-09-30 | PR 8: nút Đề xuất hoạt động chỉ hiện cho quản lý; tên team chỉ là link khi có quyền xem tổng quan; bảng cuộn ngang và lịch co được trên 375px | DYC |
 | 1.6 | 2026-10-02 | `notifications.js` là chuông trong ứng dụng; bỏ OneSignal và trang Setting email | DYC |
 | 1.7 | 2026-10-03 | Màn hình "Đang phát triển" (`COMING_SOON`): cách thêm/gỡ chỗ chặn, trang "Lạc đoàn" | DYC |
+| 1.8 | 2026-10-08 | Thêm quy tắc: không tra phần tử qua phần tử render có điều kiện (hotfix PR #81, `#volunteer`) | DYC |
