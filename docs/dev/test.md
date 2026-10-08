@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.22
+version: 2.23
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -29,7 +29,7 @@ fixture, không phụ thuộc dữ liệu test khác hoặc thứ tự chạy.
 
 Các nhóm test đáng chú ý: `policies.roles.test.js` (ma trận quyền theo 5 role), `activities.status-patch-guard.test.js`,
 `tasks.review.test.js` (Anti-Self-Review), `weight-presets.test.js`, `frontend.contract.test.js` (hợp đồng giữa
-frontend cũ và API), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (gồm ca `org_units.id` là INT có dấu như DB staging), `units.context.test.js` (ngữ cảnh đơn vị và session view),
+frontend cũ và API; gồm ca trang chi tiết hoạt động khi người xem đã tham gia), `migrate.test.js` (migration idempotent), `migrate.units.test.js` (gồm ca `org_units.id` là INT có dấu như DB staging), `units.context.test.js` (ngữ cảnh đơn vị và session view),
 `units.legacy-gate.test.js` (cổng Điều hành cũ và kiểm toán đọc liên đơn vị), `noti-sender.test.js` (payload gửi Noti đủ trường
 `required` của từng template trong `services/noti-api/templates/`, không cần MySQL), `notifications.email-recipients.test.js`
 (email nào đi tới ai: gắn thẻ, phản hồi công việc, nghiệm thu, giao việc), `teams.mgmt.test.js` (quản lý Tổ; `GET /api/teams`
@@ -125,3 +125,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.20 | 2026-10-05 | Thêm mục test hạ tầng Noti production | DYC |
 | 2.21 | 2026-10-07 | `startTestServer` nhận `notiSender`; thêm `notifications.email-recipients.test.js` | DYC |
 | 2.22 | 2026-10-08 | `teams.mgmt.test.js` thêm test `GET /api/teams` với user id khác unit id (hotfix PR #79) | DYC |
+| 2.23 | 2026-10-08 | `frontend.contract.test.js` thêm test trang chi tiết hoạt động không tra khung Participants qua nút `#volunteer` (hotfix PR #81) | DYC |

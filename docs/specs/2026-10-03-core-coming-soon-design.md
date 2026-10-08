@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-SOON-001
 title: Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-08
 related_code: [core/public/**, core/tests/frontend.contract.test.js]
 ---
 
@@ -119,3 +119,4 @@ Cập nhật `docs/dev/frontend.md` (mục Core): mô tả `COMING_SOON`, cách 
 | 1.0 | 2026-10-03 | Bản đầu: sáu chỗ chặn, chủ đề "chích điện dev", thanh sạc và nút chích | DYC |
 | 1.1 | 2026-10-03 | Giao việc/Trình: API đã có từ PR #40, chỉ thiếu giao diện | DYC |
 | 1.2 | 2026-10-03 | Menu dùng `data-page="soon/<key>"`; link bỏ qua (`#content`) chỉ chuyển focus, không đổi route | DYC |
+| 1.3 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |

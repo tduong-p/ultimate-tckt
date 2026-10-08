@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.8
+version: 2.9
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -521,3 +521,4 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.6 | 2026-10-03 | Sửa hai dòng lịch sử 2.3 và 2.4 bị lỗi mã hoá và nằm nhầm trong bảng phạm vi; khôi phục dòng 2.2, 2.3 bị mất | DYC |
 | 2.7 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
+| 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
