@@ -1,12 +1,11 @@
 ﻿import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { Dashboard } from './Dashboard';
 
 afterEach(() => {
   cleanup();
 });
-import { Dashboard } from './Dashboard';
 
 describe('Dashboard', () => {
   it('renders the greeting and header buttons', () => {
@@ -21,5 +20,11 @@ describe('Dashboard', () => {
     expect(screen.getByText('Nhiệm vụ đang mở')).toBeDefined();
     expect(screen.getByText('Nhiệm vụ quá hạn')).toBeDefined();
     expect(screen.getByText('Hiệu suất hoàn thành')).toBeDefined();
+  });
+
+  it('renders left column task widget', () => {
+    render(<Dashboard />);
+    expect(screen.getByText('Quản lý nhiệm vụ')).toBeDefined();
+    
   });
 });
