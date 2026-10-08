@@ -42,7 +42,7 @@ export const LottieLoading: React.FC<LottieLoadingProps> = ({
       }}
     >
       <div style={{ width: size, height: size, maxWidth: '100%', maxHeight: '100%' }}>
-        <DotLottieReact src="/loading.lottie" loop autoplay />
+        <DotLottieReact src="/loading.json" loop autoplay />
       </div>
       {message && (
         <p

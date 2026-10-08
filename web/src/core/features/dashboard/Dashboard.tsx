@@ -102,7 +102,7 @@ const TaskListPanel: React.FC<{
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', color: token('color.text.subtle', '#42526E') }}>
         <div style={{ marginBottom: '16px', color: token('color.icon.subtle', '#8993A4') }}>
-          <InboxIcon label="" size="large" />
+          <InboxIcon label="" />
         </div>
         <p style={{ margin: 0, fontSize: '14px' }}>{emptyMessage}</p>
       </div>

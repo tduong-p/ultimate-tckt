@@ -143,4 +143,45 @@ describe('CalendarView', () => {
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
     expect(container.querySelector('[data-testid="task-icon"]')).toBeNull();
   });
+
+  it('switches to Gantt chart view and displays activities with distinct colors', async () => {
+    renderWithClient(<CalendarView />);
+
+    const ganttBtn = screen.getByText('Biểu đồ Gantt');
+    fireEvent.click(ganttBtn);
+
+    expect(await screen.findByTestId('gantt-chart-container')).toBeDefined();
+    expect(screen.getByText('Năm 2026')).toBeDefined();
+    expect(screen.getByText('Danh sách hoạt động (2)')).toBeDefined();
+
+    // Check 12 months header
+    expect(screen.getByText('Thg 1')).toBeDefined();
+    expect(screen.getByText('Thg 10')).toBeDefined();
+    expect(screen.getByText('Thg 12')).toBeDefined();
+
+    // Check activity bars
+    const bar1 = screen.getByTestId('gantt-bar-1');
+    const bar2 = screen.getByTestId('gantt-bar-2');
+    expect(bar1).toBeDefined();
+    expect(bar2).toBeDefined();
+
+    // Distinct colors check
+    expect(bar1.style.backgroundColor).toBe('rgb(0, 82, 204)'); // #0052CC
+    expect(bar2.style.backgroundColor).toBe('rgb(0, 135, 90)'); // #00875A
+    expect(bar1.style.backgroundColor).not.toBe(bar2.style.backgroundColor);
+  });
+
+  it('renders empty state in Gantt view when no activities exist', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue([]);
+    const { container } = renderWithClient(<CalendarView />);
+
+    const ganttBtn = screen.getByText('Biểu đồ Gantt');
+    fireEvent.click(ganttBtn);
+
+    expect(await screen.findByText('Không có hoạt động nào trong danh sách.')).toBeDefined();
+
+    // STRICT RULE: No checkbox icon or TaskIcon in empty states
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(container.querySelector('[data-testid="task-icon"]')).toBeNull();
+  });
 });

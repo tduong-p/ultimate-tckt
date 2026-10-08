@@ -3,7 +3,6 @@ import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
@@ -14,6 +13,7 @@ import {
   QueryClientContext,
 } from '@tanstack/react-query';
 import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '../../api';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 
 interface CalendarCell {
   day: number;
@@ -64,8 +64,99 @@ const getStatusLozenge = (status?: string) => {
   }
 };
 
+const getStatusText = (status?: string): string => {
+  switch (status) {
+    case 'approved':
+      return 'Đã duyệt';
+    case 'active':
+    case 'in_progress':
+      return 'Đang diễn ra';
+    case 'completed':
+      return 'Hoàn thành';
+    case 'cancelled':
+      return 'Đã hủy';
+    case 'proposed':
+    default:
+      return 'Đề xuất';
+  }
+};
+
+// 16 distinct, high-contrast, beautiful accessible colors for Gantt activity bars
+export const GANTT_COLORS = [
+  { bg: '#0052CC', border: '#0747A6', text: '#FFFFFF' }, // Classic Blue
+  { bg: '#00875A', border: '#006644', text: '#FFFFFF' }, // Deep Green
+  { bg: '#FF5630', border: '#DE350B', text: '#FFFFFF' }, // Crimson Red
+  { bg: '#6554C0', border: '#5243AA', text: '#FFFFFF' }, // Purple
+  { bg: '#00B8D9', border: '#00A3BF', text: '#FFFFFF' }, // Teal / Cyan
+  { bg: '#FF8B00', border: '#C25E00', text: '#FFFFFF' }, // Amber Orange
+  { bg: '#36B37E', border: '#00875A', text: '#FFFFFF' }, // Mint Green
+  { bg: '#8777D9', border: '#6554C0', text: '#FFFFFF' }, // Lavender
+  { bg: '#EC4899', border: '#DB2777', text: '#FFFFFF' }, // Hot Pink
+  { bg: '#0284C7', border: '#0369A1', text: '#FFFFFF' }, // Sky Blue
+  { bg: '#F59E0B', border: '#D97706', text: '#FFFFFF' }, // Golden Amber
+  { bg: '#10B981', border: '#059669', text: '#FFFFFF' }, // Emerald
+  { bg: '#8B5CF6', border: '#7C3AED', text: '#FFFFFF' }, // Violet
+  { bg: '#14B8A6', border: '#0D9488', text: '#FFFFFF' }, // Deep Teal
+  { bg: '#F43F5E', border: '#E11D48', text: '#FFFFFF' }, // Rose Red
+  { bg: '#6366F1', border: '#4F46E5', text: '#FFFFFF' }, // Indigo
+];
+
+const GANTT_MONTHS = ['Thg 1', 'Thg 2', 'Thg 3', 'Thg 4', 'Thg 5', 'Thg 6', 'Thg 7', 'Thg 8', 'Thg 9', 'Thg 10', 'Thg 11', 'Thg 12'];
+
+interface GanttPosition {
+  leftPercent: number;
+  widthPercent: number;
+  startDateDisplay: string;
+  deadlineDisplay: string;
+}
+
+const calculateGanttPosition = (act: ActivityItem, year: number): GanttPosition => {
+  const yearStart = new Date(year, 0, 1).getTime();
+  const yearEnd = new Date(year, 11, 31, 23, 59, 59).getTime();
+  const yearDuration = Math.max(1, yearEnd - yearStart);
+
+  let startTs: number;
+  let endTs: number;
+
+  if (act.start_date && act.deadline) {
+    startTs = new Date(act.start_date).getTime();
+    endTs = new Date(act.deadline).getTime();
+  } else if (act.start_date) {
+    startTs = new Date(act.start_date).getTime();
+    endTs = startTs + 14 * 24 * 60 * 60 * 1000;
+  } else if (act.deadline) {
+    endTs = new Date(act.deadline).getTime();
+    startTs = endTs - 14 * 24 * 60 * 60 * 1000;
+  } else {
+    startTs = new Date(year, 9, 1).getTime(); // Oct 1 fallback
+    endTs = startTs + 14 * 24 * 60 * 60 * 1000;
+  }
+
+  // Fallback for invalid parsed dates
+  if (isNaN(startTs)) startTs = new Date(year, 9, 1).getTime();
+  if (isNaN(endTs)) endTs = startTs + 14 * 24 * 60 * 60 * 1000;
+
+  if (endTs < startTs) {
+    endTs = startTs + 7 * 24 * 60 * 60 * 1000;
+  }
+
+  const clampedStart = Math.max(yearStart, Math.min(yearEnd, startTs));
+  const clampedEnd = Math.max(yearStart, Math.min(yearEnd, endTs));
+
+  const leftPercent = Math.max(0, Math.min(94, ((clampedStart - yearStart) / yearDuration) * 100));
+  const rawWidth = ((clampedEnd - clampedStart) / yearDuration) * 100;
+  const widthPercent = Math.min(100 - leftPercent, Math.max(7, rawWidth));
+
+  return {
+    leftPercent,
+    widthPercent,
+    startDateDisplay: formatDateDisplay(act.start_date || new Date(startTs).toISOString().slice(0, 10)),
+    deadlineDisplay: formatDateDisplay(act.deadline || new Date(endTs).toISOString().slice(0, 10)),
+  };
+};
+
 export const CalendarViewContent: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'list' | 'gantt'>('month');
   const [currentDate, setCurrentDate] = useState(() => new Date(2026, 9, 8)); // Oct 8, 2026
   const [selectedTeam, setSelectedTeam] = useState('all');
 
@@ -98,14 +189,23 @@ export const CalendarViewContent: React.FC = () => {
 
   // Compute month title
   const monthName = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
+  const periodTitle = viewMode === 'gantt' ? `Năm ${currentDate.getFullYear()}` : monthName;
 
-  // Month navigation handlers
-  const handlePrevMonth = () => {
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  // Navigation handlers
+  const handlePrev = () => {
+    if (viewMode === 'gantt') {
+      setCurrentDate((prev) => new Date(prev.getFullYear() - 1, prev.getMonth(), 1));
+    } else {
+      setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    }
   };
 
-  const handleNextMonth = () => {
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  const handleNext = () => {
+    if (viewMode === 'gantt') {
+      setCurrentDate((prev) => new Date(prev.getFullYear() + 1, prev.getMonth(), 1));
+    } else {
+      setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    }
   };
 
   const handleToday = () => {
@@ -202,12 +302,12 @@ export const CalendarViewContent: React.FC = () => {
           marginBottom: '16px',
         }}
       >
-        {/* Left Toolbar: Month Navigation */}
+        {/* Left Toolbar: Period Navigation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Button
             appearance="default"
-            aria-label="Tháng trước"
-            onClick={handlePrevMonth}
+            aria-label={viewMode === 'gantt' ? 'Năm trước' : 'Tháng trước'}
+            onClick={handlePrev}
           >
             <ChevronLeftIcon label="" />
           </Button>
@@ -222,13 +322,13 @@ export const CalendarViewContent: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            {monthName}
+            {periodTitle}
           </span>
 
           <Button
             appearance="default"
-            aria-label="Tháng sau"
-            onClick={handleNextMonth}
+            aria-label={viewMode === 'gantt' ? 'Năm sau' : 'Tháng sau'}
+            onClick={handleNext}
           >
             <ChevronRightIcon label="" />
           </Button>
@@ -262,10 +362,17 @@ export const CalendarViewContent: React.FC = () => {
             >
               Danh sách
             </Button>
+            <Button
+              appearance={viewMode === 'gantt' ? 'primary' : 'default'}
+              onClick={() => setViewMode('gantt')}
+            >
+              Biểu đồ Gantt
+            </Button>
           </div>
         </div>
       </div>
 
+      {/* Main Content Area */}
       {viewMode === 'month' ? (
         /* Calendar Month Grid */
         <div
@@ -407,10 +514,11 @@ export const CalendarViewContent: React.FC = () => {
             })}
           </div>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         /* Calendar List View */
-        <div>
-          {filteredActivities.length === 0 ? (
+        isActivitiesLoading ? (
+          <LottieLoading message="Đang tải danh sách hoạt động..." size={140} />
+        ) : filteredActivities.length === 0 ? (
             <div
               data-testid="calendar-empty-state"
               style={{
@@ -517,6 +625,258 @@ export const CalendarViewContent: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )
+      ) : isActivitiesLoading ? (
+        <LottieLoading message="Đang tải biểu đồ Gantt..." size={140} />
+      ) : (
+        /* Gantt Chart View */
+        <div
+          data-testid="gantt-chart-container"
+          style={{
+            backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
+            border: `1px solid ${token('color.border', '#DFE1E6')}`,
+            borderRadius: '6px',
+            overflow: 'hidden',
+            boxShadow: token(
+              'elevation.shadow.raised',
+              '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'
+            ),
+          }}
+        >
+          {/* Gantt Header */}
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: `1px solid ${token('color.border', '#DFE1E6')}`,
+              backgroundColor: token('elevation.surface', '#FAFBFC'),
+            }}
+          >
+            {/* Task list column title */}
+            <div
+              style={{
+                width: '280px',
+                minWidth: '240px',
+                padding: '12px 16px',
+                fontWeight: 700,
+                fontSize: '12px',
+                color: token('color.text.subtle', '#5E6C84'),
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                borderRight: `1px solid ${token('color.border', '#DFE1E6')}`,
+                boxSizing: 'border-box',
+              }}
+            >
+              Danh sách hoạt động ({filteredActivities.length})
+            </div>
+
+            {/* 12 Months timeline header */}
+            <div
+              style={{
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(12, 1fr)',
+              }}
+            >
+              {GANTT_MONTHS.map((m, idx) => (
+                <div
+                  key={m}
+                  style={{
+                    textAlign: 'center',
+                    padding: '12px 0',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color:
+                      idx === 9 && currentDate.getFullYear() === 2026
+                        ? token('color.text.brand', '#0052CC')
+                        : token('color.text.subtle', '#5E6C84'),
+                    backgroundColor:
+                      idx === 9 && currentDate.getFullYear() === 2026
+                        ? token('color.background.selected', '#EBF3FF')
+                        : 'transparent',
+                    borderRight: idx < 11 ? `1px solid ${token('color.border', '#DFE1E6')}` : 'none',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  {m}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Gantt Rows */}
+          {filteredActivities.length === 0 ? (
+            <div
+              data-testid="calendar-empty-state"
+              style={{
+                padding: '48px 24px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div style={{ color: token('color.icon', '#42526E') }}>
+                <InboxIcon label="" />
+              </div>
+              <div style={{ fontSize: '14px', color: token('color.text.subtle', '#5E6C84') }}>
+                Không có hoạt động nào trong danh sách.
+              </div>
+            </div>
+          ) : (
+            <div style={{ position: 'relative' }}>
+              {filteredActivities.map((act, idx) => {
+                const color = GANTT_COLORS[idx % GANTT_COLORS.length];
+                const position = calculateGanttPosition(act, currentDate.getFullYear());
+
+                return (
+                  <div
+                    key={act.id}
+                    data-testid={`gantt-row-${act.id}`}
+                    style={{
+                      display: 'flex',
+                      borderBottom: `1px solid ${token('color.border', '#DFE1E6')}`,
+                      minHeight: '52px',
+                      alignItems: 'center',
+                      backgroundColor:
+                        idx % 2 === 0
+                          ? token('elevation.surface', '#FFFFFF')
+                          : token('color.background.neutral.subtle', '#FAFBFC'),
+                    }}
+                  >
+                    {/* Left Column: Activity Info */}
+                    <div
+                      style={{
+                        width: '280px',
+                        minWidth: '240px',
+                        padding: '8px 16px',
+                        borderRight: `1px solid ${token('color.border', '#DFE1E6')}`,
+                        overflow: 'hidden',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: token('color.text', '#172B4D'),
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                        title={act.title}
+                      >
+                        {act.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: token('color.text.subtle', '#5E6C84'),
+                          marginTop: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {act.team_name && <span>{act.team_name}</span>}
+                        <span>•</span>
+                        <span>{position.deadlineDisplay}</span>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Timeline track & Bar */}
+                    <div
+                      style={{
+                        flex: 1,
+                        height: '52px',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {/* 12 Month vertical guide columns */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(12, 1fr)',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {Array.from({ length: 12 }).map((_, mIdx) => (
+                          <div
+                            key={mIdx}
+                            style={{
+                              borderRight:
+                                mIdx < 11 ? `1px solid ${token('color.border', '#F4F5F7')}` : 'none',
+                              backgroundColor:
+                                mIdx === 9 && currentDate.getFullYear() === 2026
+                                  ? 'rgba(0, 82, 204, 0.03)'
+                                  : 'transparent',
+                            }}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Today vertical line on the timeline if 2026 */}
+                      {currentDate.getFullYear() === 2026 && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: `${
+                              ((new Date(2026, 9, 8).getTime() - new Date(2026, 0, 1).getTime()) /
+                                (new Date(2026, 11, 31, 23, 59, 59).getTime() -
+                                  new Date(2026, 0, 1).getTime())) *
+                              100
+                            }%`,
+                            width: '2px',
+                            backgroundColor: token('color.border.brand', '#0052CC'),
+                            zIndex: 1,
+                            pointerEvents: 'none',
+                          }}
+                        />
+                      )}
+
+                      {/* The Color-Coded Activity Gantt Bar */}
+                      <div
+                        data-testid={`gantt-bar-${act.id}`}
+                        style={{
+                          position: 'absolute',
+                          left: `${position.leftPercent}%`,
+                          width: `${position.widthPercent}%`,
+                          height: '28px',
+                          backgroundColor: color.bg,
+                          border: `1px solid ${color.border}`,
+                          borderRadius: '14px',
+                          color: color.text,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          padding: '0 8px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          boxShadow: '0 1px 3px rgba(9, 30, 66, 0.25)',
+                          cursor: 'pointer',
+                          zIndex: 2,
+                          boxSizing: 'border-box',
+                        }}
+                        title={`${act.title} (${getStatusText(act.status)})\n${act.team_name || ''}\nThời gian: ${position.startDateDisplay} - ${position.deadlineDisplay}`}
+                      >
+                        {getStatusText(act.status)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import {
   useQuery,
@@ -53,22 +53,7 @@ export const TeamsViewContent: React.FC = () => {
 
       {/* Loading state */}
       {isLoading ? (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-          }}
-        >
-          <Spinner size="large" />
-          <div style={{ fontSize: '14px', color: token('color.text.subtle', '#5E6C84') }}>
-            Đang tải danh sách tổ...
-          </div>
-        </div>
+        <LottieLoading message="Đang tải danh sách tổ..." size={140} />
       ) : !teams || teams.length === 0 ? (
         /* Empty State */
         <div
@@ -86,7 +71,7 @@ export const TeamsViewContent: React.FC = () => {
           }}
         >
           <div style={{ color: token('color.icon.subtle', '#6B778C') }}>
-            <InboxIcon label="" size="large" />
+            <InboxIcon label="" />
           </div>
           <div
             style={{

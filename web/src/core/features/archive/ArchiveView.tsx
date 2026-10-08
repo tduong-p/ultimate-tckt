@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import {
   useQuery,
@@ -96,9 +96,7 @@ export const ArchiveViewContent: React.FC = () => {
 
       {/* Content Area */}
       {isLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
-          <Spinner size="large" />
-        </div>
+        <LottieLoading message="Đang tải dữ liệu lưu trữ..." size={140} />
       ) : error ? (
         <div
           style={{

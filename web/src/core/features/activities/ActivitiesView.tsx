@@ -3,7 +3,7 @@ import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import {
   useQuery,
@@ -203,22 +203,7 @@ export const ActivitiesViewContent: React.FC = () => {
 
       {/* Activities Grid or Empty State */}
       {isLoading ? (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-          }}
-        >
-          <Spinner size="large" />
-          <div style={{ fontSize: '14px', color: token('color.text.subtle', '#5E6C84') }}>
-            Đang tải danh sách hoạt động...
-          </div>
-        </div>
+        <LottieLoading message="Đang tải danh sách hoạt động..." size={140} />
       ) : filteredActivities.length === 0 ? (
         <div
           style={{

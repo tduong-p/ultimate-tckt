@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useQuery, QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
 import { token } from '@atlaskit/tokens';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { fetchMyTasksToday, TaskItem } from '../../api';
 
@@ -108,9 +108,7 @@ const MyTasksViewContent: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
-            <Spinner size="medium" />
-          </div>
+          <LottieLoading message="Đang tải danh sách công việc..." size={140} />
         ) : isError ? (
           <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
             Lỗi tải dữ liệu công việc.

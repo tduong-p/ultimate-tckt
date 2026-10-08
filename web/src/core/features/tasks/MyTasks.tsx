@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, QueryClient, QueryClientProvider, QueryClientContext } from '@tanstack/react-query';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import Lozenge from '@atlaskit/lozenge';
 import Avatar from '@atlaskit/avatar';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
@@ -113,9 +113,7 @@ const MyTasksContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-        <Spinner size="large" />
-      </div>
+      <LottieLoading message="Đang tải công việc..." size={140} />
     );
   }
 

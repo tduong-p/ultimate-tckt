@@ -3,7 +3,7 @@ import { useQuery, QueryClient, QueryClientProvider, QueryClientContext } from '
 import { token } from '@atlaskit/tokens';
 import Badge from '@atlaskit/badge';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { fetchMyTasksToday, TaskItem } from '../../api';
 
@@ -140,9 +140,7 @@ const MyTasksTodayContent: React.FC = () => {
       </p>
 
       {isLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-          <Spinner size="large" />
-        </div>
+        <LottieLoading message="Đang tải danh sách việc cần xử lý..." size={140} />
       ) : isError ? (
         <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
           Lỗi tải danh sách công việc.

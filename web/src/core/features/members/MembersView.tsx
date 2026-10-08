@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import {
   useQuery,
@@ -235,22 +235,7 @@ export const MembersViewContent: React.FC = () => {
 
       {/* Members Grid or Empty State */}
       {isLoadingMembers ? (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-          }}
-        >
-          <Spinner size="large" />
-          <div style={{ fontSize: '14px', color: token('color.text.subtle', '#5E6C84') }}>
-            Đang tải danh sách thành viên...
-          </div>
-        </div>
+        <LottieLoading message="Đang tải danh sách thành viên..." size={140} />
       ) : filteredMembers.length === 0 ? (
         <div
           style={{
@@ -267,7 +252,7 @@ export const MembersViewContent: React.FC = () => {
           }}
         >
           <div style={{ color: token('color.icon.subtle', '#6B778C') }}>
-            <InboxIcon label="" size="large" />
+            <InboxIcon label="" />
           </div>
           <div
             style={{

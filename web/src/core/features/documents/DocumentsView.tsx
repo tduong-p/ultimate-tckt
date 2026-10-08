@@ -3,7 +3,7 @@ import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
-import Spinner from '@atlaskit/spinner';
+import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import {
   useQuery,
@@ -144,9 +144,7 @@ export const DocumentsViewContent: React.FC = () => {
 
       {/* Content Area */}
       {isLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
-          <Spinner size="large" />
-        </div>
+        <LottieLoading message="Đang tải danh sách văn bản..." size={140} />
       ) : error ? (
         <div
           style={{
