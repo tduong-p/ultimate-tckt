@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.23
+version: 2.24
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
-related_code: [core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
+updated: 2026-10-09
+related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
 # Test
@@ -37,6 +37,18 @@ dùng user có id khác unit id để số trùng không che lỗi thứ tự th
 
 frontend cũ và API), `migrate.test.js` (migration idempotent), `runtime.startup.test.js` (lỗi migration khi
 khởi động phải làm Core thoát).
+
+## Web — Vitest
+
+Test của frontend chung `web/` (React + TypeScript) nằm cạnh mã nguồn (`web/src/**/*.test.ts(x)`), chạy bằng Vitest + jsdom +
+Testing Library, không cần database (API được mock). Chạy:
+
+```bash
+cd web && npm test && npm run build
+```
+
+`npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi.
+Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader`.
 
 ## CTD — `pytest`
 
@@ -126,3 +138,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.21 | 2026-10-07 | `startTestServer` nhận `notiSender`; thêm `notifications.email-recipients.test.js` | DYC |
 | 2.22 | 2026-10-08 | `teams.mgmt.test.js` thêm test `GET /api/teams` với user id khác unit id (hotfix PR #79) | DYC |
 | 2.23 | 2026-10-08 | `frontend.contract.test.js` thêm test trang chi tiết hoạt động không tra khung Participants qua nút `#volunteer` (hotfix PR #81) | DYC |
+| 2.24 | 2026-10-09 | Thêm mục test frontend `web/` (Vitest + jsdom, job CI `test-web`) | DYC |

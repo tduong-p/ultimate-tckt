@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 4.3
+version: 4.4
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-07
+updated: 2026-10-09
 related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh, infra/scripts/lib.sh]
 ---
 
@@ -34,8 +34,9 @@ Không có bước duyệt thủ công riêng cho deploy: push đủ điều ki�
 
 Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
 
-1. **`changes`** — dùng `dorny/paths-filter@v3` để biết PR/commit này đụng vào `core/` (+ `web/`), `services/ctd-api/`, `services/noti-api/`, hay `infra/`; tính `tag` (12 ký tự đầu của SHA) và `env` (`staging` hoặc `production` theo nhánh).
-2. **`test-core`** — chạy nếu `core/**` hoặc `web/**` đổi: dựng service MySQL 8, `cd core && npm ci && npm test`.
+1. **`changes`** — dùng `dorny/paths-filter@v3` để biết PR/commit này đụng vào `core/`, `web/`, `services/ctd-api/`, `services/noti-api/`, hay `infra/`; tính `tag` (12 ký tự đầu của SHA) và `env` (`staging` hoặc `production` theo nhánh).
+2. **`test-core`** — chạy nếu `core/**` đổi: dựng service MySQL 8, `cd core && npm ci && npm test`.
+   **`test-web`** — chạy nếu `web/**` đổi: `cd web && npm ci && npm test && npm run build` (`build` = `tsc && vite build`, nên lỗi kiểu cũng làm đỏ). Chưa có job build/deploy cho `web/`: image Core không chứa `web/`.
 3. **`test-ctd`** — chạy nếu `services/ctd-api/**` đổi: dựng service Postgres 16, `pytest -q` trong `services/ctd-api/backend`.
    **`test-noti`** — tương tự cho `services/noti-api/**` (Postgres 16, database `noti_test`).
 4. **`build-core`** / **`build-ctd-api`** / **`build-noti`** — chỉ chạy khi push (không chạy trên PR) và test tương ứng xanh: build image arm64 (buildx + QEMU vì runner là amd64, VM là Oracle Ampere arm64) và push lên GHCR với tag `ghcr.io/tduong-p/ultimate-tckt-core:<sha12>` / `ultimate-tckt-ctd-api:<sha12>` / `ultimate-tckt-noti:<sha12>`.
@@ -48,7 +49,7 @@ Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
 
 Các job deploy/infra **không** dùng concurrency group của GitHub (GitHub huỷ job đang chờ khi job mới vào cùng group — deploy sẽ bị bỏ âm thầm). Việc tuần tự do `flock` trên VM đảm nhận (`/tmp/ultimate-tckt-<env>-deploy.lock`, chờ tối đa 180 giây). Thứ tự giữa `infra` và `deploy-*` khi cùng đổi trong một push không được đảm bảo (chấp nhận được vì cả hai đều `git pull` trước khi chạy): `deploy-core`, `deploy-ctd-api` và `infra` của cùng một push chạy song song, và push chỉ coi là xong khi **cả ba** xanh.
 
-Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitHub tính là "thành công" nên không chặn merge — đây là lý do PR thuần tài liệu vẫn qua được required checks `test-core`/`test-ctd`.
+Test bị `skip` do path filter (ví dụ PR chỉ đổi `docs/`) được GitHub tính là "thành công" nên không chặn merge — đây là lý do PR thuần tài liệu vẫn qua được required checks `test-core`/`test-ctd`/`test-web`.
 
 ## 3. `deploy.sh` làm gì
 
@@ -337,7 +338,7 @@ curl -fsS "https://ctd-hoso.duckdns.org/api/health"; echo     # staging: ctd-hos
    Vì vậy **không** mặc định cả hai tag đều bằng `MERGE12`: #57 đã đưa `ctd-api` lên trước, nên sau khi staging và main đã đồng bộ, lần phát hành này có thể
    không đổi `ctd-api`. Xác định dịch vụ nào đổi (máy dev), rồi so với tag thật trên VM:
    ```bash
-   git diff --quiet origin/main^1 origin/main -- core web && echo "core: KHÔNG đổi, tag giữ nguyên bản trước" || echo "core: ĐỔI, tag phải = MERGE12"
+   git diff --quiet origin/main^1 origin/main -- core && echo "core: KHÔNG đổi, tag giữ nguyên bản trước" || echo "core: ĐỔI, tag phải = MERGE12"
    git diff --quiet origin/main^1 origin/main -- services/ctd-api && echo "ctd-api: KHÔNG đổi, tag giữ nguyên (tag của lần deploy #57)" || echo "ctd-api: ĐỔI, tag phải = MERGE12"
    ```
    **Trên VM:**
@@ -474,3 +475,4 @@ kiểm kết quả giữa các bước. CTD không cần restore (không có mig
 | 4.1 | 2026-10-03 | Thêm O1/O2: nghiệm thu vận hành #55 (xoay secret, hash lộ) và #54 (set_password, kiểm sau restart); G1 dùng CI + test hồi quy; tag sau phát hành theo từng dịch vụ; rollback `ctd-api` kiểm image trước #54 | DYC |
 | 4.2 | 2026-10-05 | `deploy-noti` chạy cho production khi `PROD_NOTI_ENABLED`; cổng Noti production 8101 (SPEC-MAIL-001) | DYC |
 | 4.3 | 2026-10-07 | Tên miền staging trong lệnh smoke đổi sang `dyclub.tech` | DYC |
+| 4.4 | 2026-10-09 | Thêm job `test-web` (filter `web` riêng); `web/**` không còn kích hoạt `test-core`/build Core | DYC |
