@@ -171,8 +171,8 @@
 | [PLAN-WEB-002](specs/2026-10-08-dashboard-ui-plan.md) | Kế hoạch triển khai — Dashboard UI (Atlassian Design System) | 1.1 | active | dev, ai |
 | [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.1 | active | dev, ai |
 | [PLAN-DOCS-001](specs/2026-10-08-documents-screen-plan.md) | Plan — Documents Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-LOGIN-001](specs/2026-10-08-login-ui-design.md) | Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.1 | active | dev, ai |
-| [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.1 | active | dev, ai |
+| [SPEC-LOGIN-001](specs/2026-10-08-login-ui-design.md) | Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.2 | active | dev, ai |
+| [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.2 | active | dev, ai |
 | [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.1 | active | dev, ai |
 | [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.1 | active | dev, ai |

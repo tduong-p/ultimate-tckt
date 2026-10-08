@@ -4,6 +4,7 @@ import Textfield from '@atlaskit/textfield';
 import { token } from '@atlaskit/tokens';
 import { loginUser } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
+import { ThemeToggle } from '../../../shared/components/ThemeToggle';
 
 interface LoginViewProps {
   onLoginSuccess?: () => void;
@@ -250,8 +251,18 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           backgroundColor: token('elevation.surface', '#FFFFFF'),
         }}
       >
-        {/* Top Language Toggle */}
-        <div style={{ position: 'absolute', top: '24px', right: '24px' }}>
+        {/* Top Header Actions (Theme Toggle & Language Toggle) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '24px',
+            right: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <ThemeToggle size={48} />
           <button
             type="button"
             onClick={toggleLang}

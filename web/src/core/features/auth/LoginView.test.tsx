@@ -50,6 +50,7 @@ describe('LoginView Component', () => {
     expect(screen.getByLabelText(/Địa chỉ email/i)).toBeDefined();
     expect(screen.getByLabelText(/Mật khẩu/i)).toBeDefined();
     expect(screen.getByRole('button', { name: /Đăng nhập/i })).toBeDefined();
+    expect(screen.getByTestId('theme-toggle')).toBeDefined();
   });
 
   it('submits credentials and calls onLoginSuccess on successful login', async () => {

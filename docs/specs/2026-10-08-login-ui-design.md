@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx]
+related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -39,7 +39,9 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   - Chữ chú thích: "Dành cho Đoàn Thanh niên & Hội Sinh viên".
 
 ### 2.2. Cột phải: Form Đăng nhập ADS
-- **Chuyển đổi ngôn ngữ**: Nút toggle ở góc trên bên phải (`VN` / `EN`).
+- **Cụm thao tác góc trên bên phải (Header Actions)**:
+  - Nút chuyển đổi giao diện Sáng / Tối (`ThemeToggle` sử dụng hoạt ảnh Lottie `theme-toggle.json`): Hiệu ứng trượt sống động giữa Mặt trời (chế độ Sáng) và Mặt trăng cùng các vì sao (chế độ Tối).
+  - Nút toggle ngôn ngữ (`VN` / `EN`).
 - **Phần chào mừng**:
   - Eyebrow: `CHÀO MỪNG TRỞ LẠI` (màu xanh dương thương hiệu `#0052CC`).
   - Tiêu đề H2: `Đăng nhập vào không gian làm việc`.
@@ -81,17 +83,19 @@ flowchart TD
 
 ## 4. Kiểm thử
 1. **Unit test API Layer**: Kiểm thử `loginUser` (`POST /api/login`) và `logoutUser` (`POST /api/logout`) thành công và thất bại.
-2. **Unit test LoginView & LottieLoading**:
+2. **Unit test LoginView, LottieLoading & ThemeToggle**:
    - Kiểm tra render đầy đủ các thành phần cột trái và cột phải.
    - Kiểm tra submit form với thông tin hợp lệ -> gọi `loginUser` và gọi callback `onLoginSuccess`.
    - Kiểm tra submit form thất bại -> hiển thị thông điệp lỗi.
    - Kiểm tra nút Microsoft SSO trỏ đúng `/auth/microsoft`.
    - Kiểm tra component `LottieLoading` hiển thị đúng kích cỡ, thông điệp và container.
+   - Kiểm tra component `ThemeToggle` hỗ trợ các thuộc tính chuyển trạng thái ARIA switch (`aria-checked`), callback `onToggle`, và hoạt động tự chủ (uncontrolled).
 3. **Integration test Session Gating**:
    - `main.test.tsx` kiểm tra khi session `user: null` -> render `LoginView`.
    - Khi session `user: { name: 'Admin', ... }` -> render `PageLayout` với các module chính.
 
 ## Lịch sử phiên bản
+- **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi chế độ Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`) cho thanh điều hướng và màn hình đăng nhập.
 - **1.1 (2026-10-08)**: Bổ sung hiệu ứng hoạt ảnh Lottie Loading (`loading.lottie`) trong màn hình đăng nhập và khởi tạo ứng dụng.
 - **1.0 (2026-10-08)**: Khởi tạo thiết kế màn hình đăng nhập hiện đại 2 cột cho TCKT Activity Hub.
 

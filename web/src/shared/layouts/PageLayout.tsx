@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
-import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
 import Avatar from '@atlaskit/avatar';
 import Lozenge from '@atlaskit/lozenge';
 import { AtlassianIcon } from '@atlaskit/logo';
@@ -10,7 +9,7 @@ import { PageLayout as PageLayoutWrapper, Main, TopNavigation, LeftSidebar, Cont
 import { AtlassianNavigation, ProductHome } from '@atlaskit/atlassian-navigation';
 import { MenuGroup, ButtonItem, Section, HeadingItem } from '@atlaskit/menu';
 
-import ThemeIcon from '@atlaskit/icon/core/theme';
+import { ThemeToggle } from '../components/ThemeToggle';
 import DashboardIcon from '@atlaskit/icon/core/dashboard';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
 import CalendarIcon from '@atlaskit/icon/core/calendar';
@@ -57,10 +56,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   user,
   onLogout,
 }) => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  useEffect(() => { setGlobalTheme({ colorMode: theme }); }, [theme]);
-  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
-
   return (
     <PageLayoutWrapper>
       <TopNavigation isFixed={true} id="confluence-navigation">
@@ -74,8 +69,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             </div>
           )}
           renderSettings={() => (
-            <div onClick={toggleTheme} style={{ cursor: 'pointer', padding: '8px', color: token('color.icon', '#42526E') }}>
-              <ThemeIcon label="Toggle Theme" />
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0 6px' }}>
+              <ThemeToggle size={52} />
             </div>
           )}
           renderProfile={() => (

@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-LOGIN-001
 title: Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx]
+related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts]
 ---
 
 # Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -158,6 +158,7 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   Commit thay đổi: `docs(auth): record login ui design and update documentation index`
 
 ## Lịch sử phiên bản
+- **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`).
 - **1.1 (2026-10-08)**: Bổ sung hiệu ứng Lottie loading cho ứng dụng và form đăng nhập (`loading.lottie`).
 - **1.0 (2026-10-08)**: Khởi tạo kế hoạch triển khai màn hình đăng nhập hiện đại và kiểm soát phiên.
 
