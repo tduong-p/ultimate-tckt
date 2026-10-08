@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import AppProvider from '@atlaskit/app-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@atlaskit/css-reset';
-import '@atlaskit/tokens/css/atlassian-light.css';
 import '../shared/styles/responsive.css';
 import { PageLayout } from '../shared/layouts/PageLayout';
 import { Dashboard } from './features/dashboard/Dashboard';
