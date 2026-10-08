@@ -157,6 +157,8 @@
 | [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.0 | active | dev, ai |
 | [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.0 | active | dev, ai |
 | [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.0 | active | dev, ai |
+| [SPEC-ARCHIVE-001](specs/2026-10-08-archive-screen-design.md) | Design — Archive Screen UI (Kho lưu trữ hoạt động) | 1.0 | active | dev, ai |
+| [PLAN-ARCHIVE-001](specs/2026-10-08-archive-screen-plan.md) | Plan — Archive Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.0 | active | dev, ai |
 | [PLAN-CALENDAR-001](specs/2026-10-08-calendar-ui-plan.md) | Plan — Calendar Screen UI Implementation | 1.0 | active | dev, ai |
 | [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.0 | active | dev, ai |

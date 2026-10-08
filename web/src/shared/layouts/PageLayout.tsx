@@ -75,7 +75,7 @@ export const PageLayout: React.FC<{ children: React.ReactNode; currentView?: str
                   <ButtonItem isSelected={currentView === 'members'} onClick={() => onNavigate?.('members')} iconBefore={<PersonIcon label="" />}>Thành viên</ButtonItem>
                   <ButtonItem isSelected={currentView === 'documents'} onClick={() => onNavigate?.('documents')} iconBefore={<FileIcon label="" />}>Tài liệu</ButtonItem>
                   <ButtonItem isSelected={currentView === 'reports'} onClick={() => onNavigate?.('reports')} iconBefore={<ChartBarIcon label="" />}>Báo cáo</ButtonItem>
-                  <ButtonItem iconBefore={<ArchiveBoxIcon label="" />}>Lưu trữ</ButtonItem>
+                  <ButtonItem isSelected={currentView === 'archive'} onClick={() => onNavigate?.('archive')} iconBefore={<ArchiveBoxIcon label="" />}>Lưu trữ</ButtonItem>
                 </Section>
                 <Section>
                   <HeadingItem>SẮP CÓ</HeadingItem>
