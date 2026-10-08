@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
+import Button from '@atlaskit/button/new';
+import Select from '@atlaskit/select';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 
@@ -10,10 +12,9 @@ interface CalendarCell {
 }
 
 export const CalendarView: React.FC = () => {
-  const [selectedTeam, setSelectedTeam] = useState('all');
   const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
 
-  // Days of week
+  // Days of week (Monday to Sunday)
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
   // Cells for October 2026
@@ -65,26 +66,28 @@ export const CalendarView: React.FC = () => {
   ];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '8px' }}>
-      {/* Page Title */}
-      <h1 style={{
-        fontFamily: 'serif, "Times New Roman", Times, Georgia',
-        fontSize: '32px',
-        fontWeight: 700,
-        color: token('color.text', '#172B4D'),
-        margin: '0 0 6px 0'
-      }}>
-        Lịch chung
-      </h1>
-      <p style={{
-        fontSize: '14px',
-        color: token('color.text.subtle', '#5E6C84'),
-        margin: '0 0 24px 0'
-      }}>
-        Lịch hoạt động và hạn chót công việc của các Tổ.
-      </p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
+      {/* Page Header - synchronized with Dashboard style */}
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{
+          margin: 0,
+          fontSize: '24px',
+          fontWeight: 600,
+          color: token('color.text', '#172B4D'),
+          letterSpacing: '-0.2px'
+        }}>
+          Lịch chung
+        </h1>
+        <p style={{
+          margin: '6px 0 0 0',
+          fontSize: '14px',
+          color: token('color.text.subtle', '#5E6C84')
+        }}>
+          Lịch hoạt động và hạn chót công việc của các Tổ.
+        </p>
+      </div>
 
-      {/* Toolbar */}
+      {/* Toolbar Controls */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -95,138 +98,67 @@ export const CalendarView: React.FC = () => {
       }}>
         {/* Left Toolbar: Month Navigation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
-              borderRadius: '4px',
-              backgroundColor: token('elevation.surface', '#FFFFFF'),
-              cursor: 'pointer',
-              color: token('color.text', '#172B4D')
-            }}
-            title="Tháng trước"
-          >
-            <ChevronLeftIcon label="Previous" />
-          </button>
+          <Button appearance="default" aria-label="Tháng trước">
+            <ChevronLeftIcon label="Tháng trước" />
+          </Button>
 
-          <span style={{ fontSize: '15px', fontWeight: 700, color: token('color.text', '#172B4D'), minWidth: '140px', textAlign: 'center' }}>
+          <span style={{
+            fontSize: '15px',
+            fontWeight: 600,
+            color: token('color.text', '#172B4D'),
+            padding: '0 8px',
+            minWidth: '150px',
+            textAlign: 'center'
+          }}>
             Tháng 10 năm 2026
           </span>
 
-          <button
-            type="button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
-              borderRadius: '4px',
-              backgroundColor: token('elevation.surface', '#FFFFFF'),
-              cursor: 'pointer',
-              color: token('color.text', '#172B4D')
-            }}
-            title="Tháng sau"
-          >
-            <ChevronRightIcon label="Next" />
-          </button>
+          <Button appearance="default" aria-label="Tháng sau">
+            <ChevronRightIcon label="Tháng sau" />
+          </Button>
 
-          <button
-            type="button"
-            style={{
-              height: '32px',
-              padding: '0 12px',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
-              borderRadius: '4px',
-              backgroundColor: token('elevation.surface', '#FFFFFF'),
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              color: token('color.text', '#172B4D')
-            }}
-          >
+          <Button appearance="default">
             Hôm nay
-          </button>
+          </Button>
         </div>
 
         {/* Right Toolbar: Team Filter & View Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            style={{
-              height: '32px',
-              padding: '0 12px',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
-              borderRadius: '4px',
-              backgroundColor: token('elevation.surface', '#FFFFFF'),
-              fontSize: '13px',
-              color: token('color.text', '#172B4D'),
-              cursor: 'pointer',
-              outline: 'none',
-              minWidth: '220px'
-            }}
-          >
-            <option value="all">Tất cả các Tổ</option>
-            <option value="to-1">Tổ 1</option>
-            <option value="to-2">Tổ 2</option>
-          </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '220px' }}>
+            <Select
+              defaultValue={{ label: 'Tất cả các Tổ', value: 'all' }}
+              options={[
+                { label: 'Tất cả các Tổ', value: 'all' },
+                { label: 'Phát triển Đảng và Chuyển đổi số', value: 'ptd_cds' },
+                { label: 'Tuyên giáo - Truyền thông', value: 'tg_tt' },
+                { label: 'Tổ chức - Kiểm tra', value: 'tc_kt' }
+              ]}
+              placeholder="Chọn Tổ"
+            />
+          </div>
 
-          <div style={{
-            display: 'flex',
-            border: `1px solid ${token('color.border', '#DFE1E6')}`,
-            borderRadius: '4px',
-            overflow: 'hidden',
-            backgroundColor: token('elevation.surface', '#FFFFFF')
-          }}>
-            <button
-              type="button"
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <Button
+              appearance={viewMode === 'month' ? 'primary' : 'default'}
               onClick={() => setViewMode('month')}
-              style={{
-                height: '32px',
-                padding: '0 12px',
-                border: 'none',
-                backgroundColor: viewMode === 'month' ? token('color.background.neutral.subtle', '#F4F5F7') : 'transparent',
-                fontWeight: viewMode === 'month' ? 600 : 400,
-                fontSize: '13px',
-                color: token('color.text', '#172B4D'),
-                cursor: 'pointer'
-              }}
             >
               Tháng
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              appearance={viewMode === 'list' ? 'primary' : 'default'}
               onClick={() => setViewMode('list')}
-              style={{
-                height: '32px',
-                padding: '0 12px',
-                border: 'none',
-                borderLeft: `1px solid ${token('color.border', '#DFE1E6')}`,
-                backgroundColor: viewMode === 'list' ? token('color.background.neutral.subtle', '#F4F5F7') : 'transparent',
-                fontWeight: viewMode === 'list' ? 600 : 400,
-                fontSize: '13px',
-                color: token('color.text', '#172B4D'),
-                cursor: 'pointer'
-              }}
             >
               Danh sách
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Calendar Grid Container */}
+      {/* Calendar Grid Container - matching Atlassian card elevation & borders */}
       <div style={{
-        backgroundColor: token('elevation.surface', '#FFFFFF'),
+        backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
         border: `1px solid ${token('color.border', '#DFE1E6')}`,
-        borderRadius: '8px',
+        borderRadius: '3px',
         overflow: 'hidden',
         boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)')
       }}>
@@ -235,17 +167,19 @@ export const CalendarView: React.FC = () => {
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
           borderBottom: `1px solid ${token('color.border', '#DFE1E6')}`,
-          backgroundColor: token('elevation.surface', '#FFFFFF')
+          backgroundColor: token('elevation.surface', '#FAFBFC')
         }}>
           {weekDays.map((day, idx) => (
             <div
               key={day}
               style={{
                 textAlign: 'center',
-                padding: '10px 0',
-                fontSize: '13px',
-                fontWeight: 600,
+                padding: '12px 0',
+                fontSize: '12px',
+                fontWeight: 700,
                 color: token('color.text.subtle', '#5E6C84'),
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
                 borderRight: idx < 6 ? `1px solid ${token('color.border', '#DFE1E6')}` : 'none'
               }}
             >
@@ -267,8 +201,8 @@ export const CalendarView: React.FC = () => {
               <div
                 key={idx}
                 style={{
-                  minHeight: '92px',
-                  padding: '8px 10px',
+                  minHeight: '100px',
+                  padding: '10px 12px',
                   backgroundColor: !cell.isCurrentMonth
                     ? token('color.background.neutral.subtle', '#F4F5F7')
                     : cell.isToday
@@ -285,8 +219,8 @@ export const CalendarView: React.FC = () => {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: '22px',
-                      height: '22px',
+                      width: '24px',
+                      height: '24px',
                       borderRadius: '50%',
                       backgroundColor: token('color.background.brand.bold', '#0052CC'),
                       color: '#FFFFFF',
@@ -300,10 +234,10 @@ export const CalendarView: React.FC = () => {
                   <span
                     style={{
                       fontSize: '13px',
-                      fontWeight: 500,
+                      fontWeight: cell.isCurrentMonth ? 600 : 400,
                       color: cell.isCurrentMonth
                         ? token('color.text', '#172B4D')
-                        : token('color.text.subtlest', '#A5ADBA')
+                        : token('color.text.disabled', '#A5ADBA')
                     }}
                   >
                     {cell.day}
