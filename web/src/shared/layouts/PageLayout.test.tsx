@@ -57,6 +57,15 @@ describe('PageLayout', () => {
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
 
+  it('mục "Quản trị tài khoản" chỉ hiện khi canViewAccounts và đưa tới /accounts', () => {
+    const { unmount } = renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.queryByText('Quản trị tài khoản')).toBeNull();
+    unmount();
+    renderLayout(<PageLayout canViewAccounts><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByText('Quản trị tài khoản'));
+    expect(screen.getByTestId('path').textContent).toBe('/accounts');
+  });
+
   it('không hiện các nút chưa có chức năng (Cài đặt, Chuyển vai trò, Báo Bug, Thông báo)', () => {
     renderLayout(<PageLayout><div>Content</div></PageLayout>);
     expect(screen.queryByTitle('Cài đặt (Admin, ĐYC)')).toBeNull();

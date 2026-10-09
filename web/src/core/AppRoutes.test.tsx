@@ -78,5 +78,13 @@ describe('AppRoutes', () => {
     renderAt('/team/3', 'leader');
     expect(screen.getByText('màn-trang-tổ')).toBeDefined();
   });
-});
 
+  it('admin mở được #/accounts; thành viên và Tổ trưởng bị đưa về Tổng quan', () => {
+    renderAt('/accounts', 'admin');
+    expect(screen.getByText('màn-quản-trị-tài-khoản')).toBeDefined();
+    cleanup();
+    renderAt('/accounts', 'leader');
+    expect(screen.queryByText('màn-quản-trị-tài-khoản')).toBeNull();
+    expect(screen.getByText('màn-tổng-quan')).toBeDefined();
+  });
+});

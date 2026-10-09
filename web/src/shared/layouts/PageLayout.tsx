@@ -21,6 +21,7 @@ import PersonIcon from '@atlaskit/icon/core/person';
 import FileIcon from '@atlaskit/icon/core/file';
 import ChartBarIcon from '@atlaskit/icon/core/chart-bar';
 import ArchiveBoxIcon from '@atlaskit/icon/core/archive-box';
+import SettingsIcon from '@atlaskit/icon/core/settings';
 import SendIcon from '@atlaskit/icon/core/send';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
@@ -32,7 +33,7 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
-const NAV_ITEMS = [
+const NAV_ITEMS: Array<{ path: string; label: string; Icon: React.ComponentType<{ label: string }>; managerOnly?: boolean; adminOnly?: boolean }> = [
   { path: '/dashboard', label: 'Tổng quan', Icon: DashboardIcon },
   { path: '/my-tasks-today', label: 'Việc hôm nay', Icon: CheckCircleIcon },
   { path: '/calendar', label: 'Lịch hoạt động', Icon: CalendarIcon },
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
   { path: '/people', label: 'Thành viên', Icon: PersonIcon },
   { path: '/documents', label: 'Tài liệu', Icon: FileIcon },
   { path: '/reports', label: 'Báo cáo', Icon: ChartBarIcon, managerOnly: true },
+  { path: '/accounts', label: 'Quản trị tài khoản', Icon: SettingsIcon, adminOnly: true },
   { path: '/archive', label: 'Lưu trữ', Icon: ArchiveBoxIcon },
 ];
 
@@ -57,6 +59,8 @@ export interface PageLayoutProps {
   onLogout?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
+  /** Hiện mục "Quản trị tài khoản" (chỉ admin). Mặc định ẩn. */
+  canViewAccounts?: boolean;
   /** Phần tử đặt cạnh avatar trên thanh trên cùng (vd. bộ chọn đơn vị). */
   headerExtras?: React.ReactNode;
 }
@@ -66,6 +70,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   user,
   onLogout,
   canViewReports = false,
+  canViewAccounts = false,
   headerExtras,
 }) => {
   const location = useLocation();
@@ -129,7 +134,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  {NAV_ITEMS.filter((item) => !item.managerOnly || canViewReports).map(({ path, label, Icon }) => {
+                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon }) => {
                     const selected = location.pathname === path || location.pathname.startsWith(`${path}/`);
                     return (
                       <ButtonItem key={path} isSelected={selected} aria-current={selected ? 'page' : undefined}
