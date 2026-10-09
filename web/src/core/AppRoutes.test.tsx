@@ -10,6 +10,7 @@ vi.mock('./features/calendar/CalendarView', () => ({ CalendarView: () => <div>m�
 vi.mock('./features/reports/ReportsView', () => ({ ReportsView: () => <div>màn-báo-cáo</div> }));
 vi.mock('./features/activities/ActivityDetailView', () => ({ ActivityDetailView: () => <div>màn-chi-tiết-hoạt-động</div> }));
 vi.mock('./features/members/MembersView', () => ({ MembersView: () => <div>màn-thành-viên</div> }));
+vi.mock('./features/tasks/KanbanBoard', () => ({ KanbanBoard: () => <div>màn-kanban</div> }));
 
 function renderAt(path: string, role: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
@@ -65,4 +66,10 @@ describe('AppRoutes', () => {
     renderAt('/task/5', 'member');
     expect(screen.getByText('màn-tổng-quan')).toBeDefined();
   });
+
+  it('/board/:id mở Kanban của hoạt động', () => {
+    renderAt('/board/9', 'member');
+    expect(screen.getByText('màn-kanban')).toBeDefined();
+  });
 });
+

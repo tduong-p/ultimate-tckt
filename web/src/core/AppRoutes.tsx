@@ -14,6 +14,7 @@ import { ReportsView } from './features/reports/ReportsView';
 import { ArchiveView } from './features/archive/ArchiveView';
 import { NotFoundView } from './features/notFound/NotFoundView';
 import { TaskRoute } from './features/tasks/TaskModalProvider';
+import { KanbanBoard } from './features/tasks/KanbanBoard';
 
 const ToDashboard = () => <Navigate to="/dashboard" replace />;
 
@@ -27,6 +28,7 @@ export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
       <Route path="/" element={<ToDashboard />} />
       <Route path="/dashboard" element={dashboard} />
       <Route path="/task/:id" element={<TaskRoute>{dashboard}</TaskRoute>} />
+      <Route path="/board/:id" element={<KanbanBoard />} />
       <Route path="/my-tasks-today" element={<MyTasksToday />} />
       <Route path="/calendar" element={<CalendarView />} />
       <Route path="/activities" element={<ActivitiesView />} />
