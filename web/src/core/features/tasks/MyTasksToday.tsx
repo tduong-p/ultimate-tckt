@@ -13,8 +13,9 @@ import {
   getTaskStatusAppearance,
   getTaskStatusLabel,
 } from './taskLabels';
+import { TaskActionButtons } from './TaskActionButtons';
 
-const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
+const TaskCardItem: React.FC<{ task: TaskItem; canReview?: boolean }> = ({ task, canReview = false }) => (
   <div
     style={{
       backgroundColor: token('elevation.surface', '#FFFFFF'),
@@ -25,9 +26,11 @@ const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: '8px',
+      gap: '12px',
+      flexWrap: 'wrap',
     }}
   >
-    <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ flex: 1, minWidth: '240px' }}>
       <div style={{ fontSize: '14px', fontWeight: 600, color: token('color.text', '#172B4D'), marginBottom: '4px' }}>
         {task.title}
       </div>
@@ -38,7 +41,7 @@ const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
         {task.assignee_name && <span>Phụ trách: {task.assignee_name}</span>}
       </div>
     </div>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', flexShrink: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
       {task.priority && (
         <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
           {getTaskPriorityLabel(task.priority)}
@@ -47,6 +50,7 @@ const TaskCardItem: React.FC<{ task: TaskItem }> = ({ task }) => (
       <Lozenge appearance={getTaskStatusAppearance(task.status)}>
         {getTaskStatusLabel(task.status)}
       </Lozenge>
+      <TaskActionButtons task={task} canReview={canReview} />
     </div>
   </div>
 );
@@ -57,7 +61,8 @@ const TaskSection: React.FC<{
   badgeAppearance?: 'default' | 'primary' | 'important' | 'added' | 'removed';
   emptyMessage: string;
   tasks: TaskItem[];
-}> = ({ title, count, badgeAppearance = 'default', emptyMessage, tasks }) => (
+  canReview?: boolean;
+}> = ({ title, count, badgeAppearance = 'default', emptyMessage, tasks, canReview = false }) => (
   <div style={{
     backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
     borderRadius: '8px',
@@ -93,7 +98,7 @@ const TaskSection: React.FC<{
     ) : (
       <div>
         {tasks.map(task => (
-          <TaskCardItem key={task.id} task={task} />
+          <TaskCardItem key={task.id} task={task} canReview={canReview} />
         ))}
       </div>
     )}
@@ -152,6 +157,7 @@ export const MyTasksToday: React.FC = () => {
             badgeAppearance="primary"
             emptyMessage="Không có việc chờ duyệt"
             tasks={pendingMyReview}
+            canReview
           />
         </>
       )}
