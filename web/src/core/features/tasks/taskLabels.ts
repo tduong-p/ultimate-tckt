@@ -53,3 +53,23 @@ export const getTaskPriorityLabel = (priority?: string | null): string => {
 
 export const getTaskPriorityAppearance = (priority?: string | null): LozengeAppearance =>
   priority === 'urgent' || priority === 'high' ? 'removed' : 'default';
+
+const ATTACHMENT_KIND_LABELS: Record<string, string> = {
+  clarification: 'Làm rõ',
+  evidence: 'Minh chứng',
+  issue: 'Vướng mắc',
+  deliverable: 'Sản phẩm bàn giao',
+};
+
+export const getAttachmentKindLabel = (kind?: string | null): string => ATTACHMENT_KIND_LABELS[kind ?? ''] ?? kind ?? '';
+
+const UPDATE_KIND_LABELS: Record<string, string> = {
+  comment: 'Bình luận',
+  progress: 'Tiến độ',
+  issue: 'Vướng mắc',
+  evidence: 'Minh chứng',
+  review_note: 'Ghi chú nghiệm thu',
+};
+
+export const getUpdateKindLabel = (kind?: string | null): string => UPDATE_KIND_LABELS[kind ?? ''] ?? kind ?? '';
+
