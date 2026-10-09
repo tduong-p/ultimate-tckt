@@ -13,6 +13,7 @@ import { DocumentsView } from './features/documents/DocumentsView';
 import { ReportsView } from './features/reports/ReportsView';
 import { ArchiveView } from './features/archive/ArchiveView';
 import { NotFoundView } from './features/notFound/NotFoundView';
+import { TaskRoute } from './features/tasks/TaskModalProvider';
 
 const ToDashboard = () => <Navigate to="/dashboard" replace />;
 
@@ -20,10 +21,12 @@ const ToDashboard = () => <Navigate to="/dashboard" replace />;
 export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
   const caps = useCapabilities();
   const navigate = useNavigate();
+  const dashboard = <Dashboard userName={userName} onNavigate={(view) => navigate(`/${view}`)} />;
   return (
     <Routes>
       <Route path="/" element={<ToDashboard />} />
-      <Route path="/dashboard" element={<Dashboard userName={userName} onNavigate={(view) => navigate(`/${view}`)} />} />
+      <Route path="/dashboard" element={dashboard} />
+      <Route path="/task/:id" element={<TaskRoute>{dashboard}</TaskRoute>} />
       <Route path="/my-tasks-today" element={<MyTasksToday />} />
       <Route path="/calendar" element={<CalendarView />} />
       <Route path="/activities" element={<ActivitiesView />} />

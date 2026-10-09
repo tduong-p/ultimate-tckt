@@ -60,4 +60,9 @@ describe('AppRoutes', () => {
     renderAt('/khong-co', 'member');
     expect(screen.getByText('Không tìm thấy trang')).toBeDefined();
   });
+
+  it('/task/:id mở Tổng quan làm nền cho hộp công việc', () => {
+    renderAt('/task/5', 'member');
+    expect(screen.getByText('màn-tổng-quan')).toBeDefined();
+  });
 });
