@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deploy.yml]
 ---
 
@@ -325,9 +325,11 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 4 | Văn bản và chuông thông báo (4.6) | 0 |
 | 5 | Giao việc và Trình (4.7) | 0 |
 | 6 | Nhật ký trực ban: backend rồi UI (4.8) | 0, 5 (nút Trình) |
-| 7 | Thay thế UI cũ (5) | 0–6 |
+| 7 | Thay thế UI cũ (5) | 0–5; đợt 6 được hoãn và bổ sung sau trên UI mới |
 
 Đợt 3, 4 và 5 độc lập với nhau, làm song song được sau đợt 0.
+
+Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) được hoãn; đợt 7 cutover các phần đã có ở đợt 0–5 trước. Nhật ký trực ban sẽ được bổ sung sau trên `web/` mới. UI cũ vẫn được giữ tại `/legacy` cho tới khi qua thời gian ổn định như mục 5.
 
 ## 7. Test
 
@@ -367,3 +369,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |
 | 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 (Công việc và Kanban) hoàn thành: đầy đủ 12 task theo plan (hộp chi tiết công việc, checklist, tài liệu, bình luận, sửa việc, tự ghi nhận, giao việc, Kanban 4 cột kéo-thả, tích hợp vào Tổng quan, Việc hôm nay và Chi tiết hoạt động) | DYC |
+| 1.6 | 2026-10-10 | Theo yêu cầu, hoãn đợt 6 và thực hiện cutover đợt 7 trước; Nhật ký trực ban sẽ được bổ sung trên UI mới | DYC |
