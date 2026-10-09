@@ -1,7 +1,7 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.9
+version: 1.10
 status: active
 audience: [dev, ops, ai]
 owner: DYC
@@ -36,13 +36,13 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 3. Ruleset nhánh `main`
 
 - Yêu cầu Pull Request trước khi merge (không cho push thẳng).
-- Yêu cầu các status check sau phải xanh trước khi merge: `changes`, `test-core`, `test-ctd`, `docs` (job bị skip theo path filter vẫn tính là đạt). Job `test-web` (frontend `web/`) chạy trong CI nhưng chưa được thêm vào danh sách bắt buộc.
+- Yêu cầu các status check sau phải xanh trước khi merge: `changes`, `test-core`, `test-ctd`, `docs` (job bị skip theo path filter vẫn tính là đạt). `test-web` (frontend `web/`) **chưa** bắt buộc trên `main`: chỉ thêm sau khi đồng bộ `staging → main`, vì nhánh mà workflow chưa có job `test-web` sẽ không bao giờ báo check này và PR kẹt ở "Expected — waiting" (job bị skip chỉ tính là đạt khi job có trong workflow).
 - Chặn force-push và xoá nhánh.
 - Không cần bypass list: `docs.yml` chỉ gắn tag `docs-v*` và tạo GitHub Release, không commit vào `main`.
 
 ## 4. Ruleset nhánh `staging`
 
-- Yêu cầu status check `changes`, `test-core`, `test-ctd`, `docs` xanh.
+- Yêu cầu status check `changes`, `test-core`, `test-ctd`, `test-web`, `docs` xanh (`test-web` bắt buộc từ 2026-10-09, sau khi PR 83 đưa job vào `staging`).
 - Chặn force-push và xoá nhánh.
 - Không bắt buộc review, nhưng vì ruleset bắt buộc check nên **push thẳng commit mới vào `staging` bị từ chối** (commit chưa có check). Thực tế: đẩy lên nhánh tính năng → mở PR vào `staging` → merge khi CI xanh.
 - Ruleset hiện có: `protect-main`, `protect-staging` (xem `gh api repos/tduong-p/ultimate-tckt/rulesets`).
@@ -89,3 +89,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.7 | 2026-10-02 | Thêm package `ultimate-tckt-noti` và job `test-noti` | DYC |
 | 1.8 | 2026-10-05 | Thêm biến repo `PROD_NOTI_ENABLED` | DYC |
 | 1.9 | 2026-10-09 | Thêm job `test-web` (chưa nằm trong check bắt buộc của ruleset) | DYC |
+| 1.10 | 2026-10-09 | `test-web` thành check bắt buộc của `protect-staging`; `protect-main` thêm sau khi đồng bộ `staging → main` | DYC |
