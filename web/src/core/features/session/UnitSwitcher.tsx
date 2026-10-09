@@ -19,7 +19,7 @@ export const UnitSwitcher: React.FC = () => {
     mutationFn: (unitId: number) => switchUnit(unitId),
     onSuccess: (session: SessionData) => {
       queryClient.setQueryData(SESSION_KEY, session);
-      queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
+      queryClient.resetQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
       navigate('/dashboard');
       toast.success(`Đã chuyển sang ${session.units?.current?.name ?? 'đơn vị mới'}`);
     },

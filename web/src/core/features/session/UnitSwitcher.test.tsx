@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { useQuery } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UnitSwitcher } from './UnitSwitcher';
@@ -57,6 +58,32 @@ describe('UnitSwitcher', () => {
     await waitFor(() => expect(screen.getByTestId('path').textContent).toBe('/dashboard'));
     expect((qc.getQueryData(SESSION_KEY) as ReturnType<typeof sessionAt>).units.current.id).toBe(2);
     expect(qc.getQueryData(['core-activities'])).toBeUndefined();
+  });
+
+  it('đổi đơn vị: tải lại dữ liệu đang hiển thị ở màn đang mở', async () => {
+    vi.mocked(api.switchUnit).mockResolvedValueOnce(sessionAt(2));
+    const unitData = vi.fn().mockResolvedValueOnce('unit-1').mockResolvedValueOnce('unit-2');
+    const Consumer = () => {
+      const { data } = useQuery({ queryKey: ['unit-data'], queryFn: unitData });
+      return <div data-testid="unit-data">{data ?? 'đang tải'}</div>;
+    };
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+    qc.setQueryData(SESSION_KEY, sessionAt(1));
+    render(
+      <QueryClientProvider client={qc}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={['/dashboard']}>
+            <UnitSwitcher />
+            <Consumer />
+            <Routes><Route path="*" element={<Probe />} /></Routes>
+          </MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>
+    );
+    expect(await screen.findByText('unit-1')).toBeDefined();
+    fireEvent.change(screen.getByLabelText('Đơn vị'), { target: { value: '2' } });
+    expect(await screen.findByText('unit-2')).toBeDefined();
+    expect(unitData).toHaveBeenCalledTimes(2);
   });
 
   it('lỗi thì báo toast, giữ đơn vị và cache cũ', async () => {
