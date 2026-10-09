@@ -7,16 +7,20 @@ import { Checkbox } from '@atlaskit/checkbox';
 import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTeams, fetchBootstrap, createActivity, apiErrorMessage, type CreateActivityPayload } from '../../api';
+import { fetchTeams, fetchBootstrap, fetchMembers, createActivity, apiErrorMessage, type CreateActivityPayload } from '../../api';
+import { LinkField, LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
+import { isHttpUrl } from '../../../shared/utils/url';
 
 type SelectOption<V> = { label: string; value: V };
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  /** Gọi với id hoạt động mới sau khi đóng modal (nơi gọi quyết định chuyển trang). */
+  onCreated?: (id: number) => void;
 }
 
-export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
+export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose, onCreated }) => {
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -35,12 +39,21 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
     enabled: isOpen,
   });
 
+  const { data: members = [] } = useQuery({
+    queryKey: ['core-members'],
+    queryFn: fetchMembers,
+    enabled: isOpen,
+  });
+  // Tổ chủ trì luôn nằm trong các Tổ tham gia: form hiện nó đã đánh dấu và khoá.
+  const [leadTeamId, setLeadTeamId] = useState<number | null>(null);
+
   const createMutation = useMutation({
     mutationFn: (payload: CreateActivityPayload) => createActivity(payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['core-activities'] });
       queryClient.invalidateQueries({ queryKey: ['core-bootstrap'] });
       onClose();
+      onCreated?.(data.id);
     },
   });
 
@@ -48,6 +61,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) {
       setFormError(null);
+      setLeadTeamId(null);
       resetMutation();
     }
   }, [isOpen, resetMutation]);
@@ -62,6 +76,9 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
       label: t.name,
       value: t.id,
     }));
+  const eventLeadOptions = members
+    .filter((m) => m.is_active !== 0 && m.is_active !== false)
+    .map((m) => ({ label: m.name, value: m.id }));
   const mutationError = apiErrorMessage(createMutation.error, 'Không thể tạo đề xuất. Vui lòng kiểm tra lại thông tin.');
 
   const handleSubmit = (formData: Record<string, any>) => {
@@ -80,6 +97,12 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
     const startDate = String(formData.startDate || '');
     if (startDate && startDate > deadline) {
       setFormError('Ngày bắt đầu phải trước hoặc bằng hạn chung.');
+      return;
+    }
+    const proposalUrl = String(formData.activityProfile || '').trim();
+    const publicImageUrl = String(formData.publicImageUrl || '').trim();
+    if ((proposalUrl && !isHttpUrl(proposalUrl)) || (publicImageUrl && !isHttpUrl(publicImageUrl))) {
+      setFormError(LINK_ERROR_MESSAGE);
       return;
     }
     setFormError(null);
@@ -121,12 +144,9 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
       priority,
       location: formData.location ? String(formData.location).trim() : null,
       requested_by: formData.requestedBy ? String(formData.requestedBy).trim() : null,
-      proposal_document_url: formData.activityProfile
-        ? String(formData.activityProfile).trim()
-        : null,
-      public_image_url: formData.publicImageUrl
-        ? String(formData.publicImageUrl).trim()
-        : null,
+      event_lead_id: formData.eventLead?.value ?? null,
+      proposal_document_url: proposalUrl || null,
+      public_image_url: publicImageUrl || null,
       is_public: Boolean(formData.showOnPublicLandingPage),
     };
 
@@ -251,6 +271,10 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         {({ fieldProps }) => (
                           <Select
                             {...fieldProps}
+                            onChange={(option) => {
+                              fieldProps.onChange(option);
+                              setLeadTeamId((option as SelectOption<number> | null)?.value ?? null);
+                            }}
                             placeholder="Chọn một Tổ"
                             options={teamOptions}
                             isLoading={isLoadingList}
@@ -288,7 +312,8 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                                 key={t.value}
                                 label={t.label}
                                 value={String(t.value)}
-                                isChecked={selectedIds.includes(t.value)}
+                                isChecked={selectedIds.includes(t.value) || t.value === leadTeamId}
+                                isDisabled={t.value === leadTeamId}
                                 onChange={(e) => {
                                   const next = e.target.checked
                                     ? [...selectedIds, t.value]
@@ -312,6 +337,16 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         </div>
                       );
                     }}
+                  </Field>
+
+                  <Field<SelectOption<number> | null>
+                    name="eventLead"
+                    label="Trưởng Ban Tổ chức (không bắt buộc)"
+                    defaultValue={null}
+                  >
+                    {({ fieldProps }) => (
+                      <Select {...fieldProps} isClearable placeholder="Chọn một người" options={eventLeadOptions} />
+                    )}
                   </Field>
 
                   <div style={{ display: 'flex', gap: '16px' }}>
@@ -426,15 +461,12 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     )}
                   </Field>
 
-                  <Field
-                    name="activityProfile"
-                    label="Hồ sơ hoạt động"
-                    defaultValue=""
-                  >
+                  <Field name="activityProfile" label="" defaultValue="">
                     {({ fieldProps }) => (
-                      <Textfield
-                        {...fieldProps}
-                        placeholder="Liên kết hồ sơ hoạt động (không bắt buộc)"
+                      <LinkField
+                        label="Hồ sơ hoạt động (đề án, không bắt buộc)"
+                        value={String(fieldProps.value ?? '')}
+                        onChange={(value) => fieldProps.onChange(value)}
                       />
                     )}
                   </Field>
@@ -455,14 +487,12 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     )}
                   </Field>
 
-                  <Field
-                    name="publicImageUrl"
-                    label="Liên kết ảnh công khai (không bắt buộc)"
-                    defaultValue=""
-                  >
+                  <Field name="publicImageUrl" label="" defaultValue="">
                     {({ fieldProps }) => (
-                      <Textfield
-                        {...fieldProps}
+                      <LinkField
+                        label="Liên kết ảnh công khai (không bắt buộc)"
+                        value={String(fieldProps.value ?? '')}
+                        onChange={(value) => fieldProps.onChange(value)}
                         placeholder="https://example.com/activity.jpg"
                       />
                     )}
