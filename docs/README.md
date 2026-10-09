@@ -29,7 +29,7 @@
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 4.5 | active | ai, dev |
-| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.16 | active | ai, dev |
+| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.17 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.11 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.3 | active | ai, dev |
 
@@ -54,7 +54,7 @@
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.3 | active | dev, ai |
 | [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 7.0 | active | dev, ai |
-| [DEV-FE-001](dev/frontend.md) | Frontend | 1.14 | active | dev, ai |
+| [DEV-FE-001](dev/frontend.md) | Frontend | 1.15 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.3 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.0 | active | dev, ai |
@@ -190,7 +190,7 @@
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.0 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.0 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.5 | active | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.6 | active | dev, ai, ops |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
