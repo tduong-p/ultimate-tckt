@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.9
+version: 2.10
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1290,3 +1290,4 @@ npm run docs:check         # Documentation validation
 | 2.7 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
 | 2.9 | 2026-10-09 | Ghi nhận PR 83: frontend `web/` (React + Vite + Atlaskit) có các màn Core đầu tiên (Tổng quan, Hoạt động, Lịch, Lưu trữ, Văn bản, Thành viên, Tổ, Nhiệm vụ của tôi, Báo cáo) dùng API thật, onboarding HUST, job CI `test-web`; cách phục vụ `web/` (mục `/app`) chưa chốt; phạm vi kế hoạch không đổi | DYC |
+| 2.10 | 2026-10-09 | Đợt 0 của `web/` (SPEC-WEB-003): router, tầng API, thành phần dùng chung | DYC |

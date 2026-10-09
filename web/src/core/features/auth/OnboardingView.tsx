@@ -2,28 +2,15 @@ import React, { useState } from 'react';
 import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
-import { acknowledgeFacultyNotice, submitStudentClass, type SessionUser } from '../../api';
+import { acknowledgeFacultyNotice, apiErrorMessage, submitStudentClass, type SessionUser } from '../../api';
 
 interface OnboardingViewProps {
   user: SessionUser;
   onDone: (user: SessionUser) => void;
 }
 
-// Core trả các lỗi onboarding bằng tiếng Anh; dịch những câu người dùng có thể gặp.
-const VI_ERRORS: Record<string, string> = {
-  'Class number is required and must not exceed 100 characters.':
-    'Số lớp là bắt buộc và không quá 100 ký tự.',
-  'The entrance year could not be inferred from this student email address.':
-    'Không xác định được khóa học từ email sinh viên này. Vui lòng liên hệ quản trị viên.',
-  'This information is only for HUST student accounts.': 'Thông tin này chỉ dành cho tài khoản sinh viên HUST.',
-  'This notice is only for HUST staff and faculty accounts.':
-    'Thông báo này chỉ dành cho tài khoản cán bộ, giảng viên HUST.',
-};
-
 function errorMessage(err: unknown): string {
-  const serverError = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-  if (serverError) return VI_ERRORS[serverError] ?? serverError;
-  return 'Không lưu được thông tin. Vui lòng thử lại.';
+  return apiErrorMessage(err, 'Không lưu được thông tin. Vui lòng thử lại.');
 }
 
 /** Bước bắt buộc sau đăng nhập cho tài khoản HUST (giống modal onboarding của UI cũ). */

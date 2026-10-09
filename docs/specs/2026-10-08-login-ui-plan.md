@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-LOGIN-001
 title: Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts, web/src/shared/components/MicrosoftLottieLogo.tsx]
+updated: 2026-10-09
+related_code: [web/src/core/features/auth/**]
 ---
 
 # Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -158,10 +158,13 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   Commit thay đổi: `docs(auth): record login ui design and update documentation index`
 
 ## Lịch sử phiên bản
-- **1.5 (2026-10-08)**: Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging.
-- **1.4 (2026-10-08)**: Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev.
-- **1.3 (2026-10-08)**: Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO.
-- **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`).
-- **1.1 (2026-10-08)**: Bổ sung hiệu ứng Lottie loading cho ứng dụng và form đăng nhập (`loading.lottie`).
-- **1.0 (2026-10-08)**: Khởi tạo kế hoạch triển khai màn hình đăng nhập hiện đại và kiểm soát phiên.
 
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai màn hình đăng nhập hiện đại và kiểm soát phiên. | DYC |
+| 1.1 | 2026-10-08 | Bổ sung hiệu ứng Lottie loading cho ứng dụng và form đăng nhập (`loading.lottie`). | DYC |
+| 1.2 | 2026-10-08 | Bổ sung nút chuyển đổi Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`). | DYC |
+| 1.3 | 2026-10-08 | Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO. | DYC |
+| 1.4 | 2026-10-08 | Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev. | DYC |
+| 1.5 | 2026-10-08 | Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging. | DYC |
+| 1.6 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |

@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-WEB-002
 title: Kế hoạch triển khai — Dashboard UI (Atlassian Design System)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: AI
-updated: 2026-10-08
-related_code: [web/src/core/features/dashboard/**]
+updated: 2026-10-09
+related_code: [web/src/core/features/dashboard/Dashboard.tsx]
 ---
 
 # Dashboard UI Implementation Plan
@@ -231,3 +231,4 @@ git commit -m "feat(web): add updates widgets to right column"
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch cho trang Tổng quan | AI |
 | 1.1 | 2026-10-08 | Kết nối Dashboard với API GET /api/bootstrap và xóa KPI mock | AI |
+| 1.2 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import { token } from '@atlaskit/tokens';
-import { loginUser } from '../../api';
+import { apiErrorMessage, loginUser } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ThemeToggle } from '../../../shared/components/ThemeToggle';
 import { MicrosoftLottieLogo } from '../../../shared/components/MicrosoftLottieLogo';
@@ -37,10 +37,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         onLoginSuccess();
       }
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.error ||
-        err?.message ||
-        (isVi ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' : 'Login failed. Please check credentials.');
+      const msg = apiErrorMessage(
+        err,
+        isVi ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' : 'Login failed. Please check credentials.'
+      );
       setErrorMessage(msg);
     } finally {
       setIsLoading(false);

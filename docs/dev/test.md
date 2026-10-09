@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.24
+version: 2.25
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -139,3 +139,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.22 | 2026-10-08 | `teams.mgmt.test.js` thêm test `GET /api/teams` với user id khác unit id (hotfix PR #79) | DYC |
 | 2.23 | 2026-10-08 | `frontend.contract.test.js` thêm test trang chi tiết hoạt động không tra khung Participants qua nút `#volunteer` (hotfix PR #81) | DYC |
 | 2.24 | 2026-10-09 | Thêm mục test frontend `web/` (Vitest + jsdom, job CI `test-web`) | DYC |
+| 2.25 | 2026-10-09 | Đợt 0 `web/`: thêm test Vitest cho router, bộ chọn đơn vị, thành phần dùng chung (`Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`) và tiện ích `bytes`/`text`/`url` | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-ACTMODAL-001
 title: Kế hoạch triển khai — Create Activity Modal UI
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/dashboard/CreateActivityModal.tsx]
 ---
 
@@ -40,3 +40,4 @@ related_code: [web/src/core/features/dashboard/CreateActivityModal.tsx]
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch modal Đề xuất hoạt động | DYC |
 | 1.1 | 2026-10-08 | Tích hợp mutation tạo hoạt động với API POST /api/activities | DYC |
+| 1.2 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |

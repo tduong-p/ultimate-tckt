@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
 import Avatar from '@atlaskit/avatar';
@@ -31,10 +32,21 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
+const NAV_ITEMS = [
+  { path: '/dashboard', label: 'Tổng quan', Icon: DashboardIcon },
+  { path: '/my-tasks-today', label: 'Việc hôm nay', Icon: CheckCircleIcon },
+  { path: '/calendar', label: 'Lịch hoạt động', Icon: CalendarIcon },
+  { path: '/activities', label: 'Hoạt động & Dự án', Icon: FolderClosedIcon },
+  { path: '/my-tasks', label: 'Công việc của tôi', Icon: TaskIcon },
+  { path: '/teams', label: 'Các Tổ', Icon: PeopleGroupIcon },
+  { path: '/people', label: 'Thành viên', Icon: PersonIcon },
+  { path: '/documents', label: 'Tài liệu', Icon: FileIcon },
+  { path: '/reports', label: 'Báo cáo', Icon: ChartBarIcon, managerOnly: true },
+  { path: '/archive', label: 'Lưu trữ', Icon: ArchiveBoxIcon },
+];
+
 export interface PageLayoutProps {
   children: React.ReactNode;
-  currentView?: string;
-  onNavigate?: (view: string) => void;
   user?: {
     id?: number;
     name: string;
@@ -45,16 +57,19 @@ export interface PageLayoutProps {
   onLogout?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
+  /** Phần tử đặt cạnh avatar trên thanh trên cùng (vd. bộ chọn đơn vị). */
+  headerExtras?: React.ReactNode;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
-  currentView = 'dashboard',
-  onNavigate,
   user,
   onLogout,
   canViewReports = false,
+  headerExtras,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   return (
     <PageLayoutWrapper>
       <TopNavigation isFixed={true} id="confluence-navigation">
@@ -69,6 +84,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           )}
           renderProfile={() => (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {headerExtras}
               <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
               {user && (
                 <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
@@ -113,16 +129,13 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  <ButtonItem isSelected={currentView === 'dashboard'} onClick={() => onNavigate?.('dashboard')} iconBefore={<DashboardIcon label="" />}>Tổng quan</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'my-tasks-today'} onClick={() => onNavigate?.('my-tasks-today')} iconBefore={<CheckCircleIcon label="" />}>Việc hôm nay</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'calendar'} onClick={() => onNavigate?.('calendar')} iconBefore={<CalendarIcon label="" />}>Lịch hoạt động</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'activities'} onClick={() => onNavigate?.('activities')} iconBefore={<FolderClosedIcon label="" />}>Hoạt động & Dự án</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'my-tasks'} onClick={() => onNavigate?.('my-tasks')} iconBefore={<TaskIcon label="" />}>Công việc của tôi</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'teams'} onClick={() => onNavigate?.('teams')} iconBefore={<PeopleGroupIcon label="" />}>Các Tổ</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'members'} onClick={() => onNavigate?.('members')} iconBefore={<PersonIcon label="" />}>Thành viên</ButtonItem>
-                  <ButtonItem isSelected={currentView === 'documents'} onClick={() => onNavigate?.('documents')} iconBefore={<FileIcon label="" />}>Tài liệu</ButtonItem>
-                  {canViewReports && <ButtonItem isSelected={currentView === 'reports'} onClick={() => onNavigate?.('reports')} iconBefore={<ChartBarIcon label="" />}>Báo cáo</ButtonItem>}
-                  <ButtonItem isSelected={currentView === 'archive'} onClick={() => onNavigate?.('archive')} iconBefore={<ArchiveBoxIcon label="" />}>Lưu trữ</ButtonItem>
+                  {NAV_ITEMS.filter((item) => !item.managerOnly || canViewReports).map(({ path, label, Icon }) => {
+                    const selected = location.pathname === path || location.pathname.startsWith(`${path}/`);
+                    return (
+                      <ButtonItem key={path} isSelected={selected} aria-current={selected ? 'page' : undefined}
+                        onClick={() => navigate(path)} iconBefore={<Icon label="" />}>{label}</ButtonItem>
+                    );
+                  })}
                 </Section>
                 <Section>
                   <HeadingItem>SẮP CÓ</HeadingItem>

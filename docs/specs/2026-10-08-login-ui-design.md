@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/main.tsx, web/src/shared/layouts/PageLayout.tsx, web/src/shared/components/LottieLoading.tsx, web/src/shared/components/ThemeToggle.tsx, web/src/shared/hooks/useTheme.ts, web/src/shared/components/MicrosoftLottieLogo.tsx]
+related_code: [web/src/core/features/auth/**]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -18,7 +18,7 @@ related_code: [web/src/core/features/auth/**, web/src/core/api/**, web/src/core/
   - Tích hợp API xác thực backend: Kết nối `POST /api/login`, chuyển hướng `/auth/microsoft`, `POST /api/logout`, và `GET /api/session`.
   - Dev server Vite proxy cả `/api` và `/auth` sang Core (`localhost:3000`). Callback SSO của Core hiện `redirect('/')` về UI cũ (`core/public`) — cho tới khi có quyết định phục vụ `web/`, người dùng SSO sẽ quay về UI cũ.
   - Onboarding bắt buộc của tài khoản HUST: nếu `session.user.onboarding.required`, App hiện `OnboardingView` thay cho giao diện chính — sinh viên khai số lớp (`POST /api/onboarding/student-class`), cán bộ/giảng viên bấm "Tôi đã hiểu" (`POST /api/onboarding/faculty-notice`); xong thì cập nhật `session.user` trong cache và vào Tổng quan.
-  - Menu "Báo cáo" trong `PageLayout` chỉ hiện khi `bootstrap.capabilities.canCreateActivity`; đã bỏ các mục chưa có chức năng (Thông báo, Cài đặt, Chuyển vai trò, Báo Bug).
+  - Menu "Báo cáo" trong `PageLayout` và route `#/reports` chỉ dành cho `useCapabilities().isManager` (người khác bị chuyển về dashboard); đã bỏ các mục chưa có chức năng (Thông báo, Cài đặt, Chuyển vai trò, Báo Bug).
   - Kiểm soát phiên (Session Gating): Trong `web/src/core/main.tsx`, kiểm tra phiên người dùng. Nếu chưa đăng nhập thì hiển thị `LoginView`, nếu đã đăng nhập thì hiển thị ứng dụng chính với `PageLayout`.
   - Đăng xuất (`logout`): Thêm nút / menu đăng xuất trên thanh điều hướng `PageLayout` để người dùng có thể thoát phiên làm việc.
 - **Ràng buộc bất biến**:
@@ -100,11 +100,14 @@ flowchart TD
    - Khi session `user: { name: 'Admin', ... }` -> render `PageLayout` với các module chính.
 
 ## Lịch sử phiên bản
-- **1.6 (2026-10-09)**: Thêm onboarding bắt buộc cho tài khoản HUST, proxy `/auth` cho SSO ở dev, menu Báo cáo theo quyền, bỏ mục menu chưa có chức năng.
-- **1.5 (2026-10-08)**: Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging.
-- **1.4 (2026-10-08)**: Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev.
-- **1.3 (2026-10-08)**: Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO.
-- **1.2 (2026-10-08)**: Bổ sung nút chuyển đổi chế độ Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`) cho thanh điều hướng và màn hình đăng nhập.
-- **1.1 (2026-10-08)**: Bổ sung hiệu ứng hoạt ảnh Lottie Loading (`loading.lottie`) trong màn hình đăng nhập và khởi tạo ứng dụng.
-- **1.0 (2026-10-08)**: Khởi tạo thiết kế màn hình đăng nhập hiện đại 2 cột cho TCKT Activity Hub.
 
+| Version | Ngày | Thay đổi | Người |
+|---|---|---|---|
+| 1.0 | 2026-10-08 | Khởi tạo thiết kế màn hình đăng nhập hiện đại 2 cột cho TCKT Activity Hub. | DYC |
+| 1.1 | 2026-10-08 | Bổ sung hiệu ứng hoạt ảnh Lottie Loading (`loading.lottie`) trong màn hình đăng nhập và khởi tạo ứng dụng. | DYC |
+| 1.2 | 2026-10-08 | Bổ sung nút chuyển đổi chế độ Sáng / Tối hoạt ảnh Lottie (`theme-toggle.json`) cho thanh điều hướng và màn hình đăng nhập. | DYC |
+| 1.3 | 2026-10-08 | Thay thế logo Microsoft tĩnh bằng logo hoạt ảnh Microsoft Start Lottie (`microsoft-start.json`) trên nút SSO. | DYC |
+| 1.4 | 2026-10-08 | Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev. | DYC |
+| 1.5 | 2026-10-08 | Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging. | DYC |
+| 1.6 | 2026-10-09 | Thêm onboarding bắt buộc cho tài khoản HUST, proxy `/auth` cho SSO ở dev, menu Báo cáo theo quyền, bỏ mục menu chưa có chức năng. | DYC |
+| 1.7 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active); sửa mô tả quyền menu Báo cáo theo `isManager`; lỗi đăng nhập hiện tiếng Việt qua `apiErrorMessage` | DYC |

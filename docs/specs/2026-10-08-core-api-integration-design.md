@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-CAPI-001
 title: Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
-version: 1.3
-status: active
+version: 1.4
+status: deprecated
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: [web/src/core/**, web/src/shared/**]
+related_code: []
 ---
 
 # Thiết kế — Tích hợp API Backend và Dọn dẹp dữ liệu rác cho TCKT Activity Hub (Core Web)
@@ -110,3 +110,4 @@ Tạo module quản lý API tách biệt, sử dụng `apiClient` (`axios` với
 | 1.1 | 2026-10-08 | Bổ sung API xác thực loginUser/logoutUser và kiểm soát phiên | DYC |
 | 1.2 | 2026-10-08 | Thêm `downloadReportExport`, xử lý 401 toàn cục + xoá cache khi đăng xuất, thống nhất query key `core-*`, tiện ích ngày `shared/utils/date` | DYC |
 | 1.3 | 2026-10-09 | Retry chỉ cho 5xx/mạng; 401 từ mutation cũng về đăng nhập; `ApiError`; API onboarding; `SessionData.units.memberships`; trường tóm tắt hoạt động là optional | DYC |
+| 1.4 | 2026-10-09 | Deprecated: thay bằng SPEC-WEB-003 và `docs/dev/frontend.md`; thu hẹp `related_code` về `[]` | DYC |
