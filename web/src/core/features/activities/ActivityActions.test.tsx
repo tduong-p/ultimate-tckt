@@ -67,6 +67,11 @@ describe('ActivityActions', () => {
       expect(screen.getByRole('button', { name: 'Nộp lại' })).toBeDefined();
     });
 
+    it('người không quản lý không được nộp lại đề án cần sửa', () => {
+      show('member', makeDetail({ canManage: false, activity: { status: 'changes_requested' } }));
+      expect(screen.queryByRole('button', { name: 'Nộp lại' })).toBeNull();
+    });
+
     it('người đã đăng ký không được đăng ký lại; người từng từ chối được đăng ký', () => {
       show('member', makeDetail({ canManage: false, participants: [{ user_id: 3, state: 'volunteered', name: 'Tôi' }] }));
       expect(screen.queryByRole('button', { name: 'Đăng ký tham gia' })).toBeNull();
@@ -99,7 +104,8 @@ describe('ActivityActions', () => {
     });
 
     it('yêu cầu sửa bắt buộc lý do và gửi đúng nội dung', async () => {
-      show('admin');
+      const { qc } = show('admin');
+      const invalidate = vi.spyOn(qc, 'invalidateQueries');
       fireEvent.click(screen.getByRole('button', { name: 'Yêu cầu sửa' }));
       const dialog = await screen.findByRole('dialog');
       fireEvent.click(within(dialog).getByRole('button', { name: 'Gửi yêu cầu' }));
@@ -110,6 +116,19 @@ describe('ActivityActions', () => {
       await waitFor(() => expect(api.requestActivityChanges).toHaveBeenCalledWith(5, 'Thiếu dự toán'));
       expect(await screen.findByText('Đã gửi yêu cầu chỉnh sửa.')).toBeDefined();
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activity', 5] });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activities'] });
+    });
+
+    it('yêu cầu sửa lỗi server hiện tiếng Việt và không đóng hộp thoại', async () => {
+      vi.mocked(api.requestActivityChanges).mockRejectedValue({ response: { status: 409, data: { error: 'Đề án đã được xử lý.' } } });
+      show('admin');
+      fireEvent.click(screen.getByRole('button', { name: 'Yêu cầu sửa' }));
+      const dialog = await screen.findByRole('dialog');
+      fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Thiếu dự toán' } });
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Gửi yêu cầu' }));
+      expect(await screen.findByText('Đề án đã được xử lý.')).toBeDefined();
+      expect(screen.getByRole('dialog')).toBeDefined();
     });
 
     it('từ chối gửi lý do, xoá cache chi tiết và quay về danh sách', async () => {
@@ -124,18 +143,50 @@ describe('ActivityActions', () => {
       expect(qc.getQueryData(['core-activity', 5])).toBeUndefined();
     });
 
+    it('từ chối lỗi server hiện tiếng Việt và giữ đề án', async () => {
+      vi.mocked(api.rejectActivity).mockRejectedValue({ response: { status: 409, data: { error: 'Đề án không còn chờ duyệt.' } } });
+      const { qc } = show('admin');
+      qc.setQueryData(['core-activity', 5], makeDetail());
+      fireEvent.click(screen.getByRole('button', { name: 'Từ chối' }));
+      const dialog = await screen.findByRole('dialog');
+      fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Trùng lịch' } });
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Từ chối và xoá' }));
+      expect(await screen.findByText('Đề án không còn chờ duyệt.')).toBeDefined();
+      expect(qc.getQueryData(['core-activity', 5])).toBeDefined();
+    });
+
     it('nộp lại đề án cần sửa', async () => {
-      show('leader', makeDetail({ canManage: true, activity: { status: 'changes_requested' } }));
+      const { qc } = show('leader', makeDetail({ canManage: true, activity: { status: 'changes_requested' } }));
+      const invalidate = vi.spyOn(qc, 'invalidateQueries');
       fireEvent.click(screen.getByRole('button', { name: 'Nộp lại' }));
       await waitFor(() => expect(api.submitActivity).toHaveBeenCalledWith(5));
       expect(await screen.findByText('Đã nộp lại đề án.')).toBeDefined();
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activity', 5] });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activities'] });
+    });
+
+    it('nộp lại lỗi server hiện tiếng Việt', async () => {
+      vi.mocked(api.submitActivity).mockRejectedValue({ response: { status: 409, data: { error: 'Đề án chưa được yêu cầu sửa.' } } });
+      show('leader', makeDetail({ canManage: true, activity: { status: 'changes_requested' } }));
+      fireEvent.click(screen.getByRole('button', { name: 'Nộp lại' }));
+      expect(await screen.findByText('Đề án chưa được yêu cầu sửa.')).toBeDefined();
     });
 
     it('đăng ký tham gia', async () => {
-      show('member', makeDetail({ canManage: false }));
+      const { qc } = show('member', makeDetail({ canManage: false }));
+      const invalidate = vi.spyOn(qc, 'invalidateQueries');
       fireEvent.click(screen.getByRole('button', { name: 'Đăng ký tham gia' }));
       await waitFor(() => expect(api.volunteerForActivity).toHaveBeenCalledWith(5));
       expect(await screen.findByText('Đã đăng ký tham gia.')).toBeDefined();
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activity', 5] });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['core-activities'] });
+    });
+
+    it('đăng ký lỗi server hiện tiếng Việt', async () => {
+      vi.mocked(api.volunteerForActivity).mockRejectedValue({ response: { status: 403, data: { error: 'Bạn không thể tham gia hoạt động này.' } } });
+      show('member', makeDetail({ canManage: false }));
+      fireEvent.click(screen.getByRole('button', { name: 'Đăng ký tham gia' }));
+      expect(await screen.findByText('Bạn không thể tham gia hoạt động này.')).toBeDefined();
     });
 
     it('xoá chỉ khi gõ đúng tiêu đề, rồi xoá cache và quay về danh sách', async () => {
@@ -151,6 +202,18 @@ describe('ActivityActions', () => {
       await waitFor(() => expect(api.deleteActivity).toHaveBeenCalledWith(5));
       await waitFor(() => expect(screen.getByTestId('path').textContent).toBe('/activities'));
       expect(qc.getQueryData(['core-activity', 5])).toBeUndefined();
+    });
+
+    it('xoá lỗi server hiện tiếng Việt và giữ hoạt động', async () => {
+      vi.mocked(api.deleteActivity).mockRejectedValue({ response: { status: 403, data: { error: 'Bạn không có quyền xoá hoạt động.' } } });
+      const { qc } = show('admin');
+      qc.setQueryData(['core-activity', 5], makeDetail());
+      fireEvent.click(screen.getByRole('button', { name: 'Xoá hoạt động' }));
+      const dialog = await screen.findByRole('dialog');
+      fireEvent.change(within(dialog).getByLabelText(/Gõ lại/), { target: { value: 'Ngày hội Kỹ thuật' } });
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Xoá vĩnh viễn' }));
+      expect(await screen.findByText('Bạn không có quyền xoá hoạt động.')).toBeDefined();
+      expect(qc.getQueryData(['core-activity', 5])).toBeDefined();
     });
 
     it('mở được hộp thoại sửa và thêm người tham gia', async () => {
