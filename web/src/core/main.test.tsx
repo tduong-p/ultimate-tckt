@@ -34,6 +34,7 @@ describe('Core App main entry', () => {
   });
 
   afterEach(() => {
+    window.location.hash = '';
     cleanup();
   });
 
@@ -242,7 +243,15 @@ describe('Core App main entry', () => {
     await waitFor(() => expect(screen.getByText(/Xin chào Nguyễn Văn A/)).toBeDefined());
   });
 
-  it('chỉ hiện menu Báo cáo cho người có quyền điều hành (canCreateActivity)', async () => {
+  it('link cũ dạng #calendar (không có /) mở thẳng màn Lịch', async () => {
+    window.location.hash = '#calendar';
+    vi.mocked(api.fetchSession).mockResolvedValueOnce(authedSession);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={queryClient}><App /></QueryClientProvider>);
+    await waitFor(() => expect(screen.getByRole('heading', { name: /Lịch/ })).toBeDefined());
+  });
+
+  it('chỉ hiện menu Báo cáo cho quản lý (admin/vice_admin/leader/vice_leader)', async () => {
     vi.mocked(api.fetchSession).mockResolvedValue(authedSession);
     const renderApp = () => {
       const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -257,11 +266,7 @@ describe('Core App main entry', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /Báo cáo/ })).toBeDefined());
     cleanup();
 
-    const bootstrap = await api.fetchBootstrap();
-    vi.mocked(api.fetchBootstrap).mockResolvedValueOnce({
-      ...bootstrap,
-      capabilities: { canCreateActivity: false, canCreateAccount: false },
-    });
+    vi.mocked(api.fetchSession).mockResolvedValue({ ...authedSession, user: { ...authedSession.user, role: 'member' } });
     renderApp();
     await waitFor(() => expect(screen.getByText(/Xin chào Phạm Việt Bách/i)).toBeDefined());
     expect(screen.queryByRole('button', { name: /Báo cáo/ })).toBeNull();

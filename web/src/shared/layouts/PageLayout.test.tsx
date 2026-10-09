@@ -1,6 +1,12 @@
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import React from 'react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+
+const LocationProbe = () => <div data-testid="path">{useLocation().pathname}</div>;
+const renderLayout = (ui: React.ReactElement, path = '/dashboard') =>
+  render(<MemoryRouter initialEntries={[path]}>{ui}<Routes><Route path="*" element={<LocationProbe />} /></Routes></MemoryRouter>);
 
 describe('PageLayout', () => {
   afterEach(() => {
@@ -8,7 +14,7 @@ describe('PageLayout', () => {
   });
 
   it('renders without crashing', () => {
-    const { container } = render(<PageLayout><div>Test</div></PageLayout>);
+    const { container } = renderLayout(<PageLayout><div>Test</div></PageLayout>);
     expect(container).toBeDefined();
   });
 
@@ -19,7 +25,7 @@ describe('PageLayout', () => {
       role: 'admin',
     };
 
-    render(
+    renderLayout(
       <PageLayout user={mockUser}>
         <div>Content</div>
       </PageLayout>
@@ -36,7 +42,7 @@ describe('PageLayout', () => {
       role: 'admin',
     };
 
-    render(
+    renderLayout(
       <PageLayout user={mockUser} onLogout={handleLogout}>
         <div>Content</div>
       </PageLayout>
@@ -52,7 +58,7 @@ describe('PageLayout', () => {
   });
 
   it('không hiện các nút chưa có chức năng (Cài đặt, Chuyển vai trò, Báo Bug, Thông báo)', () => {
-    render(<PageLayout><div>Content</div></PageLayout>);
+    renderLayout(<PageLayout><div>Content</div></PageLayout>);
     expect(screen.queryByTitle('Cài đặt (Admin, ĐYC)')).toBeNull();
     expect(screen.queryByTitle('Chuyển vai trò')).toBeNull();
     expect(screen.queryByTitle('Báo Bug')).toBeNull();
@@ -61,20 +67,27 @@ describe('PageLayout', () => {
   });
 
   it('mục Báo cáo chỉ hiện khi canViewReports là true', () => {
-    const { rerender } = render(<PageLayout><div>Content</div></PageLayout>);
+    renderLayout(<PageLayout><div>Content</div></PageLayout>);
     expect(screen.queryByText('Báo cáo')).toBeNull();
-
-    rerender(<PageLayout canViewReports={false}><div>Content</div></PageLayout>);
-    expect(screen.queryByText('Báo cáo')).toBeNull();
-
-    rerender(<PageLayout canViewReports><div>Content</div></PageLayout>);
+    cleanup();
+    renderLayout(<PageLayout canViewReports><div>Content</div></PageLayout>);
     expect(screen.getByText('Báo cáo')).toBeDefined();
   });
 
-  it('bấm mục Báo cáo chuyển sang màn reports', () => {
-    const onNavigate = vi.fn();
-    render(<PageLayout canViewReports onNavigate={onNavigate}><div>Content</div></PageLayout>);
+  it('bấm mục Báo cáo chuyển sang #/reports', () => {
+    renderLayout(<PageLayout canViewReports><div>Content</div></PageLayout>);
     fireEvent.click(screen.getByText('Báo cáo'));
-    expect(onNavigate).toHaveBeenCalledWith('reports');
+    expect(screen.getByTestId('path').textContent).toBe('/reports');
+  });
+
+  it('mục Thành viên trỏ #/people và được đánh dấu khi đang ở đó', () => {
+    renderLayout(<PageLayout><div>Content</div></PageLayout>, '/people');
+    const item = screen.getByText('Thành viên').closest('button');
+    expect(item?.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('headerExtras được hiện trên thanh trên cùng', () => {
+    renderLayout(<PageLayout headerExtras={<span>ô-chọn-đơn-vị</span>}><div>Content</div></PageLayout>);
+    expect(screen.getByText('ô-chọn-đơn-vị')).toBeDefined();
   });
 });
