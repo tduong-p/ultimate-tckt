@@ -13,6 +13,7 @@ import { EditAccountModal } from '../members/EditAccountModal';
 import { selectStyle } from '../people/FormField';
 import { getRoleLabel, ROLE_OPTIONS } from '../people/roleLabels';
 import { useCurrentUser } from '../people/useCurrentUser';
+import { BulkImportModal } from './BulkImportModal';
 
 const cell: React.CSSProperties = {
   padding: '8px 10px',
@@ -31,6 +32,7 @@ export const AccountsView: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<MemberItem | null>(null);
   const [deleting, setDeleting] = useState<MemberItem | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const filtered = useMemo(() => {
     const q = normalizeSearch(query);
@@ -51,7 +53,10 @@ export const AccountsView: React.FC = () => {
             Tạo, sửa và xoá tài khoản, nhập danh sách hàng loạt, cấu hình bộ trọng số.
           </p>
         </div>
-        <Button appearance="primary" onClick={() => setCreating(true)}>Thêm tài khoản</Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button onClick={() => setImporting(true)}>Nhập danh sách hàng loạt</Button>
+          <Button appearance="primary" onClick={() => setCreating(true)}>Thêm tài khoản</Button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -113,6 +118,7 @@ export const AccountsView: React.FC = () => {
       <CreateAccountModal isOpen={creating} onClose={() => setCreating(false)} />
       <EditAccountModal member={editing} onClose={() => setEditing(null)} />
       <DeleteAccountDialog member={deleting} onClose={() => setDeleting(null)} />
+      <BulkImportModal isOpen={importing} onClose={() => setImporting(false)} />
     </div>
   );
 };

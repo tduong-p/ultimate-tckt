@@ -85,4 +85,11 @@ describe('AccountsView', () => {
     open();
     expect(await screen.findByText('Không kết nối được máy chủ. Vui lòng thử lại.')).toBeDefined();
   });
+
+  it('"Nhập danh sách hàng loạt" mở hộp nhập', async () => {
+    open();
+    await screen.findByText('Nguyễn Văn An');
+    fireEvent.click(screen.getByRole('button', { name: 'Nhập danh sách hàng loạt' }));
+    expect(await screen.findByLabelText('Danh sách (mỗi dòng: Tên,email)')).toBeDefined();
+  });
 });
