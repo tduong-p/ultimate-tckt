@@ -1,17 +1,19 @@
 ---
 doc_id: DEV-GUIDE-003
 title: Interface Guide for Developer 3 - Directives & Submissions API
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: Developer 2
-updated: 2026-10-03
+updated: 2026-10-09
 related_code: [core/src/routes/directives.js, core/src/routes/submissions.js, core/src/policies/access.js, core/src/services/audit.js, core/src/serializers/summary.js]
 ---
 
 # Interface Guide for Developer 3: Directives & Submissions API
 
-Tài liệu này mô tả các interface, helper functions và patterns mà Developer 3 cần dùng khi triển khai API cho directives và submissions.
+API directives/submissions đã được triển khai trong `core/src/routes/directives.js` và `submissions.js`. Tài liệu này giữ
+các ví dụ interface ban đầu; contract hiện tại được mô tả trong [docs/dev/api.md](api.md), còn cổng và điều kiện quyền
+được mô tả trong [docs/dev/phan-quyen.md](phan-quyen.md). Web gọi các API này theo SPEC-WEB-003 §4.7.
 
 ## 1. Unit Context (đã sẵn sàng)
 
@@ -467,3 +469,4 @@ try {
 | 1.1 | 2026-10-02 | Ví dụ thông báo dùng `notifier.notify` thay `mailer` | DYC |
 | 1.2 | 2026-10-02 | Cập nhật giao diện điều hành | DYC |
 | 1.3 | 2026-10-03 | Sửa dòng lịch sử 1.2 bị lỗi mã hoá và nằm nhầm trong bảng action code; bỏ chú thích HTML thừa cuối file | DYC |
+| 1.4 | 2026-10-09 | Chuyển trạng thái hướng dẫn: API đã được triển khai; trỏ tới tài liệu contract và phân quyền hiện hành | DYC |

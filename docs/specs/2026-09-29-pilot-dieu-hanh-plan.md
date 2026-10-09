@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.18
+version: 1.19
 status: draft
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [core/src/**, core/public/**, core/tests/**, core/app.js, services/ctd-api/backend/app/seeds/**, services/ctd-api/backend/tests/**, tools/test-fixtures/**, core/src/config/database.js, core/src/date-vn.js]
 ---
 
@@ -628,3 +628,4 @@ trước khi tạo trên GitHub.
 | 1.16 | 2026-10-04 | Thêm timezone fix toàn hệ thống - sửa lỗi deadline notification sai giờ | DYC |
 | 1.17 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 1.18 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 1.19 | 2026-10-09 | Ghi nhận nhánh web đợt 5 bổ sung module vào unit context/session và luồng Giao việc/Trình; chưa thay đổi lộ trình pilot | DYC |
