@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
@@ -29,6 +28,7 @@ describe('ActivityDetailModal', () => {
     type: 'event',
     start_date: '2026-10-15',
     deadline: '2026-10-20',
+    priority: 'medium',
     team_id: 1,
     team_name: 'Ban Học tập',
     team_color: '#0052CC',

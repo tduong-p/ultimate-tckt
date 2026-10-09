@@ -6,7 +6,7 @@ import TextArea from '@atlaskit/textarea';
 import Select from '@atlaskit/select';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ActivityItem, TeamItem, MemberItem, CreateTaskPayload } from '../../api';
+import type { ActivityItem, CreateTaskPayload } from '../../api';
 import { fetchTeams, fetchMembers, fetchBootstrap, createActivityTask } from '../../api';
 import { todayVnKey, toVnDateKey } from '../../../shared/utils/date';
 

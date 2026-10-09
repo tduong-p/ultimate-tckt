@@ -246,7 +246,7 @@ export interface LoginPayload {
 
 export interface CreateTaskPayload {
   title: string;
-  description?: string;
+  description?: string | null;
   stage?: 'before' | 'during' | 'after' | 'general';
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   team_id: number;
