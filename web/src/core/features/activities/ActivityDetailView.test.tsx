@@ -113,4 +113,18 @@ describe('ActivityDetailView — thông tin', () => {
     expect(await screen.findByText('Đã in xong tờ rơi')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Đăng cập nhật' })).toBeDefined();
   });
+
+  it('admin thấy thanh duyệt; thành viên thường chỉ thấy đăng ký tham gia', async () => {
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: true }));
+    renderInApp(<ActivityDetailView />, { path: '/activity/5', routePath: '/activity/:id', role: 'admin' });
+    expect(await screen.findByRole('button', { name: 'Duyệt' })).toBeDefined();
+    cleanup();
+
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: false }));
+    renderInApp(<ActivityDetailView />, { path: '/activity/5', routePath: '/activity/:id', role: 'member' });
+    expect(await screen.findByRole('button', { name: 'Đăng ký tham gia' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Duyệt' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Xoá hoạt động' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Thêm người tham gia' })).toBeNull();
+  });
 });
