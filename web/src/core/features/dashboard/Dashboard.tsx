@@ -22,6 +22,7 @@ import {
   getTaskStatusAppearance,
   getTaskStatusLabel,
 } from '../tasks/taskLabels';
+import { TaskCheckButton, TaskTitleButton } from '../tasks/TaskRowControls';
 
 interface KPICardsProps {
   stats?: BootstrapStats;
@@ -116,9 +117,10 @@ const TaskListPanel: React.FC<{
             border: `1px solid ${token('color.border', '#EBECF0')}`,
           }}
         >
+          <TaskCheckButton task={task} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D'), marginBottom: '4px' }}>
-              {task.title}
+            <div style={{ fontSize: '14px', marginBottom: '4px' }}>
+              <TaskTitleButton task={task} />
             </div>
             <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span>{task.activity_title || task.team_name || 'Hoạt động'}</span>

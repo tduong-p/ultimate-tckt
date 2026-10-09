@@ -131,6 +131,13 @@ export interface TaskItem {
   submitted_for_review_at?: string | null;
   completed_at?: string | null;
   weight?: number | string;
+  is_self_logged?: number | boolean | null;
+  deliverable?: string | null;
+  primary_assignee_id?: number | null;
+  primary_assignee_name?: string | null;
+  checklist_total?: number;
+  checklist_done?: number;
+  stage?: string;
 }
 
 export interface DocumentItem {
@@ -245,17 +252,99 @@ export interface LoginPayload {
 }
 
 
+export interface TaskDetailTask extends TaskItem {
+  activity_status?: string;
+  activity_description?: string | null;
+  activity_deadline?: string;
+  assigned_by?: number | null;
+}
+
+export interface TaskAssignee {
+  user_id: number;
+  is_primary: number | boolean;
+  acknowledged_at: string | null;
+  name: string;
+  email?: string;
+  avatar_color?: string;
+}
+
+export type TaskAssigneeInfo = TaskAssignee;
+
+export interface TaskAttachment {
+  id: number;
+  task_id: number;
+  kind: string;
+  label: string;
+  link_url: string | null;
+  original_name: string | null;
+  mime_type: string | null;
+  size_bytes: number | string | null;
+  created_at: string;
+  user_name: string;
+}
+
+export interface TaskUpdate {
+  id: number;
+  kind: string;
+  body: string;
+  created_at: string;
+  user_name: string;
+  avatar_color?: string;
+}
+
+export interface ChecklistItem {
+  id: number;
+  task_id: number;
+  title: string;
+  is_done: number | boolean;
+  sort_order?: number;
+  done_by?: number | null;
+  done_at?: string | null;
+}
+
+export type TaskChecklistItem = ChecklistItem;
+
+export interface TaskDetailResponse {
+  task: TaskDetailTask;
+  assignees: TaskAssignee[];
+  attachments?: TaskAttachment[];
+  updates?: TaskUpdate[];
+  checklist?: ChecklistItem[];
+  canUpdate?: boolean;
+  myAcknowledgedAt?: string | null;
+}
+
+export type ReviewDecision = 'approve' | 'reject' | 'cancel';
+export type TaskTransitionStatus = 'todo' | 'in_progress';
+export type TaskAttachmentKind = 'clarification' | 'evidence' | 'issue' | 'deliverable';
+export type TaskCommentKind = 'comment' | 'progress' | 'issue' | 'evidence';
+
 export interface CreateTaskPayload {
   title: string;
   description?: string | null;
-  stage?: 'before' | 'during' | 'after' | 'general';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  stage?: string;
+  priority?: string;
   team_id: number;
-  primary_assignee_id: number;
-  co_assignee_ids?: number[];
   start_date?: string | null;
   deadline: string;
   deliverable?: string | null;
+  primary_assignee_id: number;
+  co_assignee_ids?: number[];
+}
+
+export interface EditTaskPayload {
+  deadline?: string;
+  start_date?: string | null;
+  priority?: string;
+  deliverable?: string | null;
+}
+
+export interface LogTaskPayload {
+  title: string;
+  team_id: number;
+  weight?: number;
+  link_url?: string;
+  description?: string;
 }
 
 export interface SubmitTaskReviewPayload {
@@ -264,33 +353,42 @@ export interface SubmitTaskReviewPayload {
 }
 
 export interface ReviewTaskPayload {
-  decision: 'approve' | 'reject' | 'cancel';
+  decision: ReviewDecision;
   feedback?: string;
 }
 
-export interface TaskChecklistItem {
+export interface WeightPreset {
   id: number;
-  task_id: number;
-  title: string;
-  is_done: boolean;
-  sort_order: number;
-  done_by?: number | null;
-  done_at?: string | null;
+  name: string;
+  points: number;
+  description?: string | null;
 }
 
-export interface TaskAssigneeInfo {
-  user_id: number;
-  is_primary: boolean;
-  acknowledged_at?: string | null;
+export interface TeamMemberOption {
+  id: number;
   name: string;
   email?: string;
-  avatar_color?: string;
+  role?: string;
+  is_lead?: number | boolean;
+  is_vice_lead?: number | boolean;
 }
 
-export interface TaskDetailResponse {
-  task: TaskItem;
-  assignees: TaskAssigneeInfo[];
-  checklist?: TaskChecklistItem[];
-  canUpdate?: boolean;
-  myAcknowledgedAt?: string | null;
+export interface TeamMembersResponse {
+  members: TeamMemberOption[];
+  available: TeamMemberOption[];
 }
+
+export interface BoardTeam {
+  team_id: number;
+  name: string;
+  color?: string;
+  role?: string;
+}
+
+export interface ActivityBoardData {
+  activity: ActivityItem;
+  activityTeams: BoardTeam[];
+  tasks: TaskItem[];
+  canManage: boolean;
+}
+

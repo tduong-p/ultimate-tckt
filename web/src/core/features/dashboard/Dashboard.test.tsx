@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Dashboard } from './Dashboard';
 import * as api from '../../api';
 import { todayVnKey } from '../../../shared/utils/date';
+import { TaskModalContext } from '../tasks/TaskModalProvider';
 
 vi.mock('../../api', async () => {
   const actual = await vi.importActual('../../api');
@@ -299,5 +300,16 @@ describe('Dashboard', () => {
     expect(screen.queryByText('ĐỀ XUẤT MỚI')).toBeNull();
     fireEvent.click(await screen.findByText('+ Đề xuất hoạt động'));
     expect(screen.getByText('ĐỀ XUẤT MỚI')).toBeDefined();
+  });
+
+  it('bấm tiêu đề công việc mở hộp chi tiết', async () => {
+    const open = vi.fn();
+    renderWithClient(
+      <TaskModalContext.Provider value={{ open, close: vi.fn() }}>
+        <Dashboard />
+      </TaskModalContext.Provider>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Khảo sát địa bàn tình nguyện' }));
+    expect(open).toHaveBeenCalledWith(101);
   });
 });

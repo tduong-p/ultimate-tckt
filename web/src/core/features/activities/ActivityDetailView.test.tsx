@@ -154,4 +154,57 @@ describe('ActivityDetailView — thông tin', () => {
     expect(screen.queryByRole('button', { name: 'Xoá hoạt động' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Thêm người tham gia' })).toBeNull();
   });
+
+  it('ActivityTaskActions: canManage true có Giao việc và Bảng Kanban, canManage false không có Giao việc', async () => {
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: true }));
+    renderInApp(<ActivityDetailView />, { path: '/activity/5', routePath: '/activity/:id' });
+    expect(await screen.findByRole('link', { name: 'Bảng Kanban' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Giao việc' })).toBeDefined();
+
+    cleanup();
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: false }));
+    renderInApp(<ActivityDetailView />, { path: '/activity/5', routePath: '/activity/:id' });
+    expect(await screen.findByRole('link', { name: 'Bảng Kanban' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Giao việc' })).toBeNull();
+  });
+
+  it('bấm tiêu đề một việc gọi open(task.id) của TaskModalContext', async () => {
+    const openMock = vi.fn();
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(
+      makeDetail({
+        tasks: [
+          {
+            id: 42,
+            activity_id: 5,
+            team_id: 2,
+            title: 'Soạn slide báo cáo',
+            stage: 'during',
+            priority: 'medium',
+            status: 'todo',
+            start_date: null,
+            deadline: '2026-11-20',
+            deliverable: null,
+            team_name: 'Tổ Sự kiện',
+            assignee_name: null,
+            primary_assignee_name: null,
+            checklist_total: 0,
+            checklist_done: 0,
+          },
+        ],
+      })
+    );
+
+    const { TaskModalContext } = await import('../tasks/TaskModalProvider');
+    const { fireEvent } = await import('@testing-library/react');
+    renderInApp(
+      <TaskModalContext.Provider value={{ open: openMock, close: vi.fn() }}>
+        <ActivityDetailView />
+      </TaskModalContext.Provider>,
+      { path: '/activity/5', routePath: '/activity/:id' }
+    );
+
+    const taskBtn = await screen.findByRole('button', { name: 'Soạn slide báo cáo' });
+    fireEvent.click(taskBtn);
+    expect(openMock).toHaveBeenCalledWith(42);
+  });
 });

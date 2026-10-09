@@ -12,6 +12,7 @@ import { OnboardingView } from './features/auth/OnboardingView';
 import { AppRoutes } from './AppRoutes';
 import { useCapabilities } from './capabilities';
 import { ToastProvider } from '../shared/components/Toast';
+import { TaskModalProvider } from './features/tasks/TaskModalProvider';
 import { fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
 import { SESSION_KEY } from './queryKeys';
 import { UnitSwitcher } from './features/session/UnitSwitcher';
@@ -90,7 +91,9 @@ export const App = () => {
   return (
     <HashRouter>
       <ToastProvider>
-        <SignedInShell userName={session.user.name} user={session.user} onLogout={handleLogout} />
+        <TaskModalProvider>
+          <SignedInShell userName={session.user.name} user={session.user} onLogout={handleLogout} />
+        </TaskModalProvider>
       </ToastProvider>
     </HashRouter>
   );

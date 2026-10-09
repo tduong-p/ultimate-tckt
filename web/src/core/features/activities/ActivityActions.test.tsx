@@ -289,7 +289,11 @@ describe('ActivityActions', () => {
     });
 
     it('mở được hộp thoại tạo nhiệm vụ; người không quản lý không thấy nút', async () => {
-      show('leader');
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'leader',
+        userId: 3,
+        teams: [{ id: 2, name: 'Tuyên huấn', can_manage: 1 }],
+      });
       fireEvent.click(screen.getByRole('button', { name: 'Tạo nhiệm vụ' }));
       expect(await screen.findByLabelText('Tiêu đề *')).toBeDefined();
       cleanup();

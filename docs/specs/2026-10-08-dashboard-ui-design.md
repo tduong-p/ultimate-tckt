@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: AI
@@ -52,6 +52,7 @@ A stack of 3 distinct cards:
 - Add the Dashboard component to the PageLayout routing/tab selection so it can be viewed.
 
 Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Tạo đề xuất thành công từ Tổng quan chuyển tới `#/activity/:id`.
+Cập nhật 2026-10-09 (đợt 2 SPEC-WEB-003): Tiêu đề công việc và nút tích tròn trong widget Việc hôm nay kết nối mở hộp chi tiết công việc `TaskDetailModal`.
 
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
@@ -62,3 +63,4 @@ Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Tạo đề xuất thành công
 | 1.3 | 2026-10-09 | Đồng bộ với code: dữ liệu thật từ `/api/bootstrap` + `/api/my-tasks-today`; nút đề xuất theo `canCreateActivity`; KPI 4 = "Hoàn thành tháng này"; bỏ tab "Đã xong" và fallback; nhãn tiếng Việt; câu chào theo phạm vi | DYC |
 | 1.4 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |
 | 1.5 | 2026-10-09 | Đợt 1 SPEC-WEB-003: tạo hoạt động xong mở trang chi tiết | DYC |
+| 1.6 | 2026-10-09 | Đợt 2 SPEC-WEB-003: tiêu đề công việc và nút tích trong widget Việc hôm nay mở hộp chi tiết công việc | DYC |

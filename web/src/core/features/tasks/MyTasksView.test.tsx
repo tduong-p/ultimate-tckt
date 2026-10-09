@@ -1,10 +1,11 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MyTasksView } from './MyTasksView';
 import * as api from '../../api';
 import { ToastProvider } from '../../../shared/components/Toast';
+import { TaskModalContext } from './TaskModalProvider';
 
 vi.mock('../../api', async () => {
   const actual = await vi.importActual('../../api');
@@ -220,4 +221,25 @@ describe('MyTasksView', () => {
     expect(within(review).getByRole('button', { name: 'Duyệt đạt' })).toBeDefined();
     expect(within(today).queryByRole('button', { name: 'Duyệt đạt' })).toBeNull();
   });
+
+  it('bấm tiêu đề công việc mở hộp chi tiết', async () => {
+    const open = vi.fn();
+    vi.mocked(api.fetchBootstrap).mockResolvedValue({
+      stats: {} as never,
+      upcoming: [],
+      tasks: [{ id: 201, activity_id: 1, team_id: 2, title: 'Soạn báo cáo tháng', status: 'in_progress', priority: 'high', deadline: '2099-01-01', assignee_ids: '7' }],
+      activity: [],
+      teams: [],
+      capabilities: { canCreateActivity: false, canCreateAccount: false },
+    });
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue({ dueToday: [], overdue: [], pendingMyReview: [] });
+    renderWithClient(
+      <TaskModalContext.Provider value={{ open, close: vi.fn() }}>
+        <MyTasksView />
+      </TaskModalContext.Provider>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Soạn báo cáo tháng' }));
+    expect(open).toHaveBeenCalledWith(201);
+  });
 });
+

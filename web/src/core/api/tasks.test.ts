@@ -1,75 +1,144 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { apiClient } from '../../shared/utils/api';
 import {
-  acknowledgeTask,
-  addTaskChecklistItem,
-  createActivityTask,
-  deleteTaskChecklistItem,
+  fetchTask,
   fetchTaskDetail,
-  reviewTask,
-  submitTaskReview,
-  toggleTaskChecklist,
+  acknowledgeTask,
   updateTaskStatus,
+  editTask,
+  addChecklistItem,
+  setChecklistItemDone,
+  deleteChecklistItem,
+  addTaskAttachment,
+  submitTaskReview,
+  reviewTask,
+  cancelTask,
+  postTaskComment,
+  createTask,
+  createActivityTask,
+  logTask,
+  fetchWeightPresets,
+  fetchActivityBoard,
+  taskAttachmentContentUrl,
 } from './tasks';
+import { fetchTeamMembers } from './teams';
+import { translateServerError } from './errors';
 
 vi.mock('../../shared/utils/api', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
-describe('API vòng đời công việc', () => {
+const formOf = (call: unknown[]) => Object.fromEntries((call[1] as FormData).entries());
+
+describe('API công việc', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(apiClient.get).mockResolvedValue({ data: {} });
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 1 } });
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { ok: true } });
+    vi.mocked(apiClient.delete).mockResolvedValue({ data: { ok: true } });
   });
 
-  it('createActivityTask gọi POST /activities/:id/tasks', async () => {
-    const payload = { title: 'Chuẩn bị âm thanh', team_id: 1, primary_assignee_id: 2, deadline: '2026-10-15' };
-    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { id: 99 } });
-    await expect(createActivityTask(10, payload)).resolves.toEqual({ id: 99 });
-    expect(apiClient.post).toHaveBeenCalledWith('/activities/10/tasks', payload);
+  it('đọc chi tiết công việc, bảng Kanban, thành viên Tổ, bộ trọng số', async () => {
+    await fetchTask(5);
+    expect(apiClient.get).toHaveBeenCalledWith('/tasks/5');
+    await fetchTaskDetail(5);
+    expect(apiClient.get).toHaveBeenCalledWith('/tasks/5');
+    await fetchActivityBoard(9);
+    expect(apiClient.get).toHaveBeenCalledWith('/activities/9');
+    await fetchTeamMembers(3);
+    expect(apiClient.get).toHaveBeenCalledWith('/teams/3/members');
+    await fetchWeightPresets();
+    expect(apiClient.get).toHaveBeenCalledWith('/weight-presets');
   });
 
-  it('fetchTaskDetail gọi GET /tasks/:id', async () => {
-    const detail = { task: { id: 99, title: 'Test' }, assignees: [] };
-    vi.mocked(apiClient.get).mockResolvedValueOnce({ data: detail });
-    await expect(fetchTaskDetail(99)).resolves.toEqual(detail);
-    expect(apiClient.get).toHaveBeenCalledWith('/tasks/99');
+  it('xác nhận, đổi trạng thái, sửa 4 trường, rút lại', async () => {
+    await acknowledgeTask(5);
+    expect(apiClient.post).toHaveBeenCalledWith('/tasks/5/acknowledge');
+    await updateTaskStatus(5, 'in_progress');
+    expect(apiClient.patch).toHaveBeenCalledWith('/tasks/5/status', { status: 'in_progress' });
+    await editTask(5, { deadline: '2026-11-01', start_date: null, priority: 'high', deliverable: 'Báo cáo' });
+    expect(apiClient.patch).toHaveBeenCalledWith('/tasks/5', {
+      deadline: '2026-11-01',
+      start_date: null,
+      priority: 'high',
+      deliverable: 'Báo cáo',
+    });
+    await cancelTask(5);
+    expect(apiClient.post).toHaveBeenCalledWith('/tasks/5/cancel');
   });
 
-  it('acknowledgeTask gọi POST /tasks/:id/acknowledge', async () => {
-    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
-    await expect(acknowledgeTask(99)).resolves.toEqual({ ok: true });
-    expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/acknowledge');
+  it('checklist: thêm, tích, xoá', async () => {
+    await addChecklistItem(5, 'Mua nước');
+    expect(apiClient.post).toHaveBeenCalledWith('/tasks/5/checklist', { title: 'Mua nước' });
+    await setChecklistItemDone(5, 8, true);
+    expect(apiClient.patch).toHaveBeenCalledWith('/tasks/5/checklist/8', { is_done: true });
+    await deleteChecklistItem(5, 8);
+    expect(apiClient.delete).toHaveBeenCalledWith('/tasks/5/checklist/8');
   });
 
-  it('updateTaskStatus gọi PATCH /tasks/:id/status', async () => {
-    vi.mocked(apiClient.patch).mockResolvedValueOnce({ data: { ok: true } });
-    await expect(updateTaskStatus(99, 'in_progress')).resolves.toEqual({ ok: true });
-    expect(apiClient.patch).toHaveBeenCalledWith('/tasks/99/status', { status: 'in_progress' });
+  it('tài liệu và nộp nghiệm thu gửi multipart chỉ gồm các trường link, không có file', async () => {
+    await addTaskAttachment(5, { kind: 'evidence', label: 'Ảnh sự kiện', link_url: 'https://drive.example/a' });
+    const call = vi.mocked(apiClient.post).mock.calls[0];
+    expect(call[0]).toBe('/tasks/5/attachments');
+    expect(formOf(call)).toEqual({ kind: 'evidence', label: 'Ảnh sự kiện', link_url: 'https://drive.example/a' });
+    expect(call[2]).toEqual({ headers: { 'Content-Type': 'multipart/form-data' } });
+
+    vi.mocked(apiClient.post).mockClear();
+    await submitTaskReview(5, { link_url: 'https://drive.example/b', notes: '' });
+    const submit = vi.mocked(apiClient.post).mock.calls[0];
+    expect(submit[0]).toBe('/tasks/5/submit-review');
+    expect(formOf(submit)).toEqual({ link_url: 'https://drive.example/b' });
   });
 
-  it('submitTaskReview gọi POST /tasks/:id/submit-review', async () => {
-    const payload = { notes: 'Đã xong', link_url: 'https://example.com' };
-    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
-    await expect(submitTaskReview(99, payload)).resolves.toEqual({ ok: true });
-    expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/submit-review', payload);
+  it('duyệt và bình luận công việc', async () => {
+    await reviewTask(5, { decision: 'reject', feedback: 'Thiếu ảnh' });
+    expect(apiClient.post).toHaveBeenCalledWith('/tasks/5/review', { decision: 'reject', feedback: 'Thiếu ảnh' });
+    await postTaskComment(9, { kind: 'progress', body: 'Xong 50%', task_id: 5 });
+    expect(apiClient.post).toHaveBeenCalledWith('/activities/9/updates', { kind: 'progress', body: 'Xong 50%', task_id: 5 });
   });
 
-  it('reviewTask gọi POST /tasks/:id/review', async () => {
-    const payload = { decision: 'approve' as const, feedback: 'Tốt' };
-    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
-    await expect(reviewTask(99, payload)).resolves.toEqual({ ok: true });
-    expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/review', payload);
+  it('giao việc gửi JSON; tự ghi nhận gửi multipart không có file', async () => {
+    const payload = {
+      title: 'Dựng sân khấu',
+      description: '',
+      stage: 'before',
+      priority: 'high',
+      team_id: 2,
+      start_date: null,
+      deadline: '2026-11-01',
+      deliverable: '',
+      primary_assignee_id: 7,
+      co_assignee_ids: [8],
+    };
+    await createTask(9, payload);
+    expect(apiClient.post).toHaveBeenCalledWith('/activities/9/tasks', payload);
+    await createActivityTask(9, payload);
+    expect(apiClient.post).toHaveBeenCalledWith('/activities/9/tasks', payload);
+
+    vi.mocked(apiClient.post).mockClear();
+    await logTask(9, {
+      title: 'Trực gian hàng',
+      team_id: 2,
+      weight: 3,
+      link_url: 'https://drive.example/c',
+      description: 'Ca sáng',
+    });
+    const call = vi.mocked(apiClient.post).mock.calls[0];
+    expect(call[0]).toBe('/activities/9/log-task');
+    expect(formOf(call)).toEqual({
+      title: 'Trực gian hàng',
+      team_id: '2',
+      weight: '3',
+      link_url: 'https://drive.example/c',
+      description: 'Ca sáng',
+    });
   });
 
-  it('checklist: bật/tắt, thêm, xoá', async () => {
-    vi.mocked(apiClient.patch).mockResolvedValueOnce({ data: { ok: true } });
-    await toggleTaskChecklist(99, 1, true);
-    expect(apiClient.patch).toHaveBeenCalledWith('/tasks/99/checklist/1', { is_done: true });
-    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { id: 101 } });
-    await expect(addTaskChecklistItem(99, 'Việc nhỏ')).resolves.toEqual({ id: 101 });
-    expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/checklist', { title: 'Việc nhỏ' });
-    vi.mocked(apiClient.delete).mockResolvedValueOnce({ data: { ok: true } });
-    await deleteTaskChecklistItem(99, 1);
-    expect(apiClient.delete).toHaveBeenCalledWith('/tasks/99/checklist/1');
+  it('đường dẫn mở tệp đã lưu và câu lỗi tiếng Anh của route công việc được dịch', () => {
+    expect(taskAttachmentContentUrl(12)).toBe('/api/task-attachments/12/content');
+    expect(translateServerError('Task not found.')).toBe('Không tìm thấy công việc.');
+    expect(translateServerError('You cannot update this task.')).toBe('Bạn không thể cập nhật công việc này.');
+    expect(translateServerError('You cannot manage this team.')).toBe('Bạn không có quyền quản lý Tổ này.');
   });
 });
