@@ -90,4 +90,27 @@ describe('PageLayout', () => {
     renderLayout(<PageLayout headerExtras={<span>ô-chọn-đơn-vị</span>}><div>Content</div></PageLayout>);
     expect(screen.getByText('ô-chọn-đơn-vị')).toBeDefined();
   });
+
+  it('hiện "Giao việc" và "Trình" chỉ khi canViewDieuHanh, bấm thì điều hướng', () => {
+    renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.queryByText('Giao việc')).toBeNull();
+    expect(screen.queryByText('Trình')).toBeNull();
+    cleanup();
+    renderLayout(<PageLayout canViewDieuHanh><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByText('Giao việc'));
+    expect(screen.getByTestId('path').textContent).toBe('/directives');
+    fireEvent.click(screen.getByText('Trình'));
+    expect(screen.getByTestId('path').textContent).toBe('/submissions');
+  });
+
+  it('đang ở trang chi tiết chỉ đạo thì "Giao việc" được tô sáng', () => {
+    renderLayout(<PageLayout canViewDieuHanh><div>x</div></PageLayout>, '/directive/7');
+    expect(screen.getByText('Giao việc').closest('[aria-current="page"]')).not.toBeNull();
+  });
+
+  it('mục "Sắp có" không còn Giao việc/Trình', () => {
+    renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.getByText('Nhật ký trực ban')).toBeDefined();
+    expect(screen.queryByText('Giao việc')).toBeNull();
+  });
 });

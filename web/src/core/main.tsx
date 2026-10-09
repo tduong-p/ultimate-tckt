@@ -16,6 +16,7 @@ import { TaskModalProvider } from './features/tasks/TaskModalProvider';
 import { fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
 import { SESSION_KEY } from './queryKeys';
 import { UnitSwitcher } from './features/session/UnitSwitcher';
+import { unitHasDieuHanh } from './features/dieuhanh/permissions';
 
 // Bỏ mọi dữ liệu của người dùng cũ rồi đánh dấu chưa đăng nhập để App hiện màn đăng nhập.
 function resetToLoggedOut(queryClient: QueryClient) {
@@ -102,7 +103,7 @@ export const App = () => {
 const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: () => void }> = ({ userName, user, onLogout }) => {
   const caps = useCapabilities();
   return (
-    <PageLayout user={user} onLogout={onLogout} canViewReports={caps.isManager} headerExtras={<UnitSwitcher />}>
+    <PageLayout user={user} onLogout={onLogout} canViewReports={caps.isManager} canViewDieuHanh={unitHasDieuHanh(caps.unit)} headerExtras={<UnitSwitcher />}>
       <AppRoutes userName={userName} />
     </PageLayout>
   );
