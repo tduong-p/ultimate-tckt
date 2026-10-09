@@ -403,7 +403,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName, onNavigate }) =>
           dueToday={myTasksData?.dueToday}
           overdue={myTasksData?.overdue}
         />
-        <CreateActivityModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <CreateActivityModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreated={(id) => onNavigate?.(`activity/${id}`)}
+        />
         <UpdatesWidgets
           upcoming={bootstrapData?.upcoming}
           activityLogs={bootstrapData?.activity}

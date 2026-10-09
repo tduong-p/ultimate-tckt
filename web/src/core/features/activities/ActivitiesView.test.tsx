@@ -216,4 +216,32 @@ describe('ActivitiesView', () => {
     expect(screen.queryByText(/người$/)).toBeNull();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('60');
   });
+
+  it('tiêu đề hoạt động là link tới trang chi tiết', async () => {
+    renderWithClient(<ActivitiesView />);
+    const link = await screen.findByRole('link', { name: 'Chiến dịch Mùa hè xanh 2026' });
+    expect(link.getAttribute('href')).toBe('#/activity/1');
+  });
+
+  it('bấm vào thẻ hoạt động mở trang chi tiết', async () => {
+    window.location.hash = '';
+    renderWithClient(<ActivitiesView />);
+    fireEvent.click(await screen.findByTestId('activity-card-2'));
+    expect(window.location.hash).toBe('#/activity/2');
+  });
+
+  it('hiện link đề án khi có, và bấm link đó không mở trang chi tiết', async () => {
+    window.location.hash = '';
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[0], proposal_document_url: 'https://drive.example/de-an' },
+      { ...mockActivities[1], proposal_document_url: 'javascript:alert(1)' },
+    ]);
+    renderWithClient(<ActivitiesView />);
+    await screen.findByText('Chiến dịch Mùa hè xanh 2026');
+    const links = screen.getAllByRole('link', { name: 'Hồ sơ đề án' });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('href')).toBe('https://drive.example/de-an');
+    fireEvent.click(links[0]);
+    expect(window.location.hash).toBe('');
+  });
 });
