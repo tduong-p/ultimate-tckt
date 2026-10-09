@@ -1,10 +1,18 @@
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import React from 'react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 const LocationProbe = () => <div data-testid="path">{useLocation().pathname}</div>;
+const StatefulHeaderExtra = () => {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount((value) => value + 1)}>header count {count}</button>;
+};
+const NavigateToTeams = () => {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate('/teams')}>go to teams</button>;
+};
 const renderLayout = (ui: React.ReactElement, path = '/dashboard') =>
   render(<MemoryRouter initialEntries={[path]}>{ui}<Routes><Route path="*" element={<LocationProbe />} /></Routes></MemoryRouter>);
 
@@ -89,5 +97,18 @@ describe('PageLayout', () => {
   it('headerExtras được hiện trên thanh trên cùng', () => {
     renderLayout(<PageLayout headerExtras={<span>ô-chọn-đơn-vị</span>}><div>Content</div></PageLayout>);
     expect(screen.getByText('ô-chọn-đơn-vị')).toBeDefined();
+  });
+
+  it('giữ headerExtras được mount khi đổi route', () => {
+    renderLayout(
+      <PageLayout headerExtras={<StatefulHeaderExtra />}><NavigateToTeams /></PageLayout>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'header count 0' }));
+    expect(screen.getByRole('button', { name: 'header count 1' })).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'go to teams' }));
+
+    expect(screen.getByTestId('path').textContent).toBe('/teams');
+    expect(screen.getByRole('button', { name: 'header count 1' })).toBeDefined();
   });
 });

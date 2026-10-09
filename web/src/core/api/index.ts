@@ -7,3 +7,4 @@ export * from './users';
 export * from './tasks';
 export * from './documents';
 export * from './reports';
+export * from './notifications';
