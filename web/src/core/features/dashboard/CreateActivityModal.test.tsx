@@ -332,6 +332,17 @@ describe('CreateActivityModal', () => {
     expect(api.createActivity).not.toHaveBeenCalled();
   });
 
+  it('link ảnh công khai không phải http(s) thì chặn tạo đề xuất', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.change(screen.getByLabelText(/Liên kết ảnh công khai/), { target: { value: 'ftp://may-chu/anh.jpg' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+    expect((await screen.findAllByText('Liên kết phải bắt đầu bằng http:// hoặc https://.')).length).toBeGreaterThan(0);
+    expect(api.createActivity).not.toHaveBeenCalled();
+  });
+
   it('tạo xong gọi onCreated với id mới sau khi đóng modal', async () => {
     const onClose = vi.fn();
     const onCreated = vi.fn();

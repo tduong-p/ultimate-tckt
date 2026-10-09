@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-WEBP1-001
 title: Kế hoạch triển khai — web/ đợt 1 (Hoạt động: tạo đề xuất, trang chi tiết, vòng duyệt, sửa, xoá, tham gia, cập nhật)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -29,15 +29,16 @@ related_code: []
 
   | Thao tác | Điều kiện hiện nút | Server chặn bằng |
   |---|---|---|
-  | Duyệt / Yêu cầu sửa / Từ chối | `isExec` và `status === 'proposed'` | `admin`; 409 nếu không còn `proposed` |
-  | Nộp lại | `canManage` và `status === 'changes_requested'` | `managerOrEventLead` + `canManageActivity` |
-  | Sửa | `canManage` (admin luôn `canManage`) | `managerOrEventLead` + `canManageActivity` |
-  | Sửa Tổ, trạng thái, Trưởng BTC | `isExec` | 403 "Only administrators can change involved teams."; `status`/`event_lead_id` bị bỏ qua nếu không phải admin |
-  | Xoá | `isExec`, gõ lại đúng tiêu đề | `admin` |
-  | Đăng ký tham gia | chưa có dòng `participants` của mình, hoặc `state === 'declined'` | `auth` + hoạt động xem được |
-  | Thêm người tham gia | `canManage` | `managerOrEventLead` + `canManageActivity` |
-  | Đăng cập nhật | mọi người | `auth` + hoạt động xem được |
+  | Duyệt / Yêu cầu sửa / Từ chối | `isWriteExec` và `status === 'proposed'` | `admin`; 409 nếu không còn `proposed` |
+  | Nộp lại | `canManageWrite` và `status === 'changes_requested'` | `managerOrEventLead` + `canManageActivity` |
+  | Sửa | `canManageWrite` (admin ghi luôn quản lý) | `managerOrEventLead` + `canManageActivity` |
+  | Sửa Tổ, trạng thái, Trưởng BTC | `isWriteExec` | 403 "Only administrators can change involved teams."; `status`/`event_lead_id` bị bỏ qua nếu không phải admin |
+  | Xoá | `isWriteExec`, gõ lại đúng tiêu đề | `admin` |
+  | Đăng ký tham gia | `canWriteActivities` và (chưa có dòng `participants` của mình hoặc `state === 'declined'`) | `auth` + hoạt động xem được |
+  | Thêm người tham gia | `canManageWrite` | `managerOrEventLead` + `canManageActivity` |
+  | Đăng cập nhật | `canWriteActivities` | `auth` + hoạt động xem được |
 
+- Quyền ghi hiện hành (đính chính cho các đoạn mã ví dụ lịch sử bên dưới): `legacyGate` cho DYC chỉ đọc; `session.user.role` và `detail.canManage` của GET có thể phản ánh `admin` giả cho DYC. Dùng membership TCKT để xác định `canWriteActivities`, vai trò TCKT cùng vai trò đơn vị hiện tại để xác định `isWriteExec`; với DYC+TCKT, xác định `canManageWrite` bằng quyền ghi admin, người tạo, Trưởng BTC hoặc Tổ đang lãnh đạo. Form cập nhật chỉ hiện khi được ghi. Nếu Tổ đã lưu trữ còn gắn với hoạt động, form sửa hiện Tổ đó để admin gỡ hoặc thay (server vẫn chặn gỡ Tổ có việc). Trách nhiệm mặc định tiếng Anh do server tạo được dịch khi hiển thị.
 - Hai trường hợp server **xoá hẳn** hoạt động: từ chối đề án và chuyển trạng thái sang `cancelled` (response `{ok:true, deleted:true}`). Sau cả hai: bỏ cache chi tiết, về `#/activities`.
 - `PATCH /api/activities/:id` có ba handler nối nhau: gửi `is_public` thì **phải** gửi kèm `public_image_url` (thiếu nó server xoá ảnh), gửi `proposal_document_url` rỗng sẽ xoá link. Form sửa luôn gửi đủ ba trường này.
 - Người quản lý không phải admin gửi `team_id`/`team_ids` sẽ bị 403 → payload của họ không bao giờ có hai trường đó.
@@ -3759,3 +3760,4 @@ EOF
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: kế hoạch đợt 1 (Hoạt động) của SPEC-WEB-003 | DYC |
+| 1.1 | 2026-10-09 | Đính chính ma trận quyền ghi DYC/TCKT, Tổ lưu trữ và nhãn trách nhiệm mặc định | DYC |

@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '../../../shared/components/Toast';
 import { BOOTSTRAP_KEY, SESSION_KEY } from '../../queryKeys';
-import type { ActivityDetail, ActivityItem, TeamItem } from '../../api';
+import type { ActivityDetail, ActivityItem, TeamItem, SessionMembership, SessionUnit } from '../../api';
 
 /** Hiện đường dẫn hiện tại để test kiểm tra điều hướng. */
 export const Probe = () => <div data-testid="path">{useLocation().pathname}</div>;
@@ -16,14 +16,18 @@ export interface AppOptions {
   role?: string;
   userId?: number;
   teams?: TeamItem[];
+  memberships?: SessionMembership[];
+  currentUnit?: SessionUnit | null;
 }
 
 export function renderInApp(ui: React.ReactElement, opts: AppOptions = {}) {
   const { path = '/activity/5', routePath = '/activity/:id', role = 'member', userId = 3, teams = [] } = opts;
+  const memberships = opts.memberships ?? [{ unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role }];
+  const currentUnit = opts.currentUnit === undefined ? { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' } : opts.currentUnit;
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } } });
   qc.setQueryData(SESSION_KEY, {
     user: { id: userId, name: 'Người dùng thử', email: 't@x.vn', role },
-    units: { current: null, memberships: [] },
+    units: { current: currentUnit, memberships },
   });
   qc.setQueryData(BOOTSTRAP_KEY, {
     stats: { activeActivities: 0, openTasks: 0, overdueTasks: 0, completedMonth: 0 },

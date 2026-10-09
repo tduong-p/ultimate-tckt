@@ -46,6 +46,68 @@ describe('ActivityActions', () => {
   afterEach(cleanup);
 
   describe('quyền hiển thị', () => {
+    it('DYC chỉ đọc không thấy bất kỳ thao tác ghi nào dù GET báo canManage', () => {
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'admin', memberships: [{ unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'admin' }],
+        currentUnit: { id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner' },
+      });
+      expect(buttons()).toEqual([]);
+    });
+
+    it('DYC có membership TCKT member không nhận quyền admin từ GET, nhưng vẫn được đăng ký', () => {
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'admin', memberships: [
+          { unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'member' },
+          { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'member' },
+        ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
+      });
+      expect(buttons()).toEqual(['Đăng ký tham gia']);
+    });
+
+    it('DYC có membership TCKT leader là Trưởng BTC vẫn được sửa và thêm người', () => {
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true, activity: { event_lead_id: 3 } })} />, {
+        role: 'admin', memberships: [
+          { unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'member' },
+          { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'leader' },
+        ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
+      });
+      expect(buttons()).toEqual(['Sửa', 'Đăng ký tham gia', 'Thêm người tham gia']);
+    });
+
+    it('DYC có membership TCKT leader quản lý Tổ của hoạt động vẫn được sửa', () => {
+      const { qc } = renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'admin', memberships: [
+          { unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'member' },
+          { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'leader' },
+        ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
+        teams: [{ id: 2, name: 'Tuyên huấn', can_manage: 1 }],
+      });
+      expect(buttons()).toEqual(['Sửa', 'Đăng ký tham gia', 'Thêm người tham gia']);
+      qc.clear();
+    });
+
+    it('DYC có membership TCKT admin vẫn được duyệt và xoá', () => {
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'admin', memberships: [
+          { unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'member' },
+          { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'admin' },
+        ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
+      });
+      expect(buttons()).toContain('Duyệt');
+      expect(buttons()).toContain('Xoá hoạt động');
+    });
+
+    it('DYC đang ở đơn vị DYC vẫn ghi được khi có membership TCKT và vai trò đơn vị hiện tại là admin', () => {
+      renderInApp(<ActivityActions detail={makeDetail({ canManage: true })} />, {
+        role: 'admin', memberships: [
+          { unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'admin' },
+          { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'member' },
+        ], currentUnit: { id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner' },
+      });
+      expect(buttons()).toContain('Duyệt');
+      expect(buttons()).toContain('Xoá hoạt động');
+    });
+
     it('admin thấy các thao tác duyệt và xoá đề án chờ duyệt', () => {
       show('admin');
       expect(buttons()).toEqual(['Duyệt', 'Yêu cầu sửa', 'Từ chối', 'Sửa', 'Xoá hoạt động', 'Đăng ký tham gia', 'Thêm người tham gia']);

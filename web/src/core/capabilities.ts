@@ -12,6 +12,9 @@ export interface Capabilities {
   memberships: SessionMembership[];
   isExec: boolean;
   isManager: boolean;
+  canWriteActivities: boolean;
+  isWriteExec: boolean;
+  canLeadTeam: (teamId: number) => boolean;
   canCreateActivity: boolean;
   canCreateAccount: boolean;
   canManageTeam: (teamId: number) => boolean;
@@ -28,6 +31,11 @@ export function deriveCapabilities(session?: SessionData | null, bootstrap?: Boo
   const isLeadership = roles.some((r) => r !== null && LEADERSHIP_ROLES.includes(r));
   const isManager = isExec || isLeadership;
   const managedTeams = new Set((bootstrap?.teams ?? []).filter((t) => Boolean(t.can_manage)).map((t) => t.id));
+  const tcktRole = memberships.find((m) => m.code === 'TCKT')?.role ?? null;
+  const canWriteActivities = tcktRole !== null;
+  // POST/PATCH/DELETE use TCKT's legacy role; GET gives DYC an admin role even without write access.
+  const writeRoles = [tcktRole, unitRole];
+  const isWriteExec = canWriteActivities && writeRoles.some((r) => r !== null && EXECUTIVE_ROLES.includes(r));
   return {
     role,
     unit,
@@ -35,6 +43,9 @@ export function deriveCapabilities(session?: SessionData | null, bootstrap?: Boo
     memberships,
     isExec,
     isManager,
+    canWriteActivities,
+    isWriteExec,
+    canLeadTeam: (teamId: number) => canWriteActivities && managedTeams.has(teamId),
     canCreateActivity: Boolean(bootstrap?.capabilities?.canCreateActivity),
     canCreateAccount: Boolean(bootstrap?.capabilities?.canCreateAccount),
     // Luật server: isExec || (isLeadership && leadsTeam). `can_manage` của bootstrap là tín hiệu leadsTeam.

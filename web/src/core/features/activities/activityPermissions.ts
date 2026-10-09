@@ -13,23 +13,25 @@ export interface ActivityActionFlags {
 }
 
 export interface ActivityActionInput {
-  isExec: boolean;
+  canWrite: boolean;
+  isWriteExec: boolean;
+  canManageWrite: boolean;
   userId: number | null;
   detail: Pick<ActivityDetail, 'activity' | 'participants' | 'canManage'>;
 }
 
 /** Bắt chước điều kiện server (core/src/routes/activities.js). Server vẫn là nơi chặn cuối. */
-export function deriveActivityActions({ isExec, userId, detail }: ActivityActionInput): ActivityActionFlags {
+export function deriveActivityActions({ canWrite, isWriteExec, canManageWrite, userId, detail }: ActivityActionInput): ActivityActionFlags {
   const status = detail.activity.status;
-  const canManage = detail.canManage || isExec;
+  const canManage = canWrite && (canManageWrite || isWriteExec);
   const mine = userId === null ? undefined : detail.participants.find((p) => Number(p.user_id) === userId);
   return {
-    canApprove: isExec && status === 'proposed',
+    canApprove: isWriteExec && status === 'proposed',
     canResubmit: canManage && status === 'changes_requested',
     canEdit: canManage,
-    canEditAdminFields: isExec,
-    canDelete: isExec,
-    canVolunteer: userId !== null && (!mine || mine.state === 'declined'),
+    canEditAdminFields: isWriteExec,
+    canDelete: isWriteExec,
+    canVolunteer: canWrite && userId !== null && (!mine || mine.state === 'declined'),
     canAddParticipants: canManage,
   };
 }

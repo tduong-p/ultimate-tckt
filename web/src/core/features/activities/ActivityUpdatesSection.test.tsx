@@ -29,7 +29,7 @@ const updates: ActivityUpdate[] = [
 ];
 
 const show = (list: ActivityUpdate[] = []) =>
-  renderInApp(<ActivityUpdatesSection activityId={5} updates={list} taggablePeople={people} />, { path: '/activity/5' });
+  renderInApp(<ActivityUpdatesSection activityId={5} updates={list} taggablePeople={people} canWrite />, { path: '/activity/5' });
 
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 

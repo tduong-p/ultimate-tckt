@@ -18,6 +18,33 @@ describe('ActivityDetailView — thông tin', () => {
   });
   afterEach(cleanup);
 
+  it('dịch trách nhiệm mặc định của server, giữ nguyên nội dung do người dùng nhập', async () => {
+    const base = makeDetail();
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ activityTeams: [
+      { ...base.activityTeams[0], responsibility: 'Coordinates the activity' },
+      { ...base.activityTeams[1], responsibility: 'Supports the activity' },
+      { ...base.activityTeams[1], team_id: 4, name: 'Hậu cần', responsibility: 'Phụ trách tiếp đón' },
+    ] }));
+    show();
+    const teams = within(await screen.findByTestId('section-teams'));
+    expect(teams.getByText('Điều phối hoạt động')).toBeDefined();
+    expect(teams.getByText('Hỗ trợ hoạt động')).toBeDefined();
+    expect(teams.getByText('Phụ trách tiếp đón')).toBeDefined();
+  });
+
+  it('DYC chỉ đọc thấy timeline nhưng không thấy form cập nhật', async () => {
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: true, updates: [
+      { id: 1, kind: 'comment', body: 'Báo cáo', created_at: '2026-10-05', user_name: 'A', tagged_users: [] },
+    ] }));
+    renderInApp(<ActivityDetailView />, { role: 'admin',
+      memberships: [{ unit_id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner', role: 'admin' }],
+      currentUnit: { id: 9, code: 'DYC', name: 'DYC', kind: 'platform_owner' },
+    });
+    expect(await screen.findByText('Báo cáo')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Đăng cập nhật' })).toBeNull();
+    expect(screen.queryByLabelText('Nội dung cập nhật')).toBeNull();
+  });
+
   it('hiện phần đầu, thông tin chung, Tổ, người tham gia, chi tiết và lịch sử đề án', async () => {
     vi.mocked(api.fetchActivityDetail).mockResolvedValue(
       makeDetail({

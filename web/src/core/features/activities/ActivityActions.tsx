@@ -24,10 +24,15 @@ type Dialog = 'changes' | 'reject' | 'delete' | 'edit' | 'participants' | null;
 
 /** Thanh hành động của trang hoạt động. `children` để đợt 2 gắn thêm nút việc. */
 export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: React.ReactNode }> = ({ detail, children }) => {
-  const { isExec } = useCapabilities();
+  const { canWriteActivities, isWriteExec, canLeadTeam, memberships } = useCapabilities();
   const { data: session } = useQuery({ queryKey: SESSION_KEY, queryFn: fetchSession });
   const id = detail.activity.id;
-  const flags = deriveActivityActions({ isExec, userId: session?.user?.id ?? null, detail });
+  const userId = session?.user?.id ?? null;
+  const hasDyc = memberships.some((m) => m.kind === 'platform_owner');
+  const canManageWrite = canWriteActivities && (isWriteExec || (!hasDyc && detail.canManage) ||
+    (userId !== null && (Number(detail.activity.creator_id) === userId || Number(detail.activity.event_lead_id) === userId)) ||
+    detail.activityTeams.some((team) => canLeadTeam(team.team_id)));
+  const flags = deriveActivityActions({ canWrite: canWriteActivities, isWriteExec, canManageWrite, userId, detail });
   const [dialog, setDialog] = useState<Dialog>(null);
   const close = () => setDialog(null);
 

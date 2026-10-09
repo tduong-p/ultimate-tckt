@@ -73,6 +73,10 @@ export const ActivityGeneralInfo: React.FC<{ activity: ActivityItem; teams: Acti
 );
 
 const TEAM_ROLE_LABELS: Record<string, string> = { primary: 'Chủ trì', supporting: 'Phối hợp' };
+const DEFAULT_RESPONSIBILITY_LABELS: Record<string, string> = {
+  'Coordinates the activity': 'Điều phối hoạt động',
+  'Supports the activity': 'Hỗ trợ hoạt động',
+};
 
 export const ActivityTeamsCard: React.FC<{ teams: ActivityTeamRow[] }> = ({ teams }) => (
   <Card title="Tổ tham gia" testId="section-teams">
@@ -86,7 +90,7 @@ export const ActivityTeamsCard: React.FC<{ teams: ActivityTeamRow[] }> = ({ team
               <strong>{t.name}</strong>
               <Lozenge appearance={t.role === 'primary' ? 'inprogress' : 'default'}>{TEAM_ROLE_LABELS[t.role] ?? t.role}</Lozenge>
             </div>
-            {t.responsibility && <div style={{ color: token('color.text.subtle', '#5E6C84') }}>{t.responsibility}</div>}
+            {t.responsibility && <div style={{ color: token('color.text.subtle', '#5E6C84') }}>{DEFAULT_RESPONSIBILITY_LABELS[t.responsibility] ?? t.responsibility}</div>}
           </li>
         ))}
       </ul>

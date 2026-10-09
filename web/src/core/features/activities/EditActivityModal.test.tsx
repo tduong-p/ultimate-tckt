@@ -37,6 +37,20 @@ describe('EditActivityModal', () => {
   });
   afterEach(cleanup);
 
+  it('admin gỡ Tổ đã lưu trữ không có việc và chỉ gửi các Tổ còn hoạt động', async () => {
+    const archived = makeDetail({ activityTeams: [
+      detail.activityTeams[0],
+      { ...detail.activityTeams[1], team_id: 9, name: 'Tổ cũ' },
+    ], tasks: [] });
+    renderInApp(<EditActivityModal isOpen onClose={() => {}} detail={archived} isAdmin />, { role: 'admin' });
+    const oldTeam = await screen.findByRole('checkbox', { name: 'Tổ cũ (đã lưu trữ)' }) as HTMLInputElement;
+    expect(oldTeam.checked).toBe(true);
+    fireEvent.click(oldTeam);
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+    await waitFor(() => expect(api.updateActivity).toHaveBeenCalledWith(5, expect.objectContaining({ team_id: 2, team_ids: [2] })));
+    expect(lastPayload().team_ids).not.toContain(9);
+  });
+
   it('người quản lý: sửa tiêu đề, gửi tập con (không có trường admin), toast, đóng, làm mới cache', async () => {
     const { qc, onClose } = show(false);
     const spy = vi.spyOn(qc, 'invalidateQueries');

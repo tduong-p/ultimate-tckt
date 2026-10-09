@@ -24,7 +24,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   detail: ActivityDetail;
-  /** isExec: được sửa trạng thái, Trưởng BTC, Tổ. */
+  /** Vai trò admin khi ghi: được sửa trạng thái, Trưởng BTC, Tổ. */
   isAdmin: boolean;
 }
 
@@ -49,10 +49,11 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
   const teamsQuery = useQuery({ queryKey: ['core-teams'], queryFn: fetchTeams, enabled: isOpen && isAdmin });
   const membersQuery = useQuery({ queryKey: ['core-members'], queryFn: fetchMembers, enabled: isOpen && isAdmin });
 
-  const teamOptions = (
-    teamsQuery.data?.filter((t) => t.is_active !== 0 && t.is_active !== false).map((t) => ({ id: t.id, name: t.name })) ??
-    detail.activityTeams.map((t) => ({ id: t.team_id, name: t.name }))
-  );
+  const activeTeams = teamsQuery.data?.filter((t) => t.is_active !== 0 && t.is_active !== false).map((t) => ({ id: t.id, name: t.name })) ?? [];
+  const activeIds = new Set(activeTeams.map((t) => t.id));
+  const teamOptions = teamsQuery.data
+    ? [...activeTeams, ...detail.activityTeams.filter((t) => !activeIds.has(t.team_id)).map((t) => ({ id: t.team_id, name: `${t.name} (đã lưu trữ)` }))]
+    : detail.activityTeams.map((t) => ({ id: t.team_id, name: t.name }));
   const leadOptions = [{ value: '', label: 'Không có' }].concat(
     (membersQuery.data ?? []).filter((m) => m.is_active !== 0 && m.is_active !== false).map((m) => ({ value: String(m.id), label: m.name }))
   );

@@ -9,6 +9,7 @@ import { activityDetailKey } from './activityKeys';
 import { ActivityPlanSection } from './ActivityPlanSection';
 import { ActivityActions } from './ActivityActions';
 import { ActivityUpdatesSection } from './ActivityUpdatesSection';
+import { useCapabilities } from '../../capabilities';
 import {
   ActivityDetailsCard,
   ActivityGeneralInfo,
@@ -28,6 +29,7 @@ const NOT_FOUND_MESSAGE = 'Không tìm thấy hoạt động hoặc bạn không
 
 /** Trang `#activity/:id`. Hoạt động của đơn vị khác server trả 404, trang hiện thông báo thay vì lỗi. */
 export const ActivityDetailView: React.FC = () => {
+  const { canWriteActivities } = useCapabilities();
   const { id } = useParams<{ id: string }>();
   const activityId = Number(id);
   const validId = Number.isInteger(activityId) && activityId > 0;
@@ -61,7 +63,7 @@ export const ActivityDetailView: React.FC = () => {
         <div style={{ flex: '2 1 480px', minWidth: 0 }}>
           <ActivityGeneralInfo activity={activity} teams={data.activityTeams} />
           <ActivityPlanSection tasks={data.tasks} attachments={data.attachments} activityType={activity.type} />
-          <ActivityUpdatesSection activityId={activity.id} updates={data.updates} taggablePeople={data.taggablePeople} />
+          <ActivityUpdatesSection activityId={activity.id} updates={data.updates} taggablePeople={data.taggablePeople} canWrite={canWriteActivities} />
         </div>
         <aside style={{ flex: '1 1 280px', minWidth: 0 }}>
           <ActivityTeamsCard teams={data.activityTeams} />

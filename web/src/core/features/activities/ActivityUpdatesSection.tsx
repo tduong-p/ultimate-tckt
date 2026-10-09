@@ -56,10 +56,11 @@ const Timeline: React.FC<{ updates: ActivityUpdate[] }> = ({ updates }) => {
   );
 };
 
-export const ActivityUpdatesSection: React.FC<{ activityId: number; updates: ActivityUpdate[]; taggablePeople: TaggablePerson[] }> = ({
+export const ActivityUpdatesSection: React.FC<{ activityId: number; updates: ActivityUpdate[]; taggablePeople: TaggablePerson[]; canWrite: boolean }> = ({
   activityId,
   updates,
   taggablePeople,
+  canWrite,
 }) => {
   const kindId = useId();
   const bodyId = useId();
@@ -100,6 +101,7 @@ export const ActivityUpdatesSection: React.FC<{ activityId: number; updates: Act
   return (
     <Card title="Cập nhật" testId="section-updates">
       <Timeline updates={updates} />
+      {canWrite && <>
       <FieldRow label="Loại cập nhật" htmlFor={kindId}>
         <NativeSelect
           id={kindId}
@@ -126,6 +128,7 @@ export const ActivityUpdatesSection: React.FC<{ activityId: number; updates: Act
           Đăng cập nhật
         </Button>
       </div>
+      </>}
     </Card>
   );
 };
