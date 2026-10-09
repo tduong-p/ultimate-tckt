@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.29
+version: 2.30
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
-related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
+updated: 2026-10-10
+related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js, .github/workflows/deploy.yml]
 ---
 
 # Test
@@ -47,7 +47,7 @@ Testing Library, không cần database (API được mock). Chạy:
 cd web && npm test && npm run build
 ```
 
-`npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi.
+`npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi. Thay đổi `web/**` cũng chạy `test-core` và build image Core vì bundle được đóng gói cùng Core; pull request build thử `linux/arm64` nhưng không publish image.
 Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader`.
 
 Test trang hoạt động dùng `renderInApp` và `makeDetail` (`web/src/core/features/activities/testUtils.tsx`): helper dựng `QueryClient` với `SESSION_KEY`, `BOOTSTRAP_KEY`, `ToastProvider` và `MemoryRouter`; `Probe` hiện đường dẫn hiện tại để kiểm tra điều hướng. Mock API bằng `vi.mock('../../api', async () => ({ ...actual, fn: vi.fn() }))` (lấy `actual` từ `vi.importActual`) để giữ các export không cần mock.
@@ -146,3 +146,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.27 | 2026-10-09 | Test DYC chỉ đọc, DYC+TCKT theo vai trò ghi, gỡ Tổ đã lưu trữ và kiểm URL ảnh công khai | DYC |
 | 2.28 | 2026-10-09 | Thêm test các nút vòng đời nhiệm vụ, modal nghiệm thu và tạo nhiệm vụ từ chi tiết hoạt động | DYC |
 | 2.29 | 2026-10-09 | Đợt 2 `web/`: bổ sung bộ test cho chi tiết công việc, bình luận, tài liệu, checklist, sửa việc, tự ghi nhận, giao việc và Kanban kéo-thả | DYC |
+| 2.30 | 2026-10-10 | Cập nhật CI cutover: thay đổi web chạy cả Core/web tests và kiểm tra build arm64 không publish trên PR | DYC |

@@ -54,14 +54,14 @@
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.3 | active | dev, ai |
 | [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 7.0 | active | dev, ai |
-| [DEV-FE-001](dev/frontend.md) | Frontend | 1.14 | active | dev, ai |
-| [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.3 | active | dev, ai |
+| [DEV-FE-001](dev/frontend.md) | Frontend | 1.15 | active | dev, ai |
+| [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.4 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.0 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.29 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.30 | active | dev, ai |
 
 ## onboarding
 
@@ -78,7 +78,7 @@
 | [OPS-BAK-001](ops/backup-restore.md) | Backup và restore database | 1.3 | active | dev, ops, ai |
 | [OPS-CUT-001](ops/chuyen-doi-ultimate-tckt.md) | Runbook chuyển đổi sang hạ tầng ultimate-tckt | 1.5 | active | ops, ai |
 | [OPS-PROP-001](ops/de-xuat-ha-tang.md) | Đề xuất cấp máy chủ và tên miền chính thức | 1.1 | active | ops, ba |
-| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.4 | active | dev, ops, ai |
+| [OPS-DEPLOY-001](ops/deploy-va-nhanh.md) | Deploy và nhánh git | 4.5 | active | dev, ops, ai |
 | [OPS-GH-001](ops/github.md) | Cấu hình GitHub — checklist | 1.10 | active | dev, ops, ai |
 | [OPS-ENV-001](ops/moi-truong.md) | Môi trường staging và production | 1.8 | active | dev, ops, ai |
 | [OPS-BOT-001](ops/repobot.md) | Vận hành bot Discord repobot | 1.1 | active | ops, dev |
@@ -111,7 +111,7 @@
 | [PB-DEP-001](playbooks/nang-dependency.md) | Playbook — nâng dependency | 1.2 | active | dev, ai |
 | [PB-RB-001](playbooks/rollback.md) | Playbook — rollback | 1.3 | active | dev, ai |
 | [PB-FIX-001](playbooks/sua-loi.md) | Playbook — sửa lỗi | 1.0 | active | dev, ai |
-| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.8 | active | dev, ai |
+| [PB-MOD-001](playbooks/them-module.md) | Playbook — thêm module mới | 1.9 | active | dev, ai |
 | [PB-FEAT-001](playbooks/them-tinh-nang.md) | Playbook — thêm tính năng | 1.1 | active | dev, ai |
 | [PB-NOTI-001](playbooks/viet-http-request-noti.md) | Playbook — viết mẫu HTTP request gọi Noti cho từng use case | 1.0 | draft | dev, ai |
 
@@ -190,7 +190,7 @@
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.0 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.0 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.6 | active | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.7 | active | dev, ai, ops |
 | [PLAN-WEBP7-001](specs/2026-10-10-web-dot-7-thay-ui-cu-plan.md) | Kế hoạch triển khai — web/ đợt 7 (thay frontend Core tại /) | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |

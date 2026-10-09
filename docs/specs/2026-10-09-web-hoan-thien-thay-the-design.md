@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10
-related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deploy.yml]
+related_code: [web/**, core/src/app.js, core/Dockerfile, core/public/**, .dockerignore, .github/workflows/deploy.yml, core/tests/web-cutover.test.js, tools/tests/workflows.test.js]
 ---
 
 # Design — Hoàn thiện web/ để thay thế frontend Core
@@ -296,17 +296,17 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 
 ## 5. Thay thế UI cũ (bước cuối)
 
-- `core/Dockerfile` chuyển sang nhiều giai đoạn:
-  1. Giai đoạn `node:22-slim` chạy `npm ci && npm run build` trong `web/`.
-  2. Giai đoạn chính chép `web/dist` vào `/app/web-dist`.
-- Vì image cần cả `web/`, context build của image Core đổi từ `core` thành gốc repo. Có `.dockerignore` đi kèm.
+- `core/Dockerfile` dùng multi-stage build từ Node 22: stage `web-build` cài dependencies và chạy `npm run build` trong `web/`; stage runtime cài dependencies sản xuất trong `core/`, chép `core/` vào `/app` và `web/dist` vào `/app/web-dist`.
+- Build context của image Core là gốc repo (`docker build -f core/Dockerfile .`). `.dockerignore` ở gốc loại `.git`, env cục bộ, `node_modules`, dữ liệu, docs, services và tooling; phải giữ `web/` và `core/public/`.
 - Workflow:
-  - `build-core` chạy khi `core/**` hoặc `web/**` đổi. Filter `core` gồm lại `web/**`, nhưng `test-web` vẫn tách riêng.
+  - Filter `core` khớp `core/**`, `web/**` và `.dockerignore`; filter `web` tiếp tục khớp riêng `web/**`, nên thay đổi `web/` chạy cả `test-core` và `test-web`.
+  - `build-core` chờ `test-core` thành công và `test-web` thành công hoặc bị skip; build `linux/arm64` cả trên push và pull request. PR không đăng nhập GHCR, không publish image; `deploy-core` vẫn theo luồng push hiện hành.
   - `deploy-core` không đổi.
 - `core/src/app.js`:
-  - Phục vụ `web-dist` tại `/`, với fallback `index.html` cho mọi đường dẫn không phải `/api`, `/auth` hay `/legacy`.
-  - Phục vụ `core/public` tại `/legacy` trong thời gian chuyển tiếp. Đường dẫn asset của UI cũ phải hoạt động dưới `/legacy`.
-- `web/` build ra một trang Core duy nhất (`index.html` thay cho `core.html` + trang chuyển hướng).
+  - Phục vụ asset của `web-dist` tại `/` mà không tự serve index; GET frontend chưa khớp trả `web-dist/index.html`.
+  - `/api/*` chưa khớp trả JSON 404; `/auth/*` và `/legacy/*` chưa khớp trả 404 riêng. Method ghi không đi qua SPA fallback.
+  - Phục vụ `core/public` tại `/legacy` trong thời gian chuyển tiếp. Đường dẫn asset của UI cũ dùng tiền tố `/legacy/`.
+- `web/index.html` là entrypoint Core duy nhất; `web/core.html` và trang redirect cũ được bỏ. `ctd.html` vẫn được build.
 - Dev (`npm run dev`) vẫn chạy như hiện tại.
 - Thứ tự phát hành:
   1. Merge vào `staging`, rồi smoke đủ vai trò (mục 1).
@@ -370,3 +370,4 @@ Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) đư
 | 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 (Công việc và Kanban) hoàn thành: đầy đủ 12 task theo plan (hộp chi tiết công việc, checklist, tài liệu, bình luận, sửa việc, tự ghi nhận, giao việc, Kanban 4 cột kéo-thả, tích hợp vào Tổng quan, Việc hôm nay và Chi tiết hoạt động) | DYC |
 | 1.6 | 2026-10-10 | Theo yêu cầu, hoãn đợt 6 và thực hiện cutover đợt 7 trước; Nhật ký trực ban sẽ được bổ sung trên UI mới | DYC |
+| 1.7 | 2026-10-10 | Chốt hợp đồng cutover theo triển khai: giới hạn fallback, build root context, test Core/web cho PR và publish chỉ trên push | DYC |
