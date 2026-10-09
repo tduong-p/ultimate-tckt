@@ -16,12 +16,27 @@ import {
   logoutUser,
   submitStudentClass,
   acknowledgeFacultyNotice,
+  approveActivity,
+  rejectActivity,
+  requestChangesActivity,
+  submitActivityProposal,
+  createActivityTask,
+  fetchTaskDetail,
+  acknowledgeTask,
+  updateTaskStatus,
+  submitTaskReview,
+  reviewTask,
+  toggleTaskChecklist,
+  addTaskChecklistItem,
+  deleteTaskChecklistItem,
 } from './index';
 
 vi.mock('../../shared/utils/api', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -283,6 +298,110 @@ describe('Core API Services', () => {
 
       expect(apiClient.post).toHaveBeenCalledWith('/onboarding/faculty-notice');
       expect(result).toEqual(user);
+    });
+  });
+
+  describe('Activity Proposal Actions', () => {
+    it('approveActivity calls POST /activities/:id/approve', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await approveActivity(10);
+      expect(apiClient.post).toHaveBeenCalledWith('/activities/10/approve');
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('rejectActivity calls POST /activities/:id/reject with feedback', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true, deleted: true } });
+      const result = await rejectActivity(10, 'Thiếu thông tin');
+      expect(apiClient.post).toHaveBeenCalledWith('/activities/10/reject', { feedback: 'Thiếu thông tin' });
+      expect(result).toEqual({ ok: true, deleted: true });
+    });
+
+    it('requestChangesActivity calls POST /activities/:id/request-changes with feedback', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await requestChangesActivity(10, 'Cần bổ sung kinh phí');
+      expect(apiClient.post).toHaveBeenCalledWith('/activities/10/request-changes', { feedback: 'Cần bổ sung kinh phí' });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('submitActivityProposal calls POST /activities/:id/submit', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await submitActivityProposal(10);
+      expect(apiClient.post).toHaveBeenCalledWith('/activities/10/submit');
+      expect(result).toEqual({ ok: true });
+    });
+  });
+
+  describe('Task Management Actions', () => {
+    it('createActivityTask calls POST /activities/:id/tasks with payload', async () => {
+      const payload = {
+        title: 'Chuẩn bị âm thanh',
+        team_id: 1,
+        primary_assignee_id: 2,
+        deadline: '2026-10-15',
+      };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { id: 99 } });
+      const result = await createActivityTask(10, payload);
+      expect(apiClient.post).toHaveBeenCalledWith('/activities/10/tasks', payload);
+      expect(result).toEqual({ id: 99 });
+    });
+
+    it('fetchTaskDetail calls GET /tasks/:id', async () => {
+      const mockDetail = { task: { id: 99, title: 'Test' }, assignees: [] };
+      vi.mocked(apiClient.get).mockResolvedValueOnce({ data: mockDetail });
+      const result = await fetchTaskDetail(99);
+      expect(apiClient.get).toHaveBeenCalledWith('/tasks/99');
+      expect(result).toEqual(mockDetail);
+    });
+
+    it('acknowledgeTask calls POST /tasks/:id/acknowledge', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await acknowledgeTask(99);
+      expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/acknowledge');
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('updateTaskStatus calls PATCH /tasks/:id/status', async () => {
+      vi.mocked(apiClient.patch).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await updateTaskStatus(99, 'in_progress');
+      expect(apiClient.patch).toHaveBeenCalledWith('/tasks/99/status', { status: 'in_progress' });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('submitTaskReview calls POST /tasks/:id/submit-review', async () => {
+      const payload = { notes: 'Đã xong', link_url: 'https://example.com' };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await submitTaskReview(99, payload);
+      expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/submit-review', payload);
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('reviewTask calls POST /tasks/:id/review', async () => {
+      const payload = { decision: 'approve' as const, feedback: 'Tốt' };
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await reviewTask(99, payload);
+      expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/review', payload);
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('toggleTaskChecklist calls PATCH /tasks/:id/checklist/:itemId', async () => {
+      vi.mocked(apiClient.patch).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await toggleTaskChecklist(99, 1, true);
+      expect(apiClient.patch).toHaveBeenCalledWith('/tasks/99/checklist/1', { is_done: true });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('addTaskChecklistItem calls POST /tasks/:id/checklist', async () => {
+      vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { id: 101 } });
+      const result = await addTaskChecklistItem(99, 'Việc nhỏ 1');
+      expect(apiClient.post).toHaveBeenCalledWith('/tasks/99/checklist', { title: 'Việc nhỏ 1' });
+      expect(result).toEqual({ id: 101 });
+    });
+
+    it('deleteTaskChecklistItem calls DELETE /tasks/:id/checklist/:itemId', async () => {
+      vi.mocked(apiClient.delete).mockResolvedValueOnce({ data: { ok: true } });
+      const result = await deleteTaskChecklistItem(99, 1);
+      expect(apiClient.delete).toHaveBeenCalledWith('/tasks/99/checklist/1');
+      expect(result).toEqual({ ok: true });
     });
   });
 });

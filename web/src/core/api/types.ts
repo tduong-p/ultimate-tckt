@@ -244,3 +244,53 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface CreateTaskPayload {
+  title: string;
+  description?: string;
+  stage?: 'before' | 'during' | 'after' | 'general';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  team_id: number;
+  primary_assignee_id: number;
+  co_assignee_ids?: number[];
+  start_date?: string | null;
+  deadline: string;
+  deliverable?: string | null;
+}
+
+export interface SubmitTaskReviewPayload {
+  notes?: string;
+  link_url?: string;
+}
+
+export interface ReviewTaskPayload {
+  decision: 'approve' | 'reject' | 'cancel';
+  feedback?: string;
+}
+
+export interface TaskChecklistItem {
+  id: number;
+  task_id: number;
+  title: string;
+  is_done: boolean;
+  sort_order: number;
+  done_by?: number | null;
+  done_at?: string | null;
+}
+
+export interface TaskAssigneeInfo {
+  user_id: number;
+  is_primary: boolean;
+  acknowledged_at?: string | null;
+  name: string;
+  email?: string;
+  avatar_color?: string;
+}
+
+export interface TaskDetailResponse {
+  task: TaskItem;
+  assignees: TaskAssigneeInfo[];
+  checklist?: TaskChecklistItem[];
+  canUpdate?: boolean;
+  myAcknowledgedAt?: string | null;
+}
+
