@@ -15,6 +15,7 @@ import {
 } from '../../api';
 import { getActivityStatusMeta, getActivityTypeShortLabel } from '../activities/activityLabels';
 import { toVnDateKey } from '../../../shared/utils/date';
+import { CreateTaskModal } from '../tasks/CreateTaskModal';
 
 export interface ActivityDetailModalProps {
   activity: ActivityItem | null;
@@ -60,6 +61,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   const [feedbackText, setFeedbackText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
 
   if (!isOpen || !activity) return null;
 
@@ -433,8 +435,17 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               </Button>
             )}
 
-            {['approved', 'active'].includes(activity.status) && canManageActivity && onOpenCreateTask && (
-              <Button appearance="discovery" onClick={() => onOpenCreateTask(activity)}>
+            {['approved', 'active'].includes(activity.status) && canManageActivity && (
+              <Button
+                appearance="discovery"
+                onClick={() => {
+                  if (onOpenCreateTask) {
+                    onOpenCreateTask(activity);
+                  } else {
+                    setIsCreateTaskOpen(true);
+                  }
+                }}
+              >
                 + Thêm nhiệm vụ
               </Button>
             )}
@@ -446,6 +457,17 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
           </Button>
         </div>
       </div>
+
+      {isCreateTaskOpen && (
+        <CreateTaskModal
+          activity={activity}
+          isOpen={isCreateTaskOpen}
+          onClose={() => setIsCreateTaskOpen(false)}
+          onTaskCreated={() => {
+            onProposalDecided?.();
+          }}
+        />
+      )}
     </div>
   );
 };

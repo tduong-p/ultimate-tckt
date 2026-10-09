@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ActivityDetailModal } from './ActivityDetailModal';
 import type { ActivityItem } from '../../api';
 import * as api from '../../api';
@@ -14,6 +15,9 @@ vi.mock('../../api', async () => {
     rejectActivity: vi.fn(),
     requestChangesActivity: vi.fn(),
     submitActivityProposal: vi.fn(),
+    fetchTeams: vi.fn().mockResolvedValue([]),
+    fetchMembers: vi.fn().mockResolvedValue([]),
+    fetchBootstrap: vi.fn().mockResolvedValue({ capabilities: {} }),
   };
 });
 
@@ -205,5 +209,29 @@ describe('ActivityDetailModal', () => {
 
     fireEvent.click(addTaskBtn);
     expect(onOpenCreateTask).toHaveBeenCalledWith(approvedActivity);
+  });
+
+  it('opens CreateTaskModal internally when onOpenCreateTask is not passed and Thêm nhiệm vụ is clicked', async () => {
+    const qc = new QueryClient();
+    const approvedActivity: ActivityItem = {
+      ...mockActivity,
+      status: 'approved',
+    };
+
+    render(
+      <QueryClientProvider client={qc}>
+        <ActivityDetailModal
+          activity={approvedActivity}
+          isOpen={true}
+          onClose={vi.fn()}
+          canManageActivity={true}
+        />
+      </QueryClientProvider>
+    );
+
+    const addTaskBtn = screen.getByRole('button', { name: '+ Thêm nhiệm vụ' });
+    fireEvent.click(addTaskBtn);
+
+    expect(await screen.findByTestId('create-task-modal')).toBeDefined();
   });
 });
