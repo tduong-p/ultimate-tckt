@@ -1,6 +1,7 @@
 // Bảng duy nhất dịch các câu lỗi tiếng Anh của Core sang tiếng Việt. Câu không có trong bảng được hiện nguyên văn.
 export const VI_ERROR_MESSAGES: Record<string, string> = {
   // Chung
+  'Forbidden': 'Đơn vị hiện tại chưa bật module Điều hành.',
   'You do not have permission for this action.': 'Bạn không có quyền thực hiện thao tác này.',
   'Please sign in to continue.': 'Vui lòng đăng nhập để tiếp tục.',
   'Administrator access is required.': 'Chỉ quản trị viên được thực hiện thao tác này.',

@@ -7,6 +7,9 @@ export * from './users';
 export * from './tasks';
 export * from './documents';
 export * from './reports';
+export * from './dieuHanhTypes';
+export * from './directives';
+export * from './submissions';
 export * from './admin';
 export * from './notifications';
 

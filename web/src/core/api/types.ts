@@ -21,6 +21,8 @@ export interface SessionUnit {
   code: string;
   name: string;
   kind: string;
+  /** Module đang bật của đơn vị (vd. 'dieu-hanh', 'ctd'); do `unit-context.js` nạp. */
+  modules?: string[];
 }
 
 /** Phần tử `units.memberships` do `sessionView` trả về (core/src/middleware/unit-context.js). */

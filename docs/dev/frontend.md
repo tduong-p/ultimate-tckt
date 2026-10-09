@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.16
+version: 1.17
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -52,6 +52,15 @@ Nguồn mô tả duy nhất của `web/`: SPEC-WEB-003 (`docs/specs/2026-10-09-w
 - Thành phần dùng chung trong `web/src/shared/components/`: `Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`.
 
 Quyền ghi Hoạt động: GET có thể trả `admin` và `canManage=true` cho DYC chỉ đọc. `ActivityActions` dùng membership TCKT và vai trò actor khi ghi; với DYC+TCKT, quyền quản lý còn xét người tạo, Trưởng BTC, Tổ đang lãnh đạo. DYC chỉ đọc thấy nội dung và dòng thời gian nhưng không thấy nút ghi hay form cập nhật.
+
+### Giao việc và Trình (web/)
+
+Đợt 5 (SPEC-WEB-003 §4.7): `directives/` và `submissions/` gọi API Core tương ứng; quyền hiển thị nút tập trung ở
+`web/src/core/features/dieuhanh/permissions.ts`. Route `#/directives`, `#/directive/:id`, `#/submissions` và
+`#/submission/:id` cùng mục menu chỉ dùng được khi đơn vị hiện tại có module `dieu-hanh` (DYC cũng qua cổng đọc của
+server). `PageLayout` nhận `canViewDieuHanh`, và `alsoPaths` giúp menu giữ trạng thái đang chọn ở trang chi tiết.
+Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm mới query tương ứng. Nút tạo trình dùng chung
+`CreateSubmissionButton` để các nguồn như nhật ký trực ban gắn vào ở đợt 6.
 
 ### Công việc và Kanban (web/)
 
@@ -140,4 +149,6 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.12 | 2026-10-09 | Phân biệt quyền đọc DYC và quyền ghi TCKT trên trang hoạt động | DYC |
 | 1.13 | 2026-10-09 | Mô tả tính năng nhiệm vụ trong `web/` (nút thao tác, tạo nhiệm vụ, `useTaskMutation`, cờ `canCreateTask`) | DYC |
 | 1.14 | 2026-10-09 | Đợt 2 `web/`: bổ sung mục Công việc và Kanban (hộp chi tiết, quyền, Kanban kéo-thả, kết nối trang hoạt động) | DYC |
-| 1.16 | 2026-10-10 | Gộp hướng dẫn đợt 3 (Tổ, tài khoản, trọng số) và đợt 4 (Văn bản, thông báo) | DYC |
+| 1.15 | 2026-10-09 | Đợt 3 `web/`: Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân | DYC |
+| 1.16 | 2026-10-09 | Đợt 4 `web/`: thêm/sửa Văn bản, chuông thông báo, popup và điều hướng thông báo | DYC |
+| 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |

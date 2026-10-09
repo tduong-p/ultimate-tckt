@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.3
+version: 3.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-04
+updated: 2026-10-09
 related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/config/database.js]
 ---
 
@@ -43,9 +43,9 @@ nhiều đơn vị, quyền tính theo `unit_memberships.role` của đơn vị 
 
 1. **`loadUnitContext`** (`core/src/middleware/unit-context.js`) — gắn ngữ cảnh đơn vị:
    - `req.memberships` (array `{ unit_id, role, code, kind }`)
-   - `req.unit`, `req.unitRole` (đơn vị + role đang chọn)
+   - `req.unit` (đơn vị đang chọn, gồm `modules` đọc từ `unit_modules`), `req.unitRole` (role đang chọn)
    - `req.actor` (user với `role` = role TCKT của membership, hoặc `admin` cho DYC khi đọc, hoặc `null` cho đơn vị khác)
-   - Fallback: `current_unit_id` không hợp lệ → membership đầu tiên; không có membership nào → 403
+   - Fallback: `current_unit_id` không hợp lệ → membership đầu tiên; không có membership nào thì ngữ cảnh đơn vị rỗng, middleware không tự trả 403
 
 2. **`legacyGate`** (`core/src/middleware/legacy-gate.js`) — bảo vệ route Điều hành cũ (`/api/activities`, `/api/tasks`, `/api/teams`,…):
    - Cho phép TCKT (membership có `unit.code == 'TCKT'`) với `req.actor` = user có role TCKT
@@ -104,3 +104,4 @@ Chi tiết: **DEV-TZ-001** (`docs/dev/mui-gio.md`) — quy ước, cách dùng �
 | 3.1 | 2026-10-02 | Core không còn email rule engine; có facade `notifier` | DYC |
 | 3.2 | 2026-10-02 | Facade `notifier` có sender HTTP sang Noti | DYC |
 | 3.3 | 2026-10-04 | Thêm mục "Múi giờ" - toàn hệ thống dùng Asia/Ho_Chi_Minh (UTC+7), xem DEV-TZ-001 | DYC |
+| 3.4 | 2026-10-09 | Bổ sung `req.unit.modules` vào ngữ cảnh đa đơn vị và đính chính fallback khi không có membership | DYC |

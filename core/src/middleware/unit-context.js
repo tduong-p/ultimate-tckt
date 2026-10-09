@@ -24,6 +24,18 @@ function legacyRole(memberships, method) {
 }
 
 /**
+ * Module đang bật của một đơn vị (bảng unit_modules).
+ * Cổng của /api/directives và /api/submissions đọc `req.unit.modules`.
+ * @param {import('mysql2/promise').Pool} db
+ * @param {number} unitId
+ * @returns {Promise<string[]>}
+ */
+async function loadUnitModules(db, unitId) {
+  const [rows] = await db.execute('SELECT module_id FROM unit_modules WHERE unit_id = ? ORDER BY module_id', [unitId]);
+  return rows.map(r => r.module_id);
+}
+
+/**
  * Create middleware that attaches unit context to every request.
  * Must be placed after session middleware and after express.static.
  *
@@ -64,7 +76,10 @@ function createUnitContextMiddleware(db) {
         req.session.current_unit_id = current.unit_id;
       }
 
-      req.unit = { id: current.unit_id, code: current.code, name: current.name, kind: current.kind };
+      req.unit = {
+        id: current.unit_id, code: current.code, name: current.name, kind: current.kind,
+        modules: await loadUnitModules(db, current.unit_id)
+      };
       req.unitRole = current.role;
       req.actor = { 
         ...user, 
@@ -108,4 +123,4 @@ function sessionView(req) {
 // Alias for convenience (SPEC uses both names)
 const createUnitContext = createUnitContextMiddleware;
 
-module.exports = { createUnitContext, createUnitContextMiddleware, legacyRole, sessionView };
+module.exports = { createUnitContext, createUnitContextMiddleware, legacyRole, sessionView, loadUnitModules };

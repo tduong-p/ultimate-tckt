@@ -33,7 +33,17 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
-const NAV_ITEMS: Array<{ path: string; label: string; Icon: React.ComponentType<{ label: string }>; managerOnly?: boolean; adminOnly?: boolean }> = [
+type NavItem = {
+  path: string;
+  label: string;
+  Icon: React.ComponentType<{ label: string }>;
+  managerOnly?: boolean;
+  dieuHanhOnly?: boolean;
+  adminOnly?: boolean;
+  alsoPaths?: string[];
+};
+
+const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: 'Tổng quan', Icon: DashboardIcon },
   { path: '/my-tasks-today', label: 'Việc hôm nay', Icon: CheckCircleIcon },
   { path: '/calendar', label: 'Lịch hoạt động', Icon: CalendarIcon },
@@ -45,6 +55,8 @@ const NAV_ITEMS: Array<{ path: string; label: string; Icon: React.ComponentType<
   { path: '/reports', label: 'Báo cáo', Icon: ChartBarIcon, managerOnly: true },
   { path: '/accounts', label: 'Quản trị tài khoản', Icon: SettingsIcon, adminOnly: true },
   { path: '/archive', label: 'Lưu trữ', Icon: ArchiveBoxIcon },
+  { path: '/directives', label: 'Giao việc', Icon: SendIcon, dieuHanhOnly: true, alsoPaths: ['/directive'] },
+  { path: '/submissions', label: 'Trình', Icon: InboxIcon, dieuHanhOnly: true, alsoPaths: ['/submission'] },
 ];
 
 export interface PageLayoutProps {
@@ -61,6 +73,8 @@ export interface PageLayoutProps {
   onOpenAccount?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
+  /** Hiện mục menu "Giao việc" và "Trình" (đơn vị hiện tại có module dieu-hanh). Mặc định ẩn. */
+  canViewDieuHanh?: boolean;
   /** Hiện mục "Quản trị tài khoản" (chỉ admin). Mặc định ẩn. */
   canViewAccounts?: boolean;
   /** Phần tử đặt cạnh avatar trên thanh trên cùng (vd. bộ chọn đơn vị). */
@@ -73,6 +87,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   onLogout,
   onOpenAccount,
   canViewReports = false,
+  canViewDieuHanh = false,
   canViewAccounts = false,
   headerExtras,
 }) => {
@@ -149,8 +164,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon }) => {
-                    const selected = location.pathname === path || location.pathname.startsWith(`${path}/`);
+                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.dieuHanhOnly || canViewDieuHanh) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon, alsoPaths }) => {
+                    const selected = [path, ...(alsoPaths ?? [])].some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`));
                     return (
                       <ButtonItem key={path} isSelected={selected} aria-current={selected ? 'page' : undefined}
                         onClick={() => navigate(path)} iconBefore={<Icon label="" />}>{label}</ButtonItem>
@@ -159,8 +174,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                 </Section>
                 <Section>
                   <HeadingItem>SẮP CÓ</HeadingItem>
-                  <ButtonItem iconBefore={<SendIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Giao việc</ButtonItem>
-                  <ButtonItem iconBefore={<InboxIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Trình</ButtonItem>
                   <ButtonItem iconBefore={<BookWithBookmarkIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Nhật ký trực ban</ButtonItem>
                 </Section>
               </MenuGroup>

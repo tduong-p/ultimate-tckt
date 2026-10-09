@@ -11,6 +11,25 @@ vi.mock('./features/reports/ReportsView', () => ({ ReportsView: () => <div>màn-
 vi.mock('./features/activities/ActivityDetailView', () => ({ ActivityDetailView: () => <div>màn-chi-tiết-hoạt-động</div> }));
 vi.mock('./features/members/MembersView', () => ({ MembersView: () => <div>màn-thành-viên</div> }));
 vi.mock('./features/tasks/KanbanBoard', () => ({ KanbanBoard: () => <div>màn-kanban</div> }));
+vi.mock('./features/directives/DirectivesView', () => ({ DirectivesView: () => <div>màn-giao-việc</div> }));
+vi.mock('./features/directives/DirectiveDetailView', () => ({ DirectiveDetailView: () => <div>màn-chi-tiết-chỉ-đạo</div> }));
+vi.mock('./features/submissions/SubmissionsView', () => ({ SubmissionsView: () => <div>màn-trình</div> }));
+vi.mock('./features/submissions/SubmissionDetailView', () => ({ SubmissionDetailView: () => <div>màn-chi-tiết-trình</div> }));
+
+function renderWithUnit(path: string, modules: string[] | undefined) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+  const unit = { id: 2, code: 'TCKT', name: 'Ban TCKT', kind: 'department', modules };
+  qc.setQueryData(SESSION_KEY, {
+    user: { id: 1, name: 'A', email: 'a@x', role: 'member' },
+    units: { current: unit, memberships: [{ unit_id: 2, code: 'TCKT', name: 'Ban TCKT', kind: 'department', role: 'admin' }] },
+  });
+  qc.setQueryData(BOOTSTRAP_KEY, { stats: {}, upcoming: [], tasks: [], activity: [], teams: [], capabilities: { canCreateActivity: false, canCreateAccount: false } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={[path]}><AppRoutes userName="A" /></MemoryRouter>
+    </QueryClientProvider>
+  );
+}
 vi.mock('./features/teams/TeamPage', () => ({ TeamPage: () => <div>màn-trang-tổ</div> }));
 vi.mock('./features/accounts/AccountsView', () => ({ AccountsView: () => <div>màn-quản-trị-tài-khoản</div> }));
 
@@ -72,6 +91,25 @@ describe('AppRoutes', () => {
   it('/board/:id mở Kanban của hoạt động', () => {
     renderAt('/board/9', 'member');
     expect(screen.getByText('màn-kanban')).toBeDefined();
+  });
+  it('đơn vị có module dieu-hanh mở được bốn route Giao việc/Trình', () => {
+    for (const [path, text] of [
+      ['/directives', 'màn-giao-việc'], ['/directive/7', 'màn-chi-tiết-chỉ-đạo'],
+      ['/submissions', 'màn-trình'], ['/submission/44', 'màn-chi-tiết-trình'],
+    ]) {
+      renderWithUnit(path, ['dieu-hanh']);
+      expect(screen.getByText(text)).toBeDefined();
+      cleanup();
+    }
+  });
+
+  it('đơn vị không có module dieu-hanh gõ tay các route đó thì về Tổng quan, không render màn', () => {
+    for (const path of ['/directives', '/directive/7', '/submissions', '/submission/44']) {
+      renderWithUnit(path, ['ctd']);
+      expect(screen.queryByText(/màn-giao-việc|màn-chi-tiết-chỉ-đạo|màn-trình|màn-chi-tiết-trình/)).toBeNull();
+      expect(screen.getByText('màn-tổng-quan')).toBeDefined();
+      cleanup();
+    }
   });
 
   it('mở được trang Tổ theo #team/:id', () => {
