@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-REPORTS-001
 title: Design — Reports Screen UI (Báo cáo)
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -30,7 +30,7 @@ The "Báo cáo" screen allows leaders to export activities, tasks, and member pa
 ### Hành vi
 - Mặc định "Ngày bắt đầu" = ngày 1 của tháng hiện tại, "Ngày kết thúc" = hôm nay (giờ Việt Nam, `DD/MM/YYYY`).
 - Nút xuất gọi `downloadReportExport` (GET `/api/reports/export`, `responseType: 'blob'`) rồi mới tải tệp; trong lúc chờ hiện "Đang tạo tệp Excel...", xong hiện "Đã tải tệp Excel.".
-- Menu "Báo cáo" chỉ hiện với người có `capabilities.canCreateActivity` (route xuất dùng middleware `manager`).
+- Menu "Báo cáo" và route `#/reports` chỉ dành cho `useCapabilities().isManager` (khớp middleware `manager` của route xuất); người khác vào `#/reports` bị chuyển về dashboard.
 - Xuất chạy bằng `useMutation`, nên lỗi 401 đi qua `MutationCache` của App và đưa về màn đăng nhập.
 - Máy chủ từ chối (400 khoảng ngày sai, 403 không quản lý Tổ) → hiện thông điệp lỗi (`role="alert"`), không tải tệp JSON lỗi về máy và không báo thành công. Các câu lỗi tiếng Anh đã biết của Core được dịch sang tiếng Việt.
 
@@ -41,3 +41,4 @@ The "Báo cáo" screen allows leaders to export activities, tasks, and member pa
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/teams và URL download export Excel | DYC |
 | 1.2 | 2026-10-08 | Khoảng thời gian mặc định là tháng hiện tại (giờ VN); xuất qua `downloadReportExport` (blob) và hiện lỗi máy chủ; bỏ link "Tải trực tiếp" | DYC |
 | 1.3 | 2026-10-09 | Xuất qua `useMutation` (401 về màn đăng nhập); lỗi Core dịch tiếng Việt; menu Báo cáo chỉ hiện khi `canCreateActivity`; thu hồi URL tệp sau lượt tải | DYC |
+| 1.4 | 2026-10-09 | Sửa mô tả quyền: menu và route Báo cáo theo `isManager` (không phải `canCreateActivity`), chặn route chuyển về dashboard | DYC |

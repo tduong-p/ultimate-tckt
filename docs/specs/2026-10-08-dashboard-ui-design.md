@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.5
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: AI
@@ -58,5 +58,4 @@ A stack of 3 distinct cards:
 | 1.1 | 2026-10-08 | Kết nối Dashboard với API GET /api/bootstrap và xóa KPI mock | AI |
 | 1.2 | 2026-10-08 | Lời chào lấy tên người dùng từ phiên (`userName`), hai nút điều hướng sang Lịch chung/Hoạt động qua `onNavigate` | DYC |
 | 1.3 | 2026-10-09 | Đồng bộ với code: dữ liệu thật từ `/api/bootstrap` + `/api/my-tasks-today`; nút đề xuất theo `canCreateActivity`; KPI 4 = "Hoàn thành tháng này"; bỏ tab "Đã xong" và fallback; nhãn tiếng Việt; câu chào theo phạm vi | DYC |
-| 1.4 | 2026-10-09 | Deprecated: thay bằng SPEC-WEB-003 và `docs/dev/frontend.md`; thu hẹp `related_code` về `[]` | DYC |
-| 1.5 | 2026-10-09 | Giữ active; thu hẹp related_code; SPEC-WEB-003 mở rộng | DYC |
+| 1.4 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |
