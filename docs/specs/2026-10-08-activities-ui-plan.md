@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-ACTIVITIES-001
 title: Plan — Activities & Projects Screen UI Implementation
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -34,3 +34,4 @@ related_code: [web/src/core/features/activities/**]
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Hoạt động & Dự án | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API activities/teams thực tế, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Đợt 1 SPEC-WEB-003 đổi code liên quan; nội dung kế hoạch không đổi, xem spec tương ứng và SPEC-WEB-003 mục 4.1 | DYC |
+| 1.3 | 2026-10-09 | Cập nhật thanh hành động và tạo nhiệm vụ từ chi tiết hoạt động (PR #88) | DYC |

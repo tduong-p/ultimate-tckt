@@ -10,6 +10,8 @@ export interface ActivityActionFlags {
   canDelete: boolean;
   canVolunteer: boolean;
   canAddParticipants: boolean;
+  /** Tạo việc cho hoạt động (POST /api/activities/:id/tasks): cùng điều kiện quản lý hoạt động. */
+  canCreateTask: boolean;
 }
 
 export interface ActivityActionInput {
@@ -33,5 +35,6 @@ export function deriveActivityActions({ canWrite, isWriteExec, canManageWrite, u
     canDelete: isWriteExec,
     canVolunteer: canWrite && userId !== null && (!mine || mine.state === 'declined'),
     canAddParticipants: canManage,
+    canCreateTask: canManage,
   };
 }

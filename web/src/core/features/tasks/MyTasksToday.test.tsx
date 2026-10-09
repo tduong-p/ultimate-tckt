@@ -4,6 +4,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MyTasksToday } from './MyTasksToday';
 import * as api from '../../api';
+import { ToastProvider } from '../../../shared/components/Toast';
 
 vi.mock('../../api', async () => {
   const actual = await vi.importActual('../../api');
@@ -82,7 +83,7 @@ describe('MyTasksToday', () => {
   const renderWithClient = (ui: React.ReactElement) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        {ui}
+        <ToastProvider>{ui}</ToastProvider>
       </QueryClientProvider>
     );
   };
@@ -138,5 +139,15 @@ describe('MyTasksToday', () => {
     expect(screen.getByText(/Hạn: 09\/10\/2026/)).toBeDefined();
     expect(screen.getByText(/Cần làm/i)).toBeDefined();
     expect(screen.getByText('Trung bình')).toBeDefined();
+  });
+
+  it('nút nghiệm thu chỉ hiện ở mục Chờ duyệt; việc của mình có nút nhận/bắt đầu/nộp', async () => {
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue(mockTasksData);
+    renderWithClient(<MyTasksToday />);
+
+    expect(await screen.findByRole('button', { name: 'Nộp nghiệm thu' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Nhận việc' })).toBeDefined();
+    expect(screen.getAllByRole('button', { name: 'Duyệt đạt' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Yêu cầu làm lại' })).toBeDefined();
   });
 });

@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-MYTASKS-001
 title: Design — My Tasks Screen UI (Công việc của tôi)
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -39,3 +39,4 @@ The "Công việc của tôi" screen displays tasks assigned to the current memb
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/my-tasks-today thực tế, xóa mock | DYC |
 | 1.2 | 2026-10-08 | Trạng thái `open` của Core hiển thị "Cần làm"; hạn chót định dạng theo giờ Việt Nam | DYC |
 | 1.3 | 2026-10-09 | Hiện mọi việc đang mở trong phạm vi (gồm việc hạn tương lai) từ `bootstrap.tasks`, nhóm Quá hạn/Hôm nay/Sắp tới/Chờ bạn duyệt | DYC |
+| 1.4 | 2026-10-09 | Mỗi thẻ việc có nút thao tác theo trạng thái (`TaskActionButtons`): Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; nhóm Chờ bạn duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ | DYC |

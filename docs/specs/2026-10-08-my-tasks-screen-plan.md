@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-MYTASKS-001
 title: Plan — My Tasks Screen UI Implementation
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/tasks/MyTasksView.tsx]
 ---
 
@@ -33,3 +33,4 @@ related_code: [web/src/core/features/tasks/MyTasksView.tsx]
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Công việc của tôi | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/my-tasks-today thực tế, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Thêm nút thao tác việc vào thẻ việc (làm sớm từ PR #86); xem design 1.4 | DYC |
