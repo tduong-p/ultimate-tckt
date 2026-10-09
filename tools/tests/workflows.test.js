@@ -4,13 +4,44 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const wf = (n) => fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', n), 'utf8');
+const repoFile = (n) => fs.readFileSync(path.join(__dirname, '..', '..', n), 'utf8');
+
+test('Core cutover builds the web bundle from the root context and validates arm64 PR builds without publishing', () => {
+  const y = wf('deploy.yml');
+  const coreJobStart = y.indexOf('\n  build-core:');
+  const coreJobEnd = y.indexOf('\n  build-ctd-api:', coreJobStart);
+  const coreJob = y.slice(coreJobStart, coreJobEnd);
+  const coreFilter = y.slice(y.indexOf('            core:'), y.indexOf('            ctd:'));
+  const dockerfile = repoFile('core/Dockerfile');
+  assert.ok(fs.existsSync(path.join(__dirname, '..', '..', '.dockerignore')), 'root .dockerignore exists');
+  const dockerignore = repoFile('.dockerignore');
+
+  assert.match(coreFilter, /'web\/\*\*'/);
+  assert.match(coreFilter, /'\.dockerignore'/);
+  assert.match(y.slice(y.indexOf('            web:'), y.indexOf('            ctd:')), /'web\/\*\*'/);
+  assert.match(coreJob, /needs: \[changes, test-core, test-web\]/);
+  assert.match(coreJob, /always\(\)/);
+  assert.match(coreJob, /needs\.test-core\.result == 'success'/);
+  assert.match(coreJob, /needs\.test-web\.result == 'success' \|\| needs\.test-web\.result == 'skipped'/);
+  assert.match(coreJob, /context: \./);
+  assert.match(coreJob, /file: core\/Dockerfile/);
+  assert.match(coreJob, /platforms: linux\/arm64/);
+  assert.match(coreJob, /if: github\.event_name == 'push'/);
+  assert.match(coreJob, /push: \$\{\{ github\.event_name == 'push' \}\}/);
+  assert.match(dockerfile, /FROM node:22-slim AS web-build/);
+  assert.match(dockerfile, /COPY --from=web-build \/src\/web\/dist \.\/web-dist/);
+  assert.match(dockerignore, /\.git/);
+  assert.match(dockerignore, /\*\*\/node_modules/);
+  assert.doesNotMatch(dockerignore, /^(web|core\/public)\/?$/m);
+  assert.doesNotMatch(coreJob, /deploy-core/);
+});
 
 test('deploy.yml wires test -> build -> deploy with gates', () => {
   const y = wf('deploy.yml');
   for (const j of ['changes', 'test-core', 'test-ctd', 'build-core', 'build-ctd-api', 'deploy-core', 'deploy-ctd-api', 'infra']) {
     assert.match(y, new RegExp(`^  ${j}:`, 'm'), j);
   }
-  assert.match(y, /needs: \[changes, test-core\]/);
+  assert.match(y, /needs: \[changes, test-core(?:, test-web)?\]/);
   assert.match(y, /needs: \[changes, test-ctd\]/);
   assert.match(y, /vars\.DEPLOY_ENABLED == 'true'/);
   assert.match(y, /platforms: linux\/arm64/);
