@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.28
+version: 2.29
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -145,3 +145,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.26 | 2026-10-09 | Đợt 1 `web/`: ghi nhận `renderInApp`, `makeDetail` và cách mock API cho test trang hoạt động | DYC |
 | 2.27 | 2026-10-09 | Test DYC chỉ đọc, DYC+TCKT theo vai trò ghi, gỡ Tổ đã lưu trữ và kiểm URL ảnh công khai | DYC |
 | 2.28 | 2026-10-09 | Thêm test các nút vòng đời nhiệm vụ, modal nghiệm thu và tạo nhiệm vụ từ chi tiết hoạt động | DYC |
+| 2.29 | 2026-10-09 | Đợt 2 `web/`: bổ sung bộ test cho chi tiết công việc, bình luận, tài liệu, checklist, sửa việc, tự ghi nhận, giao việc và Kanban kéo-thả | DYC |
