@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-WEBP4-001
 title: Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/api/documents.*, web/src/core/api/notifications.*, web/src/core/features/documents/**, web/src/core/features/notifications/**]
 ---
 
@@ -1891,3 +1891,4 @@ Mô tả PR: tóm tắt (thêm/sửa văn bản, chuông + popup + đánh dấu 
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: kế hoạch đợt 4 của SPEC-WEB-003 (Văn bản và chuông thông báo) | DYC |
 | 1.1 | 2026-10-09 | Cập nhật trạng thái hoàn thành đợt 4 và khai báo related_code | DYC |
+| 1.2 | 2026-10-10 | Ghi nhận tích hợp đợt 4 vào nhánh đã có đợt 3 | DYC |

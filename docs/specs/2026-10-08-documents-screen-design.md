@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-DOCS-001
 title: Design — Documents Screen UI (Văn bản / Tài liệu)
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/documents/DocumentsView.tsx]
 ---
 
@@ -40,3 +40,4 @@ The "Tài liệu" (Văn bản) screen provides a catalog of official links, deci
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/documents và /api/teams, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Bỏ nút "+ Thêm văn bản" (chưa có chức năng); nút mở liên kết là một `LinkButton`; tìm kiếm debounce | DYC |
 | 1.3 | 2026-10-09 | Thêm luồng thêm/sửa văn bản bằng liên kết, theo quyền `can_edit` do API trả về | DYC |
+| 1.4 | 2026-10-10 | Ghi nhận màn Văn bản tích hợp cùng UI đợt 3; quyền sửa vẫn do API trả về | DYC |
