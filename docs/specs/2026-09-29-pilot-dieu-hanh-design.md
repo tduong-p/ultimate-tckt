@@ -1,15 +1,17 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 2.9
+version: 3.0
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-10
 related_code: [core/src/**, core/public/**, services/ctd-api/backend/app/seeds/**, infra/**, tools/test-fixtures/**, core/src/config/database.js, core/app.js]
 ---
 
 # Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
+
+> Trong giai đoạn chuyển tiếp, giao diện pilot hiện có được phục vụ tại `/legacy/`; `web/` phục vụ ở `/`. Hợp đồng cutover và rollback thuộc SPEC-WEB-003 §5.
 
 Tài liệu này chốt phạm vi và thiết kế để đưa module Điều hành (Core) vào dùng thật cho một nhóm nhỏ TCKT
 trên production, vừa dùng vừa test và debug, trong khi GĐ1 đa đơn vị vẫn tiếp tục phát triển.
@@ -262,3 +264,4 @@ không chờ issue này.
 | 2.7 | 2026-10-05 | Ghi chú: Noti production theo SPEC-MAIL-001 | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 3.0 | 2026-10-10 | Liên kết tới hợp đồng cutover: UI pilot tại `/legacy/`, `web/` tại `/` trong giai đoạn chuyển tiếp | DYC |

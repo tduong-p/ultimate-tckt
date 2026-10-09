@@ -1,15 +1,17 @@
 ---
 doc_id: SPEC-SOON-001
 title: Thiết kế màn hình "Đang phát triển" (Coming soon) cho UI Core legacy
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-10
 related_code: [core/public/**, core/tests/frontend.contract.test.js]
 ---
 
 # Màn hình "Đang phát triển" cho UI Core legacy
+
+> Màn hình này thuộc giao diện legacy và tiếp tục truy cập dưới `/legacy/` trong giai đoạn chuyển tiếp. Route frontend mới tại `/` và kế hoạch gỡ legacy được quy định ở SPEC-WEB-003 §5.
 
 Tài liệu này chốt thiết kế một màn hình chặn vui nhộn cho những chỗ trong UI Core legacy (`core/public/`) mà người
 dùng pilot TCKT bấm vào được nhưng tính năng chưa sẵn sàng. Mục tiêu: thay trang lỗi trơn hoặc nút "chết" bằng một
@@ -120,3 +122,4 @@ Cập nhật `docs/dev/frontend.md` (mục Core): mô tả `COMING_SOON`, cách 
 | 1.1 | 2026-10-03 | Giao việc/Trình: API đã có từ PR #40, chỉ thiếu giao diện | DYC |
 | 1.2 | 2026-10-03 | Menu dùng `data-page="soon/<key>"`; link bỏ qua (`#content`) chỉ chuyển focus, không đổi route | DYC |
 | 1.3 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 1.4 | 2026-10-10 | Làm rõ màn hình legacy tiếp tục nằm dưới `/legacy/` sau cutover | DYC |

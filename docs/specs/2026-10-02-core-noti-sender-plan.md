@@ -1,15 +1,17 @@
 ---
 doc_id: PLAN-NOTI-002
 title: Kế hoạch — Core gửi thông báo sang Noti (sender HTTP)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-04
+updated: 2026-10-10
 related_code: [core/src/noti-sender.js, core/src/app.js, core/tests/noti-sender.test.js, core/src/config/database.js]
 ---
 
 # Core → Noti sender Implementation Plan
+
+> Hợp đồng pipeline Express hiện được mô tả ở DEV-ARCH-001; sau cutover, frontend Core mới ở `/` và UI legacy ở `/legacy/`. Thay đổi định tuyến frontend không đổi hợp đồng gửi Noti trong plan này.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 
@@ -78,3 +80,4 @@ và `createNotiSender({ url, apiKey })` (gọi HTTP). `app.js` gắn sender khi 
 |---|---|---|
 | 1.0 | 2026-10-02 | Bản đầu. |
 | 1.1 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |
+| 1.2 | 2026-10-10 | Liên kết đến kiến trúc Express hiện tại sau cutover frontend | DYC |

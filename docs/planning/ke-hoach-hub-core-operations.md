@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.13
+version: 2.14
 status: active
 audience: [dev, ba]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/**, web/**, core/src/config/migrate-units.js, core/src/config/database.js, core/app.js, core/src/date-vn.js]
 ---
 
@@ -34,6 +34,8 @@ Tài liệu này là kế hoạch chi tiết phát triển **Hub system** (Core 
 - ❌ Task 6 phần JWT bridge (giữ lại phần `/internal/events`)
 
 **Tasks: 18 tasks** (từ 24 tasks gốc, bỏ 6 tasks liên quan CTD)
+
+Theo SPEC-WEB-003, đợt cutover giữ frontend mới tại `/` và UI cũ tại `/legacy/` trong thời gian chuyển tiếp. Image Core build `web/` từ root context; kế hoạch cũ bên dưới là lịch sử thiết kế, không còn mô tả route triển khai hiện tại.
 
 ### 1.2 Tech stack
 
@@ -1222,7 +1224,7 @@ cd web && npm run dev
 
 # Or: Frontend in backend (production-like)
 cd web && npm run build
-cd core && npm run dev  # Serves web/dist at /app
+cd core && npm run dev  # Serves web/dist at /
 
 # Tests
 npm run test:all           # All tests
@@ -1294,3 +1296,4 @@ npm run docs:check         # Documentation validation
 | 2.11 | 2026-10-09 | Đợt 1 của web/ (SPEC-WEB-003): Hoạt động | DYC |
 | 2.12 | 2026-10-09 | Port vòng đời nhiệm vụ từ PR #86 vào `web/` (nút vòng đời, modal nghiệm thu, tạo nhiệm vụ từ chi tiết hoạt động) | DYC |
 | 2.13 | 2026-10-09 | Đợt 2 của `web/` (SPEC-WEB-003): Hoàn thành toàn diện phần Công việc và Kanban | DYC |
+| 2.14 | 2026-10-10 | Cập nhật hiện trạng cutover theo SPEC-WEB-003: `web/` tại `/`, legacy tại `/legacy/`, Docker build từ root context | DYC |
