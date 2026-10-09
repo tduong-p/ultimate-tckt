@@ -13,6 +13,7 @@ vi.mock('../../api', async () => {
     fetchBootstrap: vi.fn(),
     fetchTeams: vi.fn().mockResolvedValue([]),
     createActivity: vi.fn(),
+    fetchSession: vi.fn().mockResolvedValue({ user: null }),
   };
 });
 
@@ -215,5 +216,15 @@ describe('ActivitiesView', () => {
     expect(screen.queryByText('Chỉ đạo cấp trên')).toBeNull();
     expect(screen.queryByText(/người$/)).toBeNull();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('60');
+  });
+
+  it('opens ActivityDetailModal when clicking on an activity card', async () => {
+    vi.mocked(api.fetchActivities).mockResolvedValue(mockActivities);
+    renderWithClient(<ActivitiesView />);
+    const cardTitle = await screen.findByText('Chiến dịch Mùa hè xanh 2026');
+    fireEvent.click(cardTitle);
+    await waitFor(() => {
+      expect(screen.getByTestId('activity-detail-modal')).toBeDefined();
+    });
   });
 });

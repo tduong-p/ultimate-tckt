@@ -5,8 +5,9 @@ import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { fetchActivities, fetchBootstrap, type ActivityItem } from '../../api';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchActivities, fetchBootstrap, fetchSession, type ActivityItem } from '../../api';
+import { ActivityDetailModal } from '../calendar/ActivityDetailModal';
 import {
   ACTIVITY_STATUS_FILTER_OPTIONS,
   getActivityProgressPercent,
@@ -43,7 +44,9 @@ const getStatusLozenge = (status?: string) => {
 };
 
 export const ActivitiesView: React.FC = () => {
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -64,6 +67,13 @@ export const ActivitiesView: React.FC = () => {
   // Dùng chung cache với Dashboard.
   const { data: bootstrap } = useQuery({ queryKey: ['core-bootstrap'], queryFn: fetchBootstrap });
   const canCreateActivity = bootstrap?.capabilities?.canCreateActivity === true;
+
+  const { data: session } = useQuery({ queryKey: ['core-session'], queryFn: fetchSession });
+  const isLeadership = session?.user?.role === 'admin' || session?.user?.role === 'vice_admin';
+  const canManageProposals = Boolean(isLeadership);
+  const canManageActivity = Boolean(
+    isLeadership || (selectedActivity && session?.user?.id && session.user.id === selectedActivity.creator_id)
+  );
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
@@ -241,6 +251,15 @@ export const ActivitiesView: React.FC = () => {
             return (
               <div
                 key={activity.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedActivity(activity)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedActivity(activity);
+                  }
+                }}
                 style={{
                   backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
                   border: `1px solid ${token('color.border', '#DFE1E6')}`,
@@ -253,6 +272,7 @@ export const ActivitiesView: React.FC = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Accent Bar */}
@@ -391,6 +411,19 @@ export const ActivitiesView: React.FC = () => {
       <CreateActivityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* Activity Detail Modal */}
+      <ActivityDetailModal
+        activity={selectedActivity}
+        isOpen={Boolean(selectedActivity)}
+        onClose={() => setSelectedActivity(null)}
+        canManageProposals={canManageProposals}
+        canManageActivity={canManageActivity}
+        onProposalDecided={() => {
+          queryClient.invalidateQueries({ queryKey: ['core-activities'] });
+          queryClient.invalidateQueries({ queryKey: ['core-bootstrap'] });
+        }}
       />
     </div>
   );

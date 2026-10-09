@@ -11,6 +11,7 @@ vi.mock('../../api', async () => {
     ...actual,
     fetchActivities: vi.fn(),
     fetchTeams: vi.fn(),
+    fetchSession: vi.fn(),
   };
 });
 
@@ -61,6 +62,7 @@ describe('CalendarView', () => {
     });
     vi.mocked(api.fetchActivities).mockResolvedValue(mockActivities);
     vi.mocked(api.fetchTeams).mockResolvedValue(mockTeams);
+    vi.mocked(api.fetchSession).mockResolvedValue({ user: null });
   });
 
   afterEach(() => {

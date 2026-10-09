@@ -6,8 +6,8 @@ import Lozenge from '@atlaskit/lozenge';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
-import { useQuery } from '@tanstack/react-query';
-import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '../../api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchActivities, fetchTeams, fetchSession, type ActivityItem, type TeamItem } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ActivityDetailModal } from './ActivityDetailModal';
 import {
@@ -113,6 +113,18 @@ export const CalendarView: React.FC = () => {
 
   // Days of week (Monday to Sunday)
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+  const queryClient = useQueryClient();
+  const { data: session } = useQuery({
+    queryKey: ['core-session'],
+    queryFn: fetchSession,
+  });
+
+  const isLeadership = session?.user?.role === 'admin' || session?.user?.role === 'vice_admin';
+  const canManageProposals = Boolean(isLeadership);
+  const canManageActivity = Boolean(
+    isLeadership || (selectedActivity && session?.user?.id && session.user.id === selectedActivity.creator_id)
+  );
 
   const { data: activities, isLoading: isActivitiesLoading } = useQuery({
     queryKey: ['core-activities'],
@@ -926,6 +938,12 @@ export const CalendarView: React.FC = () => {
         activity={selectedActivity}
         isOpen={Boolean(selectedActivity)}
         onClose={() => setSelectedActivity(null)}
+        canManageProposals={canManageProposals}
+        canManageActivity={canManageActivity}
+        onProposalDecided={() => {
+          queryClient.invalidateQueries({ queryKey: ['core-activities'] });
+          queryClient.invalidateQueries({ queryKey: ['core-bootstrap'] });
+        }}
       />
     </div>
   );
