@@ -26,8 +26,9 @@ const item = (id: number, over: Partial<api.NotificationItem> = {}): api.Notific
 
 const Probe = () => <div data-testid="path">{useLocation().pathname}</div>;
 
-function setup(data: api.NotificationsResponse) {
-  vi.mocked(api.fetchNotifications).mockResolvedValue(data);
+function setup(data: api.NotificationsResponse, fetchError?: Error) {
+  if (fetchError) vi.mocked(api.fetchNotifications).mockRejectedValue(fetchError);
+  else vi.mocked(api.fetchNotifications).mockResolvedValue(data);
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   render(
     <QueryClientProvider client={qc}>
@@ -112,6 +113,15 @@ describe('NotificationBell', () => {
     await waitFor(() => expect(api.fetchNotifications).toHaveBeenCalled());
     fireEvent.click(bellButton());
     expect(await screen.findByText('Chưa có thông báo.')).toBeDefined();
+  });
+
+  it('hiện lỗi tải dữ liệu thay vì báo danh sách rỗng', async () => {
+    setup({ notifications: [], unread_count: 0 }, new Error('network unavailable'));
+    fireEvent.click(bellButton());
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('Không kết nối được máy chủ. Vui lòng thử lại.');
+    expect(screen.queryByText('Chưa có thông báo.')).toBeNull();
   });
 
   it('bấm một mục: đánh dấu mục đó, đóng bảng, đi tới đường dẫn đã chuẩn hoá', async () => {

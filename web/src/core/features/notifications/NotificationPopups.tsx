@@ -50,7 +50,7 @@ export const NotificationPopups: React.FC = () => {
       .filter((n) => !announced.current.has(n.id));
     if (fresh.length === 0) return;
     fresh.forEach((n) => announced.current.add(n.id));
-    setPopups((prev) => [...prev, ...fresh]);
+    setPopups((prev) => [...prev, ...fresh].slice(-MAX_POPUPS));
   }, [data]);
 
   const expire = useCallback((id: number) => setPopups((prev) => prev.filter((p) => p.id !== id)), []);

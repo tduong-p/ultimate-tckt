@@ -75,6 +75,18 @@ describe('NotificationPopups', () => {
     await waitFor(() => expect(popupTitles()).toEqual(['Tiêu đề 1', 'Tiêu đề 2']));
   });
 
+  it('giữ tổng số popup không quá 3 khi cache cập nhật trong lúc popup còn mở', async () => {
+    const qc = setup({ unread_count: 3, notifications: [item(3), item(2), item(1)] });
+    await waitFor(() => expect(popupTitles()).toEqual(['Tiêu đề 1', 'Tiêu đề 2', 'Tiêu đề 3']));
+
+    await act(async () => {
+      qc.setQueryData(NOTIFICATIONS_KEY, { unread_count: 4, notifications: [item(4), item(3), item(2), item(1)] });
+    });
+
+    await waitFor(() => expect(popupTitles()).toEqual(['Tiêu đề 2', 'Tiêu đề 3', 'Tiêu đề 4']));
+    expect(popupTitles()).toHaveLength(3);
+  });
+
   it('popup tự tắt sau 7 giây và không hiện lại', async () => {
     setup({ unread_count: 1, notifications: [item(1)] });
     await waitFor(() => expect(popupTitles()).toEqual(['Tiêu đề 1']));

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
@@ -70,6 +70,45 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const renderProfile = useCallback(() => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {headerExtras}
+      <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
+      {user && (
+        <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
+          {user.name}
+        </span>
+      )}
+      {onLogout && (
+        <button
+          type="button"
+          onClick={onLogout}
+          aria-label="Đăng xuất tài khoản"
+          style={{
+            marginLeft: '6px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            color: token('color.icon.danger', '#DE350B'),
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = token('color.background.danger.subtle', '#FFEBE6');
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+          title="Đăng xuất"
+        >
+          <LogOutIcon label="Đăng xuất" />
+        </button>
+      )}
+    </div>
+  ), [headerExtras, onLogout, user]);
   return (
     <PageLayoutWrapper>
       <TopNavigation isFixed={true} id="confluence-navigation">
@@ -82,45 +121,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               <ThemeToggle size={52} />
             </div>
           )}
-          renderProfile={() => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {headerExtras}
-              <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
-              {user && (
-                <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-                  {user.name}
-                </span>
-              )}
-              {onLogout && (
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  aria-label="Đăng xuất tài khoản"
-                  style={{
-                    marginLeft: '6px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '6px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: token('color.icon.danger', '#DE350B'),
-                    transition: 'background-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = token('color.background.danger.subtle', '#FFEBE6');
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                  title="Đăng xuất"
-                >
-                  <LogOutIcon label="Đăng xuất" />
-                </button>
-              )}
-            </div>
-          )}
+          renderProfile={renderProfile}
         />
       </TopNavigation>
       <Content>

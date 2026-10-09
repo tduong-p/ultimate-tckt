@@ -15,7 +15,7 @@ export const NotificationBell: React.FC = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const openNotification = useOpenNotification();
-  const { data, refetch } = useNotifications();
+  const { data, refetch, isError, isPending, error } = useNotifications();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -85,9 +85,16 @@ export const NotificationBell: React.FC = () => {
             <strong>Thông báo</strong>
             <div style={{ fontSize: 12, color: token('color.text.subtle', '#5E6C84') }}>Lưu trong 7 ngày</div>
           </div>
-          {items.length === 0 ? (
+          {isError && (
+            <p role="alert" style={{ padding: 16, margin: 0, color: token('color.text.danger', '#AE2A19') }}>
+              {apiErrorMessage(error, 'Không tải được thông báo.')}
+            </p>
+          )}
+          {items.length === 0 && isPending ? (
+            <p style={{ padding: 16, margin: 0, color: token('color.text.subtle', '#5E6C84') }}>Đang tải thông báo…</p>
+          ) : items.length === 0 && !isError ? (
             <p style={{ padding: 16, margin: 0, color: token('color.text.subtle', '#5E6C84') }}>Chưa có thông báo.</p>
-          ) : (
+          ) : items.length > 0 ? (
             items.map((n) => (
               <button
                 key={n.id}
@@ -109,7 +116,7 @@ export const NotificationBell: React.FC = () => {
                 <small style={{ color: token('color.text.subtle', '#5E6C84') }}>{formatVnDate(n.created_at)}</small>
               </button>
             ))
-          )}
+          ) : null}
         </div>
       )}
     </div>
