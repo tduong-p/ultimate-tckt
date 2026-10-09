@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.17
+version: 1.19
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: []
 ---
 
@@ -164,6 +164,12 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 ## `weight_presets.points` không lưu được bước 0.5
 
 Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong khoảng 0–10 và nhận số thập phân, kiểu DB chỉ lưu số nguyên. UI cũ có bước 0.5 khiến người dùng tưởng giá trị như 2.5 được lưu. Web mới chỉ nhận số nguyên 0–10.
+## Bẫy khi làm Văn bản và Chuông thông báo (web/ đợt 4)
+
+- **`url` của thông báo là hash cũ có dấu `/` đầu (`/#activity/12`).** Đưa thẳng vào `navigate()` sẽ ra đường dẫn sai; luôn qua `notificationRoute()`. Tiêu đề/nội dung một số thông báo Core lưu tiếng Anh (`core/src/routes/activities.js`) nên phải dịch phía `web/`.
+- **Hai nơi cùng poll một query thì bị gọi đôi.** `NotificationPopups` chỉ đọc cache (`enabled: false`); chỉ `useNotifications` được đặt `refetchInterval`.
+- **`AtlassianNavigation.renderProfile` phải giữ identity ổn định.** Atlaskit dùng callback này như component type; tạo callback inline trong `PageLayout` khiến phần con bị unmount/remount khi đổi route. Nếu `NotificationCenter` nằm trong đó, `announced` bị reset và popup cũ có thể hiện lại. Dùng callback ổn định với `useCallback` và kiểm tra state của header qua điều hướng.
+- **Lỗi tải thông báo không phải danh sách rỗng.** Khi `GET /api/notifications` lỗi mà giao diện chỉ dùng `data?.notifications ?? []`, người dùng thấy "Chưa có thông báo." thay vì lỗi kết nối; render trạng thái lỗi riêng và chỉ hiện trạng thái rỗng sau lần tải thành công.
 
 ## Lịch sử phiên bản
 
@@ -187,3 +193,5 @@ Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong kho
 | 1.15 | 2026-10-08 | Thêm bẫy frontend cắt chuỗi ngày ISO UTC từ Core làm lệch một ngày | DYC |
 | 1.16 | 2026-10-09 | Thêm 4 bẫy khi làm đợt 2: my-tasks-today thiếu acknowledged_at, teams members 403, task detail thiếu event_lead_id, patch task deadline null | DYC |
 | 1.17 | 2026-10-09 | Ghi nhận giới hạn kiểu dữ liệu trọng số và quy tắc UI chỉ nhận số nguyên 0–10 | DYC |
+| 1.18 | 2026-10-09 | Thêm bẫy đợt 4: URL thông báo là hash cũ, tránh poll đôi; header cần callback ổn định; tách lỗi tải khỏi danh sách rỗng | DYC |
+| 1.19 | 2026-10-10 | Gộp và chuẩn hoá các bẫy đợt 3–4 sau khi tích hợp hai đợt frontend | DYC |

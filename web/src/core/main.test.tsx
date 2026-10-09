@@ -25,8 +25,10 @@ vi.mock('./api', async () => {
       reviewTasks: [],
       total: 0,
     }),
+    fetchNotifications: vi.fn().mockResolvedValue({ notifications: [], unread_count: 0 }),
   };
 });
+
 
 describe('Core App main entry', () => {
   beforeEach(() => {
@@ -282,5 +284,20 @@ describe('Core App main entry', () => {
     renderApp();
     await waitFor(() => expect(screen.getByText(/Xin chào Phạm Việt Bách/i)).toBeDefined());
     expect(screen.queryByRole('button', { name: /Báo cáo/ })).toBeNull();
+  });
+
+  it('thanh trên có chuông thông báo khi đã đăng nhập', async () => {
+    vi.mocked(api.fetchSession).mockResolvedValue({
+      user: { id: 1, name: 'Phạm Việt Bách', email: 'bach.pv@hust.edu.vn', role: 'admin' },
+      units: { current: null, memberships: [] },
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    );
+    expect(await screen.findByRole('button', { name: /^Thông báo/ })).toBeDefined();
+    await waitFor(() => expect(api.fetchNotifications).toHaveBeenCalled());
   });
 });

@@ -76,4 +76,12 @@ export const VI_ERROR_MESSAGES: Record<string, string> = {
   'You cannot delete this account.': 'Bạn không có quyền xoá tài khoản này.',
   'A valid email and avatar color are required.': 'Cần có email và màu đại diện hợp lệ.',
   'Password must contain at least 8 characters.': 'Mật khẩu phải có ít nhất 8 ký tự.',
+  // Văn bản
+  'Complete every document field with valid information.': 'Vui lòng điền đủ và đúng mọi trường của văn bản.',
+  'The issuing team is unavailable.': 'Tổ ban hành không còn khả dụng.',
+  'You may only issue documents for your teams.': 'Bạn chỉ được ban hành văn bản cho các Tổ của mình.',
+  'Document not found.': 'Không tìm thấy văn bản.',
+  'You cannot edit this document.': 'Bạn không có quyền sửa văn bản này.',
+  // Thông báo
+  'Notification not found.': 'Không tìm thấy thông báo.',
 };

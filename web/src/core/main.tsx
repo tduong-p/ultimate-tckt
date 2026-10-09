@@ -17,6 +17,7 @@ import { MyAccountModal } from './features/session/MyAccountModal';
 import { fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
 import { SESSION_KEY } from './queryKeys';
 import { UnitSwitcher } from './features/session/UnitSwitcher';
+import { NotificationCenter } from './features/notifications/NotificationCenter';
 
 // Bỏ mọi dữ liệu của người dùng cũ rồi đánh dấu chưa đăng nhập để App hiện màn đăng nhập.
 function resetToLoggedOut(queryClient: QueryClient) {
@@ -105,13 +106,21 @@ const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: (
   const [accountOpen, setAccountOpen] = React.useState(false);
   return (
     <>
-      <PageLayout user={user} onLogout={onLogout} canViewReports={caps.isManager} canViewAccounts={caps.isExec} onOpenAccount={() => setAccountOpen(true)} headerExtras={<UnitSwitcher />}>
+      <PageLayout
+        user={user}
+        onLogout={onLogout}
+        canViewReports={caps.isManager}
+        canViewAccounts={caps.isExec}
+        onOpenAccount={() => setAccountOpen(true)}
+        headerExtras={<><NotificationCenter /><UnitSwitcher /></>}
+      >
         <AppRoutes userName={userName} />
       </PageLayout>
       <MyAccountModal isOpen={accountOpen} onClose={() => setAccountOpen(false)} />
     </>
   );
 };
+
 
 const rootEl = document.getElementById('root');
 if (rootEl) {

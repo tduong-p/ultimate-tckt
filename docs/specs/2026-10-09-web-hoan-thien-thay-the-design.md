@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deploy.yml]
 ---
 
@@ -326,7 +326,7 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1 | Hoạt động (4.1) | 0 |
 | 2 | Công việc và Kanban (4.2) — xong | 0, 1 (trang chi tiết hoạt động) |
 | 3 | Tổ, thành viên, tài khoản, quản trị, trọng số, tài khoản của tôi (4.3–4.5) | 0 |
-| 4 | Văn bản và chuông thông báo (4.6) | 0 |
+| 4 | Văn bản và chuông thông báo (4.6) — xong | 0 |
 | 5 | Giao việc và Trình (4.7) | 0 |
 | 6 | Nhật ký trực ban: backend rồi UI (4.8) | 0, 5 (nút Trình) |
 | 7 | Thay thế UI cũ (5) | 0–6 |
@@ -371,4 +371,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |
 | 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 (Công việc và Kanban) hoàn thành: đầy đủ 12 task theo plan (hộp chi tiết công việc, checklist, tài liệu, bình luận, sửa việc, tự ghi nhận, giao việc, Kanban 4 cột kéo-thả, tích hợp vào Tổng quan, Việc hôm nay và Chi tiết hoạt động) | DYC |
-| 1.6 | 2026-10-09 | Đợt 3 hoàn thành: Tổ, thành viên, quản trị tài khoản, nhập hàng loạt, trọng số và tài khoản của tôi | DYC |
+| 1.7 | 2026-10-10 | Gộp trạng thái hoàn thành đợt 3 và đợt 4: Tổ, tài khoản, trọng số, Văn bản và thông báo | DYC |

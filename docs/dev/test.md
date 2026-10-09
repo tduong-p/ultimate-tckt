@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.30
+version: 2.31
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -148,4 +148,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.27 | 2026-10-09 | Test DYC chỉ đọc, DYC+TCKT theo vai trò ghi, gỡ Tổ đã lưu trữ và kiểm URL ảnh công khai | DYC |
 | 2.28 | 2026-10-09 | Thêm test các nút vòng đời nhiệm vụ, modal nghiệm thu và tạo nhiệm vụ từ chi tiết hoạt động | DYC |
 | 2.29 | 2026-10-09 | Đợt 2 `web/`: bổ sung bộ test cho chi tiết công việc, bình luận, tài liệu, checklist, sửa việc, tự ghi nhận, giao việc và Kanban kéo-thả | DYC |
-| 2.30 | 2026-10-09 | Đợt 3 `web/`: test Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số, hồ sơ cá nhân và helper renderWithApp | DYC |
+| 2.31 | 2026-10-10 | Gộp hướng dẫn kiểm thử web đợt 3 và đợt 4 sau tích hợp | DYC |
