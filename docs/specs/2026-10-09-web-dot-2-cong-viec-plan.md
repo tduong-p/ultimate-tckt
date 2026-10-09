@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-WEBP2-001
 title: Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -10,6 +10,8 @@ related_code: []
 ---
 
 # web/ đợt 2 — Công việc và Kanban Implementation Plan
+
+> **Đã làm sớm (nhánh `feature/web-merge-pr86`, port từ PR #86 — chưa merge):** tầng API và kiểu dữ liệu công việc (một phần Task 1: tạo, nhận, đổi trạng thái, nộp/duyệt nghiệm thu, checklist, chi tiết), `TaskActionButtons`, `SubmitReviewModal`, `ReviewDecisionModal`, `useTaskMutation` (một phần Task 3), `CreateTaskModal` và nút "Tạo nhiệm vụ" ở trang chi tiết hoạt động (Task 9, Task 12), nút vòng đời ở Việc của tôi / Việc hôm nay (một phần Task 7–8). **Khi thực thi: đối chiếu từng task với code trên nhánh đó, bỏ phần đã có, giữ phần chưa có** (hộp chi tiết `#task/:id`, bình luận, tài liệu, sửa công việc, SelfLog, Kanban chưa làm; `fetchTaskDetail` và hàm checklist đã có nhưng chưa có UI).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -3984,3 +3986,4 @@ Mô tả PR: tóm tắt các thao tác (giao việc, hộp chi tiết, sửa cô
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: kế hoạch đợt 2 của SPEC-WEB-003 (công việc và Kanban) | DYC |
+| 1.1 | 2026-10-09 | Ghi chú phần đã làm sớm từ port PR #86 | DYC |
