@@ -1,17 +1,19 @@
 ---
 doc_id: PLAN-TEAMS-001
 title: Plan — Teams Screen UI Implementation
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/teams/TeamsView.tsx]
 ---
 
 # Teams Screen Implementation Plan
 
 ## Tasks
+
+Kế hoạch giao diện ban đầu đã được mở rộng và hoàn tất trong SPEC-WEB-003 đợt 3: tạo/sửa/xoá Tổ, quản lý thành viên, trang chi tiết `#/team/:id`, quyền theo server và điều hướng khi 403. Kế hoạch chi tiết hiện hành là `docs/specs/2026-10-09-web-dot-3-to-thanh-vien-plan.md`.
 
 ### Task 1: Create TeamsView Component
 - Create `web/src/core/features/teams/TeamsView.tsx`.
@@ -32,3 +34,4 @@ related_code: [web/src/core/features/teams/TeamsView.tsx]
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Các Tổ | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/teams thực tế, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Trỏ tới kế hoạch đợt 3 hiện hành, đã hoàn tất luồng quản lý Tổ và thành viên | DYC |

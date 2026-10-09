@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.13
+version: 2.14
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1294,3 +1294,4 @@ npm run docs:check         # Documentation validation
 | 2.11 | 2026-10-09 | Đợt 1 của web/ (SPEC-WEB-003): Hoạt động | DYC |
 | 2.12 | 2026-10-09 | Port vòng đời nhiệm vụ từ PR #86 vào `web/` (nút vòng đời, modal nghiệm thu, tạo nhiệm vụ từ chi tiết hoạt động) | DYC |
 | 2.13 | 2026-10-09 | Đợt 2 của `web/` (SPEC-WEB-003): Hoàn thành toàn diện phần Công việc và Kanban | DYC |
+| 2.14 | 2026-10-09 | Đợt 3 `web/` (SPEC-WEB-003): Tổ, thành viên, quản trị tài khoản, nhập hàng loạt, trọng số và hồ sơ cá nhân | DYC |
