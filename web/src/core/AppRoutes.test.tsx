@@ -8,6 +8,7 @@ import { SESSION_KEY, BOOTSTRAP_KEY } from './queryKeys';
 vi.mock('./features/dashboard/Dashboard', () => ({ Dashboard: () => <div>màn-tổng-quan</div> }));
 vi.mock('./features/calendar/CalendarView', () => ({ CalendarView: () => <div>màn-lịch</div> }));
 vi.mock('./features/reports/ReportsView', () => ({ ReportsView: () => <div>màn-báo-cáo</div> }));
+vi.mock('./features/activities/ActivityDetailView', () => ({ ActivityDetailView: () => <div>màn-chi-tiết-hoạt-động</div> }));
 vi.mock('./features/members/MembersView', () => ({ MembersView: () => <div>màn-thành-viên</div> }));
 
 function renderAt(path: string, role: string) {
@@ -48,6 +49,11 @@ describe('AppRoutes', () => {
   it('quản lý mở được Báo cáo', () => {
     renderAt('/reports', 'leader');
     expect(screen.getByText('màn-báo-cáo')).toBeDefined();
+  });
+
+  it('mở trang chi tiết hoạt động theo #/activity/:id', () => {
+    renderAt('/activity/12', 'member');
+    expect(screen.getByText('màn-chi-tiết-hoạt-động')).toBeDefined();
   });
 
   it('đường dẫn lạ hiện trang Không tìm thấy', () => {

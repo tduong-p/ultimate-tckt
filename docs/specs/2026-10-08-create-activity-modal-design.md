@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ACTMODAL-001
 title: Thiết kế — Create Activity Modal UI Design
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -47,7 +47,9 @@ The modal uses the standard Atlassian ModalDialog component.
 ## 3. Interactions
 - Clicking "+ Đề xuất hoạt động" on the Dashboard opens the modal.
 - Clicking the close (X) icon or clicking outside the modal closes it.
-- Clicking "Tạo đề xuất" currently closes the modal (as this is a static UI).
+- Nhấn "Tạo đề xuất" gọi API tạo hoạt động; thành công đóng modal và gọi `onCreated(id)` để mở trang chi tiết.
+
+Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Form thêm Trưởng BTC; các link chỉ nhận `http(s)`; tạo thành công gọi `onCreated(id)` để chuyển tới `#/activity/:id`.
 
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
@@ -57,3 +59,4 @@ The modal uses the standard Atlassian ModalDialog component.
 | 1.2 | 2026-10-08 | Bắt buộc tiêu đề, mô tả, hạn chung và Tổ chủ trì (không còn mặc định Tổ 1); bỏ trường Người phụ trách | DYC |
 | 1.3 | 2026-10-09 | Danh sách Tổ theo quyền (executive thấy mọi Tổ, Tổ trưởng/Tổ phó chỉ Tổ có `can_manage`); kiểm ngày bắt đầu ≤ hạn chung; lỗi máy chủ dịch sang tiếng Việt; reset khi mở lại; nền theo token | DYC |
 | 1.4 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |
+| 1.5 | 2026-10-09 | Đợt 1 SPEC-WEB-003: thêm Trưởng BTC, kiểm link và chuyển tới chi tiết sau khi tạo | DYC |

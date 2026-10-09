@@ -11,6 +11,7 @@ vi.mock('../../api', async () => {
     ...actual,
     fetchTeams: vi.fn(),
     fetchBootstrap: vi.fn(),
+    fetchMembers: vi.fn(),
     createActivity: vi.fn(),
   };
 });
@@ -30,6 +31,11 @@ const mockTeams: api.TeamItem[] = [
     is_active: 1,
     can_manage: 1,
   },
+];
+
+const mockMembers: api.MemberItem[] = [
+  { id: 7, name: 'Lê Trưởng BTC', email: 'le@x.vn', role: 'member', is_active: 1 },
+  { id: 8, name: 'Nghỉ Việc', email: 'nv@x.vn', role: 'member', is_active: 0 },
 ];
 
 const bootstrapWith = (canCreateAccount: boolean): api.BootstrapData => ({
@@ -54,6 +60,7 @@ describe('CreateActivityModal', () => {
     });
     vi.mocked(api.fetchTeams).mockResolvedValue(mockTeams);
     vi.mocked(api.createActivity).mockResolvedValue({ id: 101 });
+    vi.mocked(api.fetchMembers).mockResolvedValue(mockMembers);
     vi.mocked(api.fetchBootstrap).mockResolvedValue(bootstrapWith(true));
   });
 
@@ -110,6 +117,13 @@ describe('CreateActivityModal', () => {
     fireEvent.keyDown(input, { key: 'ArrowDown', keyCode: 40 });
     const option = await screen.findByRole('option', { name });
     fireEvent.click(option);
+  };
+
+  const chooseOption = async (label: RegExp, name: string) => {
+    const input = screen.getByLabelText(label);
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown', keyCode: 40 });
+    fireEvent.click(await screen.findByRole('option', { name }));
   };
 
   it('không gửi đề xuất khi chưa chọn Tổ chủ trì', async () => {
@@ -247,5 +261,98 @@ describe('CreateActivityModal', () => {
 
     await screen.findByText('Tuyên huấn và Sự kiện');
     expect(screen.queryByText(serverMessage)).toBeNull();
+  });
+
+  it('gửi đủ các trường mở rộng của UI cũ, gồm Trưởng BTC', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    await chooseOption(/Trưởng Ban Tổ chức/i, 'Lê Trưởng BTC');
+    fireEvent.change(screen.getByLabelText('Địa điểm'), { target: { value: 'Hội trường A' } });
+    fireEvent.change(screen.getByLabelText('Được yêu cầu bởi'), { target: { value: 'Ban Thường vụ' } });
+    fireEvent.change(screen.getByLabelText(/Hồ sơ hoạt động/), { target: { value: 'https://drive.example/de-an' } });
+    fireEvent.click(screen.getByLabelText(/Hiển thị hoạt động này trên trang công khai/));
+    fireEvent.change(screen.getByLabelText(/Liên kết ảnh công khai/), { target: { value: 'https://img.example/a.jpg' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    await waitFor(() =>
+      expect(api.createActivity).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event_lead_id: 7,
+          location: 'Hội trường A',
+          requested_by: 'Ban Thường vụ',
+          proposal_document_url: 'https://drive.example/de-an',
+          public_image_url: 'https://img.example/a.jpg',
+          is_public: true,
+          priority: 'medium',
+          type: 'event',
+          team_id: 2,
+          team_ids: [2],
+        })
+      )
+    );
+  });
+
+  it('không chọn Trưởng BTC thì gửi event_lead_id null; người đã nghỉ không có trong danh sách', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    const input = screen.getByLabelText(/Trưởng Ban Tổ chức/i);
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown', keyCode: 40 });
+    expect(await screen.findByRole('option', { name: 'Lê Trưởng BTC' })).toBeDefined();
+    expect(screen.queryByRole('option', { name: 'Nghỉ Việc' })).toBeNull();
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+    await waitFor(() => expect(api.createActivity).toHaveBeenCalledWith(expect.objectContaining({ event_lead_id: null })));
+  });
+
+  it('Tổ chủ trì tự được đánh dấu và khoá trong danh sách Tổ tham gia', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    const checkbox = screen.getByRole('checkbox', { name: 'Tuyên huấn và Sự kiện' }) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+    expect(checkbox.disabled).toBe(true);
+  });
+
+  it('link không phải http(s) thì báo lỗi và không gửi', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.change(screen.getByLabelText(/Hồ sơ hoạt động/), { target: { value: 'ftp://may-chu/de-an' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    expect((await screen.findAllByText('Liên kết phải bắt đầu bằng http:// hoặc https://.')).length).toBeGreaterThan(0);
+    expect(api.createActivity).not.toHaveBeenCalled();
+  });
+
+  it('link ảnh công khai không phải http(s) thì chặn tạo đề xuất', async () => {
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={() => {}} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.change(screen.getByLabelText(/Liên kết ảnh công khai/), { target: { value: 'ftp://may-chu/anh.jpg' } });
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+    expect((await screen.findAllByText('Liên kết phải bắt đầu bằng http:// hoặc https://.')).length).toBeGreaterThan(0);
+    expect(api.createActivity).not.toHaveBeenCalled();
+  });
+
+  it('tạo xong gọi onCreated với id mới sau khi đóng modal', async () => {
+    const onClose = vi.fn();
+    const onCreated = vi.fn();
+    renderWithClient(<CreateActivityModal isOpen={true} onClose={onClose} onCreated={onCreated} />);
+    await screen.findByText('Tuyên huấn và Sự kiện');
+    fillRequiredFields();
+    await chooseLeadTeam('Tuyên huấn và Sự kiện');
+    fireEvent.click(screen.getByRole('button', { name: /Tạo đề xuất/i }));
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(101));
+    expect(onClose).toHaveBeenCalled();
   });
 });

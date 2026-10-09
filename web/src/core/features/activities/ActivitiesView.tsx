@@ -13,6 +13,8 @@ import {
   getActivityStatusMeta,
   getActivityTypeLabel,
 } from './activityLabels';
+import { activityHref, goToActivity } from '../../navigation';
+import { isHttpUrl } from '../../../shared/utils/url';
 import { CreateActivityModal } from '../dashboard/CreateActivityModal';
 import { toVnDateKey } from '../../../shared/utils/date';
 import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
@@ -241,6 +243,11 @@ export const ActivitiesView: React.FC = () => {
             return (
               <div
                 key={activity.id}
+                data-testid={`activity-card-${activity.id}`}
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest('a')) return;
+                  goToActivity(activity.id);
+                }}
                 style={{
                   backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
                   border: `1px solid ${token('color.border', '#DFE1E6')}`,
@@ -253,6 +260,7 @@ export const ActivitiesView: React.FC = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Accent Bar */}
@@ -311,7 +319,9 @@ export const ActivitiesView: React.FC = () => {
                       lineHeight: '1.4',
                     }}
                   >
-                    {activity.title}
+                    <a href={activityHref(activity.id)} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      {activity.title}
+                    </a>
                   </h2>
 
                   {/* Description Snippet */}
@@ -326,6 +336,17 @@ export const ActivitiesView: React.FC = () => {
                     >
                       {activity.description}
                     </p>
+                  )}
+
+                  {activity.proposal_document_url && isHttpUrl(activity.proposal_document_url) && (
+                    <a
+                      href={activity.proposal_document_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '13px', color: token('color.link', '#0052CC'), marginBottom: '8px' }}
+                    >
+                      Hồ sơ đề án
+                    </a>
                   )}
 
                   {/* Footer Metadata */}
@@ -391,6 +412,7 @@ export const ActivitiesView: React.FC = () => {
       <CreateActivityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onCreated={goToActivity}
       />
     </div>
   );

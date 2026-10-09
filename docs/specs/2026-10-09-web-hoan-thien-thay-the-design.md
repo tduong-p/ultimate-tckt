@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.1
+version: 1.3
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -115,6 +115,8 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
 
 ### 4.1 Hoạt động
 
+Đã làm ở đợt 1; phần việc (giao việc, tự ghi nhận, chi tiết việc) thuộc đợt 2.
+
 - **Tạo đề xuất** (`CreateActivityModal`, đã có): bổ sung đủ trường của UI cũ:
   - Trường thêm: `type`, `team_ids[]` (Tổ phối hợp, tự gồm Tổ chủ trì), `event_lead_id` (Trưởng BTC, chọn từ
     `GET /api/people`), `priority`, `location`, `requested_by`, `proposal_document_url`, `is_public`, `public_image_url`.
@@ -129,9 +131,9 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
 - **Vòng duyệt**:
   - Duyệt / Yêu cầu sửa / Từ chối → `POST …/approve`, `…/request-changes`, `…/reject`. Chỉ admin thấy, khi trạng thái là
     `proposed`. Yêu cầu sửa và từ chối bắt buộc nhập lý do. Từ chối xong thì về `#activities`, vì server xoá hoạt động.
-  - Nộp lại → `POST …/submit`. Hiện khi trạng thái là `changes_requested` và `canManage`.
+  - Nộp lại → `POST …/submit`. Hiện khi trạng thái là `changes_requested` và có quyền quản lý khi ghi; `canManage` của GET không đủ cho DYC.
 - **Sửa** → `PATCH /api/activities/:id`:
-  - Admin sửa được mọi trường, kể cả Tổ phối hợp và trạng thái.
+  - Admin có quyền ghi sửa được mọi trường, kể cả Tổ phối hợp và trạng thái. Tổ đã lưu trữ còn gắn với hoạt động phải hiện để có thể gỡ hoặc thay; server chặn gỡ nếu Tổ còn việc.
   - Người có `canManage` không phải admin sửa được: tiêu đề, mô tả, loại, ưu tiên, ngày, địa điểm, người yêu cầu, tóm tắt
     kết quả, link đề án, công khai, ảnh công khai. Đây là cải tiến so với UI cũ, vốn chỉ cho admin sửa.
   - Chuyển sang `cancelled` phải xác nhận, vì server xoá hẳn hoạt động.
@@ -140,7 +142,7 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
 - **Thêm người tham gia** → `POST …/participants {user_ids, responsibility}`: hiện khi `canManage`. Lọc theo Tổ, bắt chọn ít
   nhất 1 người.
 - **Đăng cập nhật** → `POST …/updates {kind, body, attachment_url, tagged_user_ids}`:
-  - Ai cũng thấy. Loại cập nhật: bình luận, tiến độ, vướng mắc, minh chứng.
+  - Thành viên TCKT có quyền ghi mới thấy form; DYC chỉ đọc vẫn thấy dòng thời gian. Loại cập nhật: bình luận, tiến độ, vướng mắc, minh chứng.
   - Gắn thẻ `@` chỉ với loại bình luận, chọn từ `taggablePeople`.
 - **Danh sách** (đã có): giữ nguyên. Thẻ hoạt động bấm được để mở chi tiết, thay cho `ActivityDetailModal` hiện tại.
   `ActivityDetailModal` bị gỡ.
@@ -361,3 +363,5 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: danh sách ngang bằng với UI cũ, 6 cải tiến, API nhật ký trực ban, bước thay thế, 8 đợt | DYC |
 | 1.1 | 2026-10-09 | Đợt 0 (nền tảng) xong: router, tầng API, quyền, thành phần dùng chung; react-router 6.30 tự thêm `/` cho `#activity/12` nên không cần code chuẩn hoá riêng | DYC |
+| 1.2 | 2026-10-09 | Đợt 1 (Hoạt động) xong: form tạo đủ trường, trang chi tiết #activity/:id, vòng duyệt, sửa, xoá, đăng ký, thêm người, cập nhật có gắn thẻ; lịch mở trang chi tiết, gỡ ActivityDetailModal; việc trong trang hoạt động chỉ đọc đến hết đợt 2 | DYC |
+| 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |

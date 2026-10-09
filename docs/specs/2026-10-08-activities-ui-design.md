@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ACTIVITIES-001
 title: Design — Activities & Projects Screen UI (Hoạt động & Dự án)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -37,9 +37,12 @@ The "Hoạt động & Dự án" screen enables members and leaders to view, plan
   - Visual progress bar indicator (ưu tiên `progress_percent` khi có)
 - Dòng tóm tắt hoạt động của đơn vị khác (`toSummaryView`) không có loại/Tổ/số công việc: không hiện nhãn loại hay Tổ sai, chỉ hiện phần có dữ liệu.
 
+Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Thẻ hoạt động bấm được để mở `#/activity/:id`; link đề án hợp lệ được hiển thị trên thẻ.
+
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Hoạt động & Dự án | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API activities/teams thực tế, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Trạng thái `changes_requested` ("Cần chỉnh sửa") và nhãn dùng chung `activityLabels.ts`; nút đề xuất theo `canCreateActivity`; dòng tóm tắt đơn vị khác; tìm kiếm debounce do máy chủ lọc | DYC |
+| 1.3 | 2026-10-09 | Đợt 1 SPEC-WEB-003: thẻ hoạt động mở chi tiết và có link đề án | DYC |

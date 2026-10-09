@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: AI
@@ -51,6 +51,8 @@ A stack of 3 distinct cards:
 - Không dùng dữ liệu mock; ngày hiển thị theo giờ Việt Nam qua `shared/utils/date.ts`.
 - Add the Dashboard component to the PageLayout routing/tab selection so it can be viewed.
 
+Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Tạo đề xuất thành công từ Tổng quan chuyển tới `#/activity/:id`.
+
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
@@ -59,3 +61,4 @@ A stack of 3 distinct cards:
 | 1.2 | 2026-10-08 | Lời chào lấy tên người dùng từ phiên (`userName`), hai nút điều hướng sang Lịch chung/Hoạt động qua `onNavigate` | DYC |
 | 1.3 | 2026-10-09 | Đồng bộ với code: dữ liệu thật từ `/api/bootstrap` + `/api/my-tasks-today`; nút đề xuất theo `canCreateActivity`; KPI 4 = "Hoàn thành tháng này"; bỏ tab "Đã xong" và fallback; nhãn tiếng Việt; câu chào theo phạm vi | DYC |
 | 1.4 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |
+| 1.5 | 2026-10-09 | Đợt 1 SPEC-WEB-003: tạo hoạt động xong mở trang chi tiết | DYC |
