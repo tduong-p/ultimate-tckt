@@ -1,8 +1,8 @@
 ---
 doc_id: PLAN-WEBP2-001
 title: Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban)
-version: 1.1
-status: active
+version: 1.2
+status: completed
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
@@ -3987,3 +3987,4 @@ Mô tả PR: tóm tắt các thao tác (giao việc, hộp chi tiết, sửa cô
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: kế hoạch đợt 2 của SPEC-WEB-003 (công việc và Kanban) | DYC |
 | 1.1 | 2026-10-09 | Ghi chú phần đã làm sớm từ port PR #86 | DYC |
+| 1.2 | 2026-10-09 | Hoàn thành toàn bộ 13 task của đợt 2: công việc, chi tiết, Kanban, tích hợp và tài liệu | DYC |

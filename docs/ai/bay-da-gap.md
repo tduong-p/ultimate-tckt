@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.15
+version: 1.16
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: []
 ---
 
@@ -154,6 +154,13 @@ khác; mốc phải là thứ luôn được render, hoặc dùng `?.` khi phầ
 
 mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 08/10 giờ VN thành `2026-10-07T17:00:00.000Z`. `web/` bản đầu (PR 83) dùng `deadline.slice(0, 10)` và `new Date().toISOString()` để hiển thị, xếp ô lịch và tính "Hôm nay" → mọi hạn chót lệch về hôm trước, "Hôm nay" sai từ 0h đến 7h sáng. Sửa: dùng `toVnDateKey`/`formatVnDate`/`todayVnKey` trong `web/src/shared/utils/date.ts` (Intl theo `Asia/Ho_Chi_Minh`). Bài học: ngày từ Core luôn đổi về giờ VN trước khi cắt/so sánh; test giả lập giờ bằng `vi.useFakeTimers({ toFake: ['Date'] })`.
 
+## Bẫy khi làm Công việc và Kanban (web/ đợt 2)
+
+- **`GET /api/my-tasks-today` không trả `acknowledged_at`**: `SELECT t.*` không join `task_assignees`, nên không biết việc đã xác nhận hay chưa từ danh sách này. UI cũ luôn hiện "Xác nhận" và không bao giờ hiện "Nộp nghiệm thu" vì điều kiện `!acknowledged_at` luôn đúng. Đừng viết điều kiện dựa vào field đó; nếu cần, thêm field vào API (việc liên module) hoặc tải `GET /api/tasks/:id`.
+- **`GET /api/teams/:id/members` chỉ cho admin hoặc người quản lý Tổ**: server trả 403 "You cannot manage this team.". Trưởng ban tổ chức không phải Tổ trưởng được `POST /api/activities/:id/tasks` vào Tổ của hoạt động nhưng không tải được danh sách người để chọn gán.
+- **`GET /api/tasks/:id` không trả `event_lead_id`**: muốn biết người xem có phải Trưởng BTC để cho quyền duyệt việc (`canReviewTask`) phải đọc thêm từ `GET /api/activities/:id`.
+- **`PATCH /api/tasks/:id` chỉ nhận 4 trường và biến rỗng thành NULL**: route chỉ nhận `deadline`, `start_date`, `priority`, `deliverable` và chỉ người quản lý Tổ; server dùng `v || null` biến chuỗi rỗng thành NULL nên `deadline` rỗng sẽ lỗi DB NOT NULL — client phải bắt buộc trường deadline trước khi gửi.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -174,3 +181,4 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 | 1.13 | 2026-10-08 | Thêm bẫy thứ tự tham số SQL khi ghép `scopeFor` (`/api/teams` trả rỗng cho mọi tài khoản trừ id trùng unit id) | DYC |
 | 1.14 | 2026-10-08 | Thêm bẫy tra phần tử qua nút render có điều kiện (`#volunteer`) làm trắng trang chi tiết hoạt động | DYC |
 | 1.15 | 2026-10-08 | Thêm bẫy frontend cắt chuỗi ngày ISO UTC từ Core làm lệch một ngày | DYC |
+| 1.16 | 2026-10-09 | Thêm 4 bẫy khi làm đợt 2: my-tasks-today thiếu acknowledged_at, teams members 403, task detail thiếu event_lead_id, patch task deadline null | DYC |
