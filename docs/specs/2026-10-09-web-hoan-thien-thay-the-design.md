@@ -70,7 +70,7 @@ Xong khi:
 | `#ops-logs`, `#ops-log/:id` | Nhật ký trực ban |
 | `#task/:id` | Mở chi tiết công việc (modal) trên nền Tổng quan |
 
-- Link cũ dạng `#activity/12` (không có `/` sau `#`) phải được chuẩn hoá thành `#/activity/12` khi tải trang.
+- Link cũ dạng `#activity/12` (không có `/` sau `#`) vẫn mở đúng: hash history của react-router tự thêm `/` đầu, không cần code chuẩn hoá riêng.
 - Route không có quyền chuyển về Tổng quan, như UI cũ. Route lạ hiện trang "Không tìm thấy".
 
 ### 3.2 Tầng API
@@ -334,7 +334,7 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
   - nút ẩn/hiện theo quyền (ít nhất một ca được phép, một ca bị chặn);
   - lỗi server hiện bằng tiếng Việt;
   - cache được làm mới sau khi thành công.
-- Router: test chuẩn hoá `#activity/12` → `#/activity/12`, và test route không có quyền chuyển về Tổng quan.
+- Router: test link cũ `#calendar` mở đúng view Lịch, và test route không có quyền chuyển về Tổng quan.
 - Backend nhật ký trực ban: test Core như mục 4.8.
 - Thay thế: test Core rằng `/` trả `index.html` của `web`, `/legacy/` trả UI cũ, và `/api/*` không bị fallback nuốt.
 - Trước mỗi lần báo xong một đợt, cả bốn phải xanh: `cd web && npm test && npm run build`, `cd core && npm test` (qua CI),

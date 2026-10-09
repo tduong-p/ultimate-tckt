@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-LOGIN-001
 title: Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.7
-status: deprecated
+version: 1.8
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: []
+related_code: [web/src/core/features/auth/**]
 ---
 
 # Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -111,3 +111,4 @@ flowchart TD
 | 1.5 | 2026-10-08 | Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging. | DYC |
 | 1.6 | 2026-10-09 | Thêm onboarding bắt buộc cho tài khoản HUST, proxy `/auth` cho SSO ở dev, menu Báo cáo theo quyền, bỏ mục menu chưa có chức năng. | DYC |
 | 1.7 | 2026-10-09 | Deprecated: thay bằng SPEC-WEB-003 và `docs/dev/frontend.md`; thu hẹp `related_code` về `[]`. | DYC |
+| 1.8 | 2026-10-09 | Giữ active; thu hẹp related_code; SPEC-WEB-003 mở rộng | DYC |

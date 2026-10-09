@@ -1,12 +1,12 @@
 ---
 doc_id: PLAN-LOGIN-001
 title: Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
-version: 1.6
-status: deprecated
+version: 1.7
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: []
+related_code: [web/src/core/features/auth/**]
 ---
 
 # Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web)
@@ -168,3 +168,4 @@ related_code: []
 | 1.4 | 2026-10-08 | Bổ sung tài khoản kiểm thử local (`admin@hust.edu.vn` / `123456`) cùng nút tiện ích Điền nhanh và cơ chế phục hồi đa tầng cho môi trường dev. | DYC |
 | 1.5 | 2026-10-08 | Làm sạch dữ liệu kiểm thử local, gỡ bỏ khung tài khoản test trên giao diện và khôi phục mã nguồn backend nguyên bản chuẩn bị đẩy nhánh staging. | DYC |
 | 1.6 | 2026-10-09 | Deprecated: thay bằng SPEC-WEB-003 và `docs/dev/frontend.md`; thu hẹp `related_code` về `[]`. | DYC |
+| 1.7 | 2026-10-09 | Giữ active; thu hẹp related_code; SPEC-WEB-003 mở rộng | DYC |
