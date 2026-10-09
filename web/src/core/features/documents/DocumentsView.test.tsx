@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DocumentsView } from './DocumentsView';
+import { ToastProvider } from '../../../shared/components/Toast';
 import * as api from '../../api';
 
 vi.mock('../../api', async () => {
@@ -10,6 +11,8 @@ vi.mock('../../api', async () => {
   return {
     ...actual,
     fetchDocuments: vi.fn(),
+    createDocument: vi.fn(),
+    updateDocument: vi.fn(),
   };
 });
 
@@ -24,6 +27,9 @@ const mockDocumentsResponse: api.DocumentsResponse = {
       issuing_team_id: 1,
       team_name: 'Tổ chức và Phát triển Đoàn',
       visibility: 'all_teams',
+      can_edit: true,
+      creator_name: 'Nguyễn Văn A',
+      created_at: '2026-03-04T05:00:00.000Z',
     },
     {
       id: 2,
@@ -66,16 +72,17 @@ describe('DocumentsView', () => {
   const renderWithClient = (ui: React.ReactElement) => {
     return render(
       <QueryClientProvider client={queryClient}>
-        {ui}
+        <ToastProvider>{ui}</ToastProvider>
       </QueryClientProvider>
     );
   };
 
-  it('renders header title and subtitle without a dead "Thêm văn bản" button', () => {
+  it('hiện tiêu đề, mô tả và nút "Thêm văn bản" cho mọi người dùng', async () => {
     renderWithClient(<DocumentsView />);
     expect(screen.getByText('Văn bản')).toBeDefined();
     expect(screen.getByText('Danh mục liên kết văn bản do các Tổ TCKT ban hành.')).toBeDefined();
-    expect(screen.queryByText('+ Thêm văn bản')).toBeNull();
+    const add = await screen.findByRole('button', { name: 'Thêm văn bản' });
+    await waitFor(() => expect((add as HTMLButtonElement).disabled).toBe(false));
   });
 
   it('liên kết "Mở liên kết" là một thẻ <a> duy nhất, không lồng <button>', async () => {
@@ -148,5 +155,48 @@ describe('DocumentsView', () => {
       expect(api.fetchDocuments).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'hội' }))
     );
     expect(api.fetchDocuments).toHaveBeenCalledTimes(2);
+  });
+
+  it('nút "Sửa" chỉ có ở văn bản can_edit; thẻ có dòng "Bởi … · ngày"', async () => {
+    renderWithClient(<DocumentsView />);
+    await screen.findByText('Quy chế Tổ chức và Hoạt động TCKT 2026');
+    expect(screen.getAllByRole('button', { name: 'Sửa' })).toHaveLength(1);
+    expect(screen.getByTestId('document-item-1').textContent).toContain('Bởi Nguyễn Văn A · 04/03/2026');
+    expect(screen.getByTestId('document-item-2').textContent).not.toContain('Sửa');
+  });
+
+  it('bấm Sửa mở hộp điền sẵn dữ liệu của văn bản', async () => {
+    renderWithClient(<DocumentsView />);
+    await screen.findByText('Quy chế Tổ chức và Hoạt động TCKT 2026');
+    fireEvent.click(screen.getByRole('button', { name: 'Sửa' }));
+    expect(await screen.findByRole('heading', { name: 'Sửa văn bản' })).toBeDefined();
+    expect((screen.getByLabelText(/Tên văn bản/) as HTMLInputElement).value).toBe('Quy chế Tổ chức và Hoạt động TCKT 2026');
+  });
+
+  it('thêm văn bản: gửi đúng body rồi tải lại danh sách', async () => {
+    vi.mocked(api.createDocument).mockResolvedValueOnce({ id: 3 });
+    renderWithClient(<DocumentsView />);
+    const add = await screen.findByRole('button', { name: 'Thêm văn bản' });
+    await waitFor(() => expect((add as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole('heading', { name: 'Thêm văn bản' });
+    fireEvent.change(screen.getByLabelText(/Tên văn bản/), { target: { value: 'Kế hoạch mới' } });
+    fireEvent.change(screen.getByLabelText(/Liên kết văn bản/), { target: { value: 'https://example.com/kh' } });
+    fireEvent.change(screen.getByLabelText(/Năm áp dụng/), { target: { value: '2026' } });
+    fireEvent.change(screen.getByLabelText(/Tổ ban hành/), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/Mô tả/), { target: { value: 'Kế hoạch năm' } });
+    const callsBefore = vi.mocked(api.fetchDocuments).mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu văn bản' }));
+    await waitFor(() =>
+      expect(api.createDocument).toHaveBeenCalledWith({
+        name: 'Kế hoạch mới',
+        link_url: 'https://example.com/kh',
+        description: 'Kế hoạch năm',
+        applicable_year: 2026,
+        issuing_team_id: 1,
+        visibility: 'issuing_team',
+      })
+    );
+    await waitFor(() => expect(vi.mocked(api.fetchDocuments).mock.calls.length).toBeGreaterThan(callsBefore));
   });
 });

@@ -264,4 +264,5 @@ không chờ issue này.
 | 2.7 | 2026-10-05 | Ghi chú: Noti production theo SPEC-MAIL-001 | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 2.10 | 2026-10-09 | Ghi nhận nhánh triển khai web đợt 5 có bổ sung `modules` vào `req.unit` và API/UI Giao việc, Trình; xem DEV-API-001 và SPEC-WEB-003 | DYC |
 | 3.0 | 2026-10-10 | Liên kết tới hợp đồng cutover: UI pilot tại `/legacy/`, `web/` tại `/` trong giai đoạn chuyển tiếp | DYC |

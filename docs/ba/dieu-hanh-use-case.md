@@ -1,11 +1,11 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.6
+version: 2.7
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-09
 related_code: [core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/reports.js, core/src/routes/notifications.js]
 ---
 
@@ -70,9 +70,10 @@ Task đi qua 4 cột: `todo` → `in_progress` → `review` → `done`.
 
 Toàn bộ sự kiện nghiệp vụ (đề án mới/duyệt/từ chối/yêu cầu sửa, giao task, phản hồi task, nộp nghiệm thu, kết quả nghiệm thu, sắp đến hạn, quá hạn, chưa xác nhận nhận việc) tạo thông báo trong ứng dụng và phát qua facade `notifier` (`core/src/notifier.js`). Email là hạng mục sắp làm bằng service Noti (SPEC-NOTI-001); hệ thống mailer và OneSignal cũ đã gỡ (ADR-0013).
 
-## 7. Giao việc liên đơn vị (directive) và Trình (submission) — kế hoạch, chưa có code
+## 7. Giao việc liên đơn vị (directive) và Trình (submission) — đã có API và web
 
-Hai luồng nghiệp vụ mới cho quan hệ BTV ↔ TCKT, **chưa có bảng dữ liệu hay route nào trong code hiện tại**:
+Hai luồng nghiệp vụ cho quan hệ BTV ↔ TCKT đã có bảng dữ liệu, API Core và giao diện `web/` cho Giao việc/Trình.
+Nút tạo trình từ nhật ký trực ban chưa tích hợp cho tới đợt 6. Tiến độ `progress_percent` chưa có trong API.
 
 ![Vòng đời directive](images/directive-flow.png)
 
@@ -95,3 +96,4 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 | 2.4 | 2026-10-01 | Xử lý conflict merge staging và cập nhật tài liệu | DYC |
 | 2.5 | 2026-10-02 | Email không còn do Rule Engine; thông báo ngoài app đi qua `notifier` và sẽ do Noti đảm nhận | DYC |
 | 2.6 | 2026-10-05 | #49: nhắc chưa xác nhận trong 24 giờ–7 ngày, khung gửi 07:00–21:59; không tự thông báo cho người thao tác | DYC |
+| 2.7 | 2026-10-09 | Cập nhật mục 7: API Core và web Giao việc/Trình đã có; progress_percent và nguồn ops_log còn lại | DYC |

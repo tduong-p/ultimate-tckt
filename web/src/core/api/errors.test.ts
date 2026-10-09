@@ -38,4 +38,17 @@ describe('apiErrorMessage', () => {
       'Số lớp là bắt buộc và không quá 100 ký tự.'
     );
   });
+
+  it('dịch câu lỗi của văn bản và thông báo', () => {
+    expect(translateServerError('Complete every document field with valid information.')).toBe(
+      'Vui lòng điền đủ và đúng mọi trường của văn bản.'
+    );
+    expect(translateServerError('The issuing team is unavailable.')).toBe('Tổ ban hành không còn khả dụng.');
+    expect(translateServerError('You may only issue documents for your teams.')).toBe(
+      'Bạn chỉ được ban hành văn bản cho các Tổ của mình.'
+    );
+    expect(translateServerError('Document not found.')).toBe('Không tìm thấy văn bản.');
+    expect(translateServerError('You cannot edit this document.')).toBe('Bạn không có quyền sửa văn bản này.');
+    expect(translateServerError('Notification not found.')).toBe('Không tìm thấy thông báo.');
+  });
 });

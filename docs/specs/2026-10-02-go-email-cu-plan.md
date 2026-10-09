@@ -524,4 +524,5 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.7 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 2.10 | 2026-10-09 | Xác nhận nhánh web đợt 5 không thay đổi hành vi gửi email/OneSignal của kế hoạch này | DYC |
 | 3.0 | 2026-10-10 | Liên kết tới hợp đồng phục vụ UI cũ tại `/legacy/` sau cutover frontend Core | DYC |

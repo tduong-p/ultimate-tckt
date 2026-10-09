@@ -1,4 +1,5 @@
 const express = require('express');
+const { withSubmissionNames } = require('./dieu-hanh-names');
 
 function createSubmissionRoutes(context) {
   const { asyncRoute, db, auth } = context;
@@ -28,7 +29,7 @@ function createSubmissionRoutes(context) {
       `SELECT * FROM submissions WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
       [unitId, unitId]
     );
-    res.json({ data: rows });
+    res.json({ data: await withSubmissionNames(db, rows) });
   }));
 
   // POST /api/submissions
@@ -44,7 +45,7 @@ function createSubmissionRoutes(context) {
     const fromUnitId = req.unit ? req.unit.id : 1;
     const [result] = await db.execute(
       `INSERT INTO submissions(from_unit_id, to_unit_id, source_type, source_id, directive_id, note, submitted_by) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [fromUnitId, to_unit_id, source_type, source_id, directive_id || null, note || null, req.user ? req.user.id : null]
+      [fromUnitId, to_unit_id, source_type, source_id, directive_id || null, note || null, req.actor?.id ?? null]
     );
     const [created] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [result.insertId]);
     res.status(201).json(created[0]);
@@ -54,7 +55,7 @@ function createSubmissionRoutes(context) {
   router.get('/api/submissions/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
-    res.json(rows[0]);
+    res.json((await withSubmissionNames(db, [rows[0]]))[0]);
   }));
 
   // POST /api/submissions/:id/respond
@@ -71,7 +72,7 @@ function createSubmissionRoutes(context) {
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
     await db.execute(
       `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE id = ?`,
-      [response, response_note || null, req.user ? req.user.id : null, req.params.id]
+      [response, response_note || null, req.actor?.id ?? null, req.params.id]
     );
     const [updated] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     res.json(updated[0]);

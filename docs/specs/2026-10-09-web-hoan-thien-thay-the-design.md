@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.7
+version: 2.0
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -206,6 +206,8 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
   - Đổi vai trò (`PATCH`): chỉ admin, không áp cho tài khoản admin hay vice_admin.
   - Xoá (`DELETE`): admin; hoặc Tổ trưởng với thành viên thường. Không được tự xoá mình.
 
+Giao diện trang `#/team/:id` để server kiểm tra quyền; nếu bị 403, giao diện báo lỗi và về Tổng quan vì quyền quản lý Tổ phụ thuộc dữ liệu bootstrap đã tải.
+
 ### 4.4 Thành viên và tài khoản
 
 - **Thành viên** (đã có):
@@ -223,6 +225,8 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
     - Theo `settingGuard`: lỗi 403 "đang bị DYC khoá" phải hiện rõ, kèm lý do.
     - Xoá phải xác nhận (UI cũ không hỏi lại).
 
+Preset trọng số `weight_presets.points` là số nguyên 0–10; UI không nhận bước 0.5 như màn cũ.
+
 ### 4.5 Tài khoản của tôi
 
 - `PATCH /api/account {email, phone, avatar_color, password?}`: ai cũng dùng được. Mật khẩu để trống là giữ nguyên.
@@ -238,7 +242,7 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
   - Bấm một mục thì đánh dấu mục đó (`PATCH …/:id/seen`) và đi tới `url` của nó (hash cũ, đã chuẩn hoá theo mục 3.1).
   - Popup cho tối đa 3 mục mới chưa báo.
 
-### 4.7 Giao việc và Trình (cải tiến, API đã có)
+### 4.7 Giao việc và Trình (đợt 5)
 
 - Chỉ hiện khi đơn vị hiện tại có module `dieu-hanh`. Server trả 403 "Forbidden" nếu không.
 - **Chỉ đạo** (`/api/directives`):
@@ -256,6 +260,11 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
   - Rút lại: đơn vị gửi, khi chưa có phản hồi.
 - Quyền chính xác của từng nút lấy từ `core/src/routes/directives.js` và `submissions.js`. Plan phải chép bảng điều kiện từ
   code, không đoán.
+- Đợt 5 đã triển khai route/menu và giao diện web cùng API Core. Cổng API cho phép đơn vị có module `dieu-hanh` và
+  đơn vị DYC (`platform_owner`); routes này không dùng `legacyGate`, nên chưa có audit. Một số endpoint chi tiết và
+  thao tác ghi còn thiếu kiểm tra quyền sở hữu đơn vị, đã ghi nhận tại issue #95 và hoãn theo quyết định phạm vi.
+  API bổ sung tên đơn vị/người, tiêu đề nguồn và danh sách đơn vị nhận để giao diện hiển thị dữ liệu đủ nghĩa.
+- Web hiện chưa có thanh tiến độ vì API không trả `progress_percent`; đợt 6 mới tích hợp nút tạo trình cho nguồn `ops_log`.
 
 ### 4.8 Nhật ký trực ban (cải tiến, cần backend Core mới)
 
@@ -322,7 +331,7 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1 | Hoạt động (4.1) | 0 |
 | 2 | Công việc và Kanban (4.2) — xong | 0, 1 (trang chi tiết hoạt động) |
 | 3 | Tổ, thành viên, tài khoản, quản trị, trọng số, tài khoản của tôi (4.3–4.5) | 0 |
-| 4 | Văn bản và chuông thông báo (4.6) | 0 |
+| 4 | Văn bản và chuông thông báo (4.6) — xong | 0 |
 | 5 | Giao việc và Trình (4.7) | 0 |
 | 6 | Nhật ký trực ban: backend rồi UI (4.8) | 0, 5 (nút Trình) |
 | 7 | Thay thế UI cũ (5) | 0–5; đợt 6 được hoãn và bổ sung sau trên UI mới |
@@ -369,5 +378,8 @@ Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) đư
 | 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |
 | 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 (Công việc và Kanban) hoàn thành: đầy đủ 12 task theo plan (hộp chi tiết công việc, checklist, tài liệu, bình luận, sửa việc, tự ghi nhận, giao việc, Kanban 4 cột kéo-thả, tích hợp vào Tổng quan, Việc hôm nay và Chi tiết hoạt động) | DYC |
-| 1.6 | 2026-10-10 | Theo yêu cầu, hoãn đợt 6 và thực hiện cutover đợt 7 trước; Nhật ký trực ban sẽ được bổ sung trên UI mới | DYC |
-| 1.7 | 2026-10-10 | Chốt hợp đồng cutover theo triển khai: giới hạn fallback, build root context, test Core/web cho PR và publish chỉ trên push | DYC |
+| 1.6 | 2026-10-09 | Đợt 3 hoàn thành: Tổ, thành viên, quản trị tài khoản, nhập hàng loạt, trọng số và tài khoản của tôi | DYC |
+| 1.7 | 2026-10-09 | Đợt 4 hoàn thành: thêm/sửa Văn bản và chuông thông báo | DYC |
+| 1.8 | 2026-10-10 | Ghi nhận hoàn thành đợt 5: Giao việc/Trình và module gate | DYC |
+| 1.9 | 2026-10-10 | Sửa mô tả cổng DYC: directives/submissions không đi qua legacy gate/audit; liên kết issue #95 cho kiểm tra quyền sở hữu và audit còn thiếu | DYC |
+| 2.0 | 2026-10-10 | Hoãn đợt 6, thực hiện cutover đợt 7; chốt `/` và `/legacy/`, Docker build root context, kiểm tra PR và publish khi push | DYC |

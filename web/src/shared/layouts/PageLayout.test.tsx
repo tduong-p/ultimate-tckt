@@ -1,10 +1,18 @@
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import React from 'react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 const LocationProbe = () => <div data-testid="path">{useLocation().pathname}</div>;
+const StatefulHeaderExtra = () => {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount((value) => value + 1)}>header count {count}</button>;
+};
+const NavigateToTeams = () => {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate('/teams')}>go to teams</button>;
+};
 const renderLayout = (ui: React.ReactElement, path = '/dashboard') =>
   render(<MemoryRouter initialEntries={[path]}>{ui}<Routes><Route path="*" element={<LocationProbe />} /></Routes></MemoryRouter>);
 
@@ -57,6 +65,22 @@ describe('PageLayout', () => {
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
 
+  it('mục "Quản trị tài khoản" chỉ hiện khi canViewAccounts và đưa tới /accounts', () => {
+    const { unmount } = renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.queryByText('Quản trị tài khoản')).toBeNull();
+    unmount();
+    renderLayout(<PageLayout canViewAccounts><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByText('Quản trị tài khoản'));
+    expect(screen.getByTestId('path').textContent).toBe('/accounts');
+  });
+
+  it('bấm vào tên người dùng gọi onOpenAccount', () => {
+    const onOpenAccount = vi.fn();
+    renderLayout(<PageLayout user={{ name: 'Nguyễn Văn A' }} onOpenAccount={onOpenAccount}><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByRole('button', { name: 'Tài khoản của tôi' }));
+    expect(onOpenAccount).toHaveBeenCalledTimes(1);
+  });
+
   it('không hiện các nút chưa có chức năng (Cài đặt, Chuyển vai trò, Báo Bug, Thông báo)', () => {
     renderLayout(<PageLayout><div>Content</div></PageLayout>);
     expect(screen.queryByTitle('Cài đặt (Admin, ĐYC)')).toBeNull();
@@ -89,5 +113,41 @@ describe('PageLayout', () => {
   it('headerExtras được hiện trên thanh trên cùng', () => {
     renderLayout(<PageLayout headerExtras={<span>ô-chọn-đơn-vị</span>}><div>Content</div></PageLayout>);
     expect(screen.getByText('ô-chọn-đơn-vị')).toBeDefined();
+  });
+
+  it('hiện "Giao việc" và "Trình" chỉ khi canViewDieuHanh, bấm thì điều hướng', () => {
+    renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.queryByText('Giao việc')).toBeNull();
+    expect(screen.queryByText('Trình')).toBeNull();
+    cleanup();
+    renderLayout(<PageLayout canViewDieuHanh><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByText('Giao việc'));
+    expect(screen.getByTestId('path').textContent).toBe('/directives');
+    fireEvent.click(screen.getByText('Trình'));
+    expect(screen.getByTestId('path').textContent).toBe('/submissions');
+  });
+
+  it('đang ở trang chi tiết chỉ đạo thì "Giao việc" được tô sáng', () => {
+    renderLayout(<PageLayout canViewDieuHanh><div>x</div></PageLayout>, '/directive/7');
+    expect(screen.getByText('Giao việc').closest('[aria-current="page"]')).not.toBeNull();
+  });
+
+  it('mục "Sắp có" không còn Giao việc/Trình', () => {
+    renderLayout(<PageLayout><div>x</div></PageLayout>);
+    expect(screen.getByText('Nhật ký trực ban')).toBeDefined();
+    expect(screen.queryByText('Giao việc')).toBeNull();
+  });
+
+  it('giữ headerExtras được mount khi đổi route', () => {
+    renderLayout(
+      <PageLayout headerExtras={<StatefulHeaderExtra />}><NavigateToTeams /></PageLayout>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'header count 0' }));
+    expect(screen.getByRole('button', { name: 'header count 1' })).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'go to teams' }));
+
+    expect(screen.getByTestId('path').textContent).toBe('/teams');
+    expect(screen.getByRole('button', { name: 'header count 1' })).toBeDefined();
   });
 });

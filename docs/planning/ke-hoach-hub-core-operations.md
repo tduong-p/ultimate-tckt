@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.15
+version: 2.17
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1297,5 +1297,7 @@ npm run docs:check         # Documentation validation
 | 2.11 | 2026-10-09 | Đợt 1 của web/ (SPEC-WEB-003): Hoạt động | DYC |
 | 2.12 | 2026-10-09 | Port vòng đời nhiệm vụ từ PR #86 vào `web/` (nút vòng đời, modal nghiệm thu, tạo nhiệm vụ từ chi tiết hoạt động) | DYC |
 | 2.13 | 2026-10-09 | Đợt 2 của `web/` (SPEC-WEB-003): Hoàn thành toàn diện phần Công việc và Kanban | DYC |
-| 2.14 | 2026-10-10 | Cập nhật hiện trạng cutover theo SPEC-WEB-003: `web/` tại `/`, legacy tại `/legacy/`, Docker build từ root context | DYC |
-| 2.15 | 2026-10-10 | Sửa hướng dẫn production-like để chép frontend build vào `core/web-dist` trước khi chạy Core | DYC |
+| 2.14 | 2026-10-10 | Ghi nhận tích hợp đợt 3–4 `web/`: Tổ, tài khoản, trọng số, Văn bản và thông báo | DYC |
+| 2.15 | 2026-10-09 | Ghi nhận phần Giao việc/Trình và cổng module trong nhánh triển khai web đợt 5; chi tiết giao diện/API tại SPEC-WEB-003 và DEV-API-001 | DYC |
+| 2.16 | 2026-10-10 | Chuẩn hoá kế hoạch sau khi tích hợp các đợt web 3–5 | DYC |
+| 2.17 | 2026-10-10 | Cập nhật cutover theo SPEC-WEB-003: web tại `/`, legacy tại `/legacy/`, Docker build từ root context; bổ sung hướng dẫn chép build vào `core/web-dist` | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.16
+version: 1.20
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: []
 ---
 
@@ -161,6 +161,21 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 - **`GET /api/tasks/:id` không trả `event_lead_id`**: muốn biết người xem có phải Trưởng BTC để cho quyền duyệt việc (`canReviewTask`) phải đọc thêm từ `GET /api/activities/:id`.
 - **`PATCH /api/tasks/:id` chỉ nhận 4 trường và biến rỗng thành NULL**: route chỉ nhận `deadline`, `start_date`, `priority`, `deliverable` và chỉ người quản lý Tổ; server dùng `v || null` biến chuỗi rỗng thành NULL nên `deadline` rỗng sẽ lỗi DB NOT NULL — client phải bắt buộc trường deadline trước khi gửi.
 
+## Mock `req.unit.modules` có thể che lỗi nạp module thật ở middleware
+
+Các test route Giao việc/Trình trước đây tự gắn `modules: ['dieu-hanh']` vào request giả, nên không phát hiện middleware
+`loadUnitContext` và session chưa nạp module từ `unit_modules`. Với route phụ thuộc cổng theo module, giữ ít nhất một test
+đi từ session thật qua middleware tới endpoint, đồng thời kiểm tra đơn vị không có module vẫn bị 403.
+## `weight_presets.points` không lưu được bước 0.5
+
+Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong khoảng 0–10 và nhận số thập phân, kiểu DB chỉ lưu số nguyên. UI cũ có bước 0.5 khiến người dùng tưởng giá trị như 2.5 được lưu. Web mới chỉ nhận số nguyên 0–10.
+## Bẫy khi làm Văn bản và Chuông thông báo (web/ đợt 4)
+
+- **`url` của thông báo là hash cũ có dấu `/` đầu (`/#activity/12`).** Đưa thẳng vào `navigate()` sẽ ra đường dẫn sai; luôn qua `notificationRoute()`. Tiêu đề/nội dung một số thông báo Core lưu tiếng Anh (`core/src/routes/activities.js`) nên phải dịch phía `web/`.
+- **Hai nơi cùng poll một query thì bị gọi đôi.** `NotificationPopups` chỉ đọc cache (`enabled: false`); chỉ `useNotifications` được đặt `refetchInterval`.
+- **`AtlassianNavigation.renderProfile` phải giữ identity ổn định.** Atlaskit dùng callback này như component type; tạo callback inline trong `PageLayout` khiến phần con bị unmount/remount khi đổi route. Nếu `NotificationCenter` nằm trong đó, `announced` bị reset và popup cũ có thể hiện lại. Dùng callback ổn định với `useCallback` và kiểm tra state của header qua điều hướng.
+- **Lỗi tải thông báo không phải danh sách rỗng.** Khi `GET /api/notifications` lỗi mà giao diện chỉ dùng `data?.notifications ?? []`, người dùng thấy "Chưa có thông báo." thay vì lỗi kết nối; render trạng thái lỗi riêng và chỉ hiện trạng thái rỗng sau lần tải thành công.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -182,3 +197,7 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 | 1.14 | 2026-10-08 | Thêm bẫy tra phần tử qua nút render có điều kiện (`#volunteer`) làm trắng trang chi tiết hoạt động | DYC |
 | 1.15 | 2026-10-08 | Thêm bẫy frontend cắt chuỗi ngày ISO UTC từ Core làm lệch một ngày | DYC |
 | 1.16 | 2026-10-09 | Thêm 4 bẫy khi làm đợt 2: my-tasks-today thiếu acknowledged_at, teams members 403, task detail thiếu event_lead_id, patch task deadline null | DYC |
+| 1.17 | 2026-10-09 | Ghi nhận giới hạn kiểu dữ liệu trọng số và quy tắc UI chỉ nhận số nguyên 0–10 | DYC |
+| 1.18 | 2026-10-09 | Thêm bẫy đợt 4: URL thông báo là hash cũ, tránh poll đôi; header cần callback ổn định; tách lỗi tải khỏi danh sách rỗng | DYC |
+| 1.19 | 2026-10-09 | Thêm bẫy test mock req.unit.modules che lỗi middleware/session thật khi kiểm tra cổng module | DYC |
+| 1.20 | 2026-10-10 | Chuẩn hoá lịch sử bẫy đợt 3–5 sau khi tích hợp các PR frontend | DYC |

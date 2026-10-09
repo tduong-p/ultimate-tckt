@@ -15,6 +15,13 @@ import { ArchiveView } from './features/archive/ArchiveView';
 import { NotFoundView } from './features/notFound/NotFoundView';
 import { TaskRoute } from './features/tasks/TaskModalProvider';
 import { KanbanBoard } from './features/tasks/KanbanBoard';
+import { DirectivesView } from './features/directives/DirectivesView';
+import { DirectiveDetailView } from './features/directives/DirectiveDetailView';
+import { SubmissionsView } from './features/submissions/SubmissionsView';
+import { SubmissionDetailView } from './features/submissions/SubmissionDetailView';
+import { unitHasDieuHanh } from './features/dieuhanh/permissions';
+import { TeamPage } from './features/teams/TeamPage';
+import { AccountsView } from './features/accounts/AccountsView';
 
 const ToDashboard = () => <Navigate to="/dashboard" replace />;
 
@@ -22,6 +29,7 @@ const ToDashboard = () => <Navigate to="/dashboard" replace />;
 export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
   const caps = useCapabilities();
   const navigate = useNavigate();
+  const dieuHanh = unitHasDieuHanh(caps.unit);
   const dashboard = <Dashboard userName={userName} onNavigate={(view) => navigate(`/${view}`)} />;
   return (
     <Routes>
@@ -33,12 +41,18 @@ export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
       <Route path="/calendar" element={<CalendarView />} />
       <Route path="/activities" element={<ActivitiesView />} />
       <Route path="/activity/:id" element={<ActivityDetailView />} />
+      <Route path="/directives" element={dieuHanh ? <DirectivesView /> : <ToDashboard />} />
+      <Route path="/directive/:id" element={dieuHanh ? <DirectiveDetailView /> : <ToDashboard />} />
+      <Route path="/submissions" element={dieuHanh ? <SubmissionsView /> : <ToDashboard />} />
+      <Route path="/submission/:id" element={dieuHanh ? <SubmissionDetailView /> : <ToDashboard />} />
       <Route path="/my-tasks" element={<MyTasksView />} />
       <Route path="/teams" element={<TeamsView />} />
       <Route path="/people" element={<MembersView />} />
       <Route path="/documents" element={<DocumentsView />} />
       <Route path="/reports" element={caps.isManager ? <ReportsView /> : <ToDashboard />} />
       <Route path="/archive" element={<ArchiveView />} />
+      <Route path="/team/:id" element={<TeamPage />} />
+      <Route path="/accounts" element={caps.isExec ? <AccountsView /> : <ToDashboard />} />
       <Route path="*" element={<NotFoundView />} />
     </Routes>
   );

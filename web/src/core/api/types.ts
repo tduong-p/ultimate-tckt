@@ -21,6 +21,8 @@ export interface SessionUnit {
   code: string;
   name: string;
   kind: string;
+  /** Module đang bật của đơn vị (vd. 'dieu-hanh', 'ctd'); do `unit-context.js` nạp. */
+  modules?: string[];
 }
 
 /** Phần tử `units.memberships` do `sessionView` trả về (core/src/middleware/unit-context.js). */
@@ -392,3 +394,30 @@ export interface ActivityBoardData {
   canManage: boolean;
 }
 
+export interface DocumentPayload {
+  name: string;
+  link_url: string;
+  description: string;
+  applicable_year: number;
+  issuing_team_id: number;
+  visibility: 'issuing_team' | 'all_teams';
+}
+
+export interface NotificationItem {
+  id: number;
+  kind: string;
+  title: string;
+  body: string;
+  /** Hash cũ của Core, vd. `/#activity/12`. */
+  url?: string | null;
+  email_status?: string | null;
+  push_status?: string | null;
+  seen_at?: string | null;
+  created_at: string;
+  expires_at?: string;
+}
+
+export interface NotificationsResponse {
+  notifications: NotificationItem[];
+  unread_count: number;
+}

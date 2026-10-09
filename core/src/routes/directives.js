@@ -1,4 +1,5 @@
 const express = require('express');
+const { withDirectiveNames, withSubmissionNames } = require('./dieu-hanh-names');
 
 function createDirectiveRoutes(context) {
   const { asyncRoute, db, auth } = context;
@@ -28,6 +29,18 @@ function createDirectiveRoutes(context) {
       `SELECT * FROM directives WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
       [unitId, unitId]
     );
+    res.json({ data: await withDirectiveNames(db, rows) });
+  }));
+
+  // GET /api/directives/units — đơn vị có module dieu-hanh (đích của Giao việc/Trình)
+  router.get('/api/directives/units', asyncRoute(async (req, res) => {
+    const [rows] = await db.execute(
+      `SELECT u.id, u.code, u.name, u.kind
+       FROM org_units u
+       WHERE u.is_active = 1
+         AND EXISTS (SELECT 1 FROM unit_modules m WHERE m.unit_id = u.id AND m.module_id = 'dieu-hanh')
+       ORDER BY u.code`
+    );
     res.json({ data: rows });
   }));
 
@@ -44,7 +57,7 @@ function createDirectiveRoutes(context) {
     const fromUnitId = req.unit ? req.unit.id : 1;
     const [result] = await db.execute(
       `INSERT INTO directives(from_unit_id, to_unit_id, title, body, deadline, status, created_by) VALUES (?, ?, ?, ?, ?, 'sent', ?)`,
-      [fromUnitId, to_unit_id, title, body || null, deadline, req.user ? req.user.id : null]
+      [fromUnitId, to_unit_id, title, body || null, deadline, req.actor?.id ?? null]
     );
     const [created] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [result.insertId]);
     res.status(201).json(created[0]);
@@ -59,7 +72,8 @@ function createDirectiveRoutes(context) {
     const directive = rows[0];
     const [submissions] = await db.execute(`SELECT * FROM submissions WHERE directive_id = ?`, [directive.id]);
     const [activities] = await db.execute(`SELECT * FROM activities WHERE directive_id = ?`, [directive.id]);
-    res.json({ ...directive, submissions, activities });
+    const [named] = await withDirectiveNames(db, [directive]);
+    res.json({ ...named, submissions: await withSubmissionNames(db, submissions), activities });
   }));
 
   // POST /api/directives/:id/acknowledge
@@ -74,7 +88,7 @@ function createDirectiveRoutes(context) {
     if (!['sent', 'pending'].includes(directive.status)) {
       return res.status(400).json({ error: 'Chỉ đạo không ở trạng thái chờ tiếp nhận.' });
     }
-    const ownerUserId = req.body.owner_user_id || (req.user ? req.user.id : null);
+    const ownerUserId = req.body.owner_user_id || req.actor?.id || null;
     await db.execute(
       `UPDATE directives SET status = 'acknowledged', owner_user_id = ?, acknowledged_at = NOW(), updated_at = NOW() WHERE id = ?`,
       [ownerUserId, directive.id]
@@ -113,7 +127,7 @@ function createDirectiveRoutes(context) {
     }
     const [subResult] = await db.execute(
       `INSERT INTO submissions(from_unit_id, to_unit_id, source_type, source_id, directive_id, note, submitted_by) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [directive.to_unit_id, directive.from_unit_id, source_type, source_id, directive.id, note || null, req.user ? req.user.id : null]
+      [directive.to_unit_id, directive.from_unit_id, source_type, source_id, directive.id, note || null, req.actor?.id ?? null]
     );
     await db.execute(`UPDATE directives SET status = 'submitted', updated_at = NOW() WHERE id = ?`, [directive.id]);
     const [createdSub] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [subResult.insertId]);
@@ -146,7 +160,7 @@ function createDirectiveRoutes(context) {
     );
     await db.execute(
       `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE directive_id = ? AND response IS NULL`,
-      [response, response_note || null, req.user ? req.user.id : null, directive.id]
+      [response, response_note || null, req.actor?.id ?? null, directive.id]
     );
     const [updated] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [directive.id]);
     res.json(updated[0]);

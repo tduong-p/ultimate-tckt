@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-TEAMS-001
 title: Design — Teams Screen UI (Các Tổ)
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -26,9 +26,12 @@ The "Các Tổ" screen presents the units and teams that plan, coordinate, and e
   - Team Description
   - Metrics: Member count (`thành viên`) and Active activities count (`đang chạy`)
 
+Trang Tổ dùng nút sửa/xoá theo quyền của mỗi Tổ. Admin có thể sửa tên, mô tả và màu; Tổ trưởng chỉ sửa màu. Admin được quản lý thành viên và vai trò; Tổ trưởng chỉ thêm/xoá thành viên thường trong Tổ mình quản lý. Route chi tiết `#/team/:id` dựa vào 403 từ server rồi điều hướng về Tổng quan nếu người dùng không có quyền.
+
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo tài liệu thiết kế giao diện Các Tổ | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/teams thực tế, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Bỏ hai nút "Xem hoạt động"/"Quản lý thành viên" (chưa có chức năng) | DYC |
+| 1.3 | 2026-10-09 | Cập nhật thiết kế theo màn Tổ đã triển khai: sửa/xoá Tổ, thành viên và trang chi tiết | DYC |
