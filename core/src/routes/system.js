@@ -2,7 +2,7 @@ const express = require('express');
 const { dateInVietnam } = require('../date-vn');
 const { findOrCreateHustAccount } = require('../auth/hust-account');
 const { classifyHustEmail, studentCohortFromEmail, withHustIdentity } = require('../auth/hust-identity');
-const { sessionView } = require('../middleware/unit-context');
+const { sessionView, loadUnitModules } = require('../middleware/unit-context');
 const { ensureDycAdmins } = require('../units/memberships');
 const { devopsEmailAllowlist } = require('../middleware/auth');
 
@@ -15,22 +15,22 @@ router.get('/api/session', (req, res) => {
   res.json({ ...view, user: withHustIdentity(view.user) });
 });
 
-router.post('/api/session/unit', auth, (req, res) => {
+router.post('/api/session/unit', auth, asyncRoute(async (req, res) => {
   const unitId = Number(req.body.unit_id);
   const m = req.memberships.find(x => x.unit_id === unitId);
   if (!m) {
     return res.status(403).json({ error: 'Bạn không thuộc đơn vị này.' });
   }
-  
+
   // Update session và request context
   req.session.current_unit_id = unitId;
-  req.unit = { id: m.unit_id, code: m.code, name: m.name, kind: m.kind };
+  req.unit = { id: m.unit_id, code: m.code, name: m.name, kind: m.kind, modules: await loadUnitModules(db, m.unit_id) };
   req.unitRole = m.role;
-  
+
   // Return updated session view
   const view = sessionView(req);
   res.json({ ...view, user: withHustIdentity(view.user) });
-});
+}));
 
 router.use('/auth/microsoft/callback',(_req,res,next)=>{res.type('text/plain');next()});
 router.get('/auth/microsoft',(req,res)=>{if(!microsoftSso?.clientId||!microsoftSso?.clientSecret)return res.status(503).send('Microsoft SSO is not configured. Set AZURE_CLIENT_ID and AZURE_CLIENT_SECRET.');const state=crypto.randomBytes(32).toString('hex');req.session.microsoftSsoState=state;const query=new URLSearchParams({client_id:microsoftSso.clientId,response_type:'code',redirect_uri:microsoftSso.redirectUri,response_mode:'query',scope:'openid profile email',state,prompt:'select_account',domain_hint:microsoftSso.allowedDomain});res.redirect(`https://login.microsoftonline.com/${encodeURIComponent(microsoftSso.tenant)}/oauth2/v2.0/authorize?${query}`)});
