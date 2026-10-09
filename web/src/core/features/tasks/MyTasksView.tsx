@@ -13,6 +13,7 @@ import {
   getTaskStatusLabel,
 } from './taskLabels';
 import { TaskActionButtons } from './TaskActionButtons';
+import { TaskCheckButton, TaskTitleButton } from './TaskRowControls';
 
 type TaskGroup = { key: string; title: string; tasks: TaskItem[] };
 
@@ -180,9 +181,10 @@ export const MyTasksView: React.FC = () => {
                         border: `1px solid ${token('color.border', '#DFE1E6')}`,
                       }}
                     >
+                      <TaskCheckButton task={task} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: token('color.text', '#172B4D'), marginBottom: '4px' }}>
-                          {task.title}
+                        <div style={{ fontSize: '14px', marginBottom: '4px' }}>
+                          <TaskTitleButton task={task} />
                         </div>
                         <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: token('color.text.subtle', '#6B778C'), flexWrap: 'wrap' }}>
                           {task.activity_title && <span>Hoạt động: {task.activity_title}</span>}
