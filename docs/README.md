@@ -174,8 +174,8 @@
 | [PLAN-DOCS-001](specs/2026-10-08-documents-screen-plan.md) | Plan — Documents Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-LOGIN-001](specs/2026-10-08-login-ui-design.md) | Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.7 | active | dev, ai |
 | [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.6 | active | dev, ai |
-| [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.2 | active | dev, ai |
-| [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.1 | active | dev, ai |
+| [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.3 | active | dev, ai |
+| [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.2 | active | dev, ai |
 | [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.5 | active | dev, ai |
 | [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.3 | active | dev, ai |
 | [SPEC-REPORTS-001](specs/2026-10-08-reports-screen-design.md) | Design — Reports Screen UI (Báo cáo) | 1.4 | active | dev, ai |
