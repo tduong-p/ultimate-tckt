@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -238,7 +238,7 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
   - Bấm một mục thì đánh dấu mục đó (`PATCH …/:id/seen`) và đi tới `url` của nó (hash cũ, đã chuẩn hoá theo mục 3.1).
   - Popup cho tối đa 3 mục mới chưa báo.
 
-### 4.7 Giao việc và Trình (cải tiến, API đã có)
+### 4.7 Giao việc và Trình (đợt 5)
 
 - Chỉ hiện khi đơn vị hiện tại có module `dieu-hanh`. Server trả 403 "Forbidden" nếu không.
 - **Chỉ đạo** (`/api/directives`):
@@ -256,6 +256,10 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
   - Rút lại: đơn vị gửi, khi chưa có phản hồi.
 - Quyền chính xác của từng nút lấy từ `core/src/routes/directives.js` và `submissions.js`. Plan phải chép bảng điều kiện từ
   code, không đoán.
+- Đợt 5 đã triển khai route/menu và giao diện web cùng API Core. Cổng API đọc module `dieu-hanh` trên đơn vị hiện tại;
+  DYC tiếp tục có quyền đọc theo cổng legacy và audit. API bổ sung tên đơn vị/người, tiêu đề nguồn và danh sách đơn vị
+  nhận để giao diện hiển thị dữ liệu đủ nghĩa.
+- Web hiện chưa có thanh tiến độ vì API không trả `progress_percent`; đợt 6 mới tích hợp nút tạo trình cho nguồn `ops_log`.
 
 ### 4.8 Nhật ký trực ban (cải tiến, cần backend Core mới)
 
@@ -367,3 +371,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |
 | 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 (Công việc và Kanban) hoàn thành: đầy đủ 12 task theo plan (hộp chi tiết công việc, checklist, tài liệu, bình luận, sửa việc, tự ghi nhận, giao việc, Kanban 4 cột kéo-thả, tích hợp vào Tổng quan, Việc hôm nay và Chi tiết hoạt động) | DYC |
+| 1.6 | 2026-10-09 | Ghi nhận phạm vi và quyết định đợt 5: API/module gate, route/menu Giao việc/Trình; progress_percent và tích hợp nguồn ops_log còn lại | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.3
+version: 6.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-03
+updated: 2026-10-09
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -58,7 +58,7 @@ vào mỗi request đã đăng nhập:
 | Property | Kiểu | Mô tả |
 |---|---|---|
 | `req.memberships` | `Membership[]` | Danh sách đơn vị user tham gia (chỉ đơn vị `is_active=1`), mỗi phần tử `{ unit_id, code, name, kind, role }`. Rỗng nếu chưa đăng nhập hoặc không có membership. |
-| `req.unit` | `{ id, code, name, kind }` hoặc `null` | Đơn vị đang chọn. `null` nếu chưa đăng nhập hoặc không có membership. |
+| `req.unit` | `{ id, code, name, kind, modules }` hoặc `null` | Đơn vị đang chọn; `modules` là danh sách module đang bật từ `unit_modules`. `null` nếu chưa đăng nhập hoặc không có membership. |
 | `req.unitRole` | `string` hoặc `null` | Role của user trong đơn vị đang chọn. |
 | `req.actor` | `{ ...session.user, role }` hoặc `null` | `role` = `legacyRole(memberships, method)` — dùng cho route Điều hành cũ (`admin`, `manager`...). |
 
@@ -78,6 +78,28 @@ vào mỗi request đã đăng nhập:
 
 **Không phụ thuộc** `current_unit_id`. Lý do: frontend `core/public/` chưa có bộ chọn đơn vị (GĐ1-D);
 nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ mất quyền ghi TCKT khi đứng ở DYC.
+
+## Giao việc và Trình — cổng module và quyền trên giao diện web
+
+`/api/directives*` và `/api/submissions*` yêu cầu `auth` và module `dieu-hanh` của đơn vị đang chọn; DYC được phép
+đọc chéo theo cổng legacy với audit log. `GET /api/session` và `POST /api/session/unit` trả `units.current.modules`;
+đổi đơn vị sẽ nạp lại danh sách module tương ứng. Web dùng dữ liệu này để ẩn menu và đưa route không phù hợp về
+`#/dashboard`. Server vẫn là nơi quyết định cuối cùng cho mọi request.
+
+Các điều kiện nút trong `web/src/core/features/dieuhanh/permissions.ts` phản chiếu điều kiện route Core:
+
+| Thao tác | Điều kiện giao diện |
+|---|---|
+| Tạo chỉ đạo | BTV (`btv_lead`, `btv_member`) hoặc DYC |
+| Tiếp nhận chỉ đạo | Admin/phó admin đơn vị nhận; trạng thái `sent` hoặc `pending` |
+| Gắn hoạt động, nộp kết quả | Đơn vị nhận; admin/phó admin/trưởng/phó nhóm hoặc người phụ trách; trạng thái phù hợp |
+| Đánh giá chỉ đạo | BTV của đơn vị gửi hoặc DYC; trạng thái `submitted` |
+| Tạo trình | Admin/phó admin hoặc BTV |
+| Phản hồi trình | BTV đơn vị nhận hoặc DYC; chưa rút; chưa phản hồi hoặc đã đánh dấu `seen` |
+| Rút trình | Admin/phó admin của đơn vị gửi; chưa phản hồi và chưa rút |
+
+Frontend dùng role của membership trong đơn vị hiện tại (`unitRole` từ session capabilities), không dùng `users.role`
+để quyết định các nút này.
 
 ## Membership và `req.actor` — GĐ1-A Task 4 (đã code)
 
@@ -260,3 +282,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 6.1 | 2026-10-01 | Cập nhật ma trận phân quyền Legacy Gate: thêm kiểm tra unit_modules (đơn vị có module dieu-hanh được truy cập). Cập nhật test coverage ghi nhận units.visibility.test.js | AI |
 | 6.2 | 2026-10-03 | Đồng bộ hai chiều users.role ↔ unit_memberships (TCKT) trên cả 4 route teams.js (R1, G1) | DYC |
 | 6.3 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (`createIfMissing: false`) | DYC |
+| 6.4 | 2026-10-09 | Ghi nhận `req.unit.modules`, module trong session và cổng/quyền của Giao việc, Trình trên web | DYC |

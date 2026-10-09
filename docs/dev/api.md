@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.8
+version: 5.9
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -40,6 +40,13 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
 | GET | `/api/task-attachments/:id/content` | `tasks.js` |
+| GET | `/api/directives`, `/api/directives/units` | `directives.js` |
+| POST | `/api/directives` | `directives.js` |
+| GET | `/api/directives/:id` | `directives.js` |
+| POST | `/api/directives/:id/{acknowledge,link-activity,submit,respond}` | `directives.js` |
+| GET/POST | `/api/submissions` | `submissions.js` |
+| GET | `/api/submissions/:id` | `submissions.js` |
+| POST | `/api/submissions/:id/{respond,withdraw}` | `submissions.js` |
 
 Ngày nghiệp vụ ("hôm nay", quá hạn, sắp đến hạn) luôn tính theo giờ Việt Nam qua `core/src/date-vn.js` (`dateInVietnam`), truyền vào SQL thay cho `CURDATE()`; không đặt `TZ` cho container.
 
@@ -91,7 +98,8 @@ Lấy thông tin session hiện tại.
       "id": 1,
       "code": "TCKT",
       "name": "Ban Tổ chức – Kiểm tra",
-      "kind": "department"
+      "kind": "department",
+      "modules": ["dieu-hanh"]
     },
     "memberships": [
       {
@@ -138,6 +146,25 @@ Lấy thông tin session hiện tại.
   "error": "Bạn không thuộc đơn vị này."
 }
 ```
+
+Khi đổi đơn vị thành công, `units.current` trong response cũng chứa danh sách `modules` của đơn vị mới. Frontend dùng
+`units.current.modules` để quyết định có mở các màn Điều hành hay không.
+
+### GET /api/directives/units
+
+Danh sách đơn vị có module `dieu-hanh` để chọn nơi nhận chỉ đạo/trình.
+
+**Auth:** Required; cần cổng Điều hành theo `docs/dev/phan-quyen.md`.
+
+**Response 200:** `{ "data": [{ "id": 1, "code": "TCKT", "name": "Ban Tổ chức – Kiểm tra" }] }`
+
+### Giao việc và Trình
+
+Các route `/api/directives*` và `/api/submissions*` yêu cầu đăng nhập và quyền Điều hành. Danh sách/chi tiết trả thêm
+tên đơn vị, người tạo/người phụ trách/người phản hồi và tiêu đề nguồn để giao diện không phải tự tra từng id.
+`GET /api/directives/:id` gồm `submissions` và `activities` liên kết; `GET /api/submissions/:id` trả chi tiết một trình.
+Các thao tác ghi gồm tạo chỉ đạo/trình, tiếp nhận, gắn hoạt động, nộp kết quả, phản hồi và rút trình; quyền chi tiết
+được mô tả trong `docs/dev/phan-quyen.md`.
 
 ---
 
@@ -486,3 +513,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.6 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (R1) | DYC |
 | 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
 | 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
+| 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
