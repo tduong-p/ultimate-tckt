@@ -21,12 +21,14 @@ test('serves the new web app at root, legacy UI under /legacy, and keeps API/aut
   const webDistDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tckt-web-dist-'));
   fs.writeFileSync(path.join(webDistDir, 'index.html'), '<!doctype html><title>WEB_ENTRY</title>');
 
-  const { app } = createApplication({ db: pool, config: testConfig, notiSender: null, webDistDir });
-  const server = http.createServer(app);
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  let server;
 
   try {
+    const { app } = createApplication({ db: pool, config: testConfig, notiSender: null, webDistDir });
+    server = http.createServer(app);
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
     for (const urlPath of ['/', '/activity/123']) {
       const response = await fetch(`${baseUrl}${urlPath}`);
       assert.equal(response.status, 200, `${urlPath} status`);
@@ -53,7 +55,7 @@ test('serves the new web app at root, legacy UI under /legacy, and keeps API/aut
       assert.doesNotMatch(await response.text(), /WEB_ENTRY/, `${urlPath} must not return the SPA entry`);
     }
   } finally {
-    await new Promise(resolve => server.close(resolve));
+    if (server?.listening) await new Promise(resolve => server.close(resolve));
     fs.rmSync(webDistDir, { recursive: true, force: true });
     await teardown();
   }
