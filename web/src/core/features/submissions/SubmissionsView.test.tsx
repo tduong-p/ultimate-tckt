@@ -31,8 +31,9 @@ describe('SubmissionsView', () => {
       { id: 2, code: 'TCKT', name: 'Ban TCKT', kind: 'department' },
     ]);
     vi.mocked(api.fetchActivities).mockResolvedValue([
-      { id: 31, title: 'Hội nghị A', status: 'approved' } as api.ActivityItem,
-      { id: 33, title: 'Đề xuất chưa duyệt', status: 'proposed' } as api.ActivityItem,
+      { id: 31, title: 'Hội nghị A', status: 'approved', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+      { id: 33, title: 'Đề xuất chưa duyệt', status: 'proposed', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+      { id: 34, title: 'Hoạt động đơn vị khác', status: 'approved', unit_id: BTV_UNIT.id } as api.ActivityItem,
     ]);
     vi.mocked(api.fetchDirectives).mockResolvedValue([
       { id: 7, from_unit_id: 1, to_unit_id: 2, title: 'Báo cáo quý IV', status: 'in_progress' } as api.Directive,
@@ -80,6 +81,7 @@ describe('SubmissionsView', () => {
     expect(within(dialog).queryByRole('option', { name: 'Ban TCKT' })).toBeNull();
     await within(dialog).findByRole('option', { name: 'Hội nghị A' });
     expect(within(dialog).queryByRole('option', { name: 'Đề xuất chưa duyệt' })).toBeNull();
+    expect(within(dialog).queryByRole('option', { name: 'Hoạt động đơn vị khác' })).toBeNull();
     fireEvent.change(within(dialog).getByLabelText(/Đơn vị nhận/), { target: { value: '1' } });
     expect(within(dialog).getByRole('option', { name: 'Báo cáo quý IV' })).toBeDefined();
     expect(within(dialog).queryByRole('option', { name: 'Đã xong rồi' })).toBeNull();
@@ -104,6 +106,18 @@ describe('SubmissionsView', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Trình' }));
     expect(within(dialog).getByText('Chọn đơn vị nhận và hoạt động cần trình.')).toBeDefined();
     expect(api.createSubmission).not.toHaveBeenCalled();
+  });
+
+  it('báo lỗi tải hoạt động khi tạo trình và cho thử lại', async () => {
+    vi.mocked(api.fetchActivities).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce([
+      { id: 31, title: 'Hội nghị A', status: 'approved', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+    ]);
+    renderDh(<SubmissionsView />, { path: '/submissions', unit: TCKT_UNIT, role: 'admin' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Trình lên' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('Không kết nối được máy chủ. Vui lòng thử lại.')).toBeDefined();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Thử tải lại' }));
+    expect(await within(dialog).findByRole('option', { name: 'Hội nghị A' })).toBeDefined();
   });
 });
 

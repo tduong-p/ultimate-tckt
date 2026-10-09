@@ -8,7 +8,7 @@ import { useToast } from '../../../shared/components/Toast';
 import { todayVnKey } from '../../../shared/utils/date';
 import { DH_UNITS_KEY, DIRECTIVES_KEY } from '../dieuhanh/queryKeys';
 import { useDhActor } from '../dieuhanh/useDhActor';
-import { ErrorText, FIELD_STYLE, FormDialog, SelectField } from '../dieuhanh/parts';
+import { ErrorText, FIELD_STYLE, FormDialog, QueryStatus, SelectField } from '../dieuhanh/parts';
 
 export const CreateDirectiveModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const actor = useDhActor();
@@ -28,7 +28,7 @@ export const CreateDirectiveModal: React.FC<{ isOpen: boolean; onClose: () => vo
     if (!isOpen) { setToUnit(''); setTitle(''); setBody(''); setDeadline(''); setError(''); }
   }, [isOpen]);
 
-  const { data: units = [] } = useQuery({ queryKey: DH_UNITS_KEY, queryFn: fetchDieuHanhUnits, enabled: isOpen });
+  const { data: units = [], isLoading: unitsLoading, error: unitsError, refetch: retryUnits } = useQuery({ queryKey: DH_UNITS_KEY, queryFn: fetchDieuHanhUnits, enabled: isOpen });
   const options = units.filter((u) => u.id !== actor.unitId).map((u) => ({ value: String(u.id), label: u.name }));
 
   const mutation = useMutation({
@@ -53,7 +53,8 @@ export const CreateDirectiveModal: React.FC<{ isOpen: boolean; onClose: () => vo
 
   return (
     <FormDialog isOpen={isOpen} title="Giao việc mới" confirmLabel="Giao việc" isLoading={mutation.isPending} onSubmit={submit} onCancel={onClose}>
-      <SelectField label="Đơn vị nhận" required value={toUnit} onChange={setToUnit} options={options} placeholder="Chọn đơn vị" />
+      <SelectField label="Đơn vị nhận" required value={toUnit} onChange={setToUnit} options={options} placeholder="Chọn đơn vị" disabled={unitsLoading || Boolean(unitsError)} />
+      <QueryStatus isLoading={unitsLoading} error={unitsError} onRetry={() => void retryUnits()} />
       <div style={{ marginTop: 12 }}>
         <label htmlFor={titleId}>Tiêu đề *</label>
         <Textfield id={titleId} value={title} maxLength={200} onChange={(e) => setTitle((e.target as HTMLInputElement).value)} />

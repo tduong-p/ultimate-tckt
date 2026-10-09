@@ -12,6 +12,7 @@ import { useToast } from '../../../shared/components/Toast';
 import { formatVnDate } from '../../../shared/utils/date';
 import { DIRECTIVE_KEY, DIRECTIVES_KEY, SUBMISSIONS_KEY } from '../dieuhanh/queryKeys';
 import { useDhActor } from '../dieuhanh/useDhActor';
+import { getActivityStatusMeta } from '../activities/activityLabels';
 import {
   canAcknowledgeDirective, canLinkActivity, canRespondDirective, canSubmitDirective,
 } from '../dieuhanh/permissions';
@@ -97,7 +98,7 @@ export const DirectiveDetailView: React.FC = () => {
 
       <h2 style={{ marginTop: 24 }}>Hoạt động liên kết</h2>
       {d.activities.length === 0 ? <p>Chưa gắn hoạt động nào.</p> : (
-        <ul>{d.activities.map((a) => <li key={a.id}><Link to={`/activity/${a.id}`}>{a.title}</Link> ({a.status})</li>)}</ul>
+        <ul>{d.activities.map((a) => <li key={a.id}><Link to={`/activity/${a.id}`}>{a.title}</Link> ({getActivityStatusMeta(a.status).text})</li>)}</ul>
       )}
 
       <h2 style={{ marginTop: 24 }}>Kết quả đã nộp</h2>

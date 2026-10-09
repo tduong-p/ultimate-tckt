@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-WEBP5-001
 title: Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: []
 ---
 
@@ -2744,3 +2744,4 @@ Mô tả PR: tóm tắt hai phần Core (sửa `req.unit.modules`, thêm tên + 
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: kế hoạch đợt 5 của SPEC-WEB-003 (Giao việc và Trình) | DYC |
+| 1.1 | 2026-10-10 | Bổ sung giới hạn hoạt động được chọn theo đơn vị sở hữu, ngăn gắn lại hoạt động đã liên kết, và ghi trạng thái lỗi/tải lại của picker; theo dõi thiếu kiểm tra backend tại issue #95 | DYC |

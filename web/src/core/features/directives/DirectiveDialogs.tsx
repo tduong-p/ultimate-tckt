@@ -2,7 +2,12 @@ import React, { useEffect, useId, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import TextArea from '@atlaskit/textarea';
 import { fetchActivities, fetchUnitMembers, type DirectiveDetail } from '../../api';
-import { ErrorText, FormDialog, SelectField } from '../dieuhanh/parts';
+import { ErrorText, FormDialog, QueryStatus, SelectField } from '../dieuhanh/parts';
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: 'Quản trị viên', vice_admin: 'Phó quản trị viên', leader: 'Trưởng nhóm', vice_leader: 'Phó nhóm', member: 'Thành viên',
+  btv_lead: 'Lãnh đạo BTV', btv_member: 'Thành viên BTV',
+};
 
 /** Tiếp nhận chỉ đạo, có thể chọn người phụ trách trong đơn vị mình (mặc định: người đang thao tác). */
 export const AcknowledgeDialog: React.FC<{
@@ -11,12 +16,13 @@ export const AcknowledgeDialog: React.FC<{
 }> = ({ isOpen, unitId, defaultOwnerId, isLoading, onSubmit, onCancel }) => {
   const [owner, setOwner] = useState('');
   useEffect(() => { if (isOpen) setOwner(defaultOwnerId ? String(defaultOwnerId) : ''); }, [isOpen, defaultOwnerId]);
-  const { data: members = [] } = useQuery({ queryKey: ['dieu-hanh-members', unitId], queryFn: () => fetchUnitMembers(unitId), enabled: isOpen });
+  const { data: members = [], isLoading: membersLoading, error: membersError, refetch: retryMembers } = useQuery({ queryKey: ['dieu-hanh-members', unitId], queryFn: () => fetchUnitMembers(unitId), enabled: isOpen });
   return (
     <FormDialog isOpen={isOpen} title="Tiếp nhận chỉ đạo" confirmLabel="Tiếp nhận" isLoading={isLoading}
       onSubmit={() => onSubmit(owner ? Number(owner) : undefined)} onCancel={onCancel}>
-      <SelectField label="Người phụ trách" value={owner} onChange={setOwner} placeholder="Tôi (người tiếp nhận)"
-        options={members.map((m) => ({ value: String(m.user_id), label: `${m.name} (${m.role})` }))} />
+      <SelectField label="Người phụ trách" value={owner} onChange={setOwner} placeholder="Tôi (người tiếp nhận)" disabled={membersLoading || Boolean(membersError)}
+        options={members.map((m) => ({ value: String(m.user_id), label: `${m.name} (${ROLE_LABEL[m.role] ?? 'Thành viên'})` }))} />
+      <QueryStatus isLoading={membersLoading} error={membersError} onRetry={() => void retryMembers()} />
     </FormDialog>
   );
 };
@@ -27,15 +33,16 @@ export const LinkActivityDialog: React.FC<{
 }> = ({ isOpen, directive, isLoading, onSubmit, onCancel }) => {
   const [activityId, setActivityId] = useState('');
   useEffect(() => { if (!isOpen) setActivityId(''); }, [isOpen]);
-  const { data: activities = [] } = useQuery({ queryKey: ['dieu-hanh-activities'], queryFn: () => fetchActivities(), enabled: isOpen });
+  const { data: activities = [], isLoading: activitiesLoading, error: activitiesError, refetch } = useQuery({ queryKey: ['dieu-hanh-activities'], queryFn: () => fetchActivities(), enabled: isOpen });
   const linked = new Set(directive.activities.map((a) => a.id));
   const options = activities
-    .filter((a) => a.status !== 'cancelled' && !linked.has(a.id))
+    .filter((a) => a.unit_id === directive.to_unit_id && a.status !== 'cancelled' && a.directive_id == null && !linked.has(a.id))
     .map((a) => ({ value: String(a.id), label: a.title }));
   return (
     <FormDialog isOpen={isOpen} title="Gắn hoạt động vào chỉ đạo" confirmLabel="Gắn" isLoading={isLoading}
-      confirmDisabled={!activityId} onSubmit={() => onSubmit(Number(activityId))} onCancel={onCancel}>
-      <SelectField label="Hoạt động" required value={activityId} onChange={setActivityId} options={options} placeholder="Chọn hoạt động" />
+      confirmDisabled={!activityId || activitiesLoading || Boolean(activitiesError)} onSubmit={() => onSubmit(Number(activityId))} onCancel={onCancel}>
+      <SelectField label="Hoạt động" required value={activityId} onChange={setActivityId} options={options} placeholder="Chọn hoạt động" disabled={activitiesLoading || Boolean(activitiesError)} />
+      <QueryStatus isLoading={activitiesLoading} error={activitiesError} onRetry={() => void refetch()} />
     </FormDialog>
   );
 };

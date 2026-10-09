@@ -58,7 +58,7 @@
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.4 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.0 | active | dev, ai |
-| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.4 | active | dev, ai |
+| [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.5 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
 | [DEV-TEST-001](dev/test.md) | Test | 2.32 | active | dev, ai |
@@ -188,7 +188,7 @@
 | [PLAN-WEBP2-001](specs/2026-10-09-web-dot-2-cong-viec-plan.md) | Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban) | 1.2 | active | dev, ai |
 | [PLAN-WEBP3-001](specs/2026-10-09-web-dot-3-to-thanh-vien-plan.md) | Kế hoạch triển khai — web/ đợt 3 (Tổ, thành viên, tài khoản, quản trị, trọng số, tài khoản của tôi) | 1.0 | active | dev, ai |
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.2 | active | dev, ai |
-| [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.0 | active | dev, ai |
+| [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.1 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
 | [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.8 | active | dev, ai, ops |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |

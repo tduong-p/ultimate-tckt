@@ -29,8 +29,8 @@ describe('DirectiveDetailView', () => {
       { user_id: 8, name: 'Nguyễn Văn B', email: 'b@x', role: 'member' },
     ]);
     vi.mocked(api.fetchActivities).mockResolvedValue([
-      { id: 31, title: 'Hội nghị A', status: 'approved', deadline: '2026-11-30' } as api.ActivityItem,
-      { id: 32, title: 'Việc đã huỷ', status: 'cancelled', deadline: '2026-11-30' } as api.ActivityItem,
+      { id: 31, title: 'Hội nghị A', status: 'approved', deadline: '2026-11-30', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+      { id: 32, title: 'Việc đã huỷ', status: 'cancelled', deadline: '2026-11-30', unit_id: TCKT_UNIT.id } as api.ActivityItem,
     ]);
   });
   afterEach(cleanup);
@@ -67,17 +67,38 @@ describe('DirectiveDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Tiếp nhận' })).toBeNull();
   });
 
-  it('gắn hoạt động: chỉ liệt kê hoạt động còn hiệu lực chưa gắn, gọi đúng API', async () => {
+  it('gắn hoạt động: chỉ liệt kê hoạt động còn hiệu lực của đơn vị nhận chưa gắn chỉ đạo nào', async () => {
     vi.mocked(api.fetchDirective).mockResolvedValue(detail({ status: 'acknowledged', owner_user_id: 5 }));
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { id: 31, title: 'Hội nghị A', status: 'approved', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+      { id: 32, title: 'Việc đã huỷ', status: 'cancelled', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+      { id: 33, title: 'Hoạt động đơn vị khác', status: 'approved', unit_id: BTV_UNIT.id } as api.ActivityItem,
+      { id: 34, title: 'Đã gắn chỉ đạo khác', status: 'approved', unit_id: TCKT_UNIT.id, directive_id: 99 } as api.ActivityItem,
+    ]);
     vi.mocked(api.linkDirectiveActivity).mockResolvedValueOnce({} as api.Directive);
     at();
     fireEvent.click(await screen.findByRole('button', { name: 'Gắn hoạt động' }));
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByRole('option', { name: 'Hội nghị A' });
     expect(within(dialog).queryByRole('option', { name: 'Việc đã huỷ' })).toBeNull();
+    expect(within(dialog).queryByRole('option', { name: 'Hoạt động đơn vị khác' })).toBeNull();
+    expect(within(dialog).queryByRole('option', { name: 'Đã gắn chỉ đạo khác' })).toBeNull();
     fireEvent.change(within(dialog).getByLabelText(/Hoạt động/), { target: { value: '31' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Gắn' }));
     await waitFor(() => expect(api.linkDirectiveActivity).toHaveBeenCalledWith(7, 31));
+  });
+
+  it('báo lỗi tải hoạt động và cho thử lại', async () => {
+    vi.mocked(api.fetchDirective).mockResolvedValue(detail({ status: 'acknowledged', owner_user_id: 5 }));
+    vi.mocked(api.fetchActivities).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce([
+      { id: 31, title: 'Hội nghị A', status: 'approved', unit_id: TCKT_UNIT.id } as api.ActivityItem,
+    ]);
+    at();
+    fireEvent.click(await screen.findByRole('button', { name: 'Gắn hoạt động' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('Không kết nối được máy chủ. Vui lòng thử lại.')).toBeDefined();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Thử tải lại' }));
+    expect(await within(dialog).findByRole('option', { name: 'Hội nghị A' })).toBeDefined();
   });
 
   it('nộp kết quả: nguồn là hoạt động đã gắn; chưa gắn thì báo và khoá nút', async () => {

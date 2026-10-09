@@ -3,6 +3,7 @@ import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition
 import Button from '@atlaskit/button/new';
 import Lozenge from '@atlaskit/lozenge';
 import { token } from '@atlaskit/tokens';
+import { apiErrorMessage } from '../../api';
 import type { LozengeTone } from './labels';
 
 export const FIELD_STYLE: React.CSSProperties = {
@@ -39,6 +40,12 @@ export const SelectField: React.FC<{
 
 export const ErrorText: React.FC<{ message: string }> = ({ message }) =>
   message ? <p role="alert" style={{ color: token('color.text.danger', '#AE2E24'), marginTop: 8 }}>{message}</p> : null;
+
+export const QueryStatus: React.FC<{ isLoading: boolean; error: unknown; onRetry: () => void }> = ({ isLoading, error, onRetry }) => {
+  if (isLoading) return <p role="status" style={{ marginTop: 8 }}>Đang tải dữ liệu…</p>;
+  if (!error) return null;
+  return <div role="alert" style={{ marginTop: 8 }}><ErrorText message={apiErrorMessage(error, 'Không tải được dữ liệu.')} /><Button appearance="subtle" onClick={onRetry}>Thử tải lại</Button></div>;
+};
 
 /** Hộp thoại biểu mẫu chuẩn của Giao việc/Trình: tiêu đề, thân, nút Huỷ + nút xác nhận. */
 export const FormDialog: React.FC<{

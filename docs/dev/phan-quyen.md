@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.4
+version: 6.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/src/routes/system.js, services/ctd-api/backend/app/deps.py]
 ---
 
@@ -81,10 +81,13 @@ nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ m�
 
 ## Giao việc và Trình — cổng module và quyền trên giao diện web
 
-`/api/directives*` và `/api/submissions*` yêu cầu `auth` và module `dieu-hanh` của đơn vị đang chọn; DYC được phép
-đọc chéo theo cổng legacy với audit log. `GET /api/session` và `POST /api/session/unit` trả `units.current.modules`;
-đổi đơn vị sẽ nạp lại danh sách module tương ứng. Web dùng dữ liệu này để ẩn menu và đưa route không phù hợp về
-`#/dashboard`. Server vẫn là nơi quyết định cuối cùng cho mọi request.
+`/api/directives*` và `/api/submissions*` yêu cầu `auth` và module `dieu-hanh` của đơn vị đang chọn; đơn vị DYC
+(`platform_owner`) cũng qua được cổng module. Hai router này không nằm trong `LEGACY_PREFIXES`, nên không được
+`legacyGate` ghi audit. Danh sách chỉ đạo lọc theo đơn vị gửi/nhận, nhưng endpoint chi tiết theo ID và một số thao
+tác ghi chưa kiểm tra đầy đủ quyền sở hữu đơn vị. Đây là phần còn thiếu đã được ghi nhận tại issue #95 và đang để
+sau theo quyết định phạm vi. `GET /api/session` và `POST /api/session/unit` trả `units.current.modules`; đổi đơn vị
+sẽ nạp lại danh sách module tương ứng. Web dùng dữ liệu này để ẩn menu và đưa route không phù hợp về `#/dashboard`.
+Server vẫn là nơi quyết định cuối cùng cho mọi request.
 
 Các điều kiện nút trong `web/src/core/features/dieuhanh/permissions.ts` phản chiếu điều kiện route Core:
 
@@ -283,3 +286,4 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 6.2 | 2026-10-03 | Đồng bộ hai chiều users.role ↔ unit_memberships (TCKT) trên cả 4 route teams.js (R1, G1) | DYC |
 | 6.3 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (`createIfMissing: false`) | DYC |
 | 6.4 | 2026-10-09 | Ghi nhận `req.unit.modules`, module trong session và cổng/quyền của Giao việc, Trình trên web | DYC |
+| 6.5 | 2026-10-10 | Sửa mô tả audit: directives/submissions không thuộc legacy gate; ghi rõ thiếu kiểm tra sở hữu đơn vị và liên kết issue #95 | DYC |
