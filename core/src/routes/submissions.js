@@ -1,4 +1,5 @@
 const express = require('express');
+const { withSubmissionNames } = require('./dieu-hanh-names');
 
 function createSubmissionRoutes(context) {
   const { asyncRoute, db, auth } = context;
@@ -28,7 +29,7 @@ function createSubmissionRoutes(context) {
       `SELECT * FROM submissions WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
       [unitId, unitId]
     );
-    res.json({ data: rows });
+    res.json({ data: await withSubmissionNames(db, rows) });
   }));
 
   // POST /api/submissions
@@ -54,7 +55,7 @@ function createSubmissionRoutes(context) {
   router.get('/api/submissions/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
-    res.json(rows[0]);
+    res.json((await withSubmissionNames(db, [rows[0]]))[0]);
   }));
 
   // POST /api/submissions/:id/respond

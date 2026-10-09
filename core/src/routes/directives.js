@@ -1,4 +1,5 @@
 const express = require('express');
+const { withDirectiveNames, withSubmissionNames } = require('./dieu-hanh-names');
 
 function createDirectiveRoutes(context) {
   const { asyncRoute, db, auth } = context;
@@ -27,6 +28,18 @@ function createDirectiveRoutes(context) {
     const [rows] = await db.execute(
       `SELECT * FROM directives WHERE from_unit_id = ? OR to_unit_id = ? ORDER BY created_at DESC`,
       [unitId, unitId]
+    );
+    res.json({ data: await withDirectiveNames(db, rows) });
+  }));
+
+  // GET /api/directives/units — đơn vị có module dieu-hanh (đích của Giao việc/Trình)
+  router.get('/api/directives/units', asyncRoute(async (req, res) => {
+    const [rows] = await db.execute(
+      `SELECT u.id, u.code, u.name, u.kind
+       FROM org_units u
+       WHERE u.is_active = 1
+         AND EXISTS (SELECT 1 FROM unit_modules m WHERE m.unit_id = u.id AND m.module_id = 'dieu-hanh')
+       ORDER BY u.code`
     );
     res.json({ data: rows });
   }));
@@ -59,7 +72,8 @@ function createDirectiveRoutes(context) {
     const directive = rows[0];
     const [submissions] = await db.execute(`SELECT * FROM submissions WHERE directive_id = ?`, [directive.id]);
     const [activities] = await db.execute(`SELECT * FROM activities WHERE directive_id = ?`, [directive.id]);
-    res.json({ ...directive, submissions, activities });
+    const [named] = await withDirectiveNames(db, [directive]);
+    res.json({ ...named, submissions: await withSubmissionNames(db, submissions), activities });
   }));
 
   // POST /api/directives/:id/acknowledge
