@@ -48,4 +48,10 @@ export const VI_ERROR_MESSAGES: Record<string, string> = {
   'This information is only for HUST student accounts.': 'Thông tin này chỉ dành cho tài khoản sinh viên HUST.',
   'This notice is only for HUST staff and faculty accounts.':
     'Thông báo này chỉ dành cho tài khoản cán bộ, giảng viên HUST.',
+  // Công việc (đợt 2)
+  'Task not found.': 'Không tìm thấy công việc.',
+  'You cannot update this task.': 'Bạn không thể cập nhật công việc này.',
+  'Attachment not found.': 'Không tìm thấy tài liệu.',
+  'Stored file not found.': 'Không tìm thấy tệp đã lưu.',
+  'You cannot manage this team.': 'Bạn không có quyền quản lý Tổ này.',
 };
