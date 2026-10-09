@@ -205,4 +205,52 @@ describe('MyTasksView', () => {
     expect(await screen.findByText('Khẩn cấp')).toBeDefined();
     expect(screen.queryByText('urgent')).toBeNull();
   });
+
+  it('hiển thị các nút tương tác vòng đời công việc theo trạng thái', async () => {
+    vi.mocked(api.fetchBootstrap).mockResolvedValue(
+      bootstrapWithTasks([
+        {
+          id: 501,
+          activity_id: 1,
+          team_id: 2,
+          title: 'Việc đang làm',
+          status: 'in_progress',
+          priority: 'medium',
+          deadline: daysFromToday(1),
+        },
+        {
+          id: 502,
+          activity_id: 1,
+          team_id: 2,
+          title: 'Việc cần làm',
+          status: 'todo',
+          priority: 'low',
+          deadline: daysFromToday(2),
+        },
+      ])
+    );
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue({
+      dueToday: [],
+      overdue: [],
+      pendingMyReview: [
+        {
+          id: 503,
+          activity_id: 1,
+          team_id: 2,
+          title: 'Việc chờ duyệt',
+          status: 'review',
+          priority: 'high',
+          deadline: daysFromToday(1),
+        },
+      ],
+    });
+
+    renderWithClient(<MyTasksView />);
+
+    expect(await screen.findByRole('button', { name: /Nộp nghiệm thu/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Nhận việc/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Bắt đầu làm/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Duyệt đạt/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Yêu cầu sửa/i })).toBeDefined();
+  });
 });

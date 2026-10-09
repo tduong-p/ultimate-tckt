@@ -12,6 +12,7 @@ import {
   getTaskStatusAppearance,
   getTaskStatusLabel,
 } from './taskLabels';
+import { TaskActionButtons } from './TaskActionButtons';
 
 type TaskGroup = { key: string; title: string; tasks: TaskItem[] };
 
@@ -190,7 +191,7 @@ export const MyTasksView: React.FC = () => {
                           {task.assignee_name && <span>Phụ trách: {task.assignee_name}</span>}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', flexShrink: 0, flexWrap: 'wrap' }}>
                         {task.priority && (
                           <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
                             {getTaskPriorityLabel(task.priority)}
@@ -199,6 +200,10 @@ export const MyTasksView: React.FC = () => {
                         <Lozenge appearance={getTaskStatusAppearance(task.status)}>
                           {getTaskStatusLabel(task.status)}
                         </Lozenge>
+                        <TaskActionButtons
+                          task={task}
+                          canReview={group.key === 'review'}
+                        />
                       </div>
                     </div>
                   ))}

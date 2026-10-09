@@ -139,4 +139,16 @@ describe('MyTasksToday', () => {
     expect(screen.getByText(/Cần làm/i)).toBeDefined();
     expect(screen.getByText('Trung bình')).toBeDefined();
   });
+
+  it('renders action buttons for tasks in different states', async () => {
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue(mockTasksData);
+    renderWithClient(<MyTasksToday />);
+
+    // in_progress task in dueToday has 'Nộp nghiệm thu'
+    expect(await screen.findByRole('button', { name: /Nộp nghiệm thu/i })).toBeDefined();
+
+    // review task in pendingMyReview has 'Duyệt đạt' and 'Yêu cầu sửa'
+    expect(screen.getByRole('button', { name: /Duyệt đạt/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Yêu cầu sửa/i })).toBeDefined();
+  });
 });
