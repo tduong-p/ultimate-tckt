@@ -2,7 +2,7 @@
 doc_id: PLAN-WEBP2-001
 title: Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban)
 version: 1.2
-status: completed
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09

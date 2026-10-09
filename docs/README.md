@@ -156,8 +156,8 @@
 | [PLAN-POC-007](specs/2026-10-06-web-poc-react-atlaskit-plan-7.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive) | 1.1 | deprecated | dev, ai |
 | [PLAN-POC-008](specs/2026-10-06-web-poc-react-atlaskit-plan-8.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 8 - Full Atlassian Design System) | 1.1 | deprecated | dev, ai |
 | [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.3 | deprecated | dev, ai |
-| [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.4 | active | dev, ai |
-| [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.3 | active | dev, ai |
+| [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.5 | active | dev, ai |
+| [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.4 | active | dev, ai |
 | [SPEC-ARCHIVE-001](specs/2026-10-08-archive-screen-design.md) | Design — Archive Screen UI (Kho lưu trữ hoạt động) | 1.2 | active | dev, ai |
 | [PLAN-ARCHIVE-001](specs/2026-10-08-archive-screen-plan.md) | Plan — Archive Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.6 | active | dev, ai |
@@ -185,7 +185,7 @@
 | [SPEC-ENTERPRISE-001](specs/2026-10-09-master-system-enhancement-proposal.md) | Đề án Toàn diện — Nâng cấp, Hoàn thiện & Chuẩn hóa Hệ thống Vận hành Enterprise | 1.1 | active | dev, ai, ops, ba |
 | [PLAN-WEBP0-001](specs/2026-10-09-web-dot-0-nen-plan.md) | Kế hoạch triển khai — web/ đợt 0 (nền tảng: router, tầng API, thành phần dùng chung) | 1.0 | active | dev, ai |
 | [PLAN-WEBP1-001](specs/2026-10-09-web-dot-1-hoat-dong-plan.md) | Kế hoạch triển khai — web/ đợt 1 (Hoạt động: tạo đề xuất, trang chi tiết, vòng duyệt, sửa, xoá, tham gia, cập nhật) | 1.1 | active | dev, ai |
-| [PLAN-WEBP2-001](specs/2026-10-09-web-dot-2-cong-viec-plan.md) | Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban) | 1.2 | completed | dev, ai |
+| [PLAN-WEBP2-001](specs/2026-10-09-web-dot-2-cong-viec-plan.md) | Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban) | 1.2 | active | dev, ai |
 | [PLAN-WEBP3-001](specs/2026-10-09-web-dot-3-to-thanh-vien-plan.md) | Kế hoạch triển khai — web/ đợt 3 (Tổ, thành viên, tài khoản, quản trị, trọng số, tài khoản của tôi) | 1.0 | active | dev, ai |
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.0 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.0 | active | dev, ai |

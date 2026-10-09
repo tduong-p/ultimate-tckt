@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-ACTIVITIES-001
 title: Design — Activities & Projects Screen UI (Hoạt động & Dự án)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -47,3 +47,4 @@ Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Thẻ hoạt động bấm đư
 | 1.2 | 2026-10-09 | Trạng thái `changes_requested` ("Cần chỉnh sửa") và nhãn dùng chung `activityLabels.ts`; nút đề xuất theo `canCreateActivity`; dòng tóm tắt đơn vị khác; tìm kiếm debounce do máy chủ lọc | DYC |
 | 1.3 | 2026-10-09 | Đợt 1 SPEC-WEB-003: thẻ hoạt động mở chi tiết và có link đề án | DYC |
 | 1.4 | 2026-10-09 | Cập nhật thanh hành động và tạo nhiệm vụ từ chi tiết hoạt động (PR #88) | DYC |
+| 1.5 | 2026-10-09 | Đợt 2 SPEC-WEB-003: chi tiết hoạt động gắn Bảng Kanban, Giao việc, Tự ghi nhận, tiêu đề việc mở hộp chi tiết và thêm tài liệu | DYC |
