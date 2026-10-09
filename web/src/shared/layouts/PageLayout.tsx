@@ -57,6 +57,8 @@ export interface PageLayoutProps {
     avatar_color?: string;
   } | null;
   onLogout?: () => void;
+  /** Mở hộp "Tài khoản của tôi" khi bấm vào tên người dùng. */
+  onOpenAccount?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
   /** Hiện mục "Quản trị tài khoản" (chỉ admin). Mặc định ẩn. */
@@ -69,6 +71,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
   user,
   onLogout,
+  onOpenAccount,
   canViewReports = false,
   canViewAccounts = false,
   headerExtras,
@@ -90,11 +93,17 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           renderProfile={() => (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {headerExtras}
-              <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
-              {user && (
-                <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-                  {user.name}
-                </span>
+              {user && onOpenAccount ? (
+                <button type="button" onClick={onOpenAccount} aria-label="Tài khoản của tôi" title="Tài khoản của tôi"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', color: 'inherit' }}>
+                  <Avatar size="small" appearance="circle" name={user.name} />
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>
+                </button>
+              ) : (
+                <>
+                  <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
+                  {user && <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>}
+                </>
               )}
               {onLogout && (
                 <button

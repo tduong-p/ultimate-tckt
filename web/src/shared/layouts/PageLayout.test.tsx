@@ -66,6 +66,13 @@ describe('PageLayout', () => {
     expect(screen.getByTestId('path').textContent).toBe('/accounts');
   });
 
+  it('bấm vào tên người dùng gọi onOpenAccount', () => {
+    const onOpenAccount = vi.fn();
+    renderLayout(<PageLayout user={{ name: 'Nguyễn Văn A' }} onOpenAccount={onOpenAccount}><div>x</div></PageLayout>);
+    fireEvent.click(screen.getByRole('button', { name: 'Tài khoản của tôi' }));
+    expect(onOpenAccount).toHaveBeenCalledTimes(1);
+  });
+
   it('không hiện các nút chưa có chức năng (Cài đặt, Chuyển vai trò, Báo Bug, Thông báo)', () => {
     renderLayout(<PageLayout><div>Content</div></PageLayout>);
     expect(screen.queryByTitle('Cài đặt (Admin, ĐYC)')).toBeNull();

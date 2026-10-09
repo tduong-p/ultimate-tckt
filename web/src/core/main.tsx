@@ -13,6 +13,7 @@ import { AppRoutes } from './AppRoutes';
 import { useCapabilities } from './capabilities';
 import { ToastProvider } from '../shared/components/Toast';
 import { TaskModalProvider } from './features/tasks/TaskModalProvider';
+import { MyAccountModal } from './features/session/MyAccountModal';
 import { fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
 import { SESSION_KEY } from './queryKeys';
 import { UnitSwitcher } from './features/session/UnitSwitcher';
@@ -101,10 +102,14 @@ export const App = () => {
 
 const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: () => void }> = ({ userName, user, onLogout }) => {
   const caps = useCapabilities();
+  const [accountOpen, setAccountOpen] = React.useState(false);
   return (
-    <PageLayout user={user} onLogout={onLogout} canViewReports={caps.isManager} canViewAccounts={caps.isExec} headerExtras={<UnitSwitcher />}>
-      <AppRoutes userName={userName} />
-    </PageLayout>
+    <>
+      <PageLayout user={user} onLogout={onLogout} canViewReports={caps.isManager} canViewAccounts={caps.isExec} onOpenAccount={() => setAccountOpen(true)} headerExtras={<UnitSwitcher />}>
+        <AppRoutes userName={userName} />
+      </PageLayout>
+      <MyAccountModal isOpen={accountOpen} onClose={() => setAccountOpen(false)} />
+    </>
   );
 };
 
