@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-ACTMODAL-001
 title: Thiết kế — Create Activity Modal UI Design
-version: 1.3
-status: active
+version: 1.4
+status: deprecated
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: [web/src/core/features/dashboard/CreateActivityModal.tsx]
+related_code: []
 ---
 
 # Create Activity Modal UI Design
@@ -56,3 +56,4 @@ The modal uses the standard Atlassian ModalDialog component.
 | 1.1 | 2026-10-08 | Tích hợp mutation tạo hoạt động với API POST /api/activities | DYC |
 | 1.2 | 2026-10-08 | Bắt buộc tiêu đề, mô tả, hạn chung và Tổ chủ trì (không còn mặc định Tổ 1); bỏ trường Người phụ trách | DYC |
 | 1.3 | 2026-10-09 | Danh sách Tổ theo quyền (executive thấy mọi Tổ, Tổ trưởng/Tổ phó chỉ Tổ có `can_manage`); kiểm ngày bắt đầu ≤ hạn chung; lỗi máy chủ dịch sang tiếng Việt; reset khi mở lại; nền theo token | DYC |
+| 1.4 | 2026-10-09 | Deprecated: thay bằng SPEC-WEB-003 và `docs/dev/frontend.md`; thu hẹp `related_code` về `[]` | DYC |

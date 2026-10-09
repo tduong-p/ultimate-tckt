@@ -1,8 +1,8 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.0
-status: draft
+version: 1.1
+status: active
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-09
@@ -360,3 +360,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: danh sách ngang bằng với UI cũ, 6 cải tiến, API nhật ký trực ban, bước thay thế, 8 đợt | DYC |
+| 1.1 | 2026-10-09 | Đợt 0 (nền tảng) xong: router, tầng API, quyền, thành phần dùng chung; react-router 6.30 tự thêm `/` cho `#activity/12` nên không cần code chuẩn hoá riêng | DYC |

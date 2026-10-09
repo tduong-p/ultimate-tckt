@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.9
+version: 2.0
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-09
-related_code: [core/public/**, services/ctd-api/frontend/src/**]
+related_code: [core/public/**, web/**, services/ctd-api/frontend/src/**]
 ---
 
 # Frontend
@@ -15,7 +15,7 @@ Repo có **hai frontend riêng biệt hiện tại**, cộng frontend chung `web
 xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
 (job CI `test-web`, xem `docs/dev/test.md`).
 
-## Core — `core/public/` (JavaScript thuần, chỉ bảo trì)
+## Core — `core/public/` (JavaScript thuần, chỉ vá lỗi tới khi gỡ, ADR-0016)
 
 Không có build step, không framework: `app.js` (logic chính, SPA điều hướng bằng tay), `index.html`,
 `styles.css` + `components.css`, `notifications.js` (chuông thông báo trong ứng dụng). Core phục vụ trực tiếp thư mục này qua `express.static`
@@ -39,6 +39,16 @@ dùng bấm được mà tính năng chưa có thì hiện màn hình chặn tha
   `SSO_READY=true` khi đã cấu hình Azure.
 - Hash không thuộc `KNOWN_PAGES` hiện trang "Lạc đoàn"; trang có thật mà không đủ quyền vẫn chuyển về dashboard.
 - Sau khi sửa asset, tăng `?v=` trong `index.html` để trình duyệt tải lại.
+
+## Core — `web/` (React 18 + TypeScript + Vite + Atlaskit)
+
+Nguồn mô tả duy nhất của `web/`: SPEC-WEB-003 (`docs/specs/2026-10-09-web-hoan-thien-thay-the-design.md`) và mục này.
+
+- Chạy: `cd web && npm run dev` (Core ở :3000), test `npm test`, build `npm run build`.
+- Định tuyến: `HashRouter`, đường dẫn trùng UI cũ; bảng route ở `web/src/core/AppRoutes.tsx`; route không có quyền về `#/dashboard`.
+- Tầng API: `web/src/core/api/<miền>.ts`, `index.ts` chỉ re-export; lỗi hiện bằng `apiErrorMessage`; câu tiếng Anh mới của Core thì thêm vào `web/src/core/api/errorMessages.ts`.
+- Quyền: chỉ dùng `useCapabilities()` (`web/src/core/capabilities.ts`); không tự viết điều kiện vai trò trong màn.
+- Thành phần dùng chung trong `web/src/shared/components/`: `Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`.
 
 ## CTD — `services/ctd-api/frontend/` (React 18 + TypeScript + Vite)
 
@@ -84,3 +94,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.7 | 2026-10-03 | Màn hình "Đang phát triển" (`COMING_SOON`): cách thêm/gỡ chỗ chặn, trang "Lạc đoàn" | DYC |
 | 1.8 | 2026-10-08 | Thêm quy tắc: không tra phần tử qua phần tử render có điều kiện (hotfix PR #81, `#volunteer`) | DYC |
 | 1.9 | 2026-10-09 | `web/` đã có (PR 83); trỏ tới cách test và job CI `test-web` | DYC |
+| 2.0 | 2026-10-09 | Thêm mục `web/` (chạy, router, tầng API, quyền, thành phần dùng chung); `core/public/` chỉ vá lỗi tới khi gỡ (ADR-0016) | DYC |
