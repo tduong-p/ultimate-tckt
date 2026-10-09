@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.32
+version: 2.34
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-10
-related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
+related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js, .github/workflows/deploy.yml]
 ---
 
 # Test
@@ -47,7 +47,7 @@ Testing Library, không cần database (API được mock). Chạy:
 cd web && npm test && npm run build
 ```
 
-`npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi.
+`npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi. Thay đổi `web/**` cũng chạy `test-core` và build image Core vì bundle được đóng gói cùng Core; pull request build thử `linux/arm64` nhưng không publish image.
 Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader`.
 
 Test trang hoạt động dùng `renderInApp` và `makeDetail` (`web/src/core/features/activities/testUtils.tsx`): helper dựng `QueryClient` với `SESSION_KEY`, `BOOTSTRAP_KEY`, `ToastProvider` và `MemoryRouter`; `Probe` hiện đường dẫn hiện tại để kiểm tra điều hướng. Mock API bằng `vi.mock('../../api', async () => ({ ...actual, fn: vi.fn() }))` (lấy `actual` từ `vi.importActual`) để giữ các export không cần mock.
@@ -151,3 +151,5 @@ nào, kể cả mật khẩu mặc định.
 | 2.30 | 2026-10-09 | Đợt 3 `web/`: test Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số, hồ sơ cá nhân và helper renderWithApp | DYC |
 | 2.31 | 2026-10-09 | Đợt 4 `web/`: test Văn bản, chuông thông báo, popup và điều hướng URL thông báo | DYC |
 | 2.32 | 2026-10-10 | Bổ sung test đợt 5 cho route/menu theo module và truy cập directives bằng session thật | DYC |
+| 2.33 | 2026-10-10 | Cập nhật CI cutover: thay đổi web chạy cả Core/web tests và kiểm tra build arm64 không publish trên PR | DYC |
+| 2.34 | 2026-10-10 | Thêm hồi quy xác nhận mở hồ sơ cá nhân không tải lại/remount chuông thông báo | DYC |

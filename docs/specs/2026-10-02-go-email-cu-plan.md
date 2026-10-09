@@ -1,15 +1,17 @@
 ---
 doc_id: PLAN-EMAILGO-001
 title: Kế hoạch gỡ module email cũ và OneSignal của Core
-version: 2.10
+version: 3.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/mailer.js, core/src/push.js, core/src/notifier.js, core/src/app.js, core/src/runtime.js, core/src/config/validate.js, core/src/routes/*.js, core/src/services/deadline-notifications.js, core/public/app.js, core/public/index.html, core/tests/**, core/src/config/database.js]
 ---
 
 # Gỡ email cũ và OneSignal — Implementation Plan
+
+> Frontend Core cũ giữ tại `/legacy/` trong lúc chuyển tiếp; tiền tố asset legacy được cập nhật trong cùng lần cutover. SPEC-WEB-003 §5 là nguồn mô tả duy nhất cho phục vụ frontend và rollback.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -523,3 +525,4 @@ cd .. && npm run test:tools && npm run docs:check -- --base origin/staging
 | 2.8 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
 | 2.10 | 2026-10-09 | Xác nhận nhánh web đợt 5 không thay đổi hành vi gửi email/OneSignal của kế hoạch này | DYC |
+| 3.0 | 2026-10-10 | Liên kết tới hợp đồng phục vụ UI cũ tại `/legacy/` sau cutover frontend Core | DYC |

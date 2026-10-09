@@ -1,25 +1,23 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.17
+version: 1.19
 status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-10
-related_code: [core/public/**, web/**, services/ctd-api/frontend/src/**]
+related_code: [core/public/**, core/src/app.js, core/Dockerfile, .dockerignore, web/**, services/ctd-api/frontend/src/**]
 ---
 
 # Frontend
 
-Repo có **hai frontend riêng biệt hiện tại**, cộng frontend chung `web/` (React + Vite + Atlaskit, đang thay dần UI Core —
-xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
+Repo có các frontend riêng biệt: Core `web/` thay UI cũ tại `/`, UI cũ được giữ tại `/legacy/` trong thời gian chuyển tiếp, và CTD có frontend riêng. `web/` dùng React + Vite + Atlaskit (xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
 (job CI `test-web`, xem `docs/dev/test.md`).
 
-## Core — `core/public/` (JavaScript thuần, chỉ vá lỗi tới khi gỡ, ADR-0016)
+## Core cũ — `core/public/` (JavaScript thuần, chỉ vá lỗi tới khi gỡ, ADR-0016)
 
 Không có build step, không framework: `app.js` (logic chính, SPA điều hướng bằng tay), `index.html`,
-`styles.css` + `components.css`, `notifications.js` (chuông thông báo trong ứng dụng). Core phục vụ trực tiếp thư mục này qua `express.static`
-(`core/src/app.js`).
+`styles.css` + `components.css`, `notifications.js` (chuông thông báo trong ứng dụng). Core phục vụ thư mục này tại `/legacy/` qua `express.static` (`core/src/app.js`); các asset trong `index.html` cũng dùng tiền tố `/legacy/`.
 
 Đây là frontend **cũ**, không thêm tính năng mới vào đây — chỉ sửa lỗi hoặc theo kịp thay đổi API bắt buộc.
 `core/tests/frontend.contract.test.js` kiểm hợp đồng giữa `app.js` và API — sửa API mà làm test này đỏ nghĩa là
@@ -38,13 +36,16 @@ dùng bấm được mà tính năng chưa có thì hiện màn hình chặn tha
 - Gỡ khi tính năng xong: xoá key, link/nút tương ứng và test trong `frontend.contract.test.js`. Riêng SSO: đặt
   `SSO_READY=true` khi đã cấu hình Azure.
 - Hash không thuộc `KNOWN_PAGES` hiện trang "Lạc đoàn"; trang có thật mà không đủ quyền vẫn chuyển về dashboard.
-- Sau khi sửa asset, tăng `?v=` trong `index.html` để trình duyệt tải lại.
+- Sau khi sửa asset legacy, tăng `?v=` trong `core/public/index.html` để trình duyệt tải lại.
 
 ## Core — `web/` (React 18 + TypeScript + Vite + Atlaskit)
 
 Nguồn mô tả duy nhất của `web/`: SPEC-WEB-003 (`docs/specs/2026-10-09-web-hoan-thien-thay-the-design.md`) và mục này.
 
-- Chạy: `cd web && npm run dev` (Core ở :3000), test `npm test`, build `npm run build`.
+- Entrypoint Core là `web/index.html`; `web/core.html` đã được bỏ. `web/ctd.html` vẫn là entrypoint riêng cho CTD.
+- Chạy: `cd web && npm run dev` (API/auth proxy tới Core ở :3000), test `npm test`, build `npm run build`.
+- Core production phục vụ `web/dist` tại `/`, gồm fallback SPA cho GET frontend; `/api/*` trả JSON 404 khi không có route, còn `/auth/*` và `/legacy/*` không đi qua fallback.
+- `core/Dockerfile` build Vite ở stage đầu và cài Core production ở stage runtime. Build image từ root repo (`docker build -f core/Dockerfile .`); `.dockerignore` gốc giữ `web/` và `core/public/`. CI cũng build `linux/arm64` trên PR nhưng không publish.
 - Định tuyến: `HashRouter`, đường dẫn trùng UI cũ; bảng route ở `web/src/core/AppRoutes.tsx`; route không có quyền về `#/dashboard`.
 - Tầng API: `web/src/core/api/<miền>.ts`, `index.ts` chỉ re-export; lỗi hiện bằng `apiErrorMessage`; câu tiếng Anh mới của Core thì thêm vào `web/src/core/api/errorMessages.ts`.
 - Quyền: chỉ dùng `useCapabilities()` (`web/src/core/capabilities.ts`) cho hoạt động/tài khoản và `taskPermissions.ts` cho công việc; không tự viết điều kiện vai trò trong màn.
@@ -152,3 +153,5 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.15 | 2026-10-09 | Đợt 3 `web/`: Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân | DYC |
 | 1.16 | 2026-10-09 | Đợt 4 `web/`: thêm/sửa Văn bản, chuông thông báo, popup và điều hướng thông báo | DYC |
 | 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |
+| 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
+| 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |

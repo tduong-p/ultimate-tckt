@@ -1,15 +1,17 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.19
+version: 1.20
 status: draft
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/**, core/public/**, core/tests/**, core/app.js, services/ctd-api/backend/app/seeds/**, services/ctd-api/backend/tests/**, tools/test-fixtures/**, core/src/config/database.js, core/src/date-vn.js]
 ---
 
 # MVP Điều hành pilot — Implementation Plan
+
+> Lộ trình cutover giao diện sau pilot được quản lý tại SPEC-WEB-003 §5: UI hiện có nằm ở `/legacy/`, `web/` nằm tại `/` cho tới khi gỡ legacy bằng PR riêng.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -629,3 +631,4 @@ trước khi tạo trên GitHub.
 | 1.17 | 2026-10-08 | Ghi nhận hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id; phạm vi kế hoạch không đổi | DYC |
 | 1.18 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
 | 1.19 | 2026-10-09 | Ghi nhận nhánh web đợt 5 bổ sung module vào unit context/session và luồng Giao việc/Trình; chưa thay đổi lộ trình pilot | DYC |
+| 1.20 | 2026-10-10 | Liên kết tới lộ trình cutover giao diện và vị trí legacy theo SPEC-WEB-003 | DYC |

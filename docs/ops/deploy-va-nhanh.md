@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-DEPLOY-001
 title: Deploy và nhánh git
-version: 4.4
+version: 4.5
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [.github/workflows/**, infra/scripts/deploy.sh, infra/scripts/apply-infra.sh, infra/scripts/backup.sh, infra/scripts/lib.sh]
 ---
 
@@ -35,11 +35,11 @@ Không có bước duyệt thủ công riêng cho deploy: push đủ điều ki�
 Workflow chạy trên mọi push/PR vào `staging` và `main`, gồm các job:
 
 1. **`changes`** — dùng `dorny/paths-filter@v3` để biết PR/commit này đụng vào `core/`, `web/`, `services/ctd-api/`, `services/noti-api/`, hay `infra/`; tính `tag` (12 ký tự đầu của SHA) và `env` (`staging` hoặc `production` theo nhánh).
-2. **`test-core`** — chạy nếu `core/**` đổi: dựng service MySQL 8, `cd core && npm ci && npm test`.
-   **`test-web`** — chạy nếu `web/**` đổi: `cd web && npm ci && npm test && npm run build` (`build` = `tsc && vite build`, nên lỗi kiểu cũng làm đỏ). Chưa có job build/deploy cho `web/`: image Core không chứa `web/`.
+2. **`test-core`** — chạy nếu `core/**`, `web/**` hoặc `.dockerignore` đổi: dựng service MySQL 8, `cd core && npm ci && npm test`.
+   **`test-web`** — chạy nếu `web/**` đổi: `cd web && npm ci && npm test && npm run build` (`build` = `tsc && vite build`, nên lỗi kiểu cũng làm đỏ). Thay đổi `web/**` kích hoạt cả hai test job.
 3. **`test-ctd`** — chạy nếu `services/ctd-api/**` đổi: dựng service Postgres 16, `pytest -q` trong `services/ctd-api/backend`.
    **`test-noti`** — tương tự cho `services/noti-api/**` (Postgres 16, database `noti_test`).
-4. **`build-core`** / **`build-ctd-api`** / **`build-noti`** — chỉ chạy khi push (không chạy trên PR) và test tương ứng xanh: build image arm64 (buildx + QEMU vì runner là amd64, VM là Oracle Ampere arm64) và push lên GHCR với tag `ghcr.io/tduong-p/ultimate-tckt-core:<sha12>` / `ultimate-tckt-ctd-api:<sha12>` / `ultimate-tckt-noti:<sha12>`.
+4. **`build-core`** — chờ `test-core` xanh và `test-web` xanh hoặc bị skip; build image arm64 từ root context (`context: .`, `file: core/Dockerfile`) khi `core/**`, `web/**` hoặc `.dockerignore` đổi. Chạy cả trên PR lẫn push; PR không đăng nhập GHCR và không publish image, push build rồi publish tag `ghcr.io/tduong-p/ultimate-tckt-core:<sha12>`. **`build-ctd-api`** / **`build-noti`** chỉ chạy khi push và test tương ứng xanh, rồi push image arm64 lên GHCR.
 5. **`deploy-core`** / **`deploy-ctd-api`** — chỉ chạy khi push và biến repo `DEPLOY_ENABLED == 'true'`: SSH vào VM (`appleboy/ssh-action@v1.2.0`, dùng GitHub Environment tương ứng `staging`/`production`) và chạy:
    ```bash
    bash /opt/ultimate-tckt/<env>/infra/scripts/deploy.sh <env> <core|ctd-api> <tag>
@@ -476,3 +476,4 @@ kiểm kết quả giữa các bước. CTD không cần restore (không có mig
 | 4.2 | 2026-10-05 | `deploy-noti` chạy cho production khi `PROD_NOTI_ENABLED`; cổng Noti production 8101 (SPEC-MAIL-001) | DYC |
 | 4.3 | 2026-10-07 | Tên miền staging trong lệnh smoke đổi sang `dyclub.tech` | DYC |
 | 4.4 | 2026-10-09 | Thêm job `test-web` (filter `web` riêng); `web/**` không còn kích hoạt `test-core`/build Core | DYC |
+| 4.5 | 2026-10-10 | Cutover `web/` vào image Core: đổi build context về root, chạy Core tests khi web đổi và build arm64 trên PR mà không publish | DYC |

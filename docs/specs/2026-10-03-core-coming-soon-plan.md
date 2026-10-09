@@ -1,15 +1,17 @@
 ---
 doc_id: PLAN-SOON-001
 title: Plan — màn hình "Đang phát triển" cho UI Core legacy
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-10
 related_code: [core/public/**, core/tests/frontend.contract.test.js]
 ---
 
 # Màn hình "Đang phát triển" — Implementation Plan
+
+> Màn hình trong plan này vẫn thuộc UI legacy tại `/legacy/`; xem SPEC-WEB-003 §5 cho route mới và thời điểm gỡ giao diện cũ.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -263,3 +265,4 @@ document.addEventListener('click',e=>{const trigger=e.target.closest('[data-soon
 |---|---|---|---|
 | 1.0 | 2026-10-03 | Bản đầu | DYC |
 | 1.1 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
+| 1.2 | 2026-10-10 | Ghi rõ UI Coming soon tiếp tục ở legacy path trong giai đoạn chuyển tiếp | DYC |

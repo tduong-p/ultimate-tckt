@@ -53,7 +53,10 @@ function createApplication(options = {}) {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false }));
   app.use(createSessionMiddleware(runtimeConfig));
-  app.use(express.static(path.join(__dirname, '..', 'public')));
+  const legacyPublicDir = path.join(__dirname, '..', 'public');
+  const webDistDir = options.webDistDir || path.join(__dirname, '..', 'web-dist');
+  app.use('/legacy', express.static(legacyPublicDir));
+  app.use(express.static(webDistDir, { index: false }));
   app.use(createUnitContextMiddleware(db));
   app.use(LEGACY_PREFIXES, createLegacyGate(db));
 
@@ -82,7 +85,9 @@ function createApplication(options = {}) {
   registerRoutes(app, context);
 
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Endpoint not found.' }));
-  app.get(/.*/, (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
+  app.use('/auth', (_req, res) => res.status(404).send('Not found.'));
+  app.use('/legacy', (_req, res) => res.status(404).send('Not found.'));
+  app.get(/.*/, (_req, res) => res.sendFile(path.join(webDistDir, 'index.html')));
   app.use(createErrorHandler(logger));
 
   return { app, db, config: runtimeConfig, notifier };

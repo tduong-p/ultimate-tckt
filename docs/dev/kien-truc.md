@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.4
+version: 3.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
-related_code: [core/src/app.js, core/src/server.js, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/config/database.js]
+updated: 2026-10-10
+related_code: [core/src/app.js, core/src/server.js, core/Dockerfile, .dockerignore, web/**, services/ctd-api/backend/app/main.py, core/src/middleware/unit-context.js, core/src/middleware/legacy-gate.js, core/src/config/database.js]
 ---
 
 # Kiến trúc hệ thống
@@ -21,11 +21,11 @@ Tài liệu này giúp dev/AI hiểu nhanh cách hai app trong monorepo được
   → `core/src/app.js` (`createApplication`, dựng Express app theo pipeline:
   1. helmet CSP
   2. session middleware (express-session)
-  3. static files (`public/`)
+  3. mount `core/public/` tại `/legacy` và static asset build từ `web/` tại `/` (không tự trả entry)
   4. `loadUnitContext` — gắn `req.unit`, `req.unitRole`, `req.memberships`, `req.actor` từ session
-  5. `legacyGate` — chặn route Điều hành cũ nếu không phải TCKT hoặc DYC; ghi audit khi DYC đọc dữ liệu TCKT
-  6. đăng ký route qua `registerRoutes`
-  7. fallback SPA `index.html`
+  5. `legacyGate` — chặn API Điều hành cũ nếu không phải TCKT hoặc DYC; ghi audit khi DYC đọc dữ liệu TCKT
+  6. đăng ký route qua `registerRoutes`; `/api/*` chưa khớp trả JSON 404, `/auth/*` và `/legacy/*` trả 404 riêng
+  7. GET frontend chưa khớp trả `core/web-dist/index.html`; method ghi không đi qua SPA fallback
   8. error handler cuối cùng
 - **CTD** (`services/ctd-api/`): FastAPI + SQLAlchemy 2.0 + Alembic + Postgres 16. Module **Công tác Đảng** (xét
   duyệt hồ sơ Đảng). Entry point: `services/ctd-api/backend/app/main.py` (`include_router(auth.router)`,
@@ -76,11 +76,12 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 
 ## Frontend
 
-- `core/public/` — frontend cũ, JavaScript thuần (`app.js`), chỉ bảo trì, không thêm tính năng mới.
+- `core/public/` — frontend cũ, JavaScript thuần (`app.js`), chỉ bảo trì, không thêm tính năng mới; Core giữ tại `/legacy/` trong thời gian chuyển tiếp.
 - `services/ctd-api/frontend/` — React 18 + TypeScript + Vite, theo tính năng (`features/auth`, `features/hoso`,
   `features/canbo`, `features/baocao`).
-- `web/` — frontend chung tương lai cho toàn nền tảng (React 18 + TypeScript + Vite), **chưa tạo** ở GĐ1. Xem
-  `.kiro/specs/nen-tang-da-don-vi/design.md` §3 cho kiến trúc dự kiến (`shell/`, `ui/`, `modules/<module-id>/`).
+- `web/` — frontend React 18 + TypeScript + Vite thay giao diện Core ở `/`; `web/index.html` là entrypoint Core, còn `ctd.html` tiếp tục là entry riêng. Vite tạo `web/dist`, được chép vào `/app/web-dist` khi đóng gói Core.
+
+Image Core dùng multi-stage Docker build với context ở gốc repo: stage đầu cài và build `web/`, stage runtime cài dependencies sản xuất từ `core/` rồi chép bundle vào image. `.dockerignore` ở gốc giữ `web/` và `core/public/`, loại dependencies, dữ liệu cục bộ và các thư mục không cần cho image. Workflow Core chạy khi `core/**`, `web/**` hoặc `.dockerignore` đổi; PR kiểm tra build `linux/arm64` nhưng không publish image. `deploy-core` vẫn chỉ chạy trên push theo chính sách hiện hành.
 
 ## Múi giờ
 
@@ -105,3 +106,4 @@ Chi tiết: **DEV-TZ-001** (`docs/dev/mui-gio.md`) — quy ước, cách dùng �
 | 3.2 | 2026-10-02 | Facade `notifier` có sender HTTP sang Noti | DYC |
 | 3.3 | 2026-10-04 | Thêm mục "Múi giờ" - toàn hệ thống dùng Asia/Ho_Chi_Minh (UTC+7), xem DEV-TZ-001 | DYC |
 | 3.4 | 2026-10-09 | Bổ sung `req.unit.modules` vào ngữ cảnh đa đơn vị và đính chính fallback khi không có membership | DYC |
+| 3.5 | 2026-10-10 | Cập nhật pipeline Core sau cutover web: `/`, `/legacy`, Docker multi-stage từ root context và build arm64 trên PR | DYC |

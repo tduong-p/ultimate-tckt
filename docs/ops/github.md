@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-GH-001
 title: Cấu hình GitHub — checklist
-version: 1.10
+version: 1.11
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [.github/**]
 ---
 
@@ -43,6 +43,7 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 ## 4. Ruleset nhánh `staging`
 
 - Yêu cầu status check `changes`, `test-core`, `test-ctd`, `test-web`, `docs` xanh (`test-web` bắt buộc từ 2026-10-09, sau khi PR 83 đưa job vào `staging`).
+- `build-core` kiểm tra build arm64 trên pull request khi `core/**`, `web/**` hoặc `.dockerignore` đổi; PR không đăng nhập GHCR và không publish image. Job này không đổi điều kiện `deploy-core`, vốn chỉ chạy khi push.
 - Chặn force-push và xoá nhánh.
 - Không bắt buộc review, nhưng vì ruleset bắt buộc check nên **push thẳng commit mới vào `staging` bị từ chối** (commit chưa có check). Thực tế: đẩy lên nhánh tính năng → mở PR vào `staging` → merge khi CI xanh.
 - Ruleset hiện có: `protect-main`, `protect-staging` (xem `gh api repos/tduong-p/ultimate-tckt/rulesets`).
@@ -90,3 +91,4 @@ Environment `production`: đặt **deployment branch** = chỉ `main` (không ch
 | 1.8 | 2026-10-05 | Thêm biến repo `PROD_NOTI_ENABLED` | DYC |
 | 1.9 | 2026-10-09 | Thêm job `test-web` (chưa nằm trong check bắt buộc của ruleset) | DYC |
 | 1.10 | 2026-10-09 | `test-web` thành check bắt buộc của `protect-staging`; `protect-main` thêm sau khi đồng bộ `staging → main` | DYC |
+| 1.11 | 2026-10-10 | Ghi job `build-core` kiểm tra arm64 trên PR mà không publish; deploy vẫn chỉ chạy khi push | DYC |

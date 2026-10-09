@@ -1,12 +1,12 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.9
+version: 2.0
 status: active
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10
-related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deploy.yml]
+related_code: [web/**, core/src/app.js, core/Dockerfile, core/public/**, .dockerignore, .github/workflows/deploy.yml, core/tests/web-cutover.test.js, tools/tests/workflows.test.js]
 ---
 
 # Design — Hoàn thiện web/ để thay thế frontend Core
@@ -305,17 +305,17 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 
 ## 5. Thay thế UI cũ (bước cuối)
 
-- `core/Dockerfile` chuyển sang nhiều giai đoạn:
-  1. Giai đoạn `node:22-slim` chạy `npm ci && npm run build` trong `web/`.
-  2. Giai đoạn chính chép `web/dist` vào `/app/web-dist`.
-- Vì image cần cả `web/`, context build của image Core đổi từ `core` thành gốc repo. Có `.dockerignore` đi kèm.
+- `core/Dockerfile` dùng multi-stage build từ Node 22: stage `web-build` cài dependencies và chạy `npm run build` trong `web/`; stage runtime cài dependencies sản xuất trong `core/`, chép `core/` vào `/app` và `web/dist` vào `/app/web-dist`.
+- Build context của image Core là gốc repo (`docker build -f core/Dockerfile .`). `.dockerignore` ở gốc loại `.git`, env cục bộ, `node_modules`, dữ liệu, docs, services và tooling; phải giữ `web/` và `core/public/`.
 - Workflow:
-  - `build-core` chạy khi `core/**` hoặc `web/**` đổi. Filter `core` gồm lại `web/**`, nhưng `test-web` vẫn tách riêng.
+  - Filter `core` khớp `core/**`, `web/**` và `.dockerignore`; filter `web` tiếp tục khớp riêng `web/**`, nên thay đổi `web/` chạy cả `test-core` và `test-web`.
+  - `build-core` chờ `test-core` thành công và `test-web` thành công hoặc bị skip; build `linux/arm64` cả trên push và pull request. PR không đăng nhập GHCR, không publish image; `deploy-core` vẫn theo luồng push hiện hành.
   - `deploy-core` không đổi.
 - `core/src/app.js`:
-  - Phục vụ `web-dist` tại `/`, với fallback `index.html` cho mọi đường dẫn không phải `/api`, `/auth` hay `/legacy`.
-  - Phục vụ `core/public` tại `/legacy` trong thời gian chuyển tiếp. Đường dẫn asset của UI cũ phải hoạt động dưới `/legacy`.
-- `web/` build ra một trang Core duy nhất (`index.html` thay cho `core.html` + trang chuyển hướng).
+  - Phục vụ asset của `web-dist` tại `/` mà không tự serve index; GET frontend chưa khớp trả `web-dist/index.html`.
+  - `/api/*` chưa khớp trả JSON 404; `/auth/*` và `/legacy/*` chưa khớp trả 404 riêng. Method ghi không đi qua SPA fallback.
+  - Phục vụ `core/public` tại `/legacy` trong thời gian chuyển tiếp. Đường dẫn asset của UI cũ dùng tiền tố `/legacy/`.
+- `web/index.html` là entrypoint Core duy nhất; `web/core.html` và trang redirect cũ được bỏ. `ctd.html` vẫn được build.
 - Dev (`npm run dev`) vẫn chạy như hiện tại.
 - Thứ tự phát hành:
   1. Merge vào `staging`, rồi smoke đủ vai trò (mục 1).
@@ -334,9 +334,11 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 4 | Văn bản và chuông thông báo (4.6) — xong | 0 |
 | 5 | Giao việc và Trình (4.7) | 0 |
 | 6 | Nhật ký trực ban: backend rồi UI (4.8) | 0, 5 (nút Trình) |
-| 7 | Thay thế UI cũ (5) | 0–6 |
+| 7 | Thay thế UI cũ (5) | 0–5; đợt 6 được hoãn và bổ sung sau trên UI mới |
 
 Đợt 3, 4 và 5 độc lập với nhau, làm song song được sau đợt 0.
+
+Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) được hoãn; đợt 7 cutover các phần đã có ở đợt 0–5 trước. Nhật ký trực ban sẽ được bổ sung sau trên `web/` mới. UI cũ vẫn được giữ tại `/legacy` cho tới khi qua thời gian ổn định như mục 5.
 
 ## 7. Test
 
@@ -380,3 +382,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1.7 | 2026-10-09 | Đợt 4 hoàn thành: thêm/sửa Văn bản và chuông thông báo | DYC |
 | 1.8 | 2026-10-10 | Ghi nhận hoàn thành đợt 5: Giao việc/Trình và module gate | DYC |
 | 1.9 | 2026-10-10 | Sửa mô tả cổng DYC: directives/submissions không đi qua legacy gate/audit; liên kết issue #95 cho kiểm tra quyền sở hữu và audit còn thiếu | DYC |
+| 2.0 | 2026-10-10 | Hoãn đợt 6, thực hiện cutover đợt 7; chốt `/` và `/legacy/`, Docker build root context, kiểm tra PR và publish khi push | DYC |
