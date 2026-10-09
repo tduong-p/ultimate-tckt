@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.15
+version: 1.16
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/public/**, web/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -73,6 +73,14 @@ Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việ
 
 Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, Tổng quan) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`.
 
+### Tổ, thành viên và tài khoản (web/ đợt 3)
+
+- Trang `#/team/:id` tải overview; route để server phân quyền, khi bị 403 thì về Tổng quan kèm thông báo vì quyền quản lý Tổ chỉ có sau khi bootstrap tải.
+- `#/accounts` chỉ dành cho quản trị viên; menu "Quản trị tài khoản" nhận `canViewAccounts` từ `PageLayout`.
+- Tổ, tài khoản và preset dùng mutation cùng `invalidatePeople(queryClient)`; hộp nhập dùng `FormDialog`. `renderWithApp` trong `web/src/core/testing/peopleHarness.tsx` dựng session, bootstrap, router và toast cho test.
+- Tổ trưởng không gửi email/mật khẩu khi sửa tài khoản, chỉ tạo `member` trong Tổ mình quản lý và không thể tự xoá. Các câu lỗi API tiếng Anh mới nằm trong `web/src/core/api/errorMessages.ts`.
+- Bộ trọng số dùng `/api/admin/weight-presets`; lỗi khoá DYC hiển thị lý do và người khoá qua `settingErrorMessage`. Điểm preset là số nguyên từ 0 đến 10.
+- Tài khoản của tôi mở từ chip tên người dùng; người dùng tự sửa email, điện thoại, màu đại diện và mật khẩu, không sửa tên hoặc vai trò.
 ### Văn bản và Thông báo (web/)
 
 Đợt 4 (SPEC-WEB-003 §4.6, §3.2, §3.4):
@@ -132,4 +140,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.12 | 2026-10-09 | Phân biệt quyền đọc DYC và quyền ghi TCKT trên trang hoạt động | DYC |
 | 1.13 | 2026-10-09 | Mô tả tính năng nhiệm vụ trong `web/` (nút thao tác, tạo nhiệm vụ, `useTaskMutation`, cờ `canCreateTask`) | DYC |
 | 1.14 | 2026-10-09 | Đợt 2 `web/`: bổ sung mục Công việc và Kanban (hộp chi tiết, quyền, Kanban kéo-thả, kết nối trang hoạt động) | DYC |
-| 1.15 | 2026-10-09 | web/ đợt 4: thêm/sửa văn bản, chuông thông báo | DYC |
+| 1.16 | 2026-10-10 | Gộp hướng dẫn đợt 3 (Tổ, tài khoản, trọng số) và đợt 4 (Văn bản, thông báo) | DYC |

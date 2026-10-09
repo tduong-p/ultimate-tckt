@@ -25,7 +25,7 @@ const mockTasksData: api.MyTasksTodayResponse = {
       title: 'Soạn báo cáo tháng',
       status: 'in_progress',
       priority: 'high',
-      deadline: '2026-10-08T17:00:00Z',
+      deadline: daysFromToday(0),
       activity_title: 'Đại hội Chi đoàn',
       team_name: 'Tổ chức và Phát triển Đoàn',
       assignee_name: 'Nguyễn Văn A',
@@ -39,7 +39,7 @@ const mockTasksData: api.MyTasksTodayResponse = {
       title: 'Kiểm tra danh sách đoàn viên',
       status: 'todo',
       priority: 'urgent',
-      deadline: '2026-10-01T17:00:00Z',
+      deadline: daysFromToday(-3),
       activity_title: 'Đại hội Chi đoàn',
       team_name: 'Tổ chức và Phát triển Đoàn',
       assignee_name: 'Trần Thị B',
@@ -53,7 +53,7 @@ const mockTasksData: api.MyTasksTodayResponse = {
       title: 'Duyệt bài tuyên truyền',
       status: 'review',
       priority: 'medium',
-      deadline: '2026-10-09T12:00:00Z',
+      deadline: daysFromToday(0),
       activity_title: 'Kỷ niệm ngày truyền thống',
       team_name: 'Tuyên giáo - Truyền thông',
       assignee_name: 'Lê Văn C',
@@ -70,10 +70,10 @@ const bootstrapWithTasks = (tasks: api.TaskItem[]): api.BootstrapData => ({
   capabilities: { canCreateActivity: false, canCreateAccount: false },
 });
 
-const daysFromToday = (n: number): string => {
+function daysFromToday(n: number): string {
   const d = new Date(Date.now() + n * 86400000);
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d);
-};
+}
 
 describe('MyTasksView', () => {
   let queryClient: QueryClient;
@@ -242,4 +242,3 @@ describe('MyTasksView', () => {
     expect(open).toHaveBeenCalledWith(201);
   });
 });
-

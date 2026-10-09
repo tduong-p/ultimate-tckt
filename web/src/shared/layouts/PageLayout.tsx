@@ -21,6 +21,7 @@ import PersonIcon from '@atlaskit/icon/core/person';
 import FileIcon from '@atlaskit/icon/core/file';
 import ChartBarIcon from '@atlaskit/icon/core/chart-bar';
 import ArchiveBoxIcon from '@atlaskit/icon/core/archive-box';
+import SettingsIcon from '@atlaskit/icon/core/settings';
 import SendIcon from '@atlaskit/icon/core/send';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
@@ -32,7 +33,7 @@ const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
 );
 
-const NAV_ITEMS = [
+const NAV_ITEMS: Array<{ path: string; label: string; Icon: React.ComponentType<{ label: string }>; managerOnly?: boolean; adminOnly?: boolean }> = [
   { path: '/dashboard', label: 'Tổng quan', Icon: DashboardIcon },
   { path: '/my-tasks-today', label: 'Việc hôm nay', Icon: CheckCircleIcon },
   { path: '/calendar', label: 'Lịch hoạt động', Icon: CalendarIcon },
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
   { path: '/people', label: 'Thành viên', Icon: PersonIcon },
   { path: '/documents', label: 'Tài liệu', Icon: FileIcon },
   { path: '/reports', label: 'Báo cáo', Icon: ChartBarIcon, managerOnly: true },
+  { path: '/accounts', label: 'Quản trị tài khoản', Icon: SettingsIcon, adminOnly: true },
   { path: '/archive', label: 'Lưu trữ', Icon: ArchiveBoxIcon },
 ];
 
@@ -55,8 +57,12 @@ export interface PageLayoutProps {
     avatar_color?: string;
   } | null;
   onLogout?: () => void;
+  /** Mở hộp "Tài khoản của tôi" khi bấm vào tên người dùng. */
+  onOpenAccount?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
+  /** Hiện mục "Quản trị tài khoản" (chỉ admin). Mặc định ẩn. */
+  canViewAccounts?: boolean;
   /** Phần tử đặt cạnh avatar trên thanh trên cùng (vd. bộ chọn đơn vị). */
   headerExtras?: React.ReactNode;
 }
@@ -65,7 +71,9 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
   user,
   onLogout,
+  onOpenAccount,
   canViewReports = false,
+  canViewAccounts = false,
   headerExtras,
 }) => {
   const location = useLocation();
@@ -73,11 +81,22 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   const renderProfile = useCallback(() => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {headerExtras}
-      <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
-      {user && (
-        <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-          {user.name}
-        </span>
+      {user && onOpenAccount ? (
+        <button
+          type="button"
+          onClick={onOpenAccount}
+          aria-label="Tài khoản của tôi"
+          title="Tài khoản của tôi"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', color: 'inherit' }}
+        >
+          <Avatar size="small" appearance="circle" name={user.name} />
+          <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>
+        </button>
+      ) : (
+        <>
+          <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
+          {user && <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>}
+        </>
       )}
       {onLogout && (
         <button
@@ -108,7 +127,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         </button>
       )}
     </div>
-  ), [headerExtras, onLogout, user]);
+  ), [headerExtras, onLogout, onOpenAccount, user]);
   return (
     <PageLayoutWrapper>
       <TopNavigation isFixed={true} id="confluence-navigation">
@@ -130,7 +149,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  {NAV_ITEMS.filter((item) => !item.managerOnly || canViewReports).map(({ path, label, Icon }) => {
+                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon }) => {
                     const selected = location.pathname === path || location.pathname.startsWith(`${path}/`);
                     return (
                       <ButtonItem key={path} isSelected={selected} aria-current={selected ? 'page' : undefined}

@@ -200,4 +200,3 @@ describe('DocumentsView', () => {
     await waitFor(() => expect(vi.mocked(api.fetchDocuments).mock.calls.length).toBeGreaterThan(callsBefore));
   });
 });
-

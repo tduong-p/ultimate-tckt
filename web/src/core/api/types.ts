@@ -419,5 +419,3 @@ export interface NotificationsResponse {
   notifications: NotificationItem[];
   unread_count: number;
 }
-
-

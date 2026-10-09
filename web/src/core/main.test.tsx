@@ -88,6 +88,18 @@ describe('Core App main entry', () => {
     });
   });
 
+  it('admin mở mục Quản trị tài khoản và hộp Tài khoản của tôi từ chip người dùng', async () => {
+    vi.mocked(api.fetchSession).mockResolvedValue({
+      user: { id: 1, name: 'Phạm Việt Bách', email: 'bach@x.vn', role: 'admin', avatar_color: '#0052cc' },
+      units: { current: null, memberships: [] },
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={queryClient}><App /></QueryClientProvider>);
+    expect(await screen.findByText('Quản trị tài khoản')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Tài khoản của tôi' }));
+    expect(await screen.findByLabelText('Mật khẩu mới')).toBeDefined();
+  });
+
   it('handles logout and returns to login view', async () => {
     vi.mocked(api.fetchSession).mockResolvedValueOnce({
       user: {
@@ -289,4 +301,3 @@ describe('Core App main entry', () => {
     await waitFor(() => expect(api.fetchNotifications).toHaveBeenCalled());
   });
 });
-

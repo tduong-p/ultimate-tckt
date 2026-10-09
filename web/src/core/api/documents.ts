@@ -26,4 +26,3 @@ export async function updateDocument(id: number, payload: DocumentPayload): Prom
   const response = await apiClient.patch<{ ok: boolean }>(`/documents/${id}`, payload);
   return response.data;
 }
-

@@ -11,6 +11,8 @@ vi.mock('./features/reports/ReportsView', () => ({ ReportsView: () => <div>màn-
 vi.mock('./features/activities/ActivityDetailView', () => ({ ActivityDetailView: () => <div>màn-chi-tiết-hoạt-động</div> }));
 vi.mock('./features/members/MembersView', () => ({ MembersView: () => <div>màn-thành-viên</div> }));
 vi.mock('./features/tasks/KanbanBoard', () => ({ KanbanBoard: () => <div>màn-kanban</div> }));
+vi.mock('./features/teams/TeamPage', () => ({ TeamPage: () => <div>màn-trang-tổ</div> }));
+vi.mock('./features/accounts/AccountsView', () => ({ AccountsView: () => <div>màn-quản-trị-tài-khoản</div> }));
 
 function renderAt(path: string, role: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
@@ -71,5 +73,18 @@ describe('AppRoutes', () => {
     renderAt('/board/9', 'member');
     expect(screen.getByText('màn-kanban')).toBeDefined();
   });
-});
 
+  it('mở được trang Tổ theo #team/:id', () => {
+    renderAt('/team/3', 'leader');
+    expect(screen.getByText('màn-trang-tổ')).toBeDefined();
+  });
+
+  it('admin mở được #/accounts; thành viên và Tổ trưởng bị đưa về Tổng quan', () => {
+    renderAt('/accounts', 'admin');
+    expect(screen.getByText('màn-quản-trị-tài-khoản')).toBeDefined();
+    cleanup();
+    renderAt('/accounts', 'leader');
+    expect(screen.queryByText('màn-quản-trị-tài-khoản')).toBeNull();
+    expect(screen.getByText('màn-tổng-quan')).toBeDefined();
+  });
+});

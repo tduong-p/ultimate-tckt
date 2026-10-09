@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-DOCS-001
 title: Plan — Documents Screen UI Implementation
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/documents/DocumentsView.tsx]
 ---
 
@@ -40,3 +40,4 @@ related_code: [web/src/core/features/documents/DocumentsView.tsx]
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Tài liệu / Văn bản | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/documents và /api/teams, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Bổ sung Task 4: hộp thêm/sửa tài liệu bằng liên kết và quyền sửa theo `can_edit` từ API | DYC |
+| 1.3 | 2026-10-10 | Ghi nhận tích hợp đợt 4 với điều hướng và quản trị đợt 3 | DYC |

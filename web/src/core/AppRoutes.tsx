@@ -15,6 +15,8 @@ import { ArchiveView } from './features/archive/ArchiveView';
 import { NotFoundView } from './features/notFound/NotFoundView';
 import { TaskRoute } from './features/tasks/TaskModalProvider';
 import { KanbanBoard } from './features/tasks/KanbanBoard';
+import { TeamPage } from './features/teams/TeamPage';
+import { AccountsView } from './features/accounts/AccountsView';
 
 const ToDashboard = () => <Navigate to="/dashboard" replace />;
 
@@ -39,6 +41,8 @@ export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
       <Route path="/documents" element={<DocumentsView />} />
       <Route path="/reports" element={caps.isManager ? <ReportsView /> : <ToDashboard />} />
       <Route path="/archive" element={<ArchiveView />} />
+      <Route path="/team/:id" element={<TeamPage />} />
+      <Route path="/accounts" element={caps.isExec ? <AccountsView /> : <ToDashboard />} />
       <Route path="*" element={<NotFoundView />} />
     </Routes>
   );

@@ -52,4 +52,3 @@ describe('apiErrorMessage', () => {
     expect(translateServerError('Notification not found.')).toBe('Không tìm thấy thông báo.');
   });
 });
-
