@@ -156,15 +156,18 @@ Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua 
 - **Chi tiết công việc** (modal; mở từ mọi danh sách và từ `#task/:id`) → `GET /api/tasks/:id`:
   - Thông tin, người được giao (có dấu đã xác nhận), sản phẩm cần nộp.
   - Checklist, tài liệu kèm thanh dung lượng, bình luận.
-- **Sửa công việc** → `PATCH /api/tasks/:id`: cải tiến. Ai được sửa, sửa trường nào, lấy theo kiểm tra quyền của route này
-  (sẽ đọc kỹ khi lập plan).
+- **Sửa công việc** → `PATCH /api/tasks/:id`: cải tiến.
+  - Chỉ người quản lý Tổ của công việc (`canManageTeam`) mới thấy nút.
+  - Sửa được đúng 4 trường server cho phép: `deadline`, `start_date`, `priority`, `deliverable`.
+  - Tiêu đề, mô tả và người được giao chưa sửa được, vì server chưa cho.
 - **Xác nhận nhận việc** → `POST /api/tasks/:id/acknowledge`: người được giao, khi chưa xác nhận.
 - **Đổi trạng thái** → `PATCH /api/tasks/:id/status`: chỉ `todo ↔ in_progress`, cho người được giao hoặc người quản lý Tổ.
 - **Checklist**:
   - Thêm → `POST /api/tasks/:id/checklist`.
   - Tích → `PATCH /api/tasks/:id/checklist/:itemId`.
   - Cả hai khi `canUpdate`.
-  - **Xoá** → `DELETE /api/tasks/:id/checklist/:itemId`: cải tiến, theo quyền của route đó.
+  - **Xoá** → `DELETE /api/tasks/:id/checklist/:itemId`: cải tiến, cùng điều kiện `canUpdate` với thêm và tích
+    (server dùng `canTouchTask`). Phải xác nhận trước khi xoá.
 - **Tài liệu** → `POST /api/tasks/:id/attachments` (multipart, chỉ gửi `kind`, `label`, `link_url`):
   - Cho người được giao hoặc người quản lý Tổ.
   - Mở tài liệu: theo link, hoặc với tệp thì mở `GET /api/task-attachments/:id/content`.
