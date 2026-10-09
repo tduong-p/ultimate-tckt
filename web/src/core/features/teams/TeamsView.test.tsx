@@ -149,4 +149,13 @@ describe('TeamsView', () => {
     expect(await screen.findByText('Chưa có tổ nào')).toBeDefined();
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
   });
+
+  it('"Quản lý thành viên" mở hộp thành viên của đúng Tổ', async () => {
+    vi.mocked(api.fetchTeamMembers).mockResolvedValue({ members: [], available: [] });
+    renderWithApp(<TeamsView />, { role: 'leader', teams: harnessTeams });
+    await screen.findByText('Tổ A');
+    fireEvent.click(screen.getByRole('button', { name: 'Quản lý thành viên Tổ A' }));
+    expect(await screen.findByText('Thành viên Tổ Tổ A')).toBeDefined();
+    expect(api.fetchTeamMembers).toHaveBeenCalledWith(1);
+  });
 });

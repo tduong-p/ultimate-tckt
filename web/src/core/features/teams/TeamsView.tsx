@@ -10,6 +10,7 @@ import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { TeamCard } from './TeamCard';
 import { TeamFormModal } from './TeamFormModal';
+import { TeamMembersModal } from './TeamMembersModal';
 import { useDeleteTeam } from './useDeleteTeam';
 
 export const TeamsView: React.FC = () => {
@@ -74,7 +75,7 @@ export const TeamsView: React.FC = () => {
       >
         <p>Tổ sẽ bị xoá nếu không còn dữ liệu liên quan, nếu còn thì được lưu trữ. Không thể hoàn tác.</p>
       </ConfirmDialog>
-      {managing && null}
+      {managing && <TeamMembersModal teamId={managing.id} teamName={managing.name} onClose={() => setManaging(null)} />}
     </div>
   );
 };
