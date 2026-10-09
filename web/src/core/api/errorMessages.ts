@@ -54,4 +54,13 @@ export const VI_ERROR_MESSAGES: Record<string, string> = {
   'Attachment not found.': 'Không tìm thấy tài liệu.',
   'Stored file not found.': 'Không tìm thấy tệp đã lưu.',
   'You cannot manage this team.': 'Bạn không có quyền quản lý Tổ này.',
+  // Văn bản
+  'Complete every document field with valid information.': 'Vui lòng điền đủ và đúng mọi trường của văn bản.',
+  'The issuing team is unavailable.': 'Tổ ban hành không còn khả dụng.',
+  'You may only issue documents for your teams.': 'Bạn chỉ được ban hành văn bản cho các Tổ của mình.',
+  'Document not found.': 'Không tìm thấy văn bản.',
+  'You cannot edit this document.': 'Bạn không có quyền sửa văn bản này.',
+  // Thông báo
+  'Notification not found.': 'Không tìm thấy thông báo.',
 };
+
