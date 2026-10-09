@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.27
+version: 2.28
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -144,3 +144,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.25 | 2026-10-09 | Đợt 0 `web/`: thêm test Vitest cho router, bộ chọn đơn vị, thành phần dùng chung (`Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`) và tiện ích `bytes`/`text`/`url` | DYC |
 | 2.26 | 2026-10-09 | Đợt 1 `web/`: ghi nhận `renderInApp`, `makeDetail` và cách mock API cho test trang hoạt động | DYC |
 | 2.27 | 2026-10-09 | Test DYC chỉ đọc, DYC+TCKT theo vai trò ghi, gỡ Tổ đã lưu trữ và kiểm URL ảnh công khai | DYC |
+| 2.28 | 2026-10-09 | Thêm test các nút vòng đời nhiệm vụ, modal nghiệm thu và tạo nhiệm vụ từ chi tiết hoạt động | DYC |

@@ -61,7 +61,7 @@
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.27 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.28 | active | dev, ai |
 
 ## onboarding
 
@@ -92,7 +92,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.11 | active | dev, ba |
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.12 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
@@ -156,8 +156,8 @@
 | [PLAN-POC-007](specs/2026-10-06-web-poc-react-atlaskit-plan-7.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 7 - Dark Mode & Mobile Responsive) | 1.1 | deprecated | dev, ai |
 | [PLAN-POC-008](specs/2026-10-06-web-poc-react-atlaskit-plan-8.md) | Kế hoạch triển khai — POC Frontend React (Sub-project 8 - Full Atlassian Design System) | 1.1 | deprecated | dev, ai |
 | [SPEC-WEB-001](specs/2026-10-07-frontend-migration.md) | Frontend Migration (Atlassian Design System) | 1.3 | deprecated | dev, ai |
-| [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.3 | active | dev, ai |
-| [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.2 | active | dev, ai |
+| [SPEC-ACTIVITIES-001](specs/2026-10-08-activities-ui-design.md) | Design — Activities & Projects Screen UI (Hoạt động & Dự án) | 1.4 | active | dev, ai |
+| [PLAN-ACTIVITIES-001](specs/2026-10-08-activities-ui-plan.md) | Plan — Activities & Projects Screen UI Implementation | 1.3 | active | dev, ai |
 | [SPEC-ARCHIVE-001](specs/2026-10-08-archive-screen-design.md) | Design — Archive Screen UI (Kho lưu trữ hoạt động) | 1.2 | active | dev, ai |
 | [PLAN-ARCHIVE-001](specs/2026-10-08-archive-screen-plan.md) | Plan — Archive Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-CALENDAR-001](specs/2026-10-08-calendar-ui-design.md) | Design — Calendar Screen UI (Lịch chung) | 1.6 | active | dev, ai |

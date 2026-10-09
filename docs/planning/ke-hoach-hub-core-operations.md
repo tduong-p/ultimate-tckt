@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.11
+version: 2.12
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1292,3 +1292,4 @@ npm run docs:check         # Documentation validation
 | 2.9 | 2026-10-09 | Ghi nhận PR 83: frontend `web/` (React + Vite + Atlaskit) có các màn Core đầu tiên (Tổng quan, Hoạt động, Lịch, Lưu trữ, Văn bản, Thành viên, Tổ, Nhiệm vụ của tôi, Báo cáo) dùng API thật, onboarding HUST, job CI `test-web`; cách phục vụ `web/` (mục `/app`) chưa chốt; phạm vi kế hoạch không đổi | DYC |
 | 2.10 | 2026-10-09 | Đợt 0 của `web/` (SPEC-WEB-003): router, tầng API, thành phần dùng chung | DYC |
 | 2.11 | 2026-10-09 | Đợt 1 của web/ (SPEC-WEB-003): Hoạt động | DYC |
+| 2.12 | 2026-10-09 | Port vòng đời nhiệm vụ từ PR #86 vào `web/` (nút vòng đời, modal nghiệm thu, tạo nhiệm vụ từ chi tiết hoạt động) | DYC |
