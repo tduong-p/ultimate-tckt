@@ -19,10 +19,11 @@ import { deriveActivityActions } from './activityPermissions';
 import { useActivityMutation } from './useActivityMutation';
 import { EditActivityModal } from './EditActivityModal';
 import { AddParticipantsModal } from './AddParticipantsModal';
+import { CreateTaskModal } from '../tasks/CreateTaskModal';
 
-type Dialog = 'changes' | 'reject' | 'delete' | 'edit' | 'participants' | null;
+type Dialog = 'changes' | 'reject' | 'delete' | 'edit' | 'participants' | 'task' | null;
 
-/** Thanh hành động của trang hoạt động. `children` để đợt 2 gắn thêm nút việc. */
+/** Thanh hành động của trang hoạt động. `children` để gắn thêm nút khác (đợt 2). */
 export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: React.ReactNode }> = ({ detail, children }) => {
   const { canWriteActivities, isWriteExec, canLeadTeam, memberships } = useCapabilities();
   const { data: session } = useQuery({ queryKey: SESSION_KEY, queryFn: fetchSession });
@@ -79,6 +80,7 @@ export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: Reac
         </Button>
       )}
       {flags.canAddParticipants && <Button onClick={() => setDialog('participants')}>Thêm người tham gia</Button>}
+      {flags.canCreateTask && <Button onClick={() => setDialog('task')}>Tạo nhiệm vụ</Button>}
       {children}
 
       <ReasonDialog
@@ -114,6 +116,7 @@ export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: Reac
       </ConfirmDialog>
       <EditActivityModal isOpen={dialog === 'edit'} onClose={close} detail={detail} isAdmin={flags.canEditAdminFields} />
       <AddParticipantsModal isOpen={dialog === 'participants'} onClose={close} detail={detail} />
+      <CreateTaskModal isOpen={dialog === 'task'} onClose={close} detail={detail} />
     </div>
   );
 };

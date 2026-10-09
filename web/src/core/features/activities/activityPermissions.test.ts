@@ -27,6 +27,13 @@ describe('deriveActivityActions', () => {
     expect(deriveActivityActions({ canWrite: true, canManageWrite: true, isWriteExec: false, userId: 2, detail: detail('proposed', true) }).canResubmit).toBe(false);
   });
 
+  it('tạo việc: người quản lý hoạt động được, thành viên thường và người chỉ-xem thì không', () => {
+    expect(deriveActivityActions({ canWrite: true, canManageWrite: true, isWriteExec: false, userId: 2, detail: detail('active', true) }).canCreateTask).toBe(true);
+    expect(deriveActivityActions({ canWrite: true, canManageWrite: false, isWriteExec: true, userId: 1, detail: detail('active', false) }).canCreateTask).toBe(true);
+    expect(deriveActivityActions({ canWrite: true, canManageWrite: false, isWriteExec: false, userId: 3, detail: detail('active', false) }).canCreateTask).toBe(false);
+    expect(deriveActivityActions({ canWrite: false, canManageWrite: true, isWriteExec: true, userId: 1, detail: detail('active', true) }).canCreateTask).toBe(false);
+  });
+
   it('thành viên thường không sửa, không thêm người', () => {
     const a = deriveActivityActions({ canWrite: true, canManageWrite: false, isWriteExec: false, userId: 3, detail: detail('active', false) });
     expect(a).toMatchObject({ canEdit: false, canAddParticipants: false, canApprove: false, canDelete: false });
