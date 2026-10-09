@@ -181,6 +181,8 @@
 | [PLAN-REPORTS-001](specs/2026-10-08-reports-screen-plan.md) | Plan — Reports Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-TEAMS-001](specs/2026-10-08-teams-screen-design.md) | Design — Teams Screen UI (Các Tổ) | 1.2 | active | dev, ai |
 | [PLAN-TEAMS-001](specs/2026-10-08-teams-screen-plan.md) | Plan — Teams Screen UI Implementation | 1.1 | active | dev, ai |
+| [SPEC-PROPTASK-001](specs/2026-10-09-proposals-and-tasks-design.md) | Thiết kế — Bổ sung Luồng Phê duyệt Đề xuất Hoạt động và Quản lý Vòng đời Nhiệm vụ (Core Web) | 1.0 | active | dev, ai |
+| [SPEC-PROPTASK-002](specs/2026-10-09-proposals-and-tasks-plan.md) | Kế hoạch triển khai — Bổ sung Luồng Phê duyệt Đề xuất Hoạt động và Quản lý Vòng đời Nhiệm vụ (Core Web) | 1.0 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
