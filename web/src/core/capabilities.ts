@@ -25,7 +25,8 @@ export function deriveCapabilities(session?: SessionData | null, bootstrap?: Boo
   const unitRole = unit ? memberships.find((m) => m.unit_id === unit.id)?.role ?? null : null;
   const roles = [role, unitRole];
   const isExec = roles.some((r) => r !== null && EXECUTIVE_ROLES.includes(r));
-  const isManager = isExec || roles.some((r) => r !== null && LEADERSHIP_ROLES.includes(r));
+  const isLeadership = roles.some((r) => r !== null && LEADERSHIP_ROLES.includes(r));
+  const isManager = isExec || isLeadership;
   const managedTeams = new Set((bootstrap?.teams ?? []).filter((t) => Boolean(t.can_manage)).map((t) => t.id));
   return {
     role,
@@ -36,7 +37,10 @@ export function deriveCapabilities(session?: SessionData | null, bootstrap?: Boo
     isManager,
     canCreateActivity: Boolean(bootstrap?.capabilities?.canCreateActivity),
     canCreateAccount: Boolean(bootstrap?.capabilities?.canCreateAccount),
-    canManageTeam: (teamId: number) => isExec || managedTeams.has(teamId),
+    // Luật server: isExec || (isLeadership && leadsTeam). `can_manage` của bootstrap là tín hiệu leadsTeam.
+    // Lưu ý: với tài khoản DYC, `isExec` phản ánh quyền admin mức đọc (legacyRole của server chỉ cấp admin cho DYC ở GET),
+    // nên khi chặn thao tác ghi cần đối chiếu theo luật server, không chỉ tin cờ này.
+    canManageTeam: (teamId: number) => isExec || (isLeadership && managedTeams.has(teamId)),
   };
 }
 

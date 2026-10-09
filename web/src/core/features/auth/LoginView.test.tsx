@@ -94,7 +94,7 @@ describe('LoginView Component', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Email or password is incorrect\./i)).toBeDefined();
+      expect(screen.getByText('Email hoặc mật khẩu không đúng.')).toBeDefined();
       expect(mockOnLoginSuccess).not.toHaveBeenCalled();
     });
   });
@@ -109,5 +109,22 @@ describe('LoginView Component', () => {
 
     expect(screen.getByText(/WORK TOGETHER · REMEMBER TOGETHER/i)).toBeDefined();
     expect(screen.getByText(/Sign in to your workspace/i)).toBeDefined();
+  });
+  it('hiện tiếng Việt khi Core trả 401 sai email hoặc mật khẩu', async () => {
+    vi.mocked(api.loginUser).mockRejectedValue({ response: { status: 401, data: { error: 'Email or password is incorrect.' } } });
+    render(<LoginView onLoginSuccess={mockOnLoginSuccess} />);
+    fireEvent.change(document.getElementById('login-email')!, { target: { value: 'a@hust.edu.vn' } });
+    fireEvent.change(document.getElementById('login-password')!, { target: { value: 'x' } });
+    fireEvent.submit(document.querySelector('form')!);
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('Email hoặc mật khẩu không đúng.'));
+  });
+
+  it('hiện thông báo tiếng Việt khi mất kết nối máy chủ', async () => {
+    vi.mocked(api.loginUser).mockRejectedValue(new Error('Network Error'));
+    render(<LoginView onLoginSuccess={mockOnLoginSuccess} />);
+    fireEvent.change(document.getElementById('login-email')!, { target: { value: 'a@hust.edu.vn' } });
+    fireEvent.change(document.getElementById('login-password')!, { target: { value: 'x' } });
+    fireEvent.submit(document.querySelector('form')!);
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(api.NETWORK_ERROR_MESSAGE));
   });
 });

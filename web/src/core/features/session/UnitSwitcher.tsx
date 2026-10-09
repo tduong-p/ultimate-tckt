@@ -34,6 +34,7 @@ export const UnitSwitcher: React.FC = () => {
       <select id={id} value={unit?.id ?? ''} disabled={mutation.isPending}
         onChange={(e) => { const next = Number(e.target.value); if (next && next !== unit?.id) mutation.mutate(next); }}
         style={{ padding: '4px 6px', borderRadius: 4, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D'), maxWidth: 180 }}>
+        {!unit && <option value="" disabled>Chọn đơn vị</option>}
         {memberships.map((m) => <option key={m.unit_id} value={m.unit_id}>{m.name}</option>)}
       </select>
     </div>

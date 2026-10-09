@@ -5,6 +5,8 @@ export const VI_ERROR_MESSAGES: Record<string, string> = {
   'Please sign in to continue.': 'Vui lòng đăng nhập để tiếp tục.',
   'Administrator access is required.': 'Chỉ quản trị viên được thực hiện thao tác này.',
   'No valid fields supplied.': 'Không có thông tin hợp lệ để lưu.',
+  // Đăng nhập
+  'Email or password is incorrect.': 'Email hoặc mật khẩu không đúng.',
   // Báo cáo
   'Choose a valid report date range.': 'Khoảng thời gian báo cáo không hợp lệ.',
   'No reportable teams are available.': 'Bạn chưa quản lý Tổ nào để xuất báo cáo.',

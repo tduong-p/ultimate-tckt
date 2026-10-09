@@ -50,6 +50,15 @@ describe('UnitSwitcher', () => {
     expect(screen.queryByLabelText('Đơn vị')).toBeNull();
   });
 
+  it('chưa có đơn vị hiện tại: hiện lựa chọn "Chọn đơn vị" bị vô hiệu, đang được chọn', () => {
+    const noCurrent = { user: { id: 1, name: 'A', email: 'a@x', role: 'member' }, units: { current: null, memberships } };
+    setup(noCurrent as unknown as ReturnType<typeof sessionAt>);
+    const select = screen.getByLabelText('Đơn vị') as HTMLSelectElement;
+    const placeholder = Array.from(select.options).find((o) => o.textContent === 'Chọn đơn vị')!;
+    expect(placeholder.disabled).toBe(true);
+    expect(select.value).toBe('');
+  });
+
   it('đổi đơn vị: gọi API, cập nhật session, xoá cache khác, về Tổng quan', async () => {
     vi.mocked(api.switchUnit).mockResolvedValueOnce(sessionAt(2));
     const qc = setup(sessionAt(1));

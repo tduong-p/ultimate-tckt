@@ -52,6 +52,13 @@ describe('deriveCapabilities', () => {
     expect(c.canManageTeam(2)).toBe(false);
   });
 
+  it('canManageTeam theo luật server: leader/vice_leader và can_manage; member có can_manage thì không', () => {
+    const teams = [{ id: 1, name: 'Tổ 1', can_manage: 1 }];
+    expect(deriveCapabilities(session('vice_leader'), bootstrap(teams)).canManageTeam(1)).toBe(true);
+    expect(deriveCapabilities(session('member', 'leader'), bootstrap(teams)).canManageTeam(1)).toBe(true);
+    expect(deriveCapabilities(session('member'), bootstrap(teams)).canManageTeam(1)).toBe(false);
+  });
+
   it('thành viên thường không phải manager', () => {
     const c = deriveCapabilities(session('member'), bootstrap());
     expect(c.isManager).toBe(false);
