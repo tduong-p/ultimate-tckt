@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.15
+version: 1.17
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/public/**, web/**, services/ctd-api/frontend/src/**]
 ---
 
@@ -82,7 +82,25 @@ Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việ
 
 Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, Tổng quan) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`.
 
+### Tổ, thành viên và tài khoản (web/ đợt 3)
+
+- Trang `#/team/:id` tải overview; route để server phân quyền, khi bị 403 thì về Tổng quan kèm thông báo vì quyền quản lý Tổ chỉ có sau khi bootstrap tải.
+- `#/accounts` chỉ dành cho quản trị viên; menu "Quản trị tài khoản" nhận `canViewAccounts` từ `PageLayout`.
+- Tổ, tài khoản và preset dùng mutation cùng `invalidatePeople(queryClient)`; hộp nhập dùng `FormDialog`. `renderWithApp` trong `web/src/core/testing/peopleHarness.tsx` dựng session, bootstrap, router và toast cho test.
+- Tổ trưởng không gửi email/mật khẩu khi sửa tài khoản, chỉ tạo `member` trong Tổ mình quản lý và không thể tự xoá. Các câu lỗi API tiếng Anh mới nằm trong `web/src/core/api/errorMessages.ts`.
+- Bộ trọng số dùng `/api/admin/weight-presets`; lỗi khoá DYC hiển thị lý do và người khoá qua `settingErrorMessage`. Điểm preset là số nguyên từ 0 đến 10.
+- Tài khoản của tôi mở từ chip tên người dùng; người dùng tự sửa email, điện thoại, màu đại diện và mật khẩu, không sửa tên hoặc vai trò.
+### Văn bản và Thông báo (web/)
+
+Đợt 4 (SPEC-WEB-003 §4.6, §3.2, §3.4):
+- **Văn bản** (`web/src/core/features/documents/`): nút "Thêm văn bản" cho mọi người dùng đã đăng nhập; nút "Sửa" chỉ hiện khi `can_edit` của dòng đó là true (server tính: admin/vice_admin, người tạo, hoặc thành viên Tổ ban hành). Hộp `DocumentFormModal` dùng chung cho thêm và sửa, chỉ nhận link (`link_url`), không tải tệp; danh sách Tổ ban hành lấy từ `issueTeams` của `GET /api/documents` (nếu sửa mà Tổ cũ không nằm trong danh sách thì tự thêm vào options để tránh trống ô); sau khi lưu thành công làm mới `['core-documents']`.
+- **Thông báo** (`web/src/core/features/notifications/`): `NotificationCenter` (ghép chuông `NotificationBell` và popup `NotificationPopups`) được đặt vào `headerExtras` của `PageLayout`. Query `['core-notifications']` tải lại mỗi 60 giây ở duy nhất một nơi (`useNotifications`, chỉ `NotificationBell` kích hoạt; `NotificationPopups` dùng `enabled: false` để đọc cache, tránh poll đôi).
+- **Điều hướng thông báo**: `notificationRoute()` đổi `url` của thông báo (`/#activity/12`, `#activity/12`, `#/activity/12`) thành đường dẫn router (`/activity/12`); không có hash thì về `/dashboard`. Bấm một mục đánh dấu đã xem lạc quan trong cache và gửi `PATCH /api/notifications/:id/seen` nếu chưa xem, rồi điều hướng.
+- **Việt hoá**: tiêu đề và nội dung tiếng Anh do Core lưu (`core/src/routes/activities.js`) được Việt hoá qua `notificationTitle` và `notificationBody` trong `notificationText.ts`; trạng thái gửi email/push được hiển thị qua `deliveryLabel`.
+- **Popup**: tối đa 3 thông báo mới chưa xem gần nhất, cũ nhất ở trên, tự tắt sau 7 giây; bấm popup gỡ popup và mở thông báo.
+
 ## CTD — `services/ctd-api/frontend/` (React 18 + TypeScript + Vite)
+
 
 Chia theo tính năng dưới `src/features/`: `auth/` (đăng nhập), `hoso/` (nộp/theo dõi hồ sơ — tối ưu mobile,
 người dùng là sinh viên), `canbo/` (Inbox + xử lý hồ sơ — tối ưu desktop, mật độ thông tin cao cho xử lý hàng
@@ -131,4 +149,6 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.12 | 2026-10-09 | Phân biệt quyền đọc DYC và quyền ghi TCKT trên trang hoạt động | DYC |
 | 1.13 | 2026-10-09 | Mô tả tính năng nhiệm vụ trong `web/` (nút thao tác, tạo nhiệm vụ, `useTaskMutation`, cờ `canCreateTask`) | DYC |
 | 1.14 | 2026-10-09 | Đợt 2 `web/`: bổ sung mục Công việc và Kanban (hộp chi tiết, quyền, Kanban kéo-thả, kết nối trang hoạt động) | DYC |
-| 1.15 | 2026-10-09 | Đợt 5 `web/`: route, menu, quyền và luồng Giao việc/Trình | DYC |
+| 1.15 | 2026-10-09 | Đợt 3 `web/`: Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân | DYC |
+| 1.16 | 2026-10-09 | Đợt 4 `web/`: thêm/sửa Văn bản, chuông thông báo, popup và điều hướng thông báo | DYC |
+| 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |

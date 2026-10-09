@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '@atlaskit/css-reset';
 import { token } from '@atlaskit/tokens';
@@ -21,6 +21,7 @@ import PersonIcon from '@atlaskit/icon/core/person';
 import FileIcon from '@atlaskit/icon/core/file';
 import ChartBarIcon from '@atlaskit/icon/core/chart-bar';
 import ArchiveBoxIcon from '@atlaskit/icon/core/archive-box';
+import SettingsIcon from '@atlaskit/icon/core/settings';
 import SendIcon from '@atlaskit/icon/core/send';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
@@ -38,6 +39,7 @@ type NavItem = {
   Icon: React.ComponentType<{ label: string }>;
   managerOnly?: boolean;
   dieuHanhOnly?: boolean;
+  adminOnly?: boolean;
   alsoPaths?: string[];
 };
 
@@ -51,6 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/people', label: 'Thành viên', Icon: PersonIcon },
   { path: '/documents', label: 'Tài liệu', Icon: FileIcon },
   { path: '/reports', label: 'Báo cáo', Icon: ChartBarIcon, managerOnly: true },
+  { path: '/accounts', label: 'Quản trị tài khoản', Icon: SettingsIcon, adminOnly: true },
   { path: '/archive', label: 'Lưu trữ', Icon: ArchiveBoxIcon },
   { path: '/directives', label: 'Giao việc', Icon: SendIcon, dieuHanhOnly: true, alsoPaths: ['/directive'] },
   { path: '/submissions', label: 'Trình', Icon: InboxIcon, dieuHanhOnly: true, alsoPaths: ['/submission'] },
@@ -66,10 +69,14 @@ export interface PageLayoutProps {
     avatar_color?: string;
   } | null;
   onLogout?: () => void;
+  /** Mở hộp "Tài khoản của tôi" khi bấm vào tên người dùng. */
+  onOpenAccount?: () => void;
   /** Hiện mục menu "Báo cáo" (chỉ người có quyền điều hành/đề xuất hoạt động). Mặc định ẩn. */
   canViewReports?: boolean;
   /** Hiện mục menu "Giao việc" và "Trình" (đơn vị hiện tại có module dieu-hanh). Mặc định ẩn. */
   canViewDieuHanh?: boolean;
+  /** Hiện mục "Quản trị tài khoản" (chỉ admin). Mặc định ẩn. */
+  canViewAccounts?: boolean;
   /** Phần tử đặt cạnh avatar trên thanh trên cùng (vd. bộ chọn đơn vị). */
   headerExtras?: React.ReactNode;
 }
@@ -78,12 +85,64 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   children,
   user,
   onLogout,
+  onOpenAccount,
   canViewReports = false,
   canViewDieuHanh = false,
+  canViewAccounts = false,
   headerExtras,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const renderProfile = useCallback(() => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {headerExtras}
+      {user && onOpenAccount ? (
+        <button
+          type="button"
+          onClick={onOpenAccount}
+          aria-label="Tài khoản của tôi"
+          title="Tài khoản của tôi"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', color: 'inherit' }}
+        >
+          <Avatar size="small" appearance="circle" name={user.name} />
+          <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>
+        </button>
+      ) : (
+        <>
+          <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
+          {user && <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>}
+        </>
+      )}
+      {onLogout && (
+        <button
+          type="button"
+          onClick={onLogout}
+          aria-label="Đăng xuất tài khoản"
+          style={{
+            marginLeft: '6px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '6px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            color: token('color.icon.danger', '#DE350B'),
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = token('color.background.danger.subtle', '#FFEBE6');
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+          title="Đăng xuất"
+        >
+          <LogOutIcon label="Đăng xuất" />
+        </button>
+      )}
+    </div>
+  ), [headerExtras, onLogout, onOpenAccount, user]);
   return (
     <PageLayoutWrapper>
       <TopNavigation isFixed={true} id="confluence-navigation">
@@ -96,45 +155,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               <ThemeToggle size={52} />
             </div>
           )}
-          renderProfile={() => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {headerExtras}
-              <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
-              {user && (
-                <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
-                  {user.name}
-                </span>
-              )}
-              {onLogout && (
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  aria-label="Đăng xuất tài khoản"
-                  style={{
-                    marginLeft: '6px',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '6px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: token('color.icon.danger', '#DE350B'),
-                    transition: 'background-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = token('color.background.danger.subtle', '#FFEBE6');
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                  title="Đăng xuất"
-                >
-                  <LogOutIcon label="Đăng xuất" />
-                </button>
-              )}
-            </div>
-          )}
+          renderProfile={renderProfile}
         />
       </TopNavigation>
       <Content>
@@ -143,7 +164,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
-                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.dieuHanhOnly || canViewDieuHanh)).map(({ path, label, Icon, alsoPaths }) => {
+                  {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.dieuHanhOnly || canViewDieuHanh) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon, alsoPaths }) => {
                     const selected = [path, ...(alsoPaths ?? [])].some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`));
                     return (
                       <ButtonItem key={path} isSelected={selected} aria-current={selected ? 'page' : undefined}

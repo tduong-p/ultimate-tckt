@@ -1,10 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
 import Select from '@atlaskit/select';
+import Button from '@atlaskit/button/new';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMembers, fetchTeams, type MemberItem, type TeamItem } from '../../api';
+import { MEMBERS_KEY, TEAMS_KEY } from '../../queryKeys';
+import { useCapabilities } from '../../capabilities';
+import { useCurrentUser } from '../people/useCurrentUser';
+import { getRoleLabel, getRoleStyle } from '../people/roleLabels';
+import { CreateAccountModal } from './CreateAccountModal';
+import { EditAccountModal } from './EditAccountModal';
+import { DeleteAccountDialog } from './DeleteAccountDialog';
 
 const getInitials = (name?: string): string => {
   if (!name) return '??';
@@ -13,81 +21,36 @@ const getInitials = (name?: string): string => {
   return parts.slice(-2).map((p) => p[0]).join('').toUpperCase();
 };
 
-const getRoleLabel = (role?: string): string => {
-  switch (role) {
-    case 'admin':
-      return 'Trưởng Ban TCKT';
-    case 'vice_admin':
-      return 'Phó Ban TCKT';
-    case 'leader':
-    case 'Tổ Trưởng':
-      return 'Tổ Trưởng';
-    case 'vice_leader':
-    case 'Tổ Phó':
-      return 'Tổ Phó';
-    case 'member':
-    case 'Thành Viên':
-    default:
-      return 'Thành Viên';
-  }
-};
-
-const getRoleStyle = (role?: string) => {
-  switch (role) {
-    case 'admin':
-    case 'vice_admin':
-      return {
-        bg: '#FFE380',
-        color: '#172B4D',
-        dot: '#FF8B00',
-      };
-    case 'leader':
-    case 'Tổ Trưởng':
-      return {
-        bg: '#FFF0B3',
-        color: '#825800',
-        dot: '#FFAB00',
-      };
-    case 'vice_leader':
-    case 'Tổ Phó':
-      return {
-        bg: '#DEEBFF',
-        color: '#0747A6',
-        dot: '#0052CC',
-      };
-    case 'member':
-    case 'Thành Viên':
-    default:
-      return {
-        bg: '#F4F5F7',
-        color: '#42526E',
-        dot: '#6B778C',
-      };
-  }
+const actionButtonStyle: React.CSSProperties = {
+  padding: '2px 10px',
+  fontSize: '11px',
+  border: `1px solid ${token('color.border', '#DFE1E6')}`,
+  borderRadius: '3px',
+  backgroundColor: token('elevation.surface', '#FFFFFF'),
+  cursor: 'pointer',
+  color: token('color.text', '#172B4D'),
 };
 
 export const MembersView: React.FC = () => {
+  const caps = useCapabilities();
+  const me = useCurrentUser();
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<MemberItem | null>(null);
+  const [deleting, setDeleting] = useState<MemberItem | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [teamFilter, setTeamFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
 
   const { data: members, isLoading: isLoadingMembers, isError: isErrorMembers } = useQuery({
-    queryKey: ['core-members'],
+    queryKey: MEMBERS_KEY,
     queryFn: fetchMembers,
   });
 
   const { data: teams, isError: isErrorTeams } = useQuery({
-    queryKey: ['core-teams'],
+    queryKey: TEAMS_KEY,
     queryFn: fetchTeams,
   });
-
-  if (isErrorMembers || isErrorTeams) {
-    return (
-      <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
-        Lỗi tải dữ liệu thành viên
-      </div>
-    );
-  }
 
   const teamOptions = useMemo(() => {
     const options = [{ label: 'Tất cả các Tổ', value: 'all' }];
@@ -142,6 +105,14 @@ export const MembersView: React.FC = () => {
     });
   }, [members, teams, searchQuery, roleFilter, teamFilter]);
 
+  if (isErrorMembers || isErrorTeams) {
+    return (
+      <div style={{ color: token('color.text.danger', '#DE350B'), padding: '16px' }}>
+        Lỗi tải dữ liệu thành viên
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '4px' }}>
       {/* Page Header */}
@@ -175,6 +146,11 @@ export const MembersView: React.FC = () => {
             Ghi nhận sự tham gia của từng thành viên.
           </p>
         </div>
+        {caps.isManager && (
+          <Button appearance="primary" onClick={() => setCreating(true)}>
+            Tạo tài khoản
+          </Button>
+        )}
       </div>
 
       {/* Toolbar: Search & Filters */}
@@ -284,7 +260,7 @@ export const MembersView: React.FC = () => {
             const initials = (member as any).initials || getInitials(member.name);
             const teamName = member.teams || (member as any).team || 'Chung';
             const completedTasks = member.completed_tasks ?? (member as any).completedTasks ?? 0;
-            const canManage = Boolean(member.can_manage ?? (member as any).canManage);
+            const canManage = caps.isManager && Boolean(member.can_manage ?? (member as any).canManage);
 
             return (
               <div
@@ -401,32 +377,22 @@ export const MembersView: React.FC = () => {
                     <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                       <button
                         type="button"
-                        style={{
-                          padding: '2px 10px',
-                          fontSize: '11px',
-                          border: `1px solid ${token('color.border', '#DFE1E6')}`,
-                          borderRadius: '3px',
-                          backgroundColor: '#FFFFFF',
-                          cursor: 'pointer',
-                          color: token('color.text', '#172B4D'),
-                        }}
+                        aria-label={`Sửa ${member.name}`}
+                        onClick={() => setEditing(member)}
+                        style={actionButtonStyle}
                       >
                         Sửa
                       </button>
-                      <button
-                        type="button"
-                        style={{
-                          padding: '2px 10px',
-                          fontSize: '11px',
-                          border: `1px solid ${token('color.border', '#DFE1E6')}`,
-                          borderRadius: '3px',
-                          backgroundColor: '#FFFFFF',
-                          cursor: 'pointer',
-                          color: token('color.text', '#172B4D'),
-                        }}
-                      >
-                        Xóa
-                      </button>
+                      {member.id !== me?.id && (
+                        <button
+                          type="button"
+                          aria-label={`Xoá ${member.name}`}
+                          onClick={() => setDeleting(member)}
+                          style={actionButtonStyle}
+                        >
+                          Xoá
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -435,6 +401,10 @@ export const MembersView: React.FC = () => {
           })}
         </div>
       )}
+
+      <CreateAccountModal isOpen={creating} onClose={() => setCreating(false)} />
+      <EditAccountModal member={editing} onClose={() => setEditing(null)} />
+      <DeleteAccountDialog member={deleting} onClose={() => setDeleting(null)} />
     </div>
   );
 };

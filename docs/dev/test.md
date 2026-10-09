@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.30
+version: 2.32
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/**/*.test.ts, web/src/**/*.test.tsx, core/tests/**, services/ctd-api/backend/tests/**, tools/tests/**, core/tests/helpers/db.js]
 ---
 
@@ -51,6 +51,8 @@ cd web && npm test && npm run build
 Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader`.
 
 Test trang hoạt động dùng `renderInApp` và `makeDetail` (`web/src/core/features/activities/testUtils.tsx`): helper dựng `QueryClient` với `SESSION_KEY`, `BOOTSTRAP_KEY`, `ToastProvider` và `MemoryRouter`; `Probe` hiện đường dẫn hiện tại để kiểm tra điều hướng. Mock API bằng `vi.mock('../../api', async () => ({ ...actual, fn: vi.fn() }))` (lấy `actual` từ `vi.importActual`) để giữ các export không cần mock.
+
+Test đợt 3 cho Tổ, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân dùng `renderWithApp` trong `web/src/core/testing/peopleHarness.tsx`. Helper dựng session, bootstrap, `QueryClient`, Router và ToastProvider; API được mock. Test quyền route/menu nằm trong `AppRoutes.test.tsx` và `PageLayout.test.tsx`.
 
 ## CTD — `pytest`
 
@@ -146,4 +148,6 @@ nào, kể cả mật khẩu mặc định.
 | 2.27 | 2026-10-09 | Test DYC chỉ đọc, DYC+TCKT theo vai trò ghi, gỡ Tổ đã lưu trữ và kiểm URL ảnh công khai | DYC |
 | 2.28 | 2026-10-09 | Thêm test các nút vòng đời nhiệm vụ, modal nghiệm thu và tạo nhiệm vụ từ chi tiết hoạt động | DYC |
 | 2.29 | 2026-10-09 | Đợt 2 `web/`: bổ sung bộ test cho chi tiết công việc, bình luận, tài liệu, checklist, sửa việc, tự ghi nhận, giao việc và Kanban kéo-thả | DYC |
-| 2.30 | 2026-10-09 | Đợt 5 `web/`: test route/menu theo module; Core có test truy cập directives qua session thật và test tên/danh sách đơn vị | DYC |
+| 2.30 | 2026-10-09 | Đợt 3 `web/`: test Tổ, thành viên, tài khoản, nhập hàng loạt, trọng số, hồ sơ cá nhân và helper renderWithApp | DYC |
+| 2.31 | 2026-10-09 | Đợt 4 `web/`: test Văn bản, chuông thông báo, popup và điều hướng URL thông báo | DYC |
+| 2.32 | 2026-10-10 | Bổ sung test đợt 5 cho route/menu theo module và truy cập directives bằng session thật | DYC |

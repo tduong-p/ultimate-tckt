@@ -1,19 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { token } from '@atlaskit/tokens';
-import { LinkButton } from '@atlaskit/button/new';
-import Select from '@atlaskit/select';
 import Lozenge from '@atlaskit/lozenge';
+import Select from '@atlaskit/select';
+import Button, { LinkButton } from '@atlaskit/button/new';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import InboxIcon from '@atlaskit/icon/core/inbox';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 import { fetchDocuments, type DocumentItem } from '../../api';
+import { DocumentFormModal } from './DocumentFormModal';
+import { formatVnDate } from '../../../shared/utils/date';
 
 export const DocumentsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebouncedValue(searchQuery.trim());
   const [yearFilter, setYearFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
+  const [formState, setFormState] = useState<{ open: boolean; doc: DocumentItem | null }>({ open: false, doc: null });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['core-documents', { q: debouncedQuery, year: yearFilter, team_id: teamFilter }],
@@ -77,7 +80,11 @@ export const DocumentsView: React.FC = () => {
             Danh mục liên kết văn bản do các Tổ TCKT ban hành.
           </p>
         </div>
+        <Button appearance="primary" isDisabled={!data} onClick={() => setFormState({ open: true, doc: null })}>
+          Thêm văn bản
+        </Button>
       </div>
+
 
       {/* Toolbar: Search and Filters */}
       <div
@@ -259,8 +266,15 @@ export const DocumentsView: React.FC = () => {
                     {doc.description}
                   </p>
                 )}
+                <div style={{ marginTop: '8px', fontSize: '12px', color: token('color.text.subtle', '#5E6C84') }}>
+                  Bởi {doc.creator_name ?? 'không rõ'}
+                  {doc.created_at ? ` · ${formatVnDate(doc.created_at)}` : ''}
+                </div>
               </div>
-              <div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {doc.can_edit && (
+                  <Button appearance="default" onClick={() => setFormState({ open: true, doc })}>Sửa</Button>
+                )}
                 <LinkButton
                   appearance="subtle"
                   href={doc.link_url}
@@ -274,6 +288,12 @@ export const DocumentsView: React.FC = () => {
           ))}
         </div>
       )}
+      <DocumentFormModal
+        isOpen={formState.open}
+        document={formState.doc}
+        issueTeams={data?.issueTeams ?? []}
+        onClose={() => setFormState((s) => ({ ...s, open: false }))}
+      />
     </div>
   );
 };

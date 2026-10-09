@@ -1,17 +1,19 @@
 ---
 doc_id: PLAN-MEMBERS-001
 title: Plan — Members Screen UI Implementation
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-09
 related_code: [web/src/core/features/members/MembersView.tsx]
 ---
 
 # Members Screen Implementation Plan
 
 ## Tasks
+
+Kế hoạch giao diện ban đầu đã được mở rộng và hoàn tất trong SPEC-WEB-003 đợt 3, gồm tạo/sửa/xoá tài khoản và quyền theo vai trò. Kế hoạch chi tiết hiện hành là `docs/specs/2026-10-09-web-dot-3-to-thanh-vien-plan.md`.
 
 ### Task 1: Create MembersView Component
 - Create `web/src/core/features/members/MembersView.tsx`.
@@ -33,3 +35,4 @@ related_code: [web/src/core/features/members/MembersView.tsx]
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Thành viên | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/people và /api/teams, xóa mock | DYC |
+| 1.2 | 2026-10-09 | Trỏ tới kế hoạch đợt 3 hiện hành đã hoàn tất luồng thành viên và tài khoản | DYC |
