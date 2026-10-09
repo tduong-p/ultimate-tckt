@@ -102,4 +102,15 @@ describe('ActivityDetailView — thông tin', () => {
     expect(await screen.findByText('Không tìm thấy hoạt động hoặc bạn không có quyền xem.')).toBeDefined();
     expect(api.fetchActivityDetail).not.toHaveBeenCalled();
   });
+
+  it('hiện dòng thời gian cập nhật và form đăng cập nhật', async () => {
+    vi.mocked(api.fetchActivityDetail).mockResolvedValue(
+      makeDetail({
+        updates: [{ id: 1, kind: 'progress', body: 'Đã in xong tờ rơi', created_at: '2026-10-05T03:00:00.000Z', user_name: 'Trần Người Tạo', tagged_users: [] }],
+      })
+    );
+    show();
+    expect(await screen.findByText('Đã in xong tờ rơi')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Đăng cập nhật' })).toBeDefined();
+  });
 });

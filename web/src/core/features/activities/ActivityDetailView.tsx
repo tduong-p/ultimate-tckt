@@ -7,6 +7,7 @@ import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { apiErrorMessage, fetchActivityDetail } from '../../api';
 import { activityDetailKey } from './activityKeys';
 import { ActivityPlanSection } from './ActivityPlanSection';
+import { ActivityUpdatesSection } from './ActivityUpdatesSection';
 import {
   ActivityDetailsCard,
   ActivityGeneralInfo,
@@ -59,7 +60,7 @@ export const ActivityDetailView: React.FC = () => {
         <div style={{ flex: '2 1 480px', minWidth: 0 }}>
           <ActivityGeneralInfo activity={activity} teams={data.activityTeams} />
           <ActivityPlanSection tasks={data.tasks} attachments={data.attachments} activityType={activity.type} />
-          {/* UPDATES */}
+          <ActivityUpdatesSection activityId={activity.id} updates={data.updates} taggablePeople={data.taggablePeople} />
         </div>
         <aside style={{ flex: '1 1 280px', minWidth: 0 }}>
           <ActivityTeamsCard teams={data.activityTeams} />
