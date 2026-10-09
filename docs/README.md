@@ -61,7 +61,7 @@
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.3 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
-| [DEV-TEST-001](dev/test.md) | Test | 2.29 | active | dev, ai |
+| [DEV-TEST-001](dev/test.md) | Test | 2.30 | active | dev, ai |
 
 ## onboarding
 
@@ -92,7 +92,7 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.13 | active | dev, ba |
+| [PLAN-HUB-001](planning/ke-hoach-hub-core-operations.md) | Kế hoạch phát triển Hub (Core + Operations, không CTD) | 2.14 | active | dev, ba |
 | [PLAN-DEV-001](planning/ke-hoach-phat-trien.md) | Kế hoạch phát triển nền tảng đa đơn vị | 1.0 | active | dev, ba, ops |
 | [PLAN-TEAM-002](planning/phan-cong-6-devs.md) | Phân công chi tiết 6 devs (4 Backend + 2 Frontend) | 1.0 | active | dev, ops |
 | [PLAN-TEAM-001](planning/phan-nhom-dev.md) | Phân nhóm phát triển và workflow | 1.0 | active | dev, ops |
@@ -170,8 +170,8 @@
 | [PLAN-CTDUI-001](specs/2026-10-08-ctd-ui-plan.md) | Kế hoạch triển khai — Giao diện Công tác Đảng (CTD) theo Atlassian Design System | 1.1 | active | dev, ai |
 | [SPEC-WEB-002](specs/2026-10-08-dashboard-ui-design.md) | Dashboard UI Design (Atlassian Design System) | 1.6 | active | dev, ai |
 | [PLAN-WEB-002](specs/2026-10-08-dashboard-ui-plan.md) | Kế hoạch triển khai — Dashboard UI (Atlassian Design System) | 1.4 | active | dev, ai |
-| [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.2 | active | dev, ai |
-| [PLAN-DOCS-001](specs/2026-10-08-documents-screen-plan.md) | Plan — Documents Screen UI Implementation | 1.1 | active | dev, ai |
+| [SPEC-DOCS-001](specs/2026-10-08-documents-screen-design.md) | Design — Documents Screen UI (Văn bản / Tài liệu) | 1.3 | active | dev, ai |
+| [PLAN-DOCS-001](specs/2026-10-08-documents-screen-plan.md) | Plan — Documents Screen UI Implementation | 1.2 | active | dev, ai |
 | [SPEC-LOGIN-001](specs/2026-10-08-login-ui-design.md) | Thiết kế — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.7 | active | dev, ai |
 | [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.6 | active | dev, ai |
 | [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.2 | active | dev, ai |
@@ -187,10 +187,10 @@
 | [PLAN-WEBP1-001](specs/2026-10-09-web-dot-1-hoat-dong-plan.md) | Kế hoạch triển khai — web/ đợt 1 (Hoạt động: tạo đề xuất, trang chi tiết, vòng duyệt, sửa, xoá, tham gia, cập nhật) | 1.1 | active | dev, ai |
 | [PLAN-WEBP2-001](specs/2026-10-09-web-dot-2-cong-viec-plan.md) | Kế hoạch triển khai — web/ đợt 2 (công việc và Kanban) | 1.2 | active | dev, ai |
 | [PLAN-WEBP3-001](specs/2026-10-09-web-dot-3-to-thanh-vien-plan.md) | Kế hoạch triển khai — web/ đợt 3 (Tổ, thành viên, tài khoản, quản trị, trọng số, tài khoản của tôi) | 1.0 | active | dev, ai |
-| [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.0 | active | dev, ai |
+| [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.1 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.0 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.5 | active | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.6 | active | dev, ai, ops |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
