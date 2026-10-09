@@ -5,6 +5,7 @@ import { Dashboard } from './features/dashboard/Dashboard';
 import { MyTasksToday } from './features/tasks/MyTasksToday';
 import { CalendarView } from './features/calendar/CalendarView';
 import { ActivitiesView } from './features/activities/ActivitiesView';
+import { ActivityDetailView } from './features/activities/ActivityDetailView';
 import { MyTasksView } from './features/tasks/MyTasksView';
 import { TeamsView } from './features/teams/TeamsView';
 import { MembersView } from './features/members/MembersView';
@@ -26,6 +27,7 @@ export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
       <Route path="/my-tasks-today" element={<MyTasksToday />} />
       <Route path="/calendar" element={<CalendarView />} />
       <Route path="/activities" element={<ActivitiesView />} />
+      <Route path="/activity/:id" element={<ActivityDetailView />} />
       <Route path="/my-tasks" element={<MyTasksView />} />
       <Route path="/teams" element={<TeamsView />} />
       <Route path="/people" element={<MembersView />} />
