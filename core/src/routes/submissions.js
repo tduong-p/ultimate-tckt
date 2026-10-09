@@ -45,7 +45,7 @@ function createSubmissionRoutes(context) {
     const fromUnitId = req.unit ? req.unit.id : 1;
     const [result] = await db.execute(
       `INSERT INTO submissions(from_unit_id, to_unit_id, source_type, source_id, directive_id, note, submitted_by) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [fromUnitId, to_unit_id, source_type, source_id, directive_id || null, note || null, req.user ? req.user.id : null]
+      [fromUnitId, to_unit_id, source_type, source_id, directive_id || null, note || null, req.actor?.id ?? null]
     );
     const [created] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [result.insertId]);
     res.status(201).json(created[0]);
@@ -72,7 +72,7 @@ function createSubmissionRoutes(context) {
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
     await db.execute(
       `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE id = ?`,
-      [response, response_note || null, req.user ? req.user.id : null, req.params.id]
+      [response, response_note || null, req.actor?.id ?? null, req.params.id]
     );
     const [updated] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     res.json(updated[0]);

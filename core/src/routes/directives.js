@@ -57,7 +57,7 @@ function createDirectiveRoutes(context) {
     const fromUnitId = req.unit ? req.unit.id : 1;
     const [result] = await db.execute(
       `INSERT INTO directives(from_unit_id, to_unit_id, title, body, deadline, status, created_by) VALUES (?, ?, ?, ?, ?, 'sent', ?)`,
-      [fromUnitId, to_unit_id, title, body || null, deadline, req.user ? req.user.id : null]
+      [fromUnitId, to_unit_id, title, body || null, deadline, req.actor?.id ?? null]
     );
     const [created] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [result.insertId]);
     res.status(201).json(created[0]);
@@ -88,7 +88,7 @@ function createDirectiveRoutes(context) {
     if (!['sent', 'pending'].includes(directive.status)) {
       return res.status(400).json({ error: 'Chỉ đạo không ở trạng thái chờ tiếp nhận.' });
     }
-    const ownerUserId = req.body.owner_user_id || (req.user ? req.user.id : null);
+    const ownerUserId = req.body.owner_user_id || req.actor?.id || null;
     await db.execute(
       `UPDATE directives SET status = 'acknowledged', owner_user_id = ?, acknowledged_at = NOW(), updated_at = NOW() WHERE id = ?`,
       [ownerUserId, directive.id]
@@ -127,7 +127,7 @@ function createDirectiveRoutes(context) {
     }
     const [subResult] = await db.execute(
       `INSERT INTO submissions(from_unit_id, to_unit_id, source_type, source_id, directive_id, note, submitted_by) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [directive.to_unit_id, directive.from_unit_id, source_type, source_id, directive.id, note || null, req.user ? req.user.id : null]
+      [directive.to_unit_id, directive.from_unit_id, source_type, source_id, directive.id, note || null, req.actor?.id ?? null]
     );
     await db.execute(`UPDATE directives SET status = 'submitted', updated_at = NOW() WHERE id = ?`, [directive.id]);
     const [createdSub] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [subResult.insertId]);
@@ -160,7 +160,7 @@ function createDirectiveRoutes(context) {
     );
     await db.execute(
       `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE directive_id = ? AND response IS NULL`,
-      [response, response_note || null, req.user ? req.user.id : null, directive.id]
+      [response, response_note || null, req.actor?.id ?? null, directive.id]
     );
     const [updated] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [directive.id]);
     res.json(updated[0]);
