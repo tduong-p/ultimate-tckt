@@ -105,6 +105,9 @@ export const App = () => {
 const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: () => void }> = ({ userName, user, onLogout }) => {
   const caps = useCapabilities();
   const [accountOpen, setAccountOpen] = React.useState(false);
+  const openAccount = React.useCallback(() => setAccountOpen(true), []);
+  const closeAccount = React.useCallback(() => setAccountOpen(false), []);
+  const headerExtras = React.useMemo(() => <><NotificationCenter /><UnitSwitcher /></>, []);
   return (
     <>
     <PageLayout
@@ -113,12 +116,12 @@ const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: (
       canViewReports={caps.isManager}
       canViewDieuHanh={unitHasDieuHanh(caps.unit)}
       canViewAccounts={caps.isExec}
-      onOpenAccount={() => setAccountOpen(true)}
-      headerExtras={<><NotificationCenter /><UnitSwitcher /></>}
+      onOpenAccount={openAccount}
+      headerExtras={headerExtras}
     >
       <AppRoutes userName={userName} />
     </PageLayout>
-      <MyAccountModal isOpen={accountOpen} onClose={() => setAccountOpen(false)} />
+      <MyAccountModal isOpen={accountOpen} onClose={closeAccount} />
     </>
   );
 };

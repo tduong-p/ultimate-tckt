@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-HUB-001
 title: Kế hoạch phát triển Hub (Core + Operations, không CTD)
-version: 2.17
+version: 2.18
 status: active
 audience: [dev, ba]
 owner: DYC
@@ -1225,7 +1225,7 @@ cd web && npm run dev
 # Or: Frontend in backend (production-like)
 cd web && npm run build
 mkdir -p ../core/web-dist && cp -R dist/. ../core/web-dist/
-cd core && npm run dev  # Serves core/web-dist at /
+cd ../core && npm run dev  # Serves core/web-dist at /
 
 # Tests
 npm run test:all           # All tests
@@ -1301,3 +1301,4 @@ npm run docs:check         # Documentation validation
 | 2.15 | 2026-10-09 | Ghi nhận phần Giao việc/Trình và cổng module trong nhánh triển khai web đợt 5; chi tiết giao diện/API tại SPEC-WEB-003 và DEV-API-001 | DYC |
 | 2.16 | 2026-10-10 | Chuẩn hoá kế hoạch sau khi tích hợp các đợt web 3–5 | DYC |
 | 2.17 | 2026-10-10 | Cập nhật cutover theo SPEC-WEB-003: web tại `/`, legacy tại `/legacy/`, Docker build từ root context; bổ sung hướng dẫn chép build vào `core/web-dist` | DYC |
+| 2.18 | 2026-10-10 | Sửa thư mục lệnh chạy Core sau khi chép build từ `web/`; ghi nhận giữ ổn định header khi mở hồ sơ cá nhân để NotificationCenter không mount lại | DYC |

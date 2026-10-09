@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.33
+version: 2.34
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -152,3 +152,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.31 | 2026-10-09 | Đợt 4 `web/`: test Văn bản, chuông thông báo, popup và điều hướng URL thông báo | DYC |
 | 2.32 | 2026-10-10 | Bổ sung test đợt 5 cho route/menu theo module và truy cập directives bằng session thật | DYC |
 | 2.33 | 2026-10-10 | Cập nhật CI cutover: thay đổi web chạy cả Core/web tests và kiểm tra build arm64 không publish trên PR | DYC |
+| 2.34 | 2026-10-10 | Thêm hồi quy xác nhận mở hồ sơ cá nhân không tải lại/remount chuông thông báo | DYC |

@@ -96,8 +96,11 @@ describe('Core App main entry', () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(<QueryClientProvider client={queryClient}><App /></QueryClientProvider>);
     expect(await screen.findByText('Quản trị tài khoản')).toBeDefined();
+    await waitFor(() => expect(api.fetchNotifications).toHaveBeenCalled());
+    const notificationFetchCount = vi.mocked(api.fetchNotifications).mock.calls.length;
     fireEvent.click(screen.getByRole('button', { name: 'Tài khoản của tôi' }));
     expect(await screen.findByLabelText('Mật khẩu mới')).toBeDefined();
+    expect(api.fetchNotifications).toHaveBeenCalledTimes(notificationFetchCount);
   });
 
   it('handles logout and returns to login view', async () => {

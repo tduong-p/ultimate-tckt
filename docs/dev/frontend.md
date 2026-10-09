@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.18
+version: 1.19
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -154,3 +154,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.16 | 2026-10-09 | Đợt 4 `web/`: thêm/sửa Văn bản, chuông thông báo, popup và điều hướng thông báo | DYC |
 | 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |
 | 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
+| 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
