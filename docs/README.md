@@ -54,7 +54,7 @@
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.3 | active | dev, ai |
 | [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 7.0 | active | dev, ai |
-| [DEV-FE-001](dev/frontend.md) | Frontend | 1.12 | active | dev, ai |
+| [DEV-FE-001](dev/frontend.md) | Frontend | 1.13 | active | dev, ai |
 | [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.3 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
 | [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.0 | active | dev, ai |
@@ -176,15 +176,15 @@
 | [PLAN-LOGIN-001](specs/2026-10-08-login-ui-plan.md) | Kế hoạch Triển khai — Giao diện Đăng nhập Hiện đại cho TCKT Activity Hub (Core Web) | 1.6 | active | dev, ai |
 | [SPEC-MEMBERS-001](specs/2026-10-08-members-screen-design.md) | Design — Members Screen UI (Thành viên) | 1.2 | active | dev, ai |
 | [PLAN-MEMBERS-001](specs/2026-10-08-members-screen-plan.md) | Plan — Members Screen UI Implementation | 1.1 | active | dev, ai |
-| [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.3 | active | dev, ai |
-| [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.1 | active | dev, ai |
+| [SPEC-MYTASKS-001](specs/2026-10-08-my-tasks-screen-design.md) | Design — My Tasks Screen UI (Công việc của tôi) | 1.4 | active | dev, ai |
+| [PLAN-MYTASKS-001](specs/2026-10-08-my-tasks-screen-plan.md) | Plan — My Tasks Screen UI Implementation | 1.2 | active | dev, ai |
 | [SPEC-REPORTS-001](specs/2026-10-08-reports-screen-design.md) | Design — Reports Screen UI (Báo cáo) | 1.4 | active | dev, ai |
 | [PLAN-REPORTS-001](specs/2026-10-08-reports-screen-plan.md) | Plan — Reports Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-TEAMS-001](specs/2026-10-08-teams-screen-design.md) | Design — Teams Screen UI (Các Tổ) | 1.2 | active | dev, ai |
 | [PLAN-TEAMS-001](specs/2026-10-08-teams-screen-plan.md) | Plan — Teams Screen UI Implementation | 1.1 | active | dev, ai |
 | [PLAN-WEBP0-001](specs/2026-10-09-web-dot-0-nen-plan.md) | Kế hoạch triển khai — web/ đợt 0 (nền tảng: router, tầng API, thành phần dùng chung) | 1.0 | active | dev, ai |
 | [PLAN-WEBP1-001](specs/2026-10-09-web-dot-1-hoat-dong-plan.md) | Kế hoạch triển khai — web/ đợt 1 (Hoạt động: tạo đề xuất, trang chi tiết, vòng duyệt, sửa, xoá, tham gia, cập nhật) | 1.1 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.3 | active | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.4 | active | dev, ai, ops |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |

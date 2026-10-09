@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -365,3 +365,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 | 1.1 | 2026-10-09 | Đợt 0 (nền tảng) xong: router, tầng API, quyền, thành phần dùng chung; react-router 6.30 tự thêm `/` cho `#activity/12` nên không cần code chuẩn hoá riêng | DYC |
 | 1.2 | 2026-10-09 | Đợt 1 (Hoạt động) xong: form tạo đủ trường, trang chi tiết #activity/:id, vòng duyệt, sửa, xoá, đăng ký, thêm người, cập nhật có gắn thẻ; lịch mở trang chi tiết, gỡ ActivityDetailModal; việc trong trang hoạt động chỉ đọc đến hết đợt 2 | DYC |
 | 1.3 | 2026-10-09 | Làm rõ quyền ghi DYC/TCKT và cách gỡ Tổ đã lưu trữ | DYC |
+| 1.4 | 2026-10-09 | Đợt 2 làm sớm một phần từ PR #86: API nhiệm vụ, nút thao tác việc ở Việc của tôi, Nộp nghiệm thu, Duyệt/Bác bỏ, Tạo nhiệm vụ từ trang chi tiết hoạt động. Chưa làm: màn chi tiết việc, checklist | DYC |
