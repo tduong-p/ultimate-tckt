@@ -116,7 +116,13 @@ export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: Reac
       </ConfirmDialog>
       <EditActivityModal isOpen={dialog === 'edit'} onClose={close} detail={detail} isAdmin={flags.canEditAdminFields} />
       <AddParticipantsModal isOpen={dialog === 'participants'} onClose={close} detail={detail} />
-      <CreateTaskModal isOpen={dialog === 'task'} onClose={close} detail={detail} />
+      <CreateTaskModal
+        isOpen={dialog === 'task'}
+        onClose={close}
+        activityId={detail.activity.id}
+        activityType={detail.activity.type}
+        activityTeams={detail.activityTeams}
+      />
     </div>
   );
 };
