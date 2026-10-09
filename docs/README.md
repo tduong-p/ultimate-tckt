@@ -22,6 +22,7 @@
 | [ADR-0013-001](adr/0013-go-email-cu-va-onesignal.md) | Gỡ module email cũ và OneSignal khỏi Core | 1.0 | active | dev, ai |
 | [ADR-0014-001](adr/0014-noti-service.md) | Service Noti — gửi thông báo email theo template qua HTTP API | 1.0 | active | dev, ai |
 | [ADR-0015-001](adr/0015-poc-frontend-react-atlaskit.md) | Cho phép xây dựng POC frontend React + Atlaskit | 1.0 | active | dev, ai |
+| [ADR-0016-001](adr/0016-web-thay-the-frontend-core.md) | web/ (React + Atlaskit) thay thế frontend Core tại / | 1.0 | active | dev, ai, ops |
 
 ## ai
 
@@ -181,7 +182,8 @@
 | [PLAN-REPORTS-001](specs/2026-10-08-reports-screen-plan.md) | Plan — Reports Screen UI Implementation | 1.1 | active | dev, ai |
 | [SPEC-TEAMS-001](specs/2026-10-08-teams-screen-design.md) | Design — Teams Screen UI (Các Tổ) | 1.2 | active | dev, ai |
 | [PLAN-TEAMS-001](specs/2026-10-08-teams-screen-plan.md) | Plan — Teams Screen UI Implementation | 1.1 | active | dev, ai |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 1.0 | draft | dev, ai, ops |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
-| [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.0 | active | ba, dev, ai |
+| [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
 

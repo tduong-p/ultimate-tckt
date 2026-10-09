@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-UNIT-001
 title: Requirements — Nền tảng đa đơn vị (GĐ1)
-version: 1.0
+version: 1.1
 status: active
 audience: [ba, dev, ai]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-09
 related_code: []
 ---
 
@@ -106,7 +106,7 @@ Tài liệu này chỉ bao phủ **GĐ1**. GĐ2 và GĐ3 xem ở `design.md` §1
 1. WHEN user đăng nhập THEN shell SHALL chỉ hiện mục menu có trong manifest mà user có membership phù hợp VÀ đơn vị của user đã bật module đó.
 2. WHEN user chỉ có membership ở ĐT/LCĐ, VP Đoàn hoặc Chi bộ THEN user SHALL chỉ thấy tab Công tác Đảng.
 3. WHEN sinh viên truy cập Hub THEN sinh viên SHALL không thấy tab Công tác Đảng.
-4. Shell mới SHALL chạy ở `/app` song song với giao diện cũ ở `/` trong suốt GĐ1.
+4. Shell mới SHALL chạy ở `/app` song song với giao diện cũ ở `/` trong suốt GĐ1. *(Thay bởi ADR-0016 ngày 2026-10-09: `web/` thay giao diện cũ ngay tại `/`, UI cũ chuyển sang `/legacy` trong thời gian chuyển tiếp — xem `docs/adr/0016-web-thay-the-frontend-core.md`.)*
 5. Các màn hình "Việc hôm nay" và nộp nghiệm thu SHALL dùng được trên mobile web (từ 360px).
 
 ### Requirement 8: Tích hợp CTD qua JWT bridge
@@ -152,3 +152,4 @@ Xem `design.md` §13. Các câu hỏi đó không chặn việc bắt đầu, nh
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản có frontmatter, đồng bộ từ `.kiro/specs/nen-tang-da-don-vi/requirements.md` | DYC |
+| 1.1 | 2026-10-09 | Requirement 7.4 bị thay bởi ADR-0016 (`web/` tại `/`, không dùng `/app`) | DYC |
