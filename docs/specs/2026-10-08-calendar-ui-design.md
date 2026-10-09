@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-CALENDAR-001
 title: Design — Calendar Screen UI (Lịch chung)
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -41,6 +41,8 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 - **Color-Coded Activity Bars**: Mỗi hoạt động được gán một màu sắc riêng biệt từ bảng 16 màu tương phản cao (GANTT_COLORS) kéo dài từ ngày bắt đầu đến hạn chót trong tháng để người dùng dễ phân biệt trực quan.
 - **Loading State**: Sử dụng `LottieLoading` đồng bộ toàn hệ thống thay thế spinner tròn cũ.
 
+Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Bấm hoạt động trong lịch mở `#/activity/:id`; `ActivityDetailModal` đã được gỡ.
+
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
@@ -50,3 +52,4 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 | 1.3 | 2026-10-08 | Chuyển trục thời gian Biểu đồ Gantt từ các tháng trong năm sang các ngày trong tháng đang chọn | DYC |
 | 1.4 | 2026-10-08 | Ngày hiển thị/xếp ô và "Hôm nay" theo giờ Việt Nam (`shared/utils/date`); Gantt chỉ vẽ hoạt động giao với tháng đang xem | DYC |
 | 1.5 | 2026-10-09 | Bộ lọc Tổ gồm cả Tổ phối hợp (so theo `team_names`); trạng thái `changes_requested`; không hiện loại/Tổ cho dòng tóm tắt đơn vị khác | DYC |
+| 1.6 | 2026-10-09 | Đợt 1 SPEC-WEB-003: hoạt động trong lịch mở trang chi tiết | DYC |

@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -114,6 +114,8 @@ Xong khi:
 Mỗi dòng ghi: thao tác → API → ai thấy. Lỗi của server hiện qua `apiErrorMessage`.
 
 ### 4.1 Hoạt động
+
+Đã làm ở đợt 1; phần việc (giao việc, tự ghi nhận, chi tiết việc) thuộc đợt 2.
 
 - **Tạo đề xuất** (`CreateActivityModal`, đã có): bổ sung đủ trường của UI cũ:
   - Trường thêm: `type`, `team_ids[]` (Tổ phối hợp, tự gồm Tổ chủ trì), `event_lead_id` (Trưởng BTC, chọn từ
@@ -361,3 +363,4 @@ Bảng `ops_logs` và `ops_log_attendance` đã có (`core/src/config/migrate-un
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: danh sách ngang bằng với UI cũ, 6 cải tiến, API nhật ký trực ban, bước thay thế, 8 đợt | DYC |
 | 1.1 | 2026-10-09 | Đợt 0 (nền tảng) xong: router, tầng API, quyền, thành phần dùng chung; react-router 6.30 tự thêm `/` cho `#activity/12` nên không cần code chuẩn hoá riêng | DYC |
+| 1.2 | 2026-10-09 | Đợt 1 (Hoạt động) xong: form tạo đủ trường, trang chi tiết #activity/:id, vòng duyệt, sửa, xoá, đăng ký, thêm người, cập nhật có gắn thẻ; lịch mở trang chi tiết, gỡ ActivityDetailModal; việc trong trang hoạt động chỉ đọc đến hết đợt 2 | DYC |

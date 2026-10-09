@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.25
+version: 2.26
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -49,6 +49,8 @@ cd web && npm test && npm run build
 
 `npm run build` chạy `tsc` trước `vite build`, nên bắt cả lỗi kiểu. CI chạy đúng hai lệnh này trong job `test-web` khi `web/**` đổi.
 Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader`.
+
+Test trang hoạt động dùng `renderInApp` và `makeDetail` (`web/src/core/features/activities/testUtils.tsx`): helper dựng `QueryClient` với `SESSION_KEY`, `BOOTSTRAP_KEY`, `ToastProvider` và `MemoryRouter`; `Probe` hiện đường dẫn hiện tại để kiểm tra điều hướng. Mock API bằng `vi.mock('../../api', async () => ({ ...actual, fn: vi.fn() }))` (lấy `actual` từ `vi.importActual`) để giữ các export không cần mock.
 
 ## CTD — `pytest`
 
@@ -140,3 +142,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.23 | 2026-10-08 | `frontend.contract.test.js` thêm test trang chi tiết hoạt động không tra khung Participants qua nút `#volunteer` (hotfix PR #81) | DYC |
 | 2.24 | 2026-10-09 | Thêm mục test frontend `web/` (Vitest + jsdom, job CI `test-web`) | DYC |
 | 2.25 | 2026-10-09 | Đợt 0 `web/`: thêm test Vitest cho router, bộ chọn đơn vị, thành phần dùng chung (`Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`) và tiện ích `bytes`/`text`/`url` | DYC |
+| 2.26 | 2026-10-09 | Đợt 1 `web/`: ghi nhận `renderInApp`, `makeDetail` và cách mock API cho test trang hoạt động | DYC |
