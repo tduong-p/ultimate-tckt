@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.17
+version: 1.18
 status: active
 audience: [dev, ai]
 owner: DYC
