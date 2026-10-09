@@ -9,7 +9,7 @@ import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import { useQuery } from '@tanstack/react-query';
 import { fetchActivities, fetchTeams, type ActivityItem, type TeamItem } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
-import { ActivityDetailModal } from './ActivityDetailModal';
+import { goToActivity } from '../../navigation';
 import {
   getActivityStatusMeta,
   getActivityTypeShortLabel,
@@ -109,7 +109,6 @@ export const CalendarView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'month' | 'list' | 'gantt'>('month');
   const [currentDate, setCurrentDate] = useState(() => vnDateKeyToLocalDate(todayVnKey()));
   const [selectedTeam, setSelectedTeam] = useState('all');
-  const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
 
   // Days of week (Monday to Sunday)
   const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -468,7 +467,7 @@ export const CalendarView: React.FC = () => {
                           key={act.id}
                           title={act.team_name ? `${act.title} (${act.team_name})` : act.title}
                           data-testid={`activity-pill-${act.id}`}
-                          onClick={() => setSelectedActivity(act)}
+                          onClick={() => goToActivity(act.id)}
                           style={{
                             fontSize: '11px',
                             padding: '2px 5px',
@@ -547,7 +546,7 @@ export const CalendarView: React.FC = () => {
               <div
                 key={act.id}
                 data-testid={`list-activity-${act.id}`}
-                onClick={() => setSelectedActivity(act)}
+                onClick={() => goToActivity(act.id)}
                 style={{
                   backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
                   border: `1px solid ${token('color.border', '#DFE1E6')}`,
@@ -790,7 +789,7 @@ export const CalendarView: React.FC = () => {
                             flexShrink: 0,
                             cursor: 'pointer',
                           }}
-                          onClick={() => setSelectedActivity(act)}
+                          onClick={() => goToActivity(act.id)}
                         >
                           <div
                             style={{
@@ -881,7 +880,7 @@ export const CalendarView: React.FC = () => {
                           {/* The Color-Coded Activity Gantt Bar */}
                           <div
                             data-testid={`gantt-bar-${act.id}`}
-                            onClick={() => setSelectedActivity(act)}
+                            onClick={() => goToActivity(act.id)}
                             style={{
                               position: 'absolute',
                               left: `${position.leftPercent}%`,
@@ -921,12 +920,6 @@ export const CalendarView: React.FC = () => {
         </div>
       )}
 
-      {/* Activity Detail Modal */}
-      <ActivityDetailModal
-        activity={selectedActivity}
-        isOpen={Boolean(selectedActivity)}
-        onClose={() => setSelectedActivity(null)}
-      />
     </div>
   );
 };
