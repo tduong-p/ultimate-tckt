@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { EditActivityModal } from './EditActivityModal';
@@ -87,6 +88,39 @@ describe('EditActivityModal', () => {
     await waitFor(() => expect(api.updateActivity).toHaveBeenCalled());
     expect(lastPayload()).toMatchObject({ status: 'approved' });
     for (const key of ['event_lead_id', 'team_id', 'team_ids']) expect(lastPayload()).not.toHaveProperty(key);
+  });
+
+  it('admin: dữ liệu chi tiết tải lại khi đang sửa không đổi mốc so sánh trường admin', async () => {
+    const DetailHarness = () => {
+      const [liveDetail, setLiveDetail] = useState(detail);
+      return (
+        <>
+          <button onClick={() => setLiveDetail(makeDetail({
+            activity: { status: 'approved', event_lead_id: 8, team_id: 4 },
+            activityTeams: [{ activity_id: 5, team_id: 4, role: 'primary', responsibility: '', name: 'Hậu cần', color: '#00875A' }],
+          }))}>Tải lại chi tiết</button>
+          <EditActivityModal isOpen onClose={vi.fn()} detail={liveDetail} isAdmin />
+        </>
+      );
+    };
+    renderInApp(<DetailHarness />, { role: 'admin' });
+    await screen.findByRole('option', { name: 'Hậu cần' });
+    fireEvent.change(screen.getByLabelText('Tiêu đề'), { target: { value: 'Tên mới' } });
+    fireEvent.click(screen.getByText('Tải lại chi tiết'));
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+    await waitFor(() => expect(api.updateActivity).toHaveBeenCalledTimes(1));
+    expect(lastPayload().title).toBe('Tên mới');
+    for (const key of ['status', 'event_lead_id', 'team_id', 'team_ids']) expect(lastPayload()).not.toHaveProperty(key);
+  });
+
+  it('ẩn công khai vẫn cho sửa link ảnh lỗi để lưu được', async () => {
+    renderInApp(<EditActivityModal isOpen onClose={vi.fn()} detail={makeDetail({ activity: { is_public: 1 } })} isAdmin={false} />, { role: 'leader' });
+    fireEvent.change(screen.getByLabelText(/Link ảnh công khai/), { target: { value: 'ftp://invalid' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Hiển thị trên trang công khai' }));
+    fireEvent.change(screen.getByLabelText(/Link ảnh công khai/), { target: { value: 'https://img.example/fixed.jpg' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+    await waitFor(() => expect(api.updateActivity).toHaveBeenCalledTimes(1));
+    expect(lastPayload()).toMatchObject({ is_public: false, public_image_url: 'https://img.example/fixed.jpg' });
   });
 
   it('admin: đổi Tổ chủ trì và Trưởng BTC; Tổ chủ trì tự đánh dấu và khoá trong danh sách Tổ', async () => {

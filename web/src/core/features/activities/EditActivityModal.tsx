@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
@@ -29,7 +29,7 @@ interface Props {
 }
 
 export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, isAdmin }) => {
-  const initial = useMemo(() => initialEditForm(detail), [detail]);
+  const [initial, setInitial] = useState<EditForm>(() => initialEditForm(detail));
   const [form, setForm] = useState<EditForm>(initial);
   const [error, setError] = useState('');
   const [pendingCancel, setPendingCancel] = useState<UpdateActivityPayload | null>(null);
@@ -37,7 +37,9 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
   // Chỉ nạp lại form khi mở modal; dữ liệu tải lại nền không được ghi đè phần đang sửa.
   useEffect(() => {
     if (isOpen) {
-      setForm(initial);
+      const openingForm = initialEditForm(detail);
+      setInitial(openingForm);
+      setForm(openingForm);
       setError('');
       setPendingCancel(null);
     }
@@ -141,7 +143,7 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
                   <input type="checkbox" checked={form.isPublic} onChange={(e) => set('isPublic', e.target.checked)} /> Hiển thị trên trang công khai
                 </label>
               </div>
-              {form.isPublic && <LinkField label="Link ảnh công khai (không bắt buộc)" value={form.publicImageUrl} onChange={(v) => set('publicImageUrl', v)} />}
+              <LinkField label="Link ảnh công khai (không bắt buộc)" value={form.publicImageUrl} onChange={(v) => set('publicImageUrl', v)} />
 
               {isAdmin && (
                 <div style={{ marginTop: 16 }}>
