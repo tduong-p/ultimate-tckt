@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.16
+version: 1.17
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -161,6 +161,11 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 - **`GET /api/tasks/:id` không trả `event_lead_id`**: muốn biết người xem có phải Trưởng BTC để cho quyền duyệt việc (`canReviewTask`) phải đọc thêm từ `GET /api/activities/:id`.
 - **`PATCH /api/tasks/:id` chỉ nhận 4 trường và biến rỗng thành NULL**: route chỉ nhận `deadline`, `start_date`, `priority`, `deliverable` và chỉ người quản lý Tổ; server dùng `v || null` biến chuỗi rỗng thành NULL nên `deadline` rỗng sẽ lỗi DB NOT NULL — client phải bắt buộc trường deadline trước khi gửi.
 
+## Bẫy khi làm Văn bản và Chuông thông báo (web/ đợt 4)
+
+- **`url` của thông báo là hash cũ có dấu `/` đầu (`/#activity/12`).** Đưa thẳng vào `navigate()` sẽ ra đường dẫn sai; luôn qua `notificationRoute()`. Tiêu đề/nội dung một số thông báo Core lưu tiếng Anh (`core/src/routes/activities.js`) nên phải dịch phía `web/`.
+- **Hai nơi cùng poll một query thì bị gọi đôi.** `NotificationPopups` chỉ đọc cache (`enabled: false`); chỉ `useNotifications` được đặt `refetchInterval`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -182,3 +187,4 @@ mysql2 không bật `dateStrings` nên cột DATE về JSON là ISO UTC: hạn 0
 | 1.14 | 2026-10-08 | Thêm bẫy tra phần tử qua nút render có điều kiện (`#volunteer`) làm trắng trang chi tiết hoạt động | DYC |
 | 1.15 | 2026-10-08 | Thêm bẫy frontend cắt chuỗi ngày ISO UTC từ Core làm lệch một ngày | DYC |
 | 1.16 | 2026-10-09 | Thêm 4 bẫy khi làm đợt 2: my-tasks-today thiếu acknowledged_at, teams members 403, task detail thiếu event_lead_id, patch task deadline null | DYC |
+| 1.17 | 2026-10-09 | Thêm 2 bẫy khi làm đợt 4: url thông báo là hash cũ, tránh poll đôi query thông báo | DYC |
