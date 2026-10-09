@@ -8,6 +8,7 @@ import { apiErrorMessage, fetchActivityDetail } from '../../api';
 import { activityDetailKey } from './activityKeys';
 import { ActivityPlanSection } from './ActivityPlanSection';
 import { ActivityActions } from './ActivityActions';
+import { ActivityTaskActions } from '../tasks/ActivityTaskActions';
 import { ActivityUpdatesSection } from './ActivityUpdatesSection';
 import { useCapabilities } from '../../capabilities';
 import {
@@ -58,11 +59,20 @@ export const ActivityDetailView: React.FC = () => {
     <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 4 }}>
       <BackLink />
       <ActivityHero activity={activity} />
-      <ActivityActions detail={data} />
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+        <ActivityActions detail={data} />
+        <ActivityTaskActions
+          activityId={activity.id}
+          activityType={activity.type}
+          activityStatus={activity.status}
+          canManage={data.canManage}
+          activityTeams={data.activityTeams.map((t) => ({ team_id: t.team_id, name: t.name, color: t.color }))}
+        />
+      </div>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '2 1 480px', minWidth: 0 }}>
           <ActivityGeneralInfo activity={activity} teams={data.activityTeams} />
-          <ActivityPlanSection tasks={data.tasks} attachments={data.attachments} activityType={activity.type} />
+          <ActivityPlanSection tasks={data.tasks} attachments={data.attachments} activityType={activity.type} canManage={data.canManage} />
           <ActivityUpdatesSection activityId={activity.id} updates={data.updates} taggablePeople={data.taggablePeople} canWrite={canWriteActivities} />
         </div>
         <aside style={{ flex: '1 1 280px', minWidth: 0 }}>

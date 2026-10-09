@@ -1,7 +1,7 @@
-// web/src/core/features/activities/ActivityPlanSection.test.tsx
 import { describe, it, expect, afterEach } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, screen, within } from '@testing-library/react';
 import { ActivityPlanSection, attachmentHref } from './ActivityPlanSection';
+import { renderInApp } from './testUtils';
 import type { ActivityAttachment, ActivityTaskRow } from '../../api';
 
 const task = (over: Partial<ActivityTaskRow>): ActivityTaskRow => ({
@@ -26,7 +26,7 @@ describe('ActivityPlanSection', () => {
   afterEach(cleanup);
 
   it('sự kiện: nhóm Trước/Trong/Sau, ẩn việc đã huỷ, hiện chi tiết từng việc', () => {
-    render(
+    renderInApp(
       <ActivityPlanSection
         activityType="event"
         attachments={[]}
@@ -44,7 +44,7 @@ describe('ActivityPlanSection', () => {
     expect(plan.queryByText('Việc đã huỷ')).toBeNull();
 
     const row = within(screen.getByTestId('plan-task-1'));
-    expect(row.getByText('Dựng sân khấu')).toBeDefined();
+    expect(row.getByRole('button', { name: 'Dựng sân khấu' })).toBeDefined();
     expect(row.getByText('Đang làm')).toBeDefined();
     expect(row.getByText('Nguyễn Văn A')).toBeDefined();
     expect(row.getByText('01/11/2026 – 10/11/2026')).toBeDefined();
@@ -55,7 +55,7 @@ describe('ActivityPlanSection', () => {
   });
 
   it('hoạt động được giao: chỉ có giai đoạn Chung', () => {
-    render(<ActivityPlanSection activityType="assigned" attachments={[]} tasks={[task({ stage: 'general' })]} />);
+    renderInApp(<ActivityPlanSection activityType="assigned" attachments={[]} tasks={[task({ stage: 'general' })]} />);
     expect(screen.getByRole('heading', { name: 'Chung' })).toBeDefined();
     expect(screen.queryByRole('heading', { name: 'Trước' })).toBeNull();
   });
@@ -67,7 +67,7 @@ describe('ActivityPlanSection', () => {
       { id: 12, task_id: 1, kind: 'clarification', label: 'Link xấu', link_url: 'javascript:alert(1)', size_bytes: null },
       { id: 13, task_id: 99, kind: 'evidence', label: 'Của việc khác', link_url: 'https://x.vn', size_bytes: null },
     ];
-    render(<ActivityPlanSection activityType="event" attachments={attachments} tasks={[task({})]} />);
+    renderInApp(<ActivityPlanSection activityType="event" attachments={attachments} tasks={[task({})]} />);
     const row = within(screen.getByTestId('plan-task-1'));
     expect(row.getByRole('link', { name: 'Ảnh hiện trường' }).getAttribute('href')).toBe('https://drive.example/anh');
     expect(row.getByRole('link', { name: 'bao-cao.pdf' }).getAttribute('href')).toBe('/api/task-attachments/11/content');
@@ -75,6 +75,20 @@ describe('ActivityPlanSection', () => {
     expect(row.getByText('Link xấu')).toBeDefined();
     expect(row.queryByText('Của việc khác')).toBeNull();
     expect(row.getByText('Đã dùng 2 MB / 50 MB')).toBeDefined();
+  });
+
+  it('Thêm tài liệu: hiện khi canManage hoặc người dùng được giao việc', () => {
+    // userId mặc định trong renderInApp là 3
+    renderInApp(<ActivityPlanSection canManage={false} attachments={[]} tasks={[task({ id: 1, assignee_ids: '99' })]} />);
+    expect(screen.queryByRole('button', { name: 'Thêm tài liệu' })).toBeNull();
+
+    cleanup();
+    renderInApp(<ActivityPlanSection canManage={true} attachments={[]} tasks={[task({ id: 1, assignee_ids: '99' })]} />);
+    expect(screen.getByRole('button', { name: 'Thêm tài liệu' })).toBeDefined();
+
+    cleanup();
+    renderInApp(<ActivityPlanSection canManage={false} attachments={[]} tasks={[task({ id: 1, assignee_ids: '3, 4' })]} />);
+    expect(screen.getByRole('button', { name: 'Thêm tài liệu' })).toBeDefined();
   });
 
   it('attachmentHref', () => {

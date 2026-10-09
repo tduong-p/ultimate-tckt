@@ -10,6 +10,10 @@ import { QuotaBar } from '../../../shared/components/QuotaBar';
 import { formatVnDate } from '../../../shared/utils/date';
 import { isHttpUrl } from '../../../shared/utils/url';
 
+import { TaskTitleButton } from '../tasks/TaskRowControls';
+import { AddAttachmentButton } from '../tasks/AddAttachmentDialog';
+import { isAssignedTo, useCurrentUserId } from '../tasks/taskPermissions';
+
 /** Link mở tài liệu: link http(s) → chính nó; tệp trên server (không có link) → API nội dung; link lạ → null. */
 export function attachmentHref(a: Pick<ActivityAttachment, 'id' | 'link_url'>): string | null {
   if (a.link_url) return isHttpUrl(a.link_url) ? a.link_url : null;
@@ -18,40 +22,52 @@ export function attachmentHref(a: Pick<ActivityAttachment, 'id' | 'link_url'>): 
 
 const attachmentLabel = (a: ActivityAttachment): string => a.label || a.original_name || a.link_url || `Tài liệu #${a.id}`;
 
-const TaskAttachments: React.FC<{ items: ActivityAttachment[] }> = ({ items }) => {
-  if (items.length === 0) return null;
+const TaskAttachments: React.FC<{ items: ActivityAttachment[]; taskId: number; taskTitle: string; canAttach: boolean }> = ({
+  items,
+  taskId,
+  taskTitle,
+  canAttach,
+}) => {
+  if (items.length === 0 && !canAttach) return null;
   const used = items.reduce((sum, a) => sum + (a.size_bytes ?? 0), 0);
   return (
     <div style={{ marginTop: 8 }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: token('color.text.subtle', '#5E6C84') }}>Tài liệu và link liên quan</div>
-      <ul style={{ margin: '4px 0', paddingLeft: 18 }}>
-        {items.map((a) => {
-          const href = attachmentHref(a);
-          return (
-            <li key={a.id}>
-              {href ? (
-                <a href={href} target="_blank" rel="noopener noreferrer">
-                  {attachmentLabel(a)}
-                </a>
-              ) : (
-                <span>{attachmentLabel(a)}</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      <QuotaBar usedBytes={used} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: token('color.text.subtle', '#5E6C84') }}>Tài liệu và link liên quan</div>
+        {canAttach && <AddAttachmentButton taskId={taskId} taskTitle={taskTitle} />}
+      </div>
+      {items.length > 0 && (
+        <ul style={{ margin: '4px 0', paddingLeft: 18 }}>
+          {items.map((a) => {
+            const href = attachmentHref(a);
+            return (
+              <li key={a.id}>
+                {href ? (
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    {attachmentLabel(a)}
+                  </a>
+                ) : (
+                  <span>{attachmentLabel(a)}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {items.length > 0 && <QuotaBar usedBytes={used} />}
     </div>
   );
 };
 
-const TaskRow: React.FC<{ task: ActivityTaskRow; attachments: ActivityAttachment[] }> = ({ task, attachments }) => {
+const TaskRow: React.FC<{ task: ActivityTaskRow; attachments: ActivityAttachment[]; canManage?: boolean }> = ({ task, attachments, canManage }) => {
+  const userId = useCurrentUserId();
+  const canAttach = Boolean(canManage || isAssignedTo(task, userId));
   const start = formatVnDate(task.start_date);
   const range = start ? `${start} – ${formatVnDate(task.deadline)}` : formatVnDate(task.deadline);
   return (
     <li data-testid={`plan-task-${task.id}`} style={{ padding: '10px 0', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <strong style={{ overflowWrap: 'anywhere' }}>{task.title}</strong>
+        <TaskTitleButton task={task} />
         <Lozenge appearance={getTaskStatusAppearance(task.status)}>{getTaskStatusLabel(task.status)}</Lozenge>
         <span style={{ color: token('color.text.subtle', '#5E6C84') }}>Ưu tiên: {getTaskPriorityLabel(task.priority)}</span>
       </div>
@@ -62,7 +78,7 @@ const TaskRow: React.FC<{ task: ActivityTaskRow; attachments: ActivityAttachment
         {task.checklist_total ? <span>{`${task.checklist_done ?? 0}/${task.checklist_total} mục`}</span> : null}
       </div>
       {task.deliverable && <div style={{ marginTop: 4 }}>{task.deliverable}</div>}
-      <TaskAttachments items={attachments} />
+      <TaskAttachments items={attachments} taskId={task.id} taskTitle={task.title} canAttach={canAttach} />
     </li>
   );
 };
@@ -71,7 +87,8 @@ export const ActivityPlanSection: React.FC<{
   tasks: ActivityTaskRow[];
   attachments: ActivityAttachment[];
   activityType?: string | null;
-}> = ({ tasks, attachments, activityType }) => {
+  canManage?: boolean;
+}> = ({ tasks, attachments, activityType, canManage }) => {
   const groups = groupTasksByStage(tasks, activityType);
   return (
     <Card title="Kế hoạch công việc" testId="section-plan">
@@ -83,7 +100,7 @@ export const ActivityPlanSection: React.FC<{
           ) : (
             <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {group.tasks.map((t) => (
-                <TaskRow key={t.id} task={t} attachments={attachments.filter((a) => a.task_id === t.id)} />
+                <TaskRow key={t.id} task={t} attachments={attachments.filter((a) => a.task_id === t.id)} canManage={canManage} />
               ))}
             </ul>
           )}
