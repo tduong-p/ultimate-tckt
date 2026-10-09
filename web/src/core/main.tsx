@@ -19,8 +19,7 @@ import { DocumentsView } from './features/documents/DocumentsView';
 import { ReportsView } from './features/reports/ReportsView';
 import { ArchiveView } from './features/archive/ArchiveView';
 import { fetchBootstrap, fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
-
-const SESSION_KEY = ['session'];
+import { BOOTSTRAP_KEY, SESSION_KEY } from './queryKeys';
 
 // Bỏ mọi dữ liệu của người dùng cũ rồi đánh dấu chưa đăng nhập để App hiện màn đăng nhập.
 function resetToLoggedOut(queryClient: QueryClient) {
@@ -69,7 +68,7 @@ export const App = () => {
   const isSignedIn = Boolean(session?.user) && !session?.user?.onboarding?.required;
   // Dùng chung cache với Dashboard; quyền xem Báo cáo trùng quyền điều hành (middleware `manager`).
   const { data: bootstrap } = useQuery({
-    queryKey: ['core-bootstrap'],
+    queryKey: BOOTSTRAP_KEY,
     queryFn: fetchBootstrap,
     enabled: isSignedIn,
   });
