@@ -92,4 +92,9 @@ describe('AccountsView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Nhập danh sách hàng loạt' }));
     expect(await screen.findByLabelText('Danh sách (mỗi dòng: Tên,email)')).toBeDefined();
   });
+
+  it('hiện khu vực Bộ trọng số', async () => {
+    open();
+    expect(await screen.findByRole('heading', { name: 'Bộ trọng số' })).toBeDefined();
+  });
 });

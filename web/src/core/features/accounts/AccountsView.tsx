@@ -14,6 +14,7 @@ import { selectStyle } from '../people/FormField';
 import { getRoleLabel, ROLE_OPTIONS } from '../people/roleLabels';
 import { useCurrentUser } from '../people/useCurrentUser';
 import { BulkImportModal } from './BulkImportModal';
+import { WeightPresetsPanel } from './WeightPresetsPanel';
 
 const cell: React.CSSProperties = {
   padding: '8px 10px',
@@ -115,6 +116,7 @@ export const AccountsView: React.FC = () => {
         </>
       )}
 
+      <WeightPresetsPanel />
       <CreateAccountModal isOpen={creating} onClose={() => setCreating(false)} />
       <EditAccountModal member={editing} onClose={() => setEditing(null)} />
       <DeleteAccountDialog member={deleting} onClose={() => setDeleting(null)} />
