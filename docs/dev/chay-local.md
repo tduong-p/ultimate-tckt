@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-LOCAL-001
 title: Chạy dự án ở máy local
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai, onboarding]
 owner: DYC
-updated: 2026-10-04
-related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json, core/src/config/database.js]
+updated: 2026-10-10
+related_code: [core/.env.example, services/ctd-api/backend/.env.example, .claude/launch.json, core/src/config/database.js, core/src/app.js, web/package.json, web/vite.config.ts]
 ---
 
 # Chạy dự án ở máy local
@@ -16,6 +16,18 @@ Tài liệu này giúp dev mới dựng được Core và CTD chạy trên máy 
 ## Core (Node/MySQL)
 
 Cần MySQL 8 chạy local (`utf8mb4`), Node 22.
+
+Để mở giao diện Core tại `http://localhost:3000`, build frontend trước. Lệnh này tạo `web/dist` rồi chép bản build vào thư mục Core đang phục vụ:
+
+```bash
+cd web
+npm ci
+npm run build
+mkdir -p ../core/web-dist
+cp -R dist/. ../core/web-dist/
+```
+
+Khi phát triển giao diện thường xuyên, có thể chạy Vite bằng `cd web && npm run dev`; Vite chạy riêng và chuyển tiếp API tới Core.
 
 ```bash
 cd core
@@ -84,3 +96,4 @@ docker run -d --name dev-postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres pos
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
 | 1.1 | 2026-09-30 | Lệnh `set_password`; seed admin không ghi đè mật khẩu | DYC |
 | 1.2 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone MySQL | DYC |
+| 1.3 | 2026-10-10 | Thêm bước build và chép frontend Core để chạy giao diện tại localhost:3000 | DYC |
