@@ -7,7 +7,7 @@ import { Checkbox } from '@atlaskit/checkbox';
 import TextArea from '@atlaskit/textarea';
 import Button from '@atlaskit/button/new';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTeams, fetchBootstrap, createActivity, type CreateActivityPayload } from '../../api';
+import { fetchTeams, fetchBootstrap, createActivity, apiErrorMessage, type CreateActivityPayload } from '../../api';
 
 type SelectOption<V> = { label: string; value: V };
 
@@ -15,19 +15,6 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
-
-// Core trả các lỗi tạo hoạt động bằng tiếng Anh; dịch những câu người dùng có thể gặp.
-const VI_CREATE_ERRORS: Record<string, string> = {
-  'Complete all required fields and select at least one team.':
-    'Vui lòng điền đủ các trường bắt buộc và chọn ít nhất một Tổ.',
-  'Team leaders and vice leaders may only propose work for teams they lead.':
-    'Tổ trưởng/Tổ phó chỉ được đề xuất cho các Tổ mình phụ trách.',
-  'The activity proposal document must be a valid http:// or https:// link.':
-    'Liên kết văn bản đề xuất phải bắt đầu bằng http:// hoặc https://.',
-  'The public image must be a valid http:// or https:// link.':
-    'Liên kết ảnh công khai phải bắt đầu bằng http:// hoặc https://.',
-  'You do not have permission for this action.': 'Bạn không có quyền thực hiện thao tác này.',
-};
 
 export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
@@ -75,11 +62,7 @@ export const CreateActivityModal: React.FC<Props> = ({ isOpen, onClose }) => {
       label: t.name,
       value: t.id,
     }));
-  const serverError = (createMutation.error as { response?: { data?: { error?: string } } } | null)
-    ?.response?.data?.error;
-  const mutationError = serverError
-    ? VI_CREATE_ERRORS[serverError] ?? serverError
-    : 'Không thể tạo đề xuất. Vui lòng kiểm tra lại thông tin.';
+  const mutationError = apiErrorMessage(createMutation.error, 'Không thể tạo đề xuất. Vui lòng kiểm tra lại thông tin.');
 
   const handleSubmit = (formData: Record<string, any>) => {
     const leadTeamId = Number(formData.leadTeam?.value);

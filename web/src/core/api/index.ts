@@ -14,8 +14,10 @@ import type {
   ReportExportParams,
   SessionUser,
 } from './types';
+import { ApiError, translateServerError } from './errors';
 
 export * from './types';
+export * from './errors';
 
 /**
  * Fetch current user session and active unit context.
@@ -136,26 +138,6 @@ export function getReportExportUrl(params: ReportExportParams): string {
  * instead of silently saving a JSON error body as a file.
  * Endpoint: GET /api/reports/export
  */
-// Một số thông báo lỗi của Core vẫn là tiếng Anh; dịch những câu người dùng màn Báo cáo có thể gặp.
-const VI_ERROR_MESSAGES: Record<string, string> = {
-  'Choose a valid report date range.': 'Khoảng thời gian báo cáo không hợp lệ.',
-  'No reportable teams are available.': 'Bạn chưa quản lý Tổ nào để xuất báo cáo.',
-  'You cannot export a report for this team.': 'Bạn không có quyền xuất báo cáo của Tổ này.',
-  'You do not have permission for this action.': 'Bạn không có quyền thực hiện thao tác này.',
-  'Please sign in to continue.': 'Vui lòng đăng nhập để tiếp tục.',
-};
-
-/** Lỗi API đã có thông điệp tiếng Việt, vẫn giữ `response.status` để lớp phiên nhận ra 401. */
-export class ApiError extends Error {
-  response: { status?: number };
-
-  constructor(message: string, status?: number) {
-    super(message);
-    this.name = 'ApiError';
-    this.response = { status };
-  }
-}
-
 export async function downloadReportExport(params: ReportExportParams): Promise<Blob> {
   try {
     const response = await apiClient.get<Blob>('/reports/export', {
@@ -169,7 +151,7 @@ export async function downloadReportExport(params: ReportExportParams): Promise<
     if (res?.data instanceof Blob) {
       try {
         const parsed = JSON.parse(await readBlobText(res.data));
-        if (parsed?.error) message = VI_ERROR_MESSAGES[parsed.error] ?? String(parsed.error);
+        if (parsed?.error) message = translateServerError(String(parsed.error));
       } catch {
         // body is not JSON; keep the generic message
       }
