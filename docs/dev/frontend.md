@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.21
+version: 1.22
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -136,12 +136,25 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 Bộ component dùng chung cho giao diện mới, chạy song song Atlaskit cho tới khi cutover (chưa gỡ phụ thuộc `@atlaskit`).
 Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (native `<select>`), `ToastProvider`/`useToast`,
 `Avatar`, `StatusIcon`, `PriorityIcon`, `Badge`, `Field`. Menu/Dialog/Tabs dựa trên Radix (`react-popover`, `react-dialog`, `react-tabs`).
-- Token màu/khoảng cách ở `tokens.css` (dark qua `[data-theme='dark']` hoặc `prefers-color-scheme`); kiểu ở `ui.css`.
+- Token màu/khoảng cách ở `tokens.css` (dark qua `[data-theme~='dark']` hoặc `prefers-color-scheme`); kiểu ở `ui.css`.
   Mọi class có tiền tố `ui-`; CSS chỉ được import bởi component trong `web/src/ui/`, không đụng `html/body` hay phần tử toàn cục.
 - Test cạnh từng component (`*.test.tsx`) import `./test-setup` (jest-dom + dọn DOM sau mỗi test). Truy vấn theo role/label.
 - Token CSS đặt tên `--ui-*` (không dùng biến chung như `--text`). `Menu` bắt buộc `label` (tên truy cập của nút mở menu).
   Nút chỉ có icon (Button, trigger…) BẮT BUỘC truyền `aria-label`. `Tabs` nhận panel qua `TabsContent` (children).
 - Không thêm Tailwind/shadcn. Component mới thêm vào đây, không thêm vào `web/src/prototype/` (chỉ tham chiếu, không import).
+
+## Shell giao diện mới — `web/src/core/shell/`
+
+`Shell` (thay `shared/layouts/PageLayout`, dùng ở `SignedInShell` trong `core/main.tsx`) = sidebar + vùng nội dung; dưới 768px sidebar là drawer
+(nút hamburger, scrim, Escape/chọn mục thì đóng). Import `ui/tokens.css`, `ui/ui.css`, `shell.css` (class tiền tố `shell-`, chỉ token `--ui-*`).
+- `Sidebar`: Hộp thư (`/inbox`, huy hiệu chưa đọc) · Việc của tôi · Hoạt động · Văn bản · Giao việc/Trình (khi `unitHasDieuHanh`) · Các tổ · Lịch ·
+  Thành viên · Báo cáo (`isManager`) · Lưu trữ · Quản trị tài khoản (`isExec`) · Tài khoản (mở `MyAccountModal`) · đổi giao diện · đăng xuất.
+  `aria-current="page"` theo tiền tố route (`/activity/:id` → Hoạt động, `/team/:id` → Các tổ…). `UnitSwitcher` (shell) chỉ hiện khi ≥ 2 đơn vị.
+- `NotificationBell` là mục Hộp thư và là **nơi duy nhất** gọi `useNotifications` (poll 60s); `NotificationPopups` gắn một lần trong `Shell`. Không gắn `features/notifications/NotificationBell` cũ cùng lúc.
+- `useShortcuts`: `c` (onCreate), `/` (onSearch, tuỳ chọn), `g` rồi `i` trong 1 giây → `/inbox`; bỏ qua khi đang gõ trong input/textarea/select/contenteditable hoặc có Ctrl/Cmd/Alt.
+- `useTheme`: dùng `getStoredTheme`/`applyGlobalTheme` (key `tckt_theme`, token Atlaskit cho màn cũ). Atlaskit cũng ghi `data-theme` trên `<html>`
+  (`dark:dark light:light …`), nên shell thêm từ `light`/`dark` vào danh sách và dựng lại khi bị ghi đè; `tokens.css` khớp theo từ (`[data-theme~='dark']`).
+- Tạm: `/inbox` là placeholder trong `AppRoutes.tsx` cho tới khi có màn Hộp thư thật.
 
 ## Lịch sử phiên bản
 
@@ -169,3 +182,4 @@ Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (
 | 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
 | 1.20 | 2026-10-10 | Thêm UI kit mới `web/src/ui/` (Radix + CSS tuỳ biến) | DYC |
 | 1.21 | 2026-10-10 | UI kit: token `--ui-*`, `Menu.label` bắt buộc, quy ước aria-label cho nút icon, `TabsContent` | DYC |
+| 1.22 | 2026-10-10 | Shell mới `web/src/core/shell/` (sidebar, drawer, phím tắt, theme, Hộp thư); token dark khớp theo từ | DYC |

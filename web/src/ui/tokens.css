@@ -23,14 +23,14 @@
   --ui-t: 140ms ease;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
+  :root:not([data-theme~='light']) {
     --ui-bg-app: #17181b; --ui-bg-side: #1b1c20; --ui-bg-main: #1f2024;
     --ui-bg-hover: rgba(255, 255, 255, 0.05); --ui-bg-select: rgba(255, 255, 255, 0.09);
     --ui-bg-card: #25262b; --ui-text: #ececef; --ui-text-2: #b5b8c0; --ui-text-faint: #7d818b;
     --ui-border: #2d2f35; --ui-border-strong: #3c3f47; --ui-focus: #8793ff;
   }
 }
-:root[data-theme='dark'] {
+:root[data-theme~='dark'] {
   --ui-bg-app: #17181b; --ui-bg-side: #1b1c20; --ui-bg-main: #1f2024;
   --ui-bg-hover: rgba(255, 255, 255, 0.05); --ui-bg-select: rgba(255, 255, 255, 0.09);
   --ui-bg-card: #25262b; --ui-text: #ececef; --ui-text-2: #b5b8c0; --ui-text-faint: #7d818b;

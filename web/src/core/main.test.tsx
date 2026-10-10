@@ -289,7 +289,7 @@ describe('Core App main entry', () => {
     expect(screen.queryByRole('button', { name: /Báo cáo/ })).toBeNull();
   });
 
-  it('thanh trên có chuông thông báo khi đã đăng nhập', async () => {
+  it('sidebar có mục Hộp thư (poll thông báo) khi đã đăng nhập', async () => {
     vi.mocked(api.fetchSession).mockResolvedValue({
       user: { id: 1, name: 'Phạm Việt Bách', email: 'bach.pv@hust.edu.vn', role: 'admin' },
       units: { current: null, memberships: [] },
@@ -300,7 +300,7 @@ describe('Core App main entry', () => {
         <App />
       </QueryClientProvider>
     );
-    expect(await screen.findByRole('button', { name: /^Thông báo/ })).toBeDefined();
+    expect(await screen.findByRole('button', { name: /Hộp thư/ })).toBeDefined();
     await waitFor(() => expect(api.fetchNotifications).toHaveBeenCalled());
   });
 });

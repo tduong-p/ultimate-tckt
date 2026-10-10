@@ -23,6 +23,9 @@ import { unitHasDieuHanh } from './features/dieuhanh/permissions';
 import { TeamPage } from './features/teams/TeamPage';
 import { AccountsView } from './features/accounts/AccountsView';
 
+// Tạm: Task 8 thay bằng màn Hộp thư thật.
+const InboxPlaceholder = () => <h1>Hộp thư</h1>;
+
 const ToDashboard = () => <Navigate to="/dashboard" replace />;
 
 /** Bảng route theo đường dẫn của UI cũ (`#dashboard`, `#calendar`…). Route không có quyền về Tổng quan. */
@@ -45,6 +48,7 @@ export const AppRoutes: React.FC<{ userName: string }> = ({ userName }) => {
       <Route path="/directive/:id" element={dieuHanh ? <DirectiveDetailView /> : <ToDashboard />} />
       <Route path="/submissions" element={dieuHanh ? <SubmissionsView /> : <ToDashboard />} />
       <Route path="/submission/:id" element={dieuHanh ? <SubmissionDetailView /> : <ToDashboard />} />
+      <Route path="/inbox" element={<InboxPlaceholder />} />
       <Route path="/my-tasks" element={<MyTasksView />} />
       <Route path="/teams" element={<TeamsView />} />
       <Route path="/people" element={<MembersView />} />
