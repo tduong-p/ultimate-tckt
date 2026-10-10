@@ -199,4 +199,25 @@ describe('DocumentsView', () => {
     );
     await waitFor(() => expect(vi.mocked(api.fetchDocuments).mock.calls.length).toBeGreaterThan(callsBefore));
   });
+
+  it('vô hiệu hoá liên kết không phải http/https (chống javascript: XSS)', async () => {
+    vi.mocked(api.fetchDocuments).mockResolvedValueOnce({
+      ...mockDocumentsResponse,
+      documents: [
+        {
+          id: 99,
+          name: 'Văn bản có link độc hại',
+          link_url: 'javascript:alert(1)',
+          applicable_year: 2026,
+          issuing_team_id: 1,
+          visibility: 'all_teams',
+        },
+      ],
+    });
+    renderWithClient(<DocumentsView />);
+    const titleLink = await screen.findByRole('link', { name: 'Văn bản có link độc hại' });
+    const openLink = screen.getByRole('link', { name: /Mở liên kết/ });
+    expect(titleLink.getAttribute('href')).toBe('#');
+    expect(openLink.getAttribute('href')).toBe('#');
+  });
 });

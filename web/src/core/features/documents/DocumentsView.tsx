@@ -10,6 +10,7 @@ import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 import { fetchDocuments, type DocumentItem } from '../../api';
 import { DocumentFormModal } from './DocumentFormModal';
 import { formatVnDate } from '../../../shared/utils/date';
+import { isHttpUrl } from '../../../shared/utils/url';
 
 export const DocumentsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -235,7 +236,7 @@ export const DocumentsView: React.FC = () => {
                   }}
                 >
                   <a
-                    href={doc.link_url}
+                    href={isHttpUrl(doc.link_url) ? doc.link_url : '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -280,7 +281,7 @@ export const DocumentsView: React.FC = () => {
                 )}
                 <LinkButton
                   appearance="subtle"
-                  href={doc.link_url}
+                  href={isHttpUrl(doc.link_url) ? doc.link_url : '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
