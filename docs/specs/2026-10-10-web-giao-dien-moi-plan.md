@@ -1,8 +1,8 @@
 ---
 doc_id: PLAN-WEB-003
 title: Kế hoạch triển khai — Giao diện web mới (Linear-style) thay Atlaskit
-version: 1.0
-status: draft
+version: 1.1
+status: active
 audience: [dev, ai]
 owner: DYC
 updated: 2026-10-10
@@ -334,3 +334,4 @@ Mỗi task dùng cùng quy trình: (1) Claude viết danh sách hành vi cũ c�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-10 | Bản đầu: kế hoạch 16 task, phân công agy/Claude | DYC |
+| 1.1 | 2026-10-10 | Chuyển sang active sau khi hoàn tất triển khai Tasks 1-14 | DYC |

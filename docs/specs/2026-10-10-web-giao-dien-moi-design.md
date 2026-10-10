@@ -1,8 +1,8 @@
 ---
 doc_id: SPEC-WEB-004
 title: Design — Giao diện web mới (Linear-style) thay Atlaskit
-version: 1.0
-status: draft
+version: 1.1
+status: active
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10
@@ -153,3 +153,4 @@ ADR-0017 (thay phần frontend của ADR-0016); `docs/dev/frontend.md`; SPEC-WEB
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-10 | Bản đầu: giao diện Linear-style, sửa tại chỗ + Lưu/Hủy, endpoint lô, kế hoạch tài liệu và kiểm thử | DYC |
+| 1.1 | 2026-10-10 | Chuyển sang active sau khi hoàn thành cài đặt toàn bộ màn hình và UI kit | DYC |

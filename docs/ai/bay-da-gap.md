@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.20
+version: 1.21
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -176,6 +176,12 @@ Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong kho
 - **`AtlassianNavigation.renderProfile` phải giữ identity ổn định.** Atlaskit dùng callback này như component type; tạo callback inline trong `PageLayout` khiến phần con bị unmount/remount khi đổi route. Nếu `NotificationCenter` nằm trong đó, `announced` bị reset và popup cũ có thể hiện lại. Dùng callback ổn định với `useCallback` và kiểm tra state của header qua điều hướng.
 - **Lỗi tải thông báo không phải danh sách rỗng.** Khi `GET /api/notifications` lỗi mà giao diện chỉ dùng `data?.notifications ?? []`, người dùng thấy "Chưa có thông báo." thay vì lỗi kết nối; render trạng thái lỗi riêng và chỉ hiện trạng thái rỗng sau lần tải thành công.
 
+## Bẫy khi làm Giao diện mới (web/ UI kit & Radix)
+
+- **Toast container xung đột ARIA role với Form.** Khi container toast dùng `role="status"` hoặc `role="alert"`, `screen.getByRole('status')` hay `findByRole('alert')` trong các test form có thể bắt nhầm container toast trống thay vì thông báo lỗi hoặc trạng thái của form. Giải pháp: `ToastProvider` container chỉ dùng `aria-live="polite"` không gán `role="status"`, và các toast item dùng div thông báo chuẩn.
+- **Radix Dialog `aria-describedby` warning.** Radix Dialog Content mặc định yêu cầu `aria-describedby` trỏ tới Description. Nếu dialog không có phụ đề/mô tả dài, đặt `aria-describedby={undefined}` trên `DialogPrimitive.Content` để tránh cảnh báo console khi chạy test.
+- **Badge prop color convention.** Component `ui/Badge` dùng prop `tone` (`neutral` | `info` | `success` | `warning` | `danger`), không phải `variant`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -201,3 +207,4 @@ Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong kho
 | 1.18 | 2026-10-09 | Thêm bẫy đợt 4: URL thông báo là hash cũ, tránh poll đôi; header cần callback ổn định; tách lỗi tải khỏi danh sách rỗng | DYC |
 | 1.19 | 2026-10-09 | Thêm bẫy test mock req.unit.modules che lỗi middleware/session thật khi kiểm tra cổng module | DYC |
 | 1.20 | 2026-10-10 | Chuẩn hoá lịch sử bẫy đợt 3–5 sau khi tích hợp các PR frontend | DYC |
+| 1.21 | 2026-10-10 | Thêm bẫy Toast role collision, Radix Dialog aria-describedby và Badge tone prop khi làm UI kit mới | DYC |

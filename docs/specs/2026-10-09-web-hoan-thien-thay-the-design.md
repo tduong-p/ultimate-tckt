@@ -1,11 +1,12 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 2.0
-status: active
+version: 2.1
+status: superseded
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10
+superseded_by: SPEC-WEB-004
 related_code: [web/**, core/src/app.js, core/Dockerfile, core/public/**, .dockerignore, .github/workflows/deploy.yml, core/tests/web-cutover.test.js, tools/tests/workflows.test.js]
 ---
 
@@ -383,3 +384,4 @@ Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) đư
 | 1.8 | 2026-10-10 | Ghi nhận hoàn thành đợt 5: Giao việc/Trình và module gate | DYC |
 | 1.9 | 2026-10-10 | Sửa mô tả cổng DYC: directives/submissions không đi qua legacy gate/audit; liên kết issue #95 cho kiểm tra quyền sở hữu và audit còn thiếu | DYC |
 | 2.0 | 2026-10-10 | Hoãn đợt 6, thực hiện cutover đợt 7; chốt `/` và `/legacy/`, Docker build root context, kiểm tra PR và publish khi push | DYC |
+| 2.1 | 2026-10-10 | Đánh dấu superseded bởi SPEC-WEB-004 (Giao diện web mới Linear-style thay Atlaskit) | DYC |

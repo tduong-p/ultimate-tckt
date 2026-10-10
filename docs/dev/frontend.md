@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.34
+version: 1.35
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -11,7 +11,7 @@ related_code: [core/public/**, core/src/app.js, core/Dockerfile, .dockerignore, 
 
 # Frontend
 
-Repo có các frontend riêng biệt: Core `web/` thay UI cũ tại `/`, UI cũ được giữ tại `/legacy/` trong thời gian chuyển tiếp, và CTD có frontend riêng. `web/` dùng React + Vite + Atlaskit (xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
+Repo có các frontend riêng biệt: Core `web/` thay UI cũ tại `/`, UI cũ được giữ tại `/legacy/` trong thời gian chuyển tiếp, và CTD có frontend riêng. `web/` dùng React + Vite + UI Kit (CSS tokens) + Radix UI (thay thế Atlaskit theo ADR-0017, xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-10-web-giao-dien-moi-design.md`). Test `web/`: `cd web && npm test && npm run build`
 (job CI `test-web`, xem `docs/dev/test.md`).
 
 ## Core cũ — `core/public/` (JavaScript thuần, chỉ vá lỗi tới khi gỡ, ADR-0016)
@@ -255,3 +255,4 @@ Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, kho�
 | 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
 | 1.33 | 2026-10-10 | Trình (Submissions) dùng kit mới (`submissions.css`, `parts.tsx`); chuyển LinkField, ReasonDialog, ConfirmDialog và phần còn lại trong task drawer sang kit mới | DYC |
 | 1.34 | 2026-10-10 | Tài khoản, Đăng nhập, Onboarding, Bộ trọng số và các dialog còn lại chuyển sang UI kit mới; dọn dẹp Atlaskit trong core và shared | DYC |
+| 1.35 | 2026-10-10 | Hoàn tất cutover toàn bộ Core sang UI kit CSS tokens + Radix UI theo ADR-0017 | DYC |
