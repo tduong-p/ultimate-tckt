@@ -1,6 +1,8 @@
 const express = require('express');
 const { findReviewRecipients } = require('../services/notification-recipients');
 const { createAttachment } = require('../services/task-attachments');
+const { applyTaskBatch } = require('../services/task-batch');
+const { notifyTaskUpdated } = require('../services/batch-notify');
 
 function createTaskRoutes(context) {
   const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
@@ -16,6 +18,17 @@ function createTaskRoutes(context) {
   }
 
 router.patch('/api/tasks/:id',auth,asyncRoute(async(req,res)=>{const [rows]=await db.execute('SELECT t.*,EXISTS(SELECT 1 FROM task_assignees ta WHERE ta.task_id=t.id AND ta.user_id=?) assigned_to_me FROM tasks t WHERE t.id=?',[req.actor.id,req.params.id]);const task=one(rows);if(!task)return res.status(404).json({error:'Task not found.'});const manages=await canManageTeam(req.actor,task.team_id);if(!manages&&!task.assigned_to_me)return res.status(403).json({error:'You cannot update this task.'});const allowed=manages?['deadline','start_date','priority','deliverable']:[];const entries=Object.entries(req.body).filter(([key])=>allowed.includes(key));if(!entries.length)return res.status(400).json({error:'No valid fields supplied.'});await db.execute(`UPDATE tasks SET ${entries.map(([k])=>`${k}=?`).join(',')} WHERE id=?`,[...entries.map(([,v])=>v||null),req.params.id]);res.json({ok:true})}));
+
+router.patch('/api/tasks/:id/batch', auth, asyncRoute(async (req, res) => {
+  const [rows] = await db.execute('SELECT id,activity_id FROM tasks WHERE id=?', [req.params.id]);
+  const found = one(rows);
+  if (!found || !(await visibleActivity(req.actor, found.activity_id))) return res.status(404).json({ error: 'Không tìm thấy công việc.' });
+  const result = await applyTaskBatch(context, { actor: req.actor, taskId: found.id, changes: req.body.changes, base: req.body.base });
+  if (result.notify) {
+    try { await notifyTaskUpdated(context, req.actor, result.notify); } catch (error) { logger.error(`Unable to prepare task ${found.id} batch notifications.`, error); }
+  }
+  res.status(result.status).json(result.body);
+}));
 
 router.post('/api/tasks/:id/attachments', auth, taskUpload.single('file'), asyncRoute(async (req, res) => {
   const [tasks] = await db.execute('SELECT id,activity_id FROM tasks WHERE id=?', [req.params.id]);

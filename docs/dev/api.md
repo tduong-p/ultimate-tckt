@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.9
+version: 6.0
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -37,6 +37,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET/PATCH/DELETE | `/api/activities/:id` | `activities.js` |
 | POST | `/api/activities/:id/{submit,approve,reject,request-changes,volunteer,participants,updates,tasks,log-task}` | `activities.js` |
 | GET/PATCH | `/api/tasks/:id` | `tasks.js` |
+| PATCH | `/api/tasks/:id/batch` | `tasks.js` |
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
 | GET | `/api/task-attachments/:id/content` | `tasks.js` |
@@ -470,6 +471,23 @@ Xóa thành viên khỏi đơn vị.
 
 ---
 
+## Task Batch
+
+### PATCH /api/tasks/:id/batch
+
+Sửa nhiều trường của một công việc trong một giao dịch (tất cả hoặc không gì cả).
+
+Body: `{ "changes": { <field>: <value> }, "base": { <field>: <giá trị lúc mở form> } }`.
+Trường hợp lệ: `title, description, primary_assignee_id, co_assignee_ids, team_id, deadline, start_date, priority, deliverable`.
+
+- Quyền theo từng trường: người quản lý tổ (hoặc điều hành) sửa tất cả; người được giao chỉ sửa `title`, `description`. Đổi `team_id` còn cần quản lý được tổ đích.
+- 404: công việc không tồn tại hoặc người gọi không thấy hoạt động chứa nó.
+- 403 `{ forbidden: [...] }`: có trường ngoài quyền (không ghi gì).
+- 400: trường lạ (`fields`), tiêu đề/hạn rỗng, `priority` ngoài enum, ngày sai dạng `YYYY-MM-DD`, tổ hoặc người được giao không hợp lệ.
+- 409 `{ conflicts: [...] }`: với trường thật sự đổi, `base[field]` khác giá trị hiện tại (không ghi gì). Trường không có trong `base` thì không kiểm tra.
+- 200 `{ changed: [...] }`: `changed` rỗng khi không có gì khác đi (không thông báo).
+- Thông báo gộp theo lô do `services/batch-notify.js` đảm nhiệm.
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -514,3 +532,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
 | 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
 | 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
+| 6.0 | 2026-10-10 | Thêm `PATCH /api/tasks/:id/batch` (sửa nhiều trường một lần, quyền theo từng trường, 409 khi `base` cũ; chi tiết ở mục Endpoint Details) | DYC |
