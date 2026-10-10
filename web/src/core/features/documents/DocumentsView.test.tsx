@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DocumentsView } from './DocumentsView';
 import { ToastProvider } from '../../../shared/components/Toast';
@@ -104,7 +104,8 @@ describe('DocumentsView', () => {
     expect(api.fetchDocuments).toHaveBeenCalled();
     expect(await screen.findByText('Quy chế Tổ chức và Hoạt động TCKT 2026')).toBeDefined();
     expect(screen.getByText('Hướng dẫn Đánh giá Điểm Rèn luyện Học kỳ 1')).toBeDefined();
-    expect(screen.getByText('Tổ chức và Phát triển Đoàn')).toBeDefined();
+    // Tên Tổ cũng là lựa chọn của bộ lọc (select gốc luôn render option), nên kiểm trong thẻ.
+    expect(within(screen.getByTestId('document-item-1')).getByText('Tổ chức và Phát triển Đoàn')).toBeDefined();
     expect(screen.getAllByText('Tất cả các Tổ').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Nội bộ Tổ')).toBeDefined();
   });
@@ -198,5 +199,14 @@ describe('DocumentsView', () => {
       })
     );
     await waitFor(() => expect(vi.mocked(api.fetchDocuments).mock.calls.length).toBeGreaterThan(callsBefore));
+  });
+
+  it('lọc theo năm và Tổ gửi đúng tham số cho API', async () => {
+    renderWithClient(<DocumentsView />);
+    await screen.findByText('Quy chế Tổ chức và Hoạt động TCKT 2026');
+    fireEvent.change(screen.getByLabelText('Lọc theo năm'), { target: { value: '2025' } });
+    await waitFor(() => expect(api.fetchDocuments).toHaveBeenLastCalledWith(expect.objectContaining({ year: '2025' })));
+    fireEvent.change(screen.getByLabelText('Lọc theo Tổ'), { target: { value: '2' } });
+    await waitFor(() => expect(api.fetchDocuments).toHaveBeenLastCalledWith(expect.objectContaining({ year: '2025', team_id: '2' })));
   });
 });

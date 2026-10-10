@@ -1,0 +1,10 @@
+/* Báo cáo. Chỉ dùng token --ui-*. Tiền tố rep-. Khung/tiêu đề dùng ppl- từ people.css. */
+.rep { max-width: 1100px; font-family: var(--ui-font); color: var(--ui-text); }
+.rep-card { max-width: 560px; padding: 16px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); display: flex; flex-direction: column; gap: 14px; }
+.rep-dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.rep-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--ui-text-2); }
+.rep-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rep-status { font-size: 12px; color: var(--ui-text-2); }
+.rep-status--ok { color: var(--ui-st-done); font-weight: 500; }
+.rep-status--error { color: var(--ui-pr-urgent); font-weight: 500; }
+.rep-icon { vertical-align: -2px; margin-right: 6px; }

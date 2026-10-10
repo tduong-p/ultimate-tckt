@@ -1,23 +1,19 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
+import { Field } from '../../../ui';
 import { apiErrorMessage, createDirective, fetchDieuHanhUnits } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { todayVnKey } from '../../../shared/utils/date';
 import { DH_UNITS_KEY, DIRECTIVES_KEY } from '../dieuhanh/queryKeys';
 import { useDhActor } from '../dieuhanh/useDhActor';
-import { ErrorText, FIELD_STYLE, FormDialog, QueryStatus, SelectField } from '../dieuhanh/parts';
+import { DirFormDialog, ErrorLine, QueryStatus, SelectField } from './dirKit';
 
 export const CreateDirectiveModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const actor = useDhActor();
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const titleId = useId();
-  const bodyId = useId();
-  const deadlineId = useId();
   const [toUnit, setToUnit] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -52,22 +48,19 @@ export const CreateDirectiveModal: React.FC<{ isOpen: boolean; onClose: () => vo
   };
 
   return (
-    <FormDialog isOpen={isOpen} title="Giao việc mới" confirmLabel="Giao việc" isLoading={mutation.isPending} onSubmit={submit} onCancel={onClose}>
+    <DirFormDialog isOpen={isOpen} title="Giao việc mới" confirmLabel="Giao việc" isLoading={mutation.isPending} onSubmit={submit} onCancel={onClose}>
       <SelectField label="Đơn vị nhận" required value={toUnit} onChange={setToUnit} options={options} placeholder="Chọn đơn vị" disabled={unitsLoading || Boolean(unitsError)} />
       <QueryStatus isLoading={unitsLoading} error={unitsError} onRetry={() => void retryUnits()} />
-      <div style={{ marginTop: 12 }}>
-        <label htmlFor={titleId}>Tiêu đề *</label>
-        <Textfield id={titleId} value={title} maxLength={200} onChange={(e) => setTitle((e.target as HTMLInputElement).value)} />
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <label htmlFor={bodyId}>Nội dung</label>
-        <TextArea id={bodyId} value={body} minimumRows={3} onChange={(e) => setBody(e.target.value)} />
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <label htmlFor={deadlineId}>Hạn hoàn thành *</label>
-        <input id={deadlineId} type="date" min={todayVnKey()} value={deadline} onChange={(e) => setDeadline(e.target.value)} style={FIELD_STYLE} />
-      </div>
-      <ErrorText message={error} />
-    </FormDialog>
+      <Field label="Tiêu đề *">
+        <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
+      </Field>
+      <Field label="Nội dung">
+        <textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+      </Field>
+      <Field label="Hạn hoàn thành *">
+        <input type="date" min={todayVnKey()} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+      </Field>
+      <ErrorLine message={error} />
+    </DirFormDialog>
   );
 };

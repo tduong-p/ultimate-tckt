@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.31
+version: 1.32
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -209,6 +209,13 @@ Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, kho�
 - `FormDialog`/`FormField` Atlaskit trong `people/` còn được `accounts/*` và `session/MyAccountModal` dùng nên chưa xoá; `TeamCheckboxes` đã xoá. Toast vẫn là `useToast` Atlaskit dùng chung (shell chưa gắn toast của kit).
 - Lịch: chế độ xem là nút `aria-pressed`; lọc Tổ là ô chọn "Lọc theo Tổ" (`participatesInTeam`); pill/dòng/thanh Gantt là `<button>` mở hoạt động; vạch "hôm nay" Gantt (`gantt-today-line`) tính từ ngày Việt Nam hiện tại, chỉ hiện ở tháng hiện tại; lỗi tải hiện "Không tải được lịch hoạt động.". `GANTT_COLORS` vẫn export và đặt màu thanh inline.
 
+### Văn bản, Giao việc, Báo cáo, Lưu trữ — `web/src/core/features/{documents,directives,reports,archive}/`
+
+Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, khoá query, quyền, trạng thái rỗng/tải/lỗi; không có phiên sửa tại chỗ. Chưa gồm Trình (`submissions/`, việc riêng).
+- CSS riêng từng màn: `documents.css` (`doc-`), `directives.css` (`dir-`), `reports.css` (`rep-`), `archive.css` (`arc-`); khung đầu trang/trạng thái rỗng/ô nhập dùng chung `people/people.css` (`ppl-`). Chỉ token `--ui-*`.
+- `DocumentFormModal` dùng `PeopleFormDialog` (mount mới mỗi lần mở); bộ lọc năm/Tổ là `Select` có nhãn "Lọc theo năm"/"Lọc theo Tổ" (native select, nên tên Tổ xuất hiện cả ở option).
+- `directives/dirKit.tsx`: `DirFormDialog`, `ReasonFormDialog` (thay `ReasonDialog` Atlaskit trong màn này), `SelectField`, `QueryStatus`, `StatusBadge` (đổi tông Lozenge sang `Badge`). `dieuhanh/parts.tsx` và `shared/components/{ReasonDialog,LinkField}` còn được `submissions/*`/màn khác dùng nên chưa xoá. Toast vẫn là `useToast` Atlaskit dùng chung.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -244,4 +251,5 @@ Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, kho�
 | 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
 | 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |
 | 1.30 | 2026-10-10 | Chi tiết công việc sửa tại chỗ (ngăn kéo, `editable[]`, 409 Tải lại); xoá `EditTaskDialog`; Kanban và Giao việc dùng kit mới | DYC |
+| 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
 | 1.31 | 2026-10-10 | Lịch, Tổ, Thành viên dùng kit mới (`peopleKit`, `ppl-`/`team-`/`cal-`/`mem-`); vạch hôm nay Gantt theo ngày thật; xoá `TeamCheckboxes` | DYC |
