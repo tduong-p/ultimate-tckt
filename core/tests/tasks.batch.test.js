@@ -88,3 +88,15 @@ test('a member who is not assigned gets 403, not 404, when the task is visible; 
     assert.equal((await batch(ctx, { changes: { status: 'done' }, base: {} })).status, 400);
   } finally { await ctx.close(); await ctx.teardown(); }
 });
+
+test('GET /api/tasks/:id reports editable fields per caller', async () => {
+  const ctx = await setup();
+  try {
+    await ctx.client.login(ctx.member.email, ctx.member.password);
+    const asMember = await ctx.client.request('GET', `/api/tasks/${ctx.taskId}`);
+    assert.deepEqual(asMember.json.editable, ['title', 'description']);
+    await ctx.client.login(ctx.leader.email, ctx.leader.password);
+    const asLeader = await ctx.client.request('GET', `/api/tasks/${ctx.taskId}`);
+    assert.ok(asLeader.json.editable.includes('deadline'));
+  } finally { await ctx.close(); await ctx.teardown(); }
+});

@@ -125,3 +125,15 @@ run('activity invisible to the caller is 404, matching GET', async (ctx) => {
   assert.equal(get.status, 404);
   assert.equal(res.status, 404);
 });
+
+test('GET /api/activities/:id reports editable fields per caller', async () => {
+  const ctx = await setup();
+  try {
+    await ctx.client.login(ctx.lead.email, ctx.lead.password);
+    const asLead = await ctx.client.request('GET', `/api/activities/${ctx.activityId}`);
+    assert.deepEqual(asLead.json.editable, ['title', 'description']);
+    await ctx.client.login(ctx.admin.email, ctx.admin.password);
+    const asAdmin = await ctx.client.request('GET', `/api/activities/${ctx.activityId}`);
+    assert.ok(asAdmin.json.editable.includes('deadline'));
+  } finally { await ctx.close(); await ctx.teardown(); }
+});

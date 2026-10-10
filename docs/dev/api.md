@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 6.1
+version: 6.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -472,6 +472,18 @@ Xóa thành viên khỏi đơn vị.
 
 ---
 
+## Task List và editable[]
+
+### GET /api/tasks
+
+Danh sách công việc người gọi được thấy, qua cùng phạm vi với `GET /api/activities` (`scopeFor(actor, 'activities')`: đơn vị + hoạt động công khai/được tham gia; không rò sang đơn vị khác). Query tuỳ chọn: `mine=1` (chỉ việc được giao cho mình), `status` (`todo|in_progress|review|done|cancelled`), `team_id`, `from`/`to` (`YYYY-MM-DD`, lọc theo `deadline`), `overdue=1` (`deadline` < hôm nay theo giờ VN, trừ `done`/`cancelled`), `pending_review=1` (`status='review'` và người gọi nghiệm thu được theo `canReviewTask`).
+
+Trả mảng `{ id, title, status, priority, deadline, team_id, team_name, activity_id, activity_title, primary_assignee_id, assignee_name, acknowledged_at, review_feedback }`, sắp theo `deadline, id`, tối đa 500. `acknowledged_at` là dấu xác nhận của chính người gọi (null nếu không được giao hoặc chưa xác nhận); `review_feedback` là cột `tasks.review_feedback` (lần nghiệm thu gần nhất). Tham số sai (status, ngày, team_id) trả 400.
+
+### editable[] trong chi tiết
+
+`GET /api/tasks/:id` và `GET /api/activities/:id` có thêm `editable: string[]` — các trường người gọi được sửa qua `PATCH .../batch` (cùng quy tắc quyền theo trường ở trên). Các trường cũ giữ nguyên.
+
 ## Task Batch
 
 ### PATCH /api/tasks/:id/batch
@@ -551,3 +563,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
 | 6.0 | 2026-10-10 | Thêm `PATCH /api/tasks/:id/batch` (sửa nhiều trường một lần, quyền theo từng trường, 409 khi `base` cũ; chi tiết ở mục Endpoint Details) | DYC |
 | 6.1 | 2026-10-10 | Thêm `PATCH /api/activities/:id/batch` (quyền theo trường: admin/vice_admin tất cả, trưởng sự kiện chỉ title/description) | DYC |
+| 6.2 | 2026-10-10 | Thêm `GET /api/tasks` (danh sách theo phạm vi, bộ lọc mine/overdue/pending_review) và `editable[]` trong `GET /api/tasks/:id`, `GET /api/activities/:id` | DYC |
