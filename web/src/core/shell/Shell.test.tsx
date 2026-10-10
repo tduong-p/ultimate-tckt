@@ -18,7 +18,7 @@ vi.mock('../api', async () => {
   };
 });
 
-const Probe = () => <div data-testid="path">{useLocation().pathname}</div>;
+const Probe = () => { const l = useLocation(); return <><div data-testid="path">{l.pathname}</div><div data-testid="search">{l.search}</div></>; };
 
 function setup(opts: { path?: string; unread?: number; props?: Partial<ShellProps> } = {}) {
   vi.mocked(api.fetchSession).mockResolvedValue({ user: { id: 1, name: 'An', email: 'a@x.vn', role: 'member' }, units: { current: null, memberships: [] } });
@@ -195,12 +195,21 @@ describe('aria-current', () => {
     expect(screen.getByRole('button', { name: 'Về trang tổng quan' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('/my-tasks-today không có mục riêng (Task 8 sẽ chuyển hướng về tab Hôm nay của Việc của tôi); /inbox tô sáng Hộp thư', () => {
-    setup({ path: '/my-tasks-today' });
-    expect(current()).toEqual([]);
-    cleanup();
+  it('/my-tasks (mọi tab) và /my-tasks-today tô sáng Việc của tôi; /inbox tô sáng Hộp thư', () => {
+    for (const path of ['/my-tasks', '/my-tasks?tab=overdue', '/my-tasks?tab=review', '/my-tasks-today']) {
+      setup({ path });
+      expect(current()).toEqual(['Việc của tôi']);
+      cleanup();
+    }
     setup({ path: '/inbox' });
     expect(current()).toEqual(['Hộp thư']);
+  });
+
+  it('bấm Việc của tôi trong sidebar đi tới tab Hôm nay', async () => {
+    const { user } = setup({ path: '/dashboard' });
+    await user.click(screen.getByRole('button', { name: 'Việc của tôi' }));
+    expect(screen.getByTestId('path')).toHaveTextContent('/my-tasks');
+    expect(screen.getByTestId('search')).toHaveTextContent('?tab=today');
   });
 
   it('/team/3 tô sáng Các tổ', () => {

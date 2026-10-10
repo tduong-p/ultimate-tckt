@@ -7,6 +7,8 @@ import { UnitSwitcher } from './UnitSwitcher';
 
 interface NavDef {
   path: string;
+  /** Đích khi bấm, nếu khác `path` (vd. kèm query). */
+  to?: string;
   label: string;
   icon: IconName;
   /** Các tiền tố route con cũng tô sáng mục này (vd. /activity/5 → Hoạt động). */
@@ -61,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const item = (n: NavDef) => (
     <li key={n.path}>
-      <button type="button" className="shell-nav-item" aria-current={isActive(n) ? 'page' : undefined} onClick={() => go(n.path)}>
+      <button type="button" className="shell-nav-item" aria-current={isActive(n) ? 'page' : undefined} onClick={() => go(n.to ?? n.path)}>
         <Icon name={n.icon} />
         <span className="shell-nav-label">{n.label}</span>
       </button>
@@ -99,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="shell-sidebar-scroll">
           <ul className="shell-nav-list">
             <li><NotificationBell active={matches(pathname, '/inbox')} onClick={() => go('/inbox')} /></li>
-            {item({ path: '/my-tasks', label: 'Việc của tôi', icon: 'mine' })}
+            {item({ path: '/my-tasks', to: '/my-tasks?tab=today', alsoPaths: ['/my-tasks-today'], label: 'Việc của tôi', icon: 'mine' })}
           </ul>
           {group('Không gian làm việc', work)}
           {group('Tổ chức', org)}

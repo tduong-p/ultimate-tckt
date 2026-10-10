@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppRoutes } from './AppRoutes';
 import { SESSION_KEY, BOOTSTRAP_KEY } from './queryKeys';
 
 vi.mock('./features/dashboard/Dashboard', () => ({ Dashboard: () => <div>màn-tổng-quan</div> }));
+vi.mock('./features/mine/MineView', () => ({ MineView: () => { const l = useLocation(); return <div>{`màn-việc-của-tôi${l.search}`}</div>; } }));
+vi.mock('./features/notifications/Inbox', () => ({ Inbox: () => <div>màn-hộp-thư</div> }));
 vi.mock('./features/calendar/CalendarView', () => ({ CalendarView: () => <div>màn-lịch</div> }));
 vi.mock('./features/reports/ReportsView', () => ({ ReportsView: () => <div>màn-báo-cáo</div> }));
 vi.mock('./features/activities/ActivityDetailView', () => ({ ActivityDetailView: () => <div>màn-chi-tiết-hoạt-động</div> }));
@@ -124,5 +126,23 @@ describe('AppRoutes', () => {
     renderAt('/accounts', 'leader');
     expect(screen.queryByText('màn-quản-trị-tài-khoản')).toBeNull();
     expect(screen.getByText('màn-tổng-quan')).toBeDefined();
+  });
+
+  it('/my-tasks-today chuyển về tab Hôm nay của Việc của tôi', () => {
+    renderAt('/my-tasks-today', 'member');
+    expect(screen.getByText('màn-việc-của-tôi?tab=today')).toBeDefined();
+  });
+
+  it('/my-tasks không tab vẫn mở Việc của tôi (màn tự hiểu là tab Tất cả); có tab thì giữ nguyên query', () => {
+    renderAt('/my-tasks', 'member');
+    expect(screen.getByText('màn-việc-của-tôi')).toBeDefined();
+    cleanup();
+    renderAt('/my-tasks?tab=review', 'member');
+    expect(screen.getByText('màn-việc-của-tôi?tab=review')).toBeDefined();
+  });
+
+  it('/inbox mở màn Hộp thư', () => {
+    renderAt('/inbox', 'member');
+    expect(screen.getByText('màn-hộp-thư')).toBeDefined();
   });
 });

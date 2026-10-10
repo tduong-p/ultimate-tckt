@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.25
+version: 1.26
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -66,7 +66,7 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
 ### Công việc và Kanban (web/)
 
 Đợt 2 (SPEC-WEB-003 §4.2, `web/src/core/features/tasks/`):
-- Hộp chi tiết công việc: `useTaskModal().open(id, { focusSubmit })` từ mọi danh sách (Tổng quan, Việc hôm nay, Chi tiết hoạt động, Việc của tôi); route `#task/:id` mở hộp trên nền Tổng quan.
+- Hộp chi tiết công việc: `useTaskModal().open(id, { focusSubmit })` từ mọi danh sách (Tổng quan, Chi tiết hoạt động, Việc của tôi); route `#task/:id` mở hộp trên nền Tổng quan.
 - Quyền ẩn/hiện nằm ở `web/src/core/features/tasks/taskPermissions.ts` (bắt chước `core/src/routes/tasks.js` và `policies/access.js`); màn không tự viết điều kiện vai trò:
   - Sửa công việc: chỉ `canManageTeam(task.team_id)`; sửa 4 trường `deadline`, `start_date`, `priority`, `deliverable`.
   - Checklist thêm/tích/xoá và thêm tài liệu: `canUpdate` (`canTouchTask`).
@@ -79,7 +79,7 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
 - Kanban (`#/board/:id`): hiển thị 4 cột theo giai đoạn; chỉ chuyển trực tiếp `todo ↔ in_progress`; thả vào Chờ duyệt/Hoàn thành mở hộp nộp/duyệt; kéo-thả chỉ kích hoạt khi `(pointer: fine)`.
 - Trang chi tiết hoạt động (`#/activity/:id`): gắn `ActivityTaskActions` (Bảng Kanban, Giao việc, Tự ghi nhận việc), tiêu đề việc mở hộp chi tiết qua `TaskTitleButton`, và nút Thêm tài liệu theo việc khi có quyền.
 
-Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; người duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ) nằm trong thẻ việc của `MyTasksToday` và `MyTasksView`. Mọi thao tác ghi qua `useTaskMutation` (toast tiếng Việt, lỗi qua `apiErrorMessage`, làm mới cache bằng `invalidateTasks` trong `taskKeys.ts`). `SubmitReviewModal` và `ReviewDecisionModal` mở từ các nút đó. `CreateTaskModal` mở từ nút "Tạo nhiệm vụ" trên `ActivityActions`; nút chỉ hiện khi cờ `canCreateTask` của `deriveActivityActions` bằng `canManage`. API nhiệm vụ nằm ở `api/tasks.ts`.
+Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; người duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ) vẫn dùng ở Kanban/Tổng quan; màn Việc của tôi mới (`features/mine/`) có nút Xác nhận / Bắt đầu làm / Tạm dừng riêng, còn Nộp nghiệm thu và Duyệt nằm trong hộp chi tiết. Mọi thao tác ghi qua `useTaskMutation` (toast tiếng Việt, lỗi qua `apiErrorMessage`, làm mới cache bằng `invalidateTasks` trong `taskKeys.ts`). `SubmitReviewModal` và `ReviewDecisionModal` mở từ các nút đó. `CreateTaskModal` mở từ nút "Tạo nhiệm vụ" trên `ActivityActions`; nút chỉ hiện khi cờ `canCreateTask` của `deriveActivityActions` bằng `canManage`. API nhiệm vụ nằm ở `api/tasks.ts`.
 
 Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, Tổng quan) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`.
 
@@ -174,7 +174,18 @@ Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:i
 - `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy (Escape bỏ qua khi đang gõ trong input/textarea/select/contenteditable), bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
   Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
 
-- Tạm: `/inbox` là placeholder trong `AppRoutes.tsx` cho tới khi có màn Hộp thư thật.
+### Việc của tôi và Hộp thư (Task 8)
+
+- `features/mine/MineView.tsx` (route `/my-tasks`): tab `Hôm nay · Quá hạn · Chờ tôi duyệt · Tất cả`, tab nằm trên URL `?tab=today|overdue|review|all`.
+  Không có `tab` ⇒ `all` (giữ nghĩa `#/my-tasks` cũ); `tab` sai ⇒ `today`. `/my-tasks-today` chuyển hướng `replace` về `/my-tasks?tab=today`;
+  mục sidebar "Việc của tôi" trỏ `/my-tasks?tab=today` và sáng với mọi tab (và `/my-tasks-today`).
+- Dữ liệu: `GET /api/tasks?mine=1` (việc tôi được giao) và `GET /api/tasks?pending_review=1` (Core lọc quyền duyệt), qua `fetchMyTaskList` (`mineTasks.ts`).
+  Chia tab phía client bằng `groupMine` (ngày Việt Nam): Quá hạn = chưa xong/huỷ & hạn < hôm nay; Hôm nay = chưa xong/huỷ, chưa quá hạn, hạn hôm nay HOẶC đang làm;
+  Chờ tôi duyệt = kết quả `pending_review`; Tất cả = mọi việc chưa xong/huỷ của tôi. Khoá query nằm dưới tiền tố `core-my-tasks-today` nên `useInvalidateTaskCaches` làm mới chúng.
+  Huy hiệu "Mới được giao" = `acknowledged_at` rỗng; "Bị trả lại" = có `review_feedback` và đang không ở `review`/`done`.
+- `features/notifications/Inbox.tsx` (route `/inbox`): chỉ ĐỌC cache `core-notifications` (`enabled: false`), không thêm poller; lọc Chưa đọc / Nhắc tên (`comment_tag`, `*mention*`) /
+  Duyệt (kind chứa `review`), kết hợp theo AND (`notificationFilters.ts`). Mở một mục dùng `useOpenNotification` (đánh dấu đã xem + `notificationRoute(url)`);
+  "Đánh dấu tất cả đã đọc" dùng `markAllNotificationsSeen` + `markAllSeen`.
 
 ## Lịch sử phiên bản
 
@@ -206,3 +217,4 @@ Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:i
 | 1.23 | 2026-10-10 | Shell: thêm Tổng quan, siết phím tắt, focus drawer | DYC |
 | 1.24 | 2026-10-10 | Sửa tại chỗ: `useEditSession`, `EditGuardProvider`/`useEditGuard`, `EditBar`, `editApi` (batch + phân loại lỗi) | DYC |
 | 1.25 | 2026-10-10 | Sửa tại chỗ: chặn link ở pha capture, hợp đồng conflict/refetch, quy tắc vị trí phiên sửa | DYC |
+| 1.26 | 2026-10-10 | Việc của tôi (`features/mine/`, tab trên URL, `GET /api/tasks`) và Hộp thư (`Inbox`) thay `MyTasksView`/`MyTasksToday`/placeholder | DYC |
