@@ -65,11 +65,123 @@
   
   .mobile-fab {
     position: fixed !important;
-    bottom: 24px !important;
-    right: 24px !important;
+    bottom: 84px !important;
+    right: 16px !important;
     z-index: 1000 !important;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.2) !important;
     border-radius: 24px !important;
+  }
+
+  /* Automatic Mobile Shell Adaptation (No manual toggle button needed) */
+  :root {
+    --leftSidebarWidth: 0px !important;
+  }
+
+  #project-navigation {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    z-index: 500 !important;
+  }
+
+  #project-navigation > div {
+    width: 100% !important;
+    height: auto !important;
+    position: static !important;
+  }
+
+  .app-shell-sidebar {
+    height: auto !important;
+    border-right: none !important;
+    border-top: 1px solid var(--ds-border, #DFE1E6) !important;
+    box-shadow: 0 -2px 10px rgba(9, 30, 66, 0.12) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+
+  .app-shell-sidebar-scroll {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .app-shell-sidebar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-shell-sidebar-scroll [data-section] {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 4px 8px !important;
+    min-width: max-content !important;
+  }
+
+  .app-shell-sidebar-scroll button,
+  .app-shell-sidebar-scroll a {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    border-radius: 6px !important;
+    min-height: 40px !important;
+    padding-inline: 10px !important;
+  }
+
+  .app-shell-main {
+    padding: 16px 12px calc(76px + env(safe-area-inset-bottom, 0px)) 12px !important;
+  }
+
+  .app-shell-logo-text {
+    font-size: 15px !important;
+    max-width: 136px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-shell-profile-bar {
+    gap: 4px !important;
+  }
+
+  .unit-switcher-select {
+    max-width: min(140px, 34vw) !important;
+    font-size: 12px !important;
+  }
+
+  .notification-dropdown {
+    position: fixed !important;
+    top: 56px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 140px) !important;
+  }
+
+  .notification-popups-container {
+    top: 56px !important;
+    left: 8px !important;
+    right: 8px !important;
+    align-items: stretch !important;
+  }
+
+  .notification-popups-container > button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .gantt-left-col {
+    width: 150px !important;
+    min-width: 140px !important;
+    padding: 8px 10px !important;
+  }
+
+  .calendar-cell-responsive {
+    min-height: 68px !important;
+    padding: 4px 4px !important;
   }
 }
 html, body, #root { height: 100%; margin: 0; }

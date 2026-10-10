@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-ACTIVITIES-001
 title: Design — Activities & Projects Screen UI (Hoạt động & Dự án)
-version: 1.5
+version: 1.6
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/activities/**]
 ---
 
@@ -28,7 +28,7 @@ The "Hoạt động & Dự án" screen enables members and leaders to view, plan
 - **Type Filter**: Dropdown "Tất cả loại" (All types)
 
 ### Activity Cards Grid
-- Card with subtle border, shadow, and rounded corners:
+- Card with subtle border, shadow, and rounded corners (`repeat(auto-fill, minmax(min(100%, 340px), 1fr))` để tự co vừa màn hình di động `360px` không tràn ngang):
   - Top colored accent indicator
   - Participating teams tag list
   - Status Lozenge (e.g. `Đã Duyệt` - Success)
@@ -48,3 +48,4 @@ Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Thẻ hoạt động bấm đư
 | 1.3 | 2026-10-09 | Đợt 1 SPEC-WEB-003: thẻ hoạt động mở chi tiết và có link đề án | DYC |
 | 1.4 | 2026-10-09 | Cập nhật thanh hành động và tạo nhiệm vụ từ chi tiết hoạt động (PR #88) | DYC |
 | 1.5 | 2026-10-09 | Đợt 2 SPEC-WEB-003: chi tiết hoạt động gắn Bảng Kanban, Giao việc, Tự ghi nhận, tiêu đề việc mở hộp chi tiết và thêm tài liệu | DYC |
+| 1.6 | 2026-10-10 | Lưới thẻ hoạt động và thanh bộ lọc tự co theo màn hình di động (`360px+`) không tràn ngang | DYC |

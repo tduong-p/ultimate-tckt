@@ -79,6 +79,7 @@ export const NotificationBell: React.FC = () => {
         <div
           role="dialog"
           aria-label="Thông báo"
+          className="notification-dropdown"
           style={{ position: 'absolute', right: 0, top: '100%', zIndex: 600, width: 360, maxWidth: 'calc(100vw - 32px)', maxHeight: '70vh', overflowY: 'auto', background: token('elevation.surface.overlay', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: 6, boxShadow: token('elevation.shadow.overlay', '0 8px 12px rgba(9,30,66,.15)') }}
         >
           <div style={{ padding: '12px 16px', borderBottom: `1px solid ${token('color.border', '#DFE1E6')}` }}>

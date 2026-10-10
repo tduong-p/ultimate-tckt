@@ -321,8 +321,8 @@ export const CalendarView: React.FC = () => {
         </div>
 
         {/* Right Toolbar: Team Filter & View Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '220px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="mobile-w-full" style={{ width: '220px' }}>
             <Select
               defaultValue={{ label: 'Tất cả các Tổ', value: 'all' }}
               options={teamOptions}
@@ -331,7 +331,7 @@ export const CalendarView: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             <Button
               appearance={viewMode === 'month' ? 'primary' : 'default'}
               onClick={() => setViewMode('month')}
@@ -413,6 +413,7 @@ export const CalendarView: React.FC = () => {
                 <div
                   key={idx}
                   data-testid={`calendar-cell-${cell.isoDate}`}
+                  className="calendar-cell-responsive"
                   style={{
                     minHeight: '100px',
                     padding: '8px 10px',
@@ -465,9 +466,17 @@ export const CalendarView: React.FC = () => {
                       {dayActivities.slice(0, 2).map((act) => (
                         <div
                           key={act.id}
+                          role="button"
+                          tabIndex={0}
                           title={act.team_name ? `${act.title} (${act.team_name})` : act.title}
                           data-testid={`activity-pill-${act.id}`}
                           onClick={() => goToActivity(act.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              goToActivity(act.id);
+                            }
+                          }}
                           style={{
                             fontSize: '11px',
                             padding: '2px 5px',
@@ -643,6 +652,7 @@ export const CalendarView: React.FC = () => {
               >
                 {/* Task list column title */}
                 <div
+                  className="gantt-left-col"
                   style={{
                     width: '280px',
                     minWidth: '240px',
@@ -779,6 +789,7 @@ export const CalendarView: React.FC = () => {
                       >
                         {/* Left Column: Activity Info */}
                         <div
+                          className="gantt-left-col"
                           style={{
                             width: '280px',
                             minWidth: '240px',
@@ -879,8 +890,16 @@ export const CalendarView: React.FC = () => {
 
                           {/* The Color-Coded Activity Gantt Bar */}
                           <div
+                            role="button"
+                            tabIndex={0}
                             data-testid={`gantt-bar-${act.id}`}
                             onClick={() => goToActivity(act.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                goToActivity(act.id);
+                              }
+                            }}
                             style={{
                               position: 'absolute',
                               left: `${position.leftPercent}%`,

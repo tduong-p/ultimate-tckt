@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-ARCH-001
 title: Kiến trúc hệ thống
-version: 3.5
+version: 3.6
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -79,7 +79,7 @@ từng service (không expose port ra ngoài). Chi tiết cổng/tên miền: `d
 - `core/public/` — frontend cũ, JavaScript thuần (`app.js`), chỉ bảo trì, không thêm tính năng mới; Core giữ tại `/legacy/` trong thời gian chuyển tiếp.
 - `services/ctd-api/frontend/` — React 18 + TypeScript + Vite, theo tính năng (`features/auth`, `features/hoso`,
   `features/canbo`, `features/baocao`).
-- `web/` — frontend React 18 + TypeScript + Vite thay giao diện Core ở `/`; `web/index.html` là entrypoint Core, còn `ctd.html` tiếp tục là entry riêng. Vite tạo `web/dist`, được chép vào `/app/web-dist` khi đóng gói Core.
+- `web/` — frontend React 18 + TypeScript + Vite thay giao diện Core ở `/`; `web/index.html` là entrypoint Core, còn `ctd.html` tiếp tục là entry riêng. Vite tạo `web/dist`, được chép vào `/app/web-dist` khi đóng gói Core. `AppRoutes` được bọc `ErrorBoundary` và `PageLayout` tự động chuyển thanh điều hướng sang đáy màn hình trên thiết bị di động (`<= 768px`).
 
 Image Core dùng multi-stage Docker build với context ở gốc repo: stage đầu cài và build `web/`, stage runtime cài dependencies sản xuất từ `core/` rồi chép bundle vào image. `.dockerignore` ở gốc giữ `web/` và `core/public/`, loại dependencies, dữ liệu cục bộ và các thư mục không cần cho image. Workflow Core chạy khi `core/**`, `web/**` hoặc `.dockerignore` đổi; PR kiểm tra build `linux/arm64` nhưng không publish image. `deploy-core` vẫn chỉ chạy trên push theo chính sách hiện hành.
 
@@ -107,3 +107,4 @@ Chi tiết: **DEV-TZ-001** (`docs/dev/mui-gio.md`) — quy ước, cách dùng �
 | 3.3 | 2026-10-04 | Thêm mục "Múi giờ" - toàn hệ thống dùng Asia/Ho_Chi_Minh (UTC+7), xem DEV-TZ-001 | DYC |
 | 3.4 | 2026-10-09 | Bổ sung `req.unit.modules` vào ngữ cảnh đa đơn vị và đính chính fallback khi không có membership | DYC |
 | 3.5 | 2026-10-10 | Cập nhật pipeline Core sau cutover web: `/`, `/legacy`, Docker multi-stage từ root context và build arm64 trên PR | DYC |
+| 3.6 | 2026-10-10 | Ghi nhận `ErrorBoundary` bọc `AppRoutes` và khung `PageLayout` tự động thích ứng màn hình di động (`<= 768px`) | DYC |

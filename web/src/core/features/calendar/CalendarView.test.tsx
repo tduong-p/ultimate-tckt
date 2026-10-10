@@ -206,11 +206,21 @@ describe('CalendarView', () => {
     expect(window.location.hash).toBe('#/activity/2');
   });
 
-  it('bấm thanh hoạt động ở Gantt mở trang chi tiết', async () => {
+  it('bấm thanh hoạt động ở Gantt mở trang chi tiết và hỗ trợ bàn phím (Enter/Space)', async () => {
     window.location.hash = '';
     renderWithClient(<CalendarView />);
+    const pill = await screen.findByTestId('activity-pill-1');
+    expect(pill.getAttribute('role')).toBe('button');
+    expect(pill.getAttribute('tabindex')).toBe('0');
+    fireEvent.keyDown(pill, { key: 'Enter' });
+    expect(window.location.hash).toBe('#/activity/1');
+
+    window.location.hash = '';
     fireEvent.click(screen.getByText('Biểu đồ Gantt'));
-    fireEvent.click(await screen.findByTestId('gantt-bar-1'));
+    const bar = await screen.findByTestId('gantt-bar-1');
+    expect(bar.getAttribute('role')).toBe('button');
+    expect(bar.getAttribute('tabindex')).toBe('0');
+    fireEvent.keyDown(bar, { key: ' ' });
     expect(window.location.hash).toBe('#/activity/1');
   });
 

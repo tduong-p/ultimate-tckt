@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-REPORTS-001
 title: Design — Reports Screen UI (Báo cáo)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/reports/ReportsView.tsx]
 ---
 
@@ -42,3 +42,4 @@ The "Báo cáo" screen allows leaders to export activities, tasks, and member pa
 | 1.2 | 2026-10-08 | Khoảng thời gian mặc định là tháng hiện tại (giờ VN); xuất qua `downloadReportExport` (blob) và hiện lỗi máy chủ; bỏ link "Tải trực tiếp" | DYC |
 | 1.3 | 2026-10-09 | Xuất qua `useMutation` (401 về màn đăng nhập); lỗi Core dịch tiếng Việt; menu Báo cáo chỉ hiện khi `canCreateActivity`; thu hồi URL tệp sau lượt tải | DYC |
 | 1.4 | 2026-10-09 | Sửa mô tả quyền: menu và route Báo cáo theo `isManager` (không phải `canCreateActivity`), chặn route chuyển về dashboard | DYC |
+| 1.5 | 2026-10-10 | Hai ô ngày bắt đầu/kết thúc tự xếp thành 1 cột trên màn hình di động (`<= 768px`) | DYC |

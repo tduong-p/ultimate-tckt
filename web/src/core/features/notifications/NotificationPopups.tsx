@@ -66,6 +66,7 @@ export const NotificationPopups: React.FC = () => {
     <div
       data-testid="notification-popups"
       aria-live="polite"
+      className="notification-popups-container"
       style={{ position: 'fixed', top: 64, right: 16, zIndex: 700, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: popups.length ? 'auto' : 'none' }}
     >
       {popups.map((p) => <PopupCard key={p.id} item={p} onOpen={open} onExpire={expire} />)}

@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-REPORTS-001
 title: Plan — Reports Screen UI Implementation
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-08
+updated: 2026-10-10
 related_code: [web/src/core/features/reports/ReportsView.tsx]
 ---
 
@@ -32,3 +32,4 @@ related_code: [web/src/core/features/reports/ReportsView.tsx]
 |---|---|---|---|
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Báo cáo | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/teams và URL download export Excel | DYC |
+| 1.2 | 2026-10-10 | Cập nhật lưới ô ngày tự xếp 1 cột trên di động trong `ReportsView.tsx`; xem SPEC-REPORTS-001 1.5 | DYC |

@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-MEMBERS-001
 title: Design — Members Screen UI (Thành viên)
-version: 1.3
+version: 1.4
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/members/MembersView.tsx]
 ---
 
@@ -26,7 +26,7 @@ The "Thành viên" screen recognizes and manages members, their roles, team affi
 - **Role Filter**: "Tất cả vai trò"
 
 ### Members Grid
-- 3-column card grid:
+- Responsive card grid (`repeat(auto-fill, minmax(min(100%, 300px), 1fr))` để tự co vừa màn hình di động `360px`):
   - Avatar with initials and background color
   - Name, Role badge (`Tổ Trưởng`, `Tổ Phó`, `Thành Viên`), Team name
   - Completed task count (`X công việc đã hoàn thành`)
@@ -42,3 +42,4 @@ Giao diện hiện có thêm tạo/sửa/xoá tài khoản theo quyền server. 
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/people và /api/teams, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Bỏ nút "+ Tạo tài khoản" (chưa có chức năng); chữ tiếng Anh còn sót đổi sang tiếng Việt | DYC |
 | 1.3 | 2026-10-09 | Cập nhật giao diện Thành viên theo luồng tạo, sửa và xoá tài khoản đã triển khai | DYC |
+| 1.4 | 2026-10-10 | Lưới thẻ thành viên và thanh lọc tự co theo màn hình di động (`360px+`) không tràn ngang | DYC |

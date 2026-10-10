@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-DOCS-001
 title: Design — Documents Screen UI (Văn bản / Tài liệu)
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -41,3 +41,4 @@ The "Tài liệu" (Văn bản) screen provides a catalog of official links, deci
 | 1.2 | 2026-10-09 | Bỏ nút "+ Thêm văn bản" (chưa có chức năng); nút mở liên kết là một `LinkButton`; tìm kiếm debounce | DYC |
 | 1.3 | 2026-10-09 | Thêm luồng thêm/sửa văn bản bằng liên kết, theo quyền `can_edit` do API trả về | DYC |
 | 1.4 | 2026-10-10 | Ghi nhận màn Văn bản tích hợp cùng UI đợt 3; quyền sửa vẫn do API trả về | DYC |
+| 1.5 | 2026-10-10 | Thanh lọc và dòng thẻ văn bản tự động xuống dòng trên màn hình di động (`<= 768px`) | DYC |

@@ -150,4 +150,19 @@ describe('PageLayout', () => {
     expect(screen.getByTestId('path').textContent).toBe('/teams');
     expect(screen.getByRole('button', { name: 'header count 1' })).toBeDefined();
   });
+
+  it('gắn các lớp CSS đáp ứng tự động cho giao diện di động mà không cần nút chuyển đổi', () => {
+    const { container } = renderLayout(
+      <PageLayout user={{ name: 'Nguyễn Văn A' }} onOpenAccount={() => {}}>
+        <div>Nội dung</div>
+      </PageLayout>
+    );
+    expect(container.querySelector('.app-shell-sidebar')).not.toBeNull();
+    expect(container.querySelector('.app-shell-sidebar-scroll')).not.toBeNull();
+    expect(container.querySelector('.app-shell-main')).not.toBeNull();
+    expect(container.querySelector('.app-shell-profile-bar')).not.toBeNull();
+    const accountBtn = screen.getByRole('button', { name: 'Tài khoản của tôi' });
+    expect(accountBtn.querySelector('.desktop-only')?.textContent).toBe('Nguyễn Văn A');
+    expect(screen.getByText('SẮP CÓ').closest('.desktop-only')).not.toBeNull();
+  });
 });

@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-TEST-001
 title: Test
-version: 2.34
+version: 2.35
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -52,7 +52,7 @@ Lưu ý: `Blob` của jsdom không có `.text()` — đọc Blob qua `FileReader
 
 Test trang hoạt động dùng `renderInApp` và `makeDetail` (`web/src/core/features/activities/testUtils.tsx`): helper dựng `QueryClient` với `SESSION_KEY`, `BOOTSTRAP_KEY`, `ToastProvider` và `MemoryRouter`; `Probe` hiện đường dẫn hiện tại để kiểm tra điều hướng. Mock API bằng `vi.mock('../../api', async () => ({ ...actual, fn: vi.fn() }))` (lấy `actual` từ `vi.importActual`) để giữ các export không cần mock.
 
-Test đợt 3 cho Tổ, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân dùng `renderWithApp` trong `web/src/core/testing/peopleHarness.tsx`. Helper dựng session, bootstrap, `QueryClient`, Router và ToastProvider; API được mock. Test quyền route/menu nằm trong `AppRoutes.test.tsx` và `PageLayout.test.tsx`.
+Test đợt 3 cho Tổ, tài khoản, nhập hàng loạt, trọng số và tài khoản cá nhân dùng `renderWithApp` trong `web/src/core/testing/peopleHarness.tsx`. Helper dựng session, bootstrap, `QueryClient`, Router và ToastProvider; API được mock. Test quyền route/menu nằm trong `AppRoutes.test.tsx` và `PageLayout.test.tsx`; test chống lỗi giao diện và luồng di động/bàn phím gồm `ErrorBoundary.test.tsx`, `KanbanBoard.test.tsx`, `Dashboard.test.tsx`, `MyTasksView.test.tsx` và `CalendarView.test.tsx`.
 
 ## CTD — `pytest`
 
@@ -153,3 +153,4 @@ nào, kể cả mật khẩu mặc định.
 | 2.32 | 2026-10-10 | Bổ sung test đợt 5 cho route/menu theo module và truy cập directives bằng session thật | DYC |
 | 2.33 | 2026-10-10 | Cập nhật CI cutover: thay đổi web chạy cả Core/web tests và kiểm tra build arm64 không publish trên PR | DYC |
 | 2.34 | 2026-10-10 | Thêm hồi quy xác nhận mở hồ sơ cá nhân không tải lại/remount chuông thông báo | DYC |
+| 2.35 | 2026-10-10 | Bổ sung test Vitest cho `ErrorBoundary`, khung điều hướng di động `PageLayout`, nút chuyển ngược Kanban, liên kết hoạt động ở Tổng quan/Nhiệm vụ và điều hướng phím trên Lịch | DYC |

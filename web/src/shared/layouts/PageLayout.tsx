@@ -27,7 +27,7 @@ import InboxIcon from '@atlaskit/icon/core/inbox';
 import BookWithBookmarkIcon from '@atlaskit/icon/core/book-with-bookmark';
 import LogOutIcon from '@atlaskit/icon/core/log-out';
 
-const CustomLogo = () => <span style={{ fontSize: '18px', fontWeight: 600, marginLeft: '4px', whiteSpace: 'nowrap' }}>TCKT Activity Hub</span>;
+const CustomLogo = () => <span className="app-shell-logo-text" style={{ fontSize: '18px', fontWeight: 600, marginLeft: '4px', whiteSpace: 'nowrap' }}>TCKT Activity Hub</span>;
 
 const ProductHomeExample = () => (
   <ProductHome icon={AtlassianIcon} logo={CustomLogo} />
@@ -94,7 +94,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const renderProfile = useCallback(() => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className="app-shell-profile-bar" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {headerExtras}
       {user && onOpenAccount ? (
         <button
@@ -105,12 +105,12 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', color: 'inherit' }}
         >
           <Avatar size="small" appearance="circle" name={user.name} />
-          <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>
+          <span className="desktop-only" style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>
         </button>
       ) : (
         <>
           <Avatar size="small" appearance="circle" name={user?.name || 'User'} />
-          {user && <span style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>}
+          {user && <span className="desktop-only" style={{ fontSize: '12px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{user.name}</span>}
         </>
       )}
       {onLogout && (
@@ -160,8 +160,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
       </TopNavigation>
       <Content>
         <LeftSidebar isFixed={true} width={240} id="project-navigation">
-          <div style={{ backgroundColor: token('elevation.surface', '#fff'), height: '100%', borderRight: `1px solid ${token('color.border', '#DFE1E6')}`, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="app-shell-sidebar" style={{ backgroundColor: token('elevation.surface', '#fff'), height: '100%', borderRight: `1px solid ${token('color.border', '#DFE1E6')}`, display: 'flex', flexDirection: 'column' }}>
+            <div className="app-shell-sidebar-scroll" style={{ flex: 1, overflowY: 'auto' }}>
               <MenuGroup>
                 <Section>
                   {NAV_ITEMS.filter((item) => (!item.managerOnly || canViewReports) && (!item.dieuHanhOnly || canViewDieuHanh) && (!item.adminOnly || canViewAccounts)).map(({ path, label, Icon, alsoPaths }) => {
@@ -172,16 +172,18 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
                     );
                   })}
                 </Section>
-                <Section>
-                  <HeadingItem>SẮP CÓ</HeadingItem>
-                  <ButtonItem iconBefore={<BookWithBookmarkIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Nhật ký trực ban</ButtonItem>
-                </Section>
+                <div className="desktop-only">
+                  <Section>
+                    <HeadingItem>SẮP CÓ</HeadingItem>
+                    <ButtonItem iconBefore={<BookWithBookmarkIcon label="" />} iconAfter={<Lozenge appearance="new">Sắp có</Lozenge>}>Nhật ký trực ban</ButtonItem>
+                  </Section>
+                </div>
               </MenuGroup>
             </div>
           </div>
         </LeftSidebar>
         <Main>
-          <div style={{ padding: token('space.400', '32px'), position: 'relative' }}>
+          <div className="app-shell-main" style={{ padding: token('space.400', '32px'), position: 'relative' }}>
             {children}
           </div>
         </Main>

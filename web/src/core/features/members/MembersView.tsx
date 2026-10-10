@@ -121,6 +121,8 @@ export const MembersView: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '12px',
           marginBottom: '24px',
         }}
       >
@@ -163,7 +165,7 @@ export const MembersView: React.FC = () => {
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: '1 1 320px' }}>
+        <div style={{ flex: '1 1 260px' }}>
           <input
             type="text"
             value={searchQuery}
@@ -184,7 +186,7 @@ export const MembersView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '220px' }}>
+        <div className="mobile-w-full" style={{ width: '220px' }}>
           <Select
             defaultValue={{ label: 'Tất cả các Tổ', value: 'all' }}
             options={teamOptions}
@@ -192,7 +194,7 @@ export const MembersView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '180px' }}>
+        <div className="mobile-w-full" style={{ width: '180px' }}>
           <Select
             defaultValue={{ label: 'Tất cả vai trò', value: 'all' }}
             options={roleOptions}
@@ -249,7 +251,7 @@ export const MembersView: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
             gap: '16px',
           }}
         >

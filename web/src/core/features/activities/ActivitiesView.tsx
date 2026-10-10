@@ -75,6 +75,8 @@ export const ActivitiesView: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '12px',
           marginBottom: '24px',
         }}
       >
@@ -118,7 +120,7 @@ export const ActivitiesView: React.FC = () => {
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: '1 1 300px' }}>
+        <div style={{ flex: '1 1 260px' }}>
           <input
             type="text"
             value={searchQuery}
@@ -139,7 +141,7 @@ export const ActivitiesView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '180px' }}>
+        <div className="mobile-w-full" style={{ width: '180px' }}>
           <Select
             defaultValue={{ label: 'Tất cả trạng thái', value: 'all' }}
             options={[
@@ -150,7 +152,7 @@ export const ActivitiesView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '220px' }}>
+        <div className="mobile-w-full" style={{ width: '220px' }}>
           <Select
             defaultValue={{ label: 'Tất cả loại', value: 'all' }}
             options={[
@@ -228,7 +230,7 @@ export const ActivitiesView: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 420px))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
             gap: '20px',
           }}
         >

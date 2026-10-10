@@ -95,6 +95,16 @@ describe('KanbanBoard', () => {
     expect(await screen.findByText('Nghiệm thu: Việc C')).toBeDefined();
   });
 
+  it('việc Đang làm có nút "Chuyển về Cần làm" cho người được giao hoặc Tổ trưởng (hỗ trợ cảm ứng di động)', async () => {
+    renderApp(<KanbanBoard />, opts(leader));
+    await screen.findByText('Việc B');
+    const backBtn = within(card('Việc B')).getByRole('button', { name: 'Chuyển về Cần làm' });
+    expect(backBtn).toBeDefined();
+    fireEvent.click(backBtn);
+    await waitFor(() => expect(api.updateTaskStatus).toHaveBeenCalledWith(2, 'todo'));
+  });
+
+
   it('Trưởng BTC (không phải Tổ trưởng) cũng thấy nút duyệt', async () => {
     renderApp(<KanbanBoard />, opts({ session: makeSession({ id: 99 }) }));
     await screen.findByText('Việc A');

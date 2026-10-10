@@ -168,6 +168,11 @@ export const KanbanBoard: React.FC = () => {
               Bắt đầu làm
             </Button>
           )}
+          {status === 'in_progress' && (isAssignedTo(task, userId) || manages) && (
+            <Button spacing="compact" onClick={() => moveMutation.mutate({ id: task.id, status: 'todo' })}>
+              Chuyển về Cần làm
+            </Button>
+          )}
           {canSubmitForReview(task, userId) && (
             <Button spacing="compact" appearance="primary" onClick={() => setSubmitTask(task)}>
               Nộp nghiệm thu

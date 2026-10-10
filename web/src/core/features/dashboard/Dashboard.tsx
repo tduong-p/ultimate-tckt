@@ -35,14 +35,14 @@ const KPICards: React.FC<KPICardsProps> = ({ stats }) => {
   const completedMonth = stats?.completedMonth ?? 0;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
       {/* 1. Hoạt động đang diễn ra */}
       <div style={{ padding: '16px', backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div style={{ color: token('color.icon.brand', '#0052CC') }}><DashboardIcon label="" /></div>
           <Lozenge appearance="success">Đang chạy</Lozenge>
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{activeActivities}</div>
+        <div style={{ fontSize: '24px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: token('color.text', '#172B4D') }}>{activeActivities}</div>
         <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Hoạt động đang diễn ra</div>
       </div>
       
@@ -52,7 +52,7 @@ const KPICards: React.FC<KPICardsProps> = ({ stats }) => {
           <div style={{ color: token('color.icon.warning', '#FF991F') }}><TaskIcon label="" /></div>
           <Lozenge appearance="inprogress">Cần xử lý</Lozenge>
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{openTasks}</div>
+        <div style={{ fontSize: '24px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: token('color.text', '#172B4D') }}>{openTasks}</div>
         <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Nhiệm vụ đang mở</div>
       </div>
       
@@ -64,7 +64,7 @@ const KPICards: React.FC<KPICardsProps> = ({ stats }) => {
             {overdueTasks > 0 ? 'Quá hạn' : 'Đúng tiến độ'}
           </Lozenge>
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{overdueTasks}</div>
+        <div style={{ fontSize: '24px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: token('color.text', '#172B4D') }}>{overdueTasks}</div>
         <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Nhiệm vụ quá hạn</div>
       </div>
       
@@ -74,7 +74,7 @@ const KPICards: React.FC<KPICardsProps> = ({ stats }) => {
           <div style={{ color: token('color.icon.success', '#36B37E') }}><CheckCircleIcon label="" /></div>
           <Lozenge appearance="success">Tháng này</Lozenge>
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{completedMonth}</div>
+        <div style={{ fontSize: '24px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: token('color.text', '#172B4D') }}>{completedMonth}</div>
         <div style={{ fontSize: '12px', color: token('color.text.subtle', '#42526E'), marginTop: '4px' }}>Hoàn thành tháng này</div>
         <div style={{ fontSize: '11px', color: token('color.text.subtlest', '#6B778C'), marginTop: '4px' }}>Tính trên các hoạt động bạn xem được</div>
       </div>
@@ -111,6 +111,8 @@ const TaskListPanel: React.FC<{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
             padding: '12px',
             backgroundColor: token('elevation.surface.sunken', '#FAFBFC'),
             borderRadius: '3px',
@@ -118,7 +120,7 @@ const TaskListPanel: React.FC<{
           }}
         >
           <TaskCheckButton task={task} />
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: '1 1 180px', minWidth: 0 }}>
             <div style={{ fontSize: '14px', marginBottom: '4px' }}>
               <TaskTitleButton task={task} />
             </div>
@@ -128,7 +130,7 @@ const TaskListPanel: React.FC<{
               {task.assignee_name && <span>• {task.assignee_name}</span>}
             </div>
           </div>
-          <div style={{ marginLeft: '12px', display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
             {task.priority && (
               <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
                 {getTaskPriorityLabel(task.priority)}
@@ -169,7 +171,7 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
   const overdueTasks = overdue;
 
   return (
-    <div style={{ flex: '1 1 60%', backgroundColor: token('elevation.surface', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', padding: '16px' }}>
+    <div className="mobile-w-full" style={{ flex: '1 1 58%', minWidth: 0, backgroundColor: token('elevation.surface', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', padding: '16px', boxSizing: 'border-box' }}>
       <h2 style={{ fontSize: '18px', fontWeight: 600, color: token('color.text', '#172B4D'), marginTop: 0, marginBottom: '16px' }}>Quản lý nhiệm vụ</h2>
       <div style={{ marginBottom: '16px' }}>
         <input
@@ -177,7 +179,7 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
           placeholder="Lọc theo tên..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ width: '100%', padding: '8px 6px', border: `2px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', fontSize: '14px', backgroundColor: token('elevation.surface', '#FAFBFC'), color: token('color.text', '#172B4D') }}
+          style={{ width: '100%', padding: '8px 6px', border: `2px solid ${token('color.border', '#DFE1E6')}`, borderRadius: '3px', fontSize: '14px', backgroundColor: token('elevation.surface', '#FAFBFC'), color: token('color.text', '#172B4D'), boxSizing: 'border-box' }}
         />
       </div>
       <Tabs id="task-tabs">
@@ -200,7 +202,7 @@ const TaskWidget: React.FC<TaskWidgetProps> = ({ tasks = [], dueToday = [], over
           <TaskListPanel tasks={allTasks} searchQuery={searchQuery} />
         </TabPanel>
       </Tabs>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${token('color.border', '#DFE1E6')}` }}>
         <a href="#my-tasks" style={{ color: token('color.link', '#0052CC'), textDecoration: 'none', fontSize: '14px' }}>Xem toàn bộ công việc chi tiết &gt;</a>
         <span style={{ fontSize: '14px', color: token('color.text.subtle', '#42526E') }}>{allTasks.length} nhiệm vụ tổng thể</span>
       </div>
@@ -236,7 +238,7 @@ const UpdatesWidgets: React.FC<UpdatesWidgetsProps> = ({ upcoming = [], activity
   const recentLogs = activityLogs.slice(0, 7);
 
   return (
-    <div style={{ flex: '0 0 35%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="mobile-w-full" style={{ flex: '1 1 34%', minWidth: 'min(280px, 100%)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* 1. Calendar Widget */}
       <div style={{ backgroundColor: token('elevation.surface.raised', '#fff'), borderRadius: '3px', padding: '16px', boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)') }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -248,10 +250,14 @@ const UpdatesWidgets: React.FC<UpdatesWidgetsProps> = ({ upcoming = [], activity
             {upcomingEvents.map(evt => {
               const { month, day } = formatEventDate(evt.deadline);
               return (
-                <div key={evt.id} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <a
+                  key={evt.id}
+                  href={`#activity/${evt.id}`}
+                  style={{ display: 'flex', gap: '12px', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
+                >
                   <div style={{ backgroundColor: token('color.background.neutral', '#DFE1E6'), borderRadius: '4px', textAlign: 'center', padding: '8px', minWidth: '48px' }}>
                     <div style={{ fontSize: '10px', fontWeight: 600, color: token('color.text.subtle', '#42526E') }}>{month}</div>
-                    <div style={{ fontSize: '18px', fontWeight: 600, color: token('color.text', '#172B4D') }}>{day}</div>
+                    <div style={{ fontSize: '18px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: token('color.text', '#172B4D') }}>{day}</div>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '14px', fontWeight: 500, color: token('color.text', '#172B4D'), marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -262,7 +268,7 @@ const UpdatesWidgets: React.FC<UpdatesWidgetsProps> = ({ upcoming = [], activity
                     </div>
                   </div>
                   <div style={{ color: token('color.icon', '#42526E') }}><ChevronRightIcon label="" /></div>
-                </div>
+                </a>
               );
             })}
           </div>
@@ -380,13 +386,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName, onNavigate }) =>
 
   return (
     <div style={{ padding: '0', position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: token('color.text', '#172B4D') }}>
             Xin chào{userName ? ` ${userName}` : ''}! Có {openTasksCount} nhiệm vụ đang mở trong phạm vi của bạn.
           </h1>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {bootstrapData?.capabilities?.canCreateActivity && (
             <Button appearance="primary" onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}>
               + Đề xuất hoạt động
@@ -399,7 +405,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userName, onNavigate }) =>
 
       <KPICards stats={bootstrapData?.stats} />
 
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+      <div className="mobile-col" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <TaskWidget
           tasks={bootstrapData?.tasks}
           dueToday={myTasksData?.dueToday}

@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-MEMBERS-001
 title: Plan — Members Screen UI Implementation
-version: 1.2
+version: 1.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/members/MembersView.tsx]
 ---
 
@@ -36,3 +36,4 @@ Kế hoạch giao diện ban đầu đã được mở rộng và hoàn tất tr
 | 1.0 | 2026-10-08 | Khởi tạo kế hoạch triển khai giao diện Thành viên | DYC |
 | 1.1 | 2026-10-08 | Tích hợp React Query với API /api/people và /api/teams, xóa mock | DYC |
 | 1.2 | 2026-10-09 | Trỏ tới kế hoạch đợt 3 hiện hành đã hoàn tất luồng thành viên và tài khoản | DYC |
+| 1.3 | 2026-10-10 | Cập nhật lưới thẻ và thanh lọc responsive trên di động trong `MembersView.tsx`; xem SPEC-MEMBERS-001 1.4 | DYC |

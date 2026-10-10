@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
-version: 2.0
+version: 2.1
 status: active
 audience: [dev, ai, ops]
 owner: DYC
@@ -95,6 +95,7 @@ Xong khi:
 - `PeoplePicker`: tìm người không phân biệt dấu, chọn nhiều, hiện dạng chip (gắn thẻ `@`, đồng phụ trách, thêm người tham gia).
 - `LinkField`: ô link, kiểm `http(s)://` phía client.
 - `QuotaBar`: dung lượng tài liệu đã dùng trên 50 MB.
+- `ErrorBoundary`: chặn lỗi render trong `AppRoutes`, hiện thông báo tiếng Việt kèm nút "Thử lại".
 - Hook `useCapabilities()`: gom `bootstrap.capabilities`, vai trò hiện tại, `isExec`, `isManager`, `canManageTeam(id)` và
   `unitRole`. Màn hình không tự viết điều kiện quyền.
 
@@ -104,6 +105,7 @@ Xong khi:
   - Mục menu theo quyền, như UI cũ: "Báo cáo" cho quản lý, "Quản trị tài khoản" cho admin.
   - Có thêm "Giao việc", "Trình" và "Nhật ký trực ban". Mỗi mục chỉ hiện khi đơn vị hiện tại có module `dieu-hanh` và vai trò
     đơn vị phù hợp (mục 4.7, 4.8).
+  - Trên màn hình di động (`<= 768px`), `#project-navigation` tự động chuyển thành thanh điều hướng cố định dưới đáy màn hình cuộn ngang (không cần nút chuyển đổi thủ công).
 - Bộ chọn đơn vị: chỉ hiện khi `session.units.memberships` có từ 2 mục trở lên. Chọn đơn vị gọi `POST /api/session/unit`,
   sau đó xoá cache query trừ `session` và tải lại.
 - Chip người dùng mở hộp "Tài khoản của tôi" (mục 4.5).
@@ -383,3 +385,4 @@ Theo yêu cầu triển khai hiện tại, đợt 6 (Nhật ký trực ban) đư
 | 1.8 | 2026-10-10 | Ghi nhận hoàn thành đợt 5: Giao việc/Trình và module gate | DYC |
 | 1.9 | 2026-10-10 | Sửa mô tả cổng DYC: directives/submissions không đi qua legacy gate/audit; liên kết issue #95 cho kiểm tra quyền sở hữu và audit còn thiếu | DYC |
 | 2.0 | 2026-10-10 | Hoãn đợt 6, thực hiện cutover đợt 7; chốt `/` và `/legacy/`, Docker build root context, kiểm tra PR và publish khi push | DYC |
+| 2.1 | 2026-10-10 | Bổ sung `ErrorBoundary`, thanh điều hướng đáy tự động trên mobile (`<= 768px`), nút chuyển ngược Kanban trên thiết bị cảm ứng, liên kết sự kiện/hoạt động và điều hướng phím trên Lịch | DYC |

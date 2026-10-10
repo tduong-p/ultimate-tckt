@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-CALENDAR-001
 title: Design — Calendar Screen UI (Lịch chung)
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/calendar/**]
 ---
 
@@ -42,6 +42,7 @@ The "Lịch chung" screen allows users to view scheduled activities and deadline
 - **Loading State**: Sử dụng `LottieLoading` đồng bộ toàn hệ thống thay thế spinner tròn cũ.
 
 Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Bấm hoạt động trong lịch mở `#/activity/:id`; `ActivityDetailModal` đã được gỡ.
+Cập nhật 2026-10-10: Ô hoạt động trên lịch tháng và thanh Gantt hỗ trợ kích hoạt bằng phím `Enter`/`Space` (`role="button"`, `tabIndex={0}`); cột trái Gantt và ô lịch co tự động trên màn hình di động (`<= 768px`).
 
 ## Lịch sử phiên bản
 | Version | Ngày | Thay đổi | Người |
@@ -53,3 +54,4 @@ Cập nhật 2026-10-09 (đợt 1 SPEC-WEB-003): Bấm hoạt động trong lị
 | 1.4 | 2026-10-08 | Ngày hiển thị/xếp ô và "Hôm nay" theo giờ Việt Nam (`shared/utils/date`); Gantt chỉ vẽ hoạt động giao với tháng đang xem | DYC |
 | 1.5 | 2026-10-09 | Bộ lọc Tổ gồm cả Tổ phối hợp (so theo `team_names`); trạng thái `changes_requested`; không hiện loại/Tổ cho dòng tóm tắt đơn vị khác | DYC |
 | 1.6 | 2026-10-09 | Đợt 1 SPEC-WEB-003: hoạt động trong lịch mở trang chi tiết | DYC |
+| 1.7 | 2026-10-10 | Hỗ trợ phím `Enter`/`Space` trên ô hoạt động và thanh Gantt; co cột trái Gantt và thanh công cụ trên di động | DYC |

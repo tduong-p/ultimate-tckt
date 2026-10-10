@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-WEBP7-001
 title: Kế hoạch triển khai — web/ đợt 7 (thay frontend Core tại /)
-version: 1.0
+version: 1.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -92,3 +92,4 @@ related_code: [web/**, core/src/app.js, core/Dockerfile, core/public/**, .github
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-10 | Plan đợt 7: cutover web tại `/`, giữ legacy, đổi Docker context và kiểm tra CI arm64; đợt 6 được hoãn theo yêu cầu | DYC |
+| 1.1 | 2026-10-10 | Bổ sung hoàn thiện giao diện di động tự động, `ErrorBoundary` và luồng điều hướng xuyên màn trên `web/` sau cutover; nội dung kế hoạch đợt 7 không đổi | DYC |

@@ -55,6 +55,8 @@ export const DocumentsView: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '12px',
           marginBottom: '24px',
         }}
       >
@@ -96,7 +98,7 @@ export const DocumentsView: React.FC = () => {
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: '1 1 320px' }}>
+        <div style={{ flex: '1 1 260px' }}>
           <input
             type="text"
             value={searchQuery}
@@ -117,7 +119,7 @@ export const DocumentsView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '180px' }}>
+        <div className="mobile-w-full" style={{ width: '180px' }}>
           <Select
             defaultValue={{ label: 'Tất cả các năm', value: 'all' }}
             options={yearOptions}
@@ -125,7 +127,7 @@ export const DocumentsView: React.FC = () => {
           />
         </div>
 
-        <div style={{ width: '220px' }}>
+        <div className="mobile-w-full" style={{ width: '220px' }}>
           <Select
             defaultValue={{ label: 'Tất cả các Tổ', value: 'all' }}
             options={teamOptions}
@@ -218,10 +220,11 @@ export const DocumentsView: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
+                flexWrap: 'wrap',
                 gap: '16px',
               }}
             >
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <div
                   style={{
                     display: 'flex',

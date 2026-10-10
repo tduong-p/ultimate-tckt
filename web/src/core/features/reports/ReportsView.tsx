@@ -90,6 +90,7 @@ export const ReportsView: React.FC = () => {
 
       {/* Form Card */}
       <div
+        className="mobile-padding-16"
         style={{
           maxWidth: '640px',
           backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
@@ -106,7 +107,7 @@ export const ReportsView: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
             gap: '16px',
             marginBottom: '20px',
           }}

@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.19
+version: 1.20
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -46,11 +46,12 @@ Nguồn mô tả duy nhất của `web/`: SPEC-WEB-003 (`docs/specs/2026-10-09-w
 - Chạy: `cd web && npm run dev` (API/auth proxy tới Core ở :3000), test `npm test`, build `npm run build`.
 - Core production phục vụ `web/dist` tại `/`, gồm fallback SPA cho GET frontend; `/api/*` trả JSON 404 khi không có route, còn `/auth/*` và `/legacy/*` không đi qua fallback.
 - `core/Dockerfile` build Vite ở stage đầu và cài Core production ở stage runtime. Build image từ root repo (`docker build -f core/Dockerfile .`); `.dockerignore` gốc giữ `web/` và `core/public/`. CI cũng build `linux/arm64` trên PR nhưng không publish.
-- Định tuyến: `HashRouter`, đường dẫn trùng UI cũ; bảng route ở `web/src/core/AppRoutes.tsx`; route không có quyền về `#/dashboard`.
+- Định tuyến: `HashRouter`, đường dẫn trùng UI cũ; bảng route ở `web/src/core/AppRoutes.tsx` được bọc bởi `ErrorBoundary` (`web/src/shared/components/ErrorBoundary.tsx`); route không có quyền về `#/dashboard`.
 - Tầng API: `web/src/core/api/<miền>.ts`, `index.ts` chỉ re-export; lỗi hiện bằng `apiErrorMessage`; câu tiếng Anh mới của Core thì thêm vào `web/src/core/api/errorMessages.ts`.
 - Quyền: chỉ dùng `useCapabilities()` (`web/src/core/capabilities.ts`) cho hoạt động/tài khoản và `taskPermissions.ts` cho công việc; không tự viết điều kiện vai trò trong màn.
 - `UnitSwitcher` (`web/src/core/features/session/`) hiện ở header khi người dùng thuộc từ 2 đơn vị trở lên; đổi đơn vị thì xoá/tải lại mọi query trừ `session` và về Tổng quan.
-- Thành phần dùng chung trong `web/src/shared/components/`: `Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`.
+- Thành phần dùng chung trong `web/src/shared/components/`: `Toast`, `ConfirmDialog`, `ReasonDialog`, `PeoplePicker`, `LinkField`, `QuotaBar`, `ErrorBoundary`.
+- Giao diện tự động thích ứng màn hình di động (`<= 768px`, từ `360px` trở lên) qua `web/src/shared/styles/responsive.css` và `PageLayout.tsx` mà không dùng nút chuyển đổi thủ công: `#project-navigation` tự chuyển thành thanh điều hướng cố định dưới đáy màn hình cuộn ngang, các lưới thẻ tự co theo viewport và bảng thông báo/popup giữ trong khung nhìn.
 
 Quyền ghi Hoạt động: GET có thể trả `admin` và `canManage=true` cho DYC chỉ đọc. `ActivityActions` dùng membership TCKT và vai trò actor khi ghi; với DYC+TCKT, quyền quản lý còn xét người tạo, Trưởng BTC, Tổ đang lãnh đạo. DYC chỉ đọc thấy nội dung và dòng thời gian nhưng không thấy nút ghi hay form cập nhật.
 
@@ -76,12 +77,12 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
   - Tự ghi nhận: hoạt động `approved` hoặc `active`. Rút lại: việc tự ghi nhận của mình, chưa xong hoặc huỷ.
 - Thao tác ghi dùng `useMutation` + `useInvalidateTaskCaches()`; hằng `ACTIVITY_PREFIX` trong `queryKeys.ts` là nơi duy nhất khai báo prefix cache chi tiết hoạt động.
 - Nộp nghiệm thu, tài liệu, tự ghi nhận gửi multipart không có tệp (chỉ link).
-- Kanban (`#/board/:id`): hiển thị 4 cột theo giai đoạn; chỉ chuyển trực tiếp `todo ↔ in_progress`; thả vào Chờ duyệt/Hoàn thành mở hộp nộp/duyệt; kéo-thả chỉ kích hoạt khi `(pointer: fine)`.
+- Kanban (`#/board/:id`): hiển thị 4 cột theo giai đoạn; chỉ chuyển trực tiếp `todo ↔ in_progress` (có cả nút `"Bắt đầu làm"` và `"Chuyển về Cần làm"` ngay trên thẻ cho thiết bị cảm ứng); thả vào Chờ duyệt/Hoàn thành mở hộp nộp/duyệt; kéo-thả chỉ kích hoạt khi `(pointer: fine)`.
 - Trang chi tiết hoạt động (`#/activity/:id`): gắn `ActivityTaskActions` (Bảng Kanban, Giao việc, Tự ghi nhận việc), tiêu đề việc mở hộp chi tiết qua `TaskTitleButton`, và nút Thêm tài liệu theo việc khi có quyền.
 
 Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; người duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ) nằm trong thẻ việc của `MyTasksToday` và `MyTasksView`. Mọi thao tác ghi qua `useTaskMutation` (toast tiếng Việt, lỗi qua `apiErrorMessage`, làm mới cache bằng `invalidateTasks` trong `taskKeys.ts`). `SubmitReviewModal` và `ReviewDecisionModal` mở từ các nút đó. `CreateTaskModal` mở từ nút "Tạo nhiệm vụ" trên `ActivityActions`; nút chỉ hiện khi cờ `canCreateTask` của `deriveActivityActions` bằng `canManage`. API nhiệm vụ nằm ở `api/tasks.ts`.
 
-Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, Tổng quan) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`.
+Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, sự kiện sắp tới trên Tổng quan, tên hoạt động trong Nhiệm vụ của tôi) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`; các ô hoạt động trên Lịch tháng và thanh Gantt hỗ trợ mở bằng cả chuột lẫn phím `Enter`/`Space`.
 
 ### Tổ, thành viên và tài khoản (web/ đợt 3)
 
@@ -155,3 +156,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |
 | 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
 | 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
+| 1.20 | 2026-10-10 | Bổ sung `ErrorBoundary`, thanh điều hướng đáy tự động trên mobile (`<= 768px`), nút chuyển ngược Kanban trên thiết bị cảm ứng, liên kết sự kiện/hoạt động và điều hướng phím trên Lịch | DYC |

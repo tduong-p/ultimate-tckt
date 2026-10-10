@@ -241,4 +241,12 @@ describe('MyTasksView', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Soạn báo cáo tháng' }));
     expect(open).toHaveBeenCalledWith(201);
   });
+
+  it('tên hoạt động trên dòng công việc là liên kết dẫn tới chi tiết hoạt động', async () => {
+    vi.mocked(api.fetchMyTasksToday).mockResolvedValue(mockTasksData);
+    vi.mocked(api.fetchBootstrap).mockResolvedValue(bootstrapWithTasks(mockTasksData.dueToday));
+    renderWithClient(<MyTasksView />);
+    const link = await screen.findByRole('link', { name: 'Đại hội Chi đoàn' });
+    expect(link.getAttribute('href')).toBe('#/activity/1');
+  });
 });

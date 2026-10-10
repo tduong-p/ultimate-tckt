@@ -86,13 +86,16 @@ export const MyTasksView: React.FC = () => {
       </div>
 
       {/* Open Tasks Card */}
-      <div style={{
-        backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
-        border: `1px solid ${token('color.border', '#DFE1E6')}`,
-        borderRadius: '3px',
-        boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'),
-        padding: '24px'
-      }}>
+      <div
+        className="mobile-padding-16"
+        style={{
+          backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
+          border: `1px solid ${token('color.border', '#DFE1E6')}`,
+          borderRadius: '3px',
+          boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31)'),
+          padding: '24px'
+        }}
+      >
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -175,6 +178,8 @@ export const MyTasksView: React.FC = () => {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '8px',
                         padding: '12px 16px',
                         backgroundColor: token('elevation.surface', '#FFFFFF'),
                         borderRadius: '4px',
@@ -182,18 +187,32 @@ export const MyTasksView: React.FC = () => {
                       }}
                     >
                       <TaskCheckButton task={task} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                         <div style={{ fontSize: '14px', marginBottom: '4px' }}>
                           <TaskTitleButton task={task} />
                         </div>
                         <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: token('color.text.subtle', '#6B778C'), flexWrap: 'wrap' }}>
-                          {task.activity_title && <span>Hoạt động: {task.activity_title}</span>}
+                          {task.activity_title && (
+                            <span>
+                              Hoạt động:{' '}
+                              {task.activity_id ? (
+                                <a
+                                  href={`#/activity/${task.activity_id}`}
+                                  style={{ color: token('color.link', '#0052CC'), textDecoration: 'none' }}
+                                >
+                                  {task.activity_title}
+                                </a>
+                              ) : (
+                                task.activity_title
+                              )}
+                            </span>
+                          )}
                           {task.team_name && <span>Tổ: {task.team_name}</span>}
                           {task.deadline && <span>Hạn: {formatVnDate(task.deadline)}</span>}
                           {task.assignee_name && <span>Phụ trách: {task.assignee_name}</span>}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px', flexShrink: 0, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
                         {task.priority && (
                           <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>
                             {getTaskPriorityLabel(task.priority)}

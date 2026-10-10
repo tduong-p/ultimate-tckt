@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-ACTIVITIES-001
 title: Plan — Activities & Projects Screen UI Implementation
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/activities/**]
 ---
 
@@ -36,3 +36,4 @@ related_code: [web/src/core/features/activities/**]
 | 1.2 | 2026-10-09 | Đợt 1 SPEC-WEB-003 đổi code liên quan; nội dung kế hoạch không đổi, xem spec tương ứng và SPEC-WEB-003 mục 4.1 | DYC |
 | 1.3 | 2026-10-09 | Cập nhật thanh hành động và tạo nhiệm vụ từ chi tiết hoạt động (PR #88) | DYC |
 | 1.4 | 2026-10-09 | Đợt 2 SPEC-WEB-003 đổi code liên quan; nội dung kế hoạch không đổi, xem spec tương ứng và SPEC-WEB-003 mục 4.2 | DYC |
+| 1.5 | 2026-10-10 | Cập nhật lưới thẻ và thanh lọc responsive trên mobile trong `ActivitiesView.tsx`; xem SPEC-ACTIVITIES-001 1.6 | DYC |

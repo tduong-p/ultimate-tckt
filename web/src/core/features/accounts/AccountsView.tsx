@@ -54,7 +54,7 @@ export const AccountsView: React.FC = () => {
             Tạo, sửa và xoá tài khoản, nhập danh sách hàng loạt, cấu hình bộ trọng số.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Button onClick={() => setImporting(true)}>Nhập danh sách hàng loạt</Button>
           <Button appearance="primary" onClick={() => setCreating(true)}>Thêm tài khoản</Button>
         </div>
@@ -67,13 +67,13 @@ export const AccountsView: React.FC = () => {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm theo tên, email, số điện thoại, Tổ"
           aria-label="Tìm tài khoản"
-          style={{ flex: '1 1 280px', height: 32, padding: '0 10px', borderRadius: 3, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D') }}
+          style={{ flex: '1 1 260px', height: 32, padding: '0 10px', borderRadius: 3, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D') }}
         />
-        <select aria-label="Lọc theo vai trò" style={{ ...selectStyle, width: 180 }} value={role} onChange={(e) => setRole(e.target.value)}>
+        <select aria-label="Lọc theo vai trò" className="mobile-w-full" style={{ ...selectStyle, width: 180 }} value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="all">Tất cả vai trò</option>
           {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
-        <select aria-label="Lọc theo kiểu đăng nhập" style={{ ...selectStyle, width: 180 }} value={auth} onChange={(e) => setAuth(e.target.value)}>
+        <select aria-label="Lọc theo kiểu đăng nhập" className="mobile-w-full" style={{ ...selectStyle, width: 180 }} value={auth} onChange={(e) => setAuth(e.target.value)}>
           <option value="all">Mọi kiểu đăng nhập</option>
           <option value="local">Cục bộ</option>
           <option value="microsoft">SSO</option>

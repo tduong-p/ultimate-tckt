@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-WEB-002
 title: Dashboard UI Design (Atlassian Design System)
-version: 1.6
+version: 1.7
 status: active
 audience: [dev, ai]
 owner: AI
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [web/src/core/features/dashboard/Dashboard.tsx]
 ---
 
@@ -25,7 +25,7 @@ The Dashboard is implemented in web/src/core/features/dashboard/Dashboard.tsx, u
   - 'Hoạt động' (Default Button)
 
 ### 2. KPI Cards (Top Row)
-A CSS Grid containing 4 identical-sized cards with elevation.surface.raised:
+A CSS Grid containing 4 identical-sized cards with elevation.surface.raised (`repeat(auto-fit, minmax(160px, 1fr))` và `tabular-nums` để xếp 2x2 gọn trên màn hình di động `360px`):
 1. **Hoạt động đang diễn ra:** Rocket icon, 'Đang chạy' badge (green).
 2. **Nhiệm vụ đang mở:** Clipboard icon, 'Cần xử lý' badge (blue).
 3. **Nhiệm vụ quá hạn:** Warning icon, 'Đúng tiến độ' (or equivalent) badge.
@@ -42,7 +42,7 @@ A Flexbox or CSS Grid layout splitting the lower section: Left (approx 60-65%), 
 
 **Right Column (Updates Widgets):**
 A stack of 3 distinct cards:
-1. **Lịch sự kiện & Deadline:** Left calendar date block (Month/Day), Right event details.
+1. **Lịch sự kiện & Deadline:** Left calendar date block (Month/Day), Right event details (bấm vào sự kiện mở `#activity/:id`).
 2. **Hoạt động đang diễn ra:** Activity name, 'Đã Duyệt' badge, Atlassian ProgressBar, and quick action links.
 3. **Nhật ký hoạt động (Activity Stream):** A vertical list of recent actions. Each item has a user Avatar, user name (bold), action badge (e.g., 'Bình luận', 'Minh chứng'), action description text, and timestamp/project link.
 
@@ -64,3 +64,4 @@ Cập nhật 2026-10-09 (đợt 2 SPEC-WEB-003): Tiêu đề công việc và n�
 | 1.4 | 2026-10-09 | Thu hẹp `related_code` về các tệp thực sự do tài liệu này mô tả; SPEC-WEB-003 mở rộng (tài liệu vẫn active) | DYC |
 | 1.5 | 2026-10-09 | Đợt 1 SPEC-WEB-003: tạo hoạt động xong mở trang chi tiết | DYC |
 | 1.6 | 2026-10-09 | Đợt 2 SPEC-WEB-003: tiêu đề công việc và nút tích trong widget Việc hôm nay mở hộp chi tiết công việc | DYC |
+| 1.7 | 2026-10-10 | Sự kiện trong widget Lịch sự kiện dẫn tới `#activity/:id`; lưới KPI `minmax(160px, 1fr)` và các cột/hàng tự xuống dòng trên di động | DYC |

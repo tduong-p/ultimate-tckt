@@ -30,8 +30,8 @@ export const UnitSwitcher: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <label htmlFor={id} style={{ fontSize: 12 }}>Đơn vị</label>
-      <select id={id} value={unit?.id ?? ''} disabled={mutation.isPending}
+      <label htmlFor={id} className="desktop-only" style={{ fontSize: 12 }}>Đơn vị</label>
+      <select id={id} className="unit-switcher-select" value={unit?.id ?? ''} disabled={mutation.isPending}
         onChange={(e) => { const next = Number(e.target.value); if (next && next !== unit?.id) mutation.mutate(next); }}
         style={{ padding: '4px 6px', borderRadius: 4, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D'), maxWidth: 180 }}>
         {!unit && <option value="" disabled>Chọn đơn vị</option>}

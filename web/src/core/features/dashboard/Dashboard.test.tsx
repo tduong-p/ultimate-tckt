@@ -312,4 +312,13 @@ describe('Dashboard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Khảo sát địa bàn tình nguyện' }));
     expect(open).toHaveBeenCalledWith(101);
   });
+
+  it('mục sự kiện sắp tới trong lịch dẫn thẳng tới chi tiết hoạt động (#activity/:id)', async () => {
+    renderWithClient(<Dashboard />);
+    await screen.findByText('Khảo sát địa bàn tình nguyện');
+    const calendarHeading = screen.getByText('Lịch sự kiện & Deadline');
+    const calendarWidget = calendarHeading.parentElement!.parentElement!;
+    const link = within(calendarWidget).getByRole('link', { name: /Chiến dịch Mùa hè xanh 2026/i });
+    expect(link.getAttribute('href')).toBe('#activity/10');
+  });
 });
