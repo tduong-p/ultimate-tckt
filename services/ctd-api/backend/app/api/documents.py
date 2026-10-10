@@ -17,6 +17,13 @@ from app.services.scope import visible_cases
 
 router = APIRouter(prefix="/api", tags=["documents"])
 URL_TTL_SECONDS = 600
+MAX_UPLOAD_READ_BYTES = 10 * 1024 * 1024 + 1
+_SAFE_MEDIA_TYPES = {
+    ".pdf": "application/pdf",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+}
 
 
 def _lay_giay_to(db: Session, document_id: int, user: User) -> Document:
@@ -37,7 +44,7 @@ def tai_len(
     user: User = Depends(current_user),
 ) -> DocumentOut:
     document = _lay_giay_to(db, document_id, user)
-    data = file.file.read()
+    data = file.file.read(MAX_UPLOAD_READ_BYTES)
     doc_service.attach_file(db, document, file.filename or "", file.content_type or "", data, user)
     return DocumentOut.model_validate(document)
 
@@ -96,7 +103,16 @@ def tai_file_local(key: str, expires: int, sig: str, db: Session = Depends(get_d
     if document is None:
         raise HTTPException(status_code=404, detail="Không tìm thấy file.")
     data = LocalStorage().read(key)
-    return Response(content=data, media_type=document.content_type or "application/octet-stream")
+    ext = ("." + key.rsplit(".", 1)[-1].lower()) if "." in key else ""
+    safe_media_type = _SAFE_MEDIA_TYPES.get(ext, "application/octet-stream")
+    return Response(
+        content=data,
+        media_type=safe_media_type,
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+        },
+    )
 
 
 @router.post("/cases/{case_id}/documents", status_code=201, response_model=DocumentOut)

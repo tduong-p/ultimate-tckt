@@ -1,7 +1,7 @@
 ---
 doc_id: PB-MOD-001
 title: Playbook — thêm module mới
-version: 1.9
+version: 1.10
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -78,3 +78,5 @@ Với module loại A: theo playbook [`them-tinh-nang.md`](them-tinh-nang.md), k
 | 1.7 | 2026-10-05 | Noti đã có trong compose production | DYC |
 | 1.8 | 2026-10-09 | Ghi chú: frontend `web/` chỉ có job `test-web`, chưa có build/deploy | DYC |
 | 1.9 | 2026-10-10 | Cập nhật ngoại lệ `web/`: bundle được build trong image Core từ root context, PR build arm64 không publish | DYC |
+| 1.10 | 2026-10-10 | Chuẩn hoá chạy container bằng non-root user (`USER node` / `USER ctd`) và bản vá bảo mật CTD (`SEC-02`, `SEC-04`, `SEC-05`, `SEC-06`, `SEC-09`, #99) | DYC |
+

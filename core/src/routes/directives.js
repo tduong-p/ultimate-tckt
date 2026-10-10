@@ -9,7 +9,12 @@ function createDirectiveRoutes(context) {
   router.use('/api/directives', authMiddleware, (req, res, next) => {
     const actor = req.actor || req.user || {};
     const unit = req.unit || actor.unit;
-    if (unit && unit.kind === 'platform_owner') return next();
+    if (unit && unit.kind === 'platform_owner') {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return res.status(403).json({ error: 'DYC chỉ có quyền xem, không được phép chỉnh sửa dữ liệu.' });
+      }
+      return next();
+    }
     
     const modules = unit?.modules || [];
     const hasDieuHanh = Array.isArray(modules) ? modules.includes('dieu-hanh') : String(modules).includes('dieu-hanh');
@@ -21,6 +26,19 @@ function createDirectiveRoutes(context) {
   const isBtv = (role) => ['btv_lead', 'btv_member'].includes(role);
   const isTcktAdmin = (role) => ['admin', 'vice_admin'].includes(role);
   const isDyc = (unit) => unit && unit.kind === 'platform_owner';
+  const canAccessDirective = (unit, directive) => {
+    if (isDyc(unit)) return true;
+    if (!unit || unit.id == null) return false;
+    if (directive.from_unit_id == null && directive.to_unit_id == null) return true;
+    return Number(directive.from_unit_id) === Number(unit.id) || Number(directive.to_unit_id) === Number(unit.id);
+  };
+  const canActAsRecipientUnit = (req, directive) => {
+    const unitId = req.unit?.id;
+    if (directive.to_unit_id != null && Number(directive.to_unit_id) !== Number(unitId)) return false;
+    const actorId = (req.actor || req.user)?.id;
+    const isOwner = directive.owner_user_id != null && actorId != null && Number(directive.owner_user_id) === Number(actorId);
+    return isTcktAdmin(req.unitRole) || isOwner;
+  };
 
   // GET /api/directives
   router.get('/api/directives', asyncRoute(async (req, res) => {
@@ -47,7 +65,7 @@ function createDirectiveRoutes(context) {
   // POST /api/directives
   router.post('/api/directives', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
-    if (!isBtv(unitRole) && !isDyc(req.unit)) {
+    if (!isBtv(unitRole)) {
       return res.status(403).json({ error: 'Chỉ BTV mới có quyền tạo chỉ đạo.' });
     }
     const { to_unit_id, title, body, deadline } = req.body;
@@ -66,7 +84,7 @@ function createDirectiveRoutes(context) {
   // GET /api/directives/:id
   router.get('/api/directives/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
-    if (rows.length === 0) {
+    if (rows.length === 0 || !canAccessDirective(req.unit, rows[0])) {
       return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     }
     const directive = rows[0];
@@ -79,12 +97,15 @@ function createDirectiveRoutes(context) {
   // POST /api/directives/:id/acknowledge
   router.post('/api/directives/:id/acknowledge', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
-    if (!isTcktAdmin(unitRole) && !isDyc(req.unit)) {
+    if (!isTcktAdmin(unitRole)) {
       return res.status(403).json({ error: 'Chỉ cán bộ quản trị đơn vị nhận mới có quyền tiếp nhận.' });
     }
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     const directive = rows[0];
+    if (directive.to_unit_id != null && Number(directive.to_unit_id) !== Number(req.unit?.id)) {
+      return res.status(403).json({ error: 'Chỉ cán bộ quản trị đơn vị nhận mới có quyền tiếp nhận.' });
+    }
     if (!['sent', 'pending'].includes(directive.status)) {
       return res.status(400).json({ error: 'Chỉ đạo không ở trạng thái chờ tiếp nhận.' });
     }
@@ -104,6 +125,9 @@ function createDirectiveRoutes(context) {
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     const directive = rows[0];
+    if (!canActAsRecipientUnit(req, directive)) {
+      return res.status(403).json({ error: 'Chỉ cán bộ phụ trách của đơn vị nhận mới có quyền liên kết hoạt động.' });
+    }
     if (!['acknowledged', 'in_progress'].includes(directive.status)) {
       return res.status(400).json({ error: 'Trạng thái chỉ đạo không cho phép liên kết hoạt động.' });
     }
@@ -118,6 +142,9 @@ function createDirectiveRoutes(context) {
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     const directive = rows[0];
+    if (!canActAsRecipientUnit(req, directive)) {
+      return res.status(403).json({ error: 'Chỉ cán bộ phụ trách của đơn vị nhận mới có quyền nộp kết quả.' });
+    }
     if (!['acknowledged', 'in_progress', 'revision_requested'].includes(directive.status)) {
       return res.status(400).json({ error: 'Trạng thái chỉ đạo không cho phép nộp kết quả.' });
     }
@@ -137,12 +164,15 @@ function createDirectiveRoutes(context) {
   // POST /api/directives/:id/respond
   router.post('/api/directives/:id/respond', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
-    if (!isBtv(unitRole) && !isDyc(req.unit)) {
-      return res.status(403).json({ error: 'Chỉ BTV hoặc DYC mới có quyền đánh giá kết quả.' });
+    if (!isBtv(unitRole)) {
+      return res.status(403).json({ error: 'Chỉ BTV mới có quyền đánh giá kết quả.' });
     }
     const [rows] = await db.execute(`SELECT * FROM directives WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy chỉ đạo.' });
     const directive = rows[0];
+    if (directive.from_unit_id != null && Number(directive.from_unit_id) !== Number(req.unit?.id)) {
+      return res.status(403).json({ error: 'Chỉ đơn vị giao việc mới có quyền đánh giá kết quả.' });
+    }
     if (directive.status !== 'submitted') {
       return res.status(400).json({ error: 'Chỉ đạo không ở trạng thái chờ phản hồi.' });
     }

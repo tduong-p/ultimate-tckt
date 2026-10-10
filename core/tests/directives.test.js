@@ -258,4 +258,83 @@ describe('Directives & Submissions API Tests', () => {
     
     await server.close();
   });
+
+  test('SEC-01: chặn đọc chéo đơn vị (IDOR) trên GET /api/directives/:id và GET /api/submissions/:id', async () => {
+    const dbMock = {
+      execute: async (sql) => {
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 9, from_unit_id: 1, to_unit_id: 2, title: 'Mật' }]];
+        }
+        if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
+          return [[{ id: 19, from_unit_id: 2, to_unit_id: 1, note: 'Mật' }]];
+        }
+        return [[]];
+      }
+    };
+
+    const app = createMockApp(dbMock, (req, _res, next) => {
+      req.unit = { id: 3, kind: 'department', modules: ['dieu-hanh'] };
+      req.unitRole = 'admin';
+      next();
+    });
+
+    const server = await startTestServer(app);
+    const dirRes = await server.client.request('GET', '/api/directives/9');
+    const subRes = await server.client.request('GET', '/api/submissions/19');
+    assert.equal(dirRes.status, 404);
+    assert.equal(subRes.status, 404);
+    await server.close();
+  });
+
+  test('SEC-01: chặn member thường hoặc đơn vị khác gọi link-activity, submit, acknowledge, withdraw', async () => {
+    const dbMock = {
+      execute: async (sql) => {
+        if (sql.includes('SELECT * FROM directives WHERE id = ?')) {
+          return [[{ id: 1, status: 'acknowledged', from_unit_id: 1, to_unit_id: 2, owner_user_id: 50 }]];
+        }
+        if (sql.includes('SELECT * FROM submissions WHERE id = ?')) {
+          return [[{ id: 20, from_unit_id: 2, to_unit_id: 1, response: null }]];
+        }
+        return [[]];
+      }
+    };
+
+    // Member thường của đúng đơn vị nhưng không phải owner_user_id
+    const memberApp = createMockApp(dbMock, (req, _res, next) => {
+      req.unit = { id: 2, kind: 'department', modules: ['dieu-hanh'] };
+      req.unitRole = 'member';
+      req.actor = { id: 99 };
+      next();
+    });
+    const s1 = await startTestServer(memberApp);
+    assert.equal((await s1.client.request('POST', '/api/directives/1/link-activity', { body: { activity_id: 5 } })).status, 403);
+    assert.equal((await s1.client.request('POST', '/api/directives/1/submit', { body: { source_type: 'activity', source_id: 5 } })).status, 403);
+    await s1.close();
+
+    // Admin của đơn vị khác (id=3) cố tình thao tác lên directive/submission của đơn vị 2
+    const crossUnitApp = createMockApp(dbMock, (req, _res, next) => {
+      req.unit = { id: 3, kind: 'department', modules: ['dieu-hanh'] };
+      req.unitRole = 'admin';
+      req.actor = { id: 50 };
+      next();
+    });
+    const s2 = await startTestServer(crossUnitApp);
+    assert.equal((await s2.client.request('POST', '/api/directives/1/acknowledge', { body: {} })).status, 403);
+    assert.equal((await s2.client.request('POST', '/api/directives/1/link-activity', { body: { activity_id: 5 } })).status, 403);
+    assert.equal((await s2.client.request('POST', '/api/submissions/20/withdraw', { body: {} })).status, 403);
+    await s2.close();
+  });
+
+  test('SEC-01: DYC (platform_owner) chỉ có quyền đọc, bị chặn 403 khi gọi POST trên directives và submissions', async () => {
+    const dbMock = { execute: async () => [[]] };
+    const dycApp = createMockApp(dbMock, (req, _res, next) => {
+      req.unit = { id: 99, kind: 'platform_owner', modules: [] };
+      req.unitRole = 'dyc_admin';
+      next();
+    });
+    const server = await startTestServer(dycApp);
+    assert.equal((await server.client.request('POST', '/api/directives', { body: { to_unit_id: 2, title: 'X', deadline: '2026-12-31' } })).status, 403);
+    assert.equal((await server.client.request('POST', '/api/submissions', { body: { to_unit_id: 1, source_type: 'activity', source_id: 1 } })).status, 403);
+    await server.close();
+  });
 });

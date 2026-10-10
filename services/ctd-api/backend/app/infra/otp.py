@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.models.identity import OtpCode
 
 CODE_TTL_MINUTES = 10
+MAX_OTP_ATTEMPTS = 5
+_failed_attempts: dict[int, int] = {}
 
 
 def _hash(code: str) -> str:
@@ -39,10 +41,19 @@ def verify_code(db: Session, email: str, code: str) -> bool:
         .order_by(OtpCode.id.desc())
         .limit(1)
     ).first()
-    if row is None or row.expires_at < datetime.now(timezone.utc):
+    now = datetime.now(timezone.utc)
+    if row is None or row.expires_at < now:
         return False
     if not secrets.compare_digest(row.code_hash, _hash(code)):
+        attempts = _failed_attempts.get(row.id, 0) + 1
+        _failed_attempts[row.id] = attempts
+        if attempts >= MAX_OTP_ATTEMPTS:
+            row.used_at = now
+            db.commit()
+            _failed_attempts.pop(row.id, None)
         return False
-    row.used_at = datetime.now(timezone.utc)
+    _failed_attempts.pop(row.id, None)
+    row.used_at = now
     db.commit()
     return True
+

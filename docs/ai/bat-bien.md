@@ -1,11 +1,11 @@
 ---
 doc_id: AI-INV-001
 title: Bất biến — điều không được phá
-version: 4.5
+version: 4.6
 status: active
 audience: [ai, dev]
 owner: DYC
-updated: 2026-10-05
+updated: 2026-10-10
 related_code: [core/src/policies/**, core/src/middleware/auth.js, core/src/middleware/legacy-gate.js, core/src/services/audit.js, core/tests/units.leak.test.js, infra/**, core/src/config/database.js]
 ---
 
@@ -42,7 +42,7 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 9. **Không để cấu hình nginx hỏng nằm trong `sites-enabled`.** nginx phục vụ cả hai môi trường; một file lỗi làm
    lần reload/khởi động lại sau đó chết cả staging lẫn production. `apply-infra.sh` gỡ/khôi phục site mới khi `nginx -t` lỗi.
 10. **Mật khẩu DB không bao giờ đi qua dòng lệnh trên host** (`ps` thấy được): dump/restore chạy `sh -c '…$MYSQL_…/$POSTGRES_…'`
-   trong container (xem `infra/scripts/backup.sh`). Dump Postgres luôn có `--clean --if-exists` để restore đè được.
+    trong container (xem `infra/scripts/backup.sh`). Dump Postgres luôn có `--clean --if-exists` để restore đè được.
 11. **INV-AUTH-001: Quyền hạn phải đọc qua `req.actor`/`req.unitRole`, cấm dùng `users.role`.** Từ GĐ1-A Task 5, 
    route Điều hành cũ đọc `req.actor` (không `req.session.user`) để tính quyền theo membership. Route mới (module 
    loại A) phải dùng `req.unitRole` + `req.unit`. Đọc trực tiếp `users.role` hoặc `req.session.user.role` bỏ qua 
@@ -72,3 +72,5 @@ thật trên VM. Đọc trước khi sửa code liên quan đến quyền, hạ 
 | 4.3 | 2026-10-02 | Thông báo không được làm lỗi request; `CORE_NOTI_API_KEY` chỉ ở `.env` VM | DYC |
 | 4.4 | 2026-10-04 | Thêm core/src/config/database.js vào related_code - cấu hình timezone | DYC |
 | 4.5 | 2026-10-05 | Production cũng có Noti trên `ctd-db`; allowlist production bắt buộc khác rỗng | DYC |
+| 4.6 | 2026-10-10 | Cập nhật cấu hình Nginx (`client_max_body_size`, `X-Content-Type-Options: nosniff`) và bảo mật liên đơn vị (#99) | DYC |
+

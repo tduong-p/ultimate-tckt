@@ -15,6 +15,12 @@ function loadSession(): Session | null {
       setToken(tokenParam);
       const s = { role: roleParam, fullName: nameParam || "Người dùng" };
       localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+      params.delete("token");
+      params.delete("role");
+      params.delete("name");
+      const nextSearch = params.toString();
+      const cleanUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}${window.location.hash}`;
+      window.history.replaceState({}, "", cleanUrl);
       return s;
     }
   } catch {}

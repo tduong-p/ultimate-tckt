@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-RBAC-001
 title: Phân quyền
-version: 6.5
+version: 7.0
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -36,7 +36,7 @@ Cơ chế trong code:
   `canManageActivity`, `canManageTeam`, `canManageUser`, `canReviewTask` áp thêm điều kiện theo vai trò +
   quan hệ với team/hoạt động cụ thể (là người tạo, Event Lead, hoặc lead/vice-lead của tổ liên quan).
 - **Platform Admin** (quyền cấu hình SMTP/Templates/Rules/Cron): yêu cầu người dùng phải có membership của đơn vị DYC (`kind = 'platform_owner'`).
-  Không phụ thuộc vào các role Điều hành (admin, leader, v.v.). Danh sách `DEVOPS_EMAILS` luôn được cấp membership này tự động lúc khởi động hệ thống và lúc đăng nhập.
+  Không phụ thuộc vào các role Điều hành (admin, leader, v.v.). Danh sách `DEVOPS_EMAILS` luôn được cấp membership này tự động lúc khởi động hệ thống và lúc đăng nhập; khi người dùng tự cập nhật email qua `PATCH /api/account`, hệ thống chặn đổi sang địa chỉ nằm trong `DEVOPS_EMAILS` (`SEC-02`).
   Trang Delivery Log (chỉ đọc) chỉ cần `admin` bình thường; mọi trang cấu hình còn lại cần `platformAdmin`.
 - **Ranh giới quản lý tài khoản** (`canManageUser`): tổ trưởng/tổ phó chỉ sửa/khoá được `member` mà **mọi** tổ của
   người đó đều do mình phụ trách; không được đổi mật khẩu hoặc email của người khác (chỉ executive). Thêm một
@@ -82,24 +82,25 @@ nếu tính theo đơn vị đang chọn, người vừa DYC vừa TCKT sẽ m�
 ## Giao việc và Trình — cổng module và quyền trên giao diện web
 
 `/api/directives*` và `/api/submissions*` yêu cầu `auth` và module `dieu-hanh` của đơn vị đang chọn; đơn vị DYC
-(`platform_owner`) cũng qua được cổng module. Hai router này không nằm trong `LEGACY_PREFIXES`, nên không được
-`legacyGate` ghi audit. Danh sách chỉ đạo lọc theo đơn vị gửi/nhận, nhưng endpoint chi tiết theo ID và một số thao
-tác ghi chưa kiểm tra đầy đủ quyền sở hữu đơn vị. Đây là phần còn thiếu đã được ghi nhận tại issue #95 và đang để
-sau theo quyết định phạm vi. `GET /api/session` và `POST /api/session/unit` trả `units.current.modules`; đổi đơn vị
-sẽ nạp lại danh sách module tương ứng. Web dùng dữ liệu này để ẩn menu và đưa route không phù hợp về `#/dashboard`.
-Server vẫn là nơi quyết định cuối cùng cho mọi request.
+(`platform_owner`) chỉ được phép gọi `GET`/`HEAD` (chỉ đọc), mọi thao tác ghi từ ngữ cảnh `platform_owner` đều bị
+chặn `403`. Danh sách và chi tiết theo ID (`GET /api/directives/:id`, `GET /api/submissions/:id`) kiểm tra chặt
+`from_unit_id` / `to_unit_id` khớp với `req.unit.id` (trừ DYC chỉ đọc), trả `404` nếu truy cập chéo đơn vị (`SEC-01`, Issue #99).
+Các thao tác ghi (`acknowledge`, `link-activity`, `submit`, `respond`, `withdraw`) bắt buộc kiểm tra đồng thời
+`req.unit.id` khớp đơn vị nhận/gửi và vai trò trong đơn vị. `GET /api/session` và `POST /api/session/unit` trả
+`units.current.modules`; đổi đơn vị sẽ nạp lại danh sách module tương ứng. Web dùng dữ liệu này để ẩn menu và đưa
+route không phù hợp về `#/dashboard`. Server vẫn là nơi quyết định cuối cùng cho mọi request.
 
 Các điều kiện nút trong `web/src/core/features/dieuhanh/permissions.ts` phản chiếu điều kiện route Core:
 
 | Thao tác | Điều kiện giao diện |
 |---|---|
-| Tạo chỉ đạo | BTV (`btv_lead`, `btv_member`) hoặc DYC |
-| Tiếp nhận chỉ đạo | Admin/phó admin đơn vị nhận; trạng thái `sent` hoặc `pending` |
-| Gắn hoạt động, nộp kết quả | Đơn vị nhận; admin/phó admin/trưởng/phó nhóm hoặc người phụ trách; trạng thái phù hợp |
-| Đánh giá chỉ đạo | BTV của đơn vị gửi hoặc DYC; trạng thái `submitted` |
-| Tạo trình | Admin/phó admin hoặc BTV |
-| Phản hồi trình | BTV đơn vị nhận hoặc DYC; chưa rút; chưa phản hồi hoặc đã đánh dấu `seen` |
-| Rút trình | Admin/phó admin của đơn vị gửi; chưa phản hồi và chưa rút |
+| Tạo chỉ đạo | BTV (`btv_lead`, `btv_member`) thuộc đơn vị gửi |
+| Tiếp nhận chỉ đạo | Admin/phó admin đơn vị nhận (`to_unit_id === req.unit.id`); trạng thái `sent` hoặc `pending` |
+| Gắn hoạt động, nộp kết quả | Đơn vị nhận (`to_unit_id === req.unit.id`); admin/phó admin/trưởng/phó nhóm hoặc người phụ trách (`owner_id`); hoạt động gắn phải thuộc đơn vị nhận |
+| Đánh giá chỉ đạo | BTV của đơn vị gửi (`from_unit_id === req.unit.id`); trạng thái `submitted` |
+| Tạo trình | Admin/phó admin hoặc BTV; đối tượng nguồn (`activity`/`report`/`ops_log`) phải thuộc đơn vị gửi |
+| Phản hồi trình | BTV đơn vị nhận (`to_unit_id === req.unit.id`); chưa rút; chưa phản hồi hoặc đã đánh dấu `seen` |
+| Rút trình | Admin/phó admin hoặc người trình của đơn vị gửi (`from_unit_id === req.unit.id`); chưa phản hồi và chưa rút |
 
 Frontend dùng role của membership trong đơn vị hiện tại (`unitRole` từ session capabilities), không dùng `users.role`
 để quyết định các nút này.
@@ -287,3 +288,5 @@ Khi lập trình hai phần trên, cập nhật bảng ở tài liệu này và 
 | 6.3 | 2026-10-03 | Route tổ chỉ cập nhật membership TCKT đang có, không hồi sinh membership đã gỡ (`createIfMissing: false`) | DYC |
 | 6.4 | 2026-10-09 | Ghi nhận `req.unit.modules`, module trong session và cổng/quyền của Giao việc, Trình trên web | DYC |
 | 6.5 | 2026-10-10 | Sửa mô tả audit: directives/submissions không thuộc legacy gate; ghi rõ thiếu kiểm tra sở hữu đơn vị và liên kết issue #95 | DYC |
+| 7.0 | 2026-10-10 | Khóa chặt kiểm tra sở hữu đơn vị, vai trò và DYC chỉ đọc trên `/api/directives*` & `/api/submissions*` (`SEC-01`, Issue #99); chặn tự đổi email sang `DEVOPS_EMAILS` (`SEC-02`) | DYC |
+

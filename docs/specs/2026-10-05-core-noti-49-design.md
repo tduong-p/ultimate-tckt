@@ -1,11 +1,11 @@
 ---
 doc_id: SPEC-NOTI-002
 title: Thiết kế — sửa phần Core của #49 (thông báo Core → Noti gửi sai giờ, trùng, sai người, mất thư)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: TCKT
-updated: 2026-10-05
+updated: 2026-10-10
 related_code: [core/src/services/deadline-notifications.js, core/src/notifier.js, core/src/noti-sender.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/users.js]
 ---
 
@@ -110,3 +110,5 @@ PR #65 chỉ đổi cách lấy "hôm nay" (múi giờ), chưa sửa các mục 
 |---|---|---|
 | 1.0 | 2026-10-05 | Bản đầu. |
 | 1.1 | 2026-10-05 | R12 dùng cột `notifications.email_status` để thư lỗi tạm thời được gửi lại (tránh bẫy gắn gửi vào `inserted`); notifier trả `retryable`. |
+| 1.2 | 2026-10-10 | Xác nhận bản vá bảo mật #99 trên `core/src/routes/tasks.js` không thay đổi thiết kế thông báo Core → Noti. |
+

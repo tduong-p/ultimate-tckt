@@ -11,6 +11,8 @@ COPY core/package.json core/package-lock.json ./
 RUN npm ci --omit=dev
 COPY core/ ./
 COPY --from=web-build /src/web/dist ./web-dist
-RUN mkdir -p storage/task-attachments
+RUN mkdir -p storage/task-attachments && chown -R node:node /app
+USER node
 EXPOSE 3000
 CMD ["node", "app.js"]
+

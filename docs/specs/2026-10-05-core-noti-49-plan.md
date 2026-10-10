@@ -1,11 +1,11 @@
 ---
 doc_id: PLAN-NOTI-003
 title: Kế hoạch — sửa phần Core của #49 (thông báo Core → Noti)
-version: 1.1
+version: 1.2
 status: active
 audience: [dev, ai]
 owner: TCKT
-updated: 2026-10-05
+updated: 2026-10-10
 related_code: [core/src/services/deadline-notifications.js, core/src/notifier.js, core/src/noti-sender.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/users.js, core/src/date-vn.js]
 ---
 
@@ -240,3 +240,5 @@ nghiệm thu gom vào một helper.
 |---|---|---|
 | 1.0 | 2026-10-05 | Bản đầu. |
 | 1.1 | 2026-10-05 | Task 1–6 đã làm xong trên nhánh `fix/core-noti-49` (còn mở PR vào `staging`). |
+| 1.2 | 2026-10-10 | Xác nhận bản vá bảo mật #99 trên `core/src/routes/tasks.js` không ảnh hưởng kế hoạch thông báo Core → Noti. |
+

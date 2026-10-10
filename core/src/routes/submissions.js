@@ -9,7 +9,12 @@ function createSubmissionRoutes(context) {
   router.use('/api/submissions', authMiddleware, (req, res, next) => {
     const actor = req.actor || req.user || {};
     const unit = req.unit || actor.unit;
-    if (unit && unit.kind === 'platform_owner') return next();
+    if (unit && unit.kind === 'platform_owner') {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return res.status(403).json({ error: 'DYC chỉ có quyền xem, không được phép chỉnh sửa dữ liệu.' });
+      }
+      return next();
+    }
     
     const modules = unit?.modules || [];
     const hasDieuHanh = Array.isArray(modules) ? modules.includes('dieu-hanh') : String(modules).includes('dieu-hanh');
@@ -21,6 +26,12 @@ function createSubmissionRoutes(context) {
   const isBtv = (role) => ['btv_lead', 'btv_member'].includes(role);
   const isTcktAdmin = (role) => ['admin', 'vice_admin'].includes(role);
   const isDyc = (unit) => unit && unit.kind === 'platform_owner';
+  const canAccessSubmission = (unit, sub) => {
+    if (isDyc(unit)) return true;
+    if (!unit || unit.id == null) return false;
+    if (sub.from_unit_id == null && sub.to_unit_id == null) return true;
+    return Number(sub.from_unit_id) === Number(unit.id) || Number(sub.to_unit_id) === Number(unit.id);
+  };
 
   // GET /api/submissions
   router.get('/api/submissions', asyncRoute(async (req, res) => {
@@ -54,15 +65,17 @@ function createSubmissionRoutes(context) {
   // GET /api/submissions/:id
   router.get('/api/submissions/:id', asyncRoute(async (req, res) => {
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    if (rows.length === 0 || !canAccessSubmission(req.unit, rows[0])) {
+      return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    }
     res.json((await withSubmissionNames(db, [rows[0]]))[0]);
   }));
 
   // POST /api/submissions/:id/respond
   router.post('/api/submissions/:id/respond', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
-    if (!isBtv(unitRole) && !isDyc(req.unit)) {
-      return res.status(403).json({ error: 'Chỉ BTV hoặc DYC mới có quyền phản hồi submission.' });
+    if (!isBtv(unitRole)) {
+      return res.status(403).json({ error: 'Chỉ BTV mới có quyền phản hồi submission.' });
     }
     const { response, response_note } = req.body;
     if (!['seen', 'revision_requested', 'accepted'].includes(response)) {
@@ -70,6 +83,10 @@ function createSubmissionRoutes(context) {
     }
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
+    const sub = rows[0];
+    if (sub.to_unit_id != null && Number(sub.to_unit_id) !== Number(req.unit?.id)) {
+      return res.status(403).json({ error: 'Chỉ đơn vị nhận mới có quyền phản hồi submission.' });
+    }
     await db.execute(
       `UPDATE submissions SET response = ?, response_note = ?, responded_by = ?, responded_at = NOW() WHERE id = ?`,
       [response, response_note || null, req.actor?.id ?? null, req.params.id]
@@ -81,12 +98,15 @@ function createSubmissionRoutes(context) {
   // POST /api/submissions/:id/withdraw
   router.post('/api/submissions/:id/withdraw', asyncRoute(async (req, res) => {
     const unitRole = req.unitRole;
-    if (!isTcktAdmin(unitRole)) {
+    if (!isTcktAdmin(unitRole) && !isBtv(unitRole)) {
       return res.status(403).json({ error: 'Chỉ đơn vị gửi mới có quyền rút lại submission khi chưa phản hồi.' });
     }
     const [rows] = await db.execute(`SELECT * FROM submissions WHERE id = ?`, [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Không tìm thấy submission.' });
     const sub = rows[0];
+    if (sub.from_unit_id != null && Number(sub.from_unit_id) !== Number(req.unit?.id)) {
+      return res.status(403).json({ error: 'Chỉ đơn vị gửi mới có quyền rút lại submission khi chưa phản hồi.' });
+    }
     if (sub.response !== null) {
       return res.status(400).json({ error: 'Không thể rút lại submission đã có phản hồi.' });
     }

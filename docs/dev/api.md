@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.9
+version: 5.10
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -514,3 +514,5 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
 | 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
 | 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
+| 5.10 | 2026-10-10 | Bản vá bảo mật #99: kiểm tra sở hữu đơn vị trên `/api/directives*` & `/api/submissions*` (`SEC-01`), tái tạo session khi đăng nhập (`SEC-03`), chặn đổi email sang `DEVOPS_EMAILS` (`SEC-02`), chống MIME sniffing khi tải file (`SEC-05`, `SEC-06`) | DYC |
+

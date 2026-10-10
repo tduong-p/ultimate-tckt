@@ -281,3 +281,22 @@ def test_verdict_sai_gia_tri_tra_ve_422_khong_phai_500(client, boi_canh, db):
         headers=_auth(boi_canh["cb"]),
     )
     assert response.status_code == 422
+
+
+def test_tai_file_local_ep_media_type_an_toan_va_nosniff(client, boi_canh, db, monkeypatch, tmp_path):
+    monkeypatch.setattr(settings, "storage_driver", "local")
+    monkeypatch.setattr(settings, "local_storage_dir", str(tmp_path))
+    doc = boi_canh["docs"][0]
+    upload = client.post(
+        f"/api/documents/{doc.id}/file",
+        files={"file": ("don.pdf", b"<script>alert(1)</script>", "text/html")},
+        headers=_auth(boi_canh["sv"]),
+    )
+    assert upload.status_code == 200
+    link = client.get(f"/api/documents/{doc.id}/url", headers=_auth(boi_canh["sv"]))
+    response = client.get(link.json()["url"])
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/pdf")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "sandbox" in response.headers["content-security-policy"]
+

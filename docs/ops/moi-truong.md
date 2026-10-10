@@ -1,11 +1,11 @@
 ---
 doc_id: OPS-ENV-001
 title: Môi trường staging và production
-version: 1.8
+version: 1.9
 status: active
 audience: [dev, ops, ai]
 owner: DYC
-updated: 2026-10-07
+updated: 2026-10-10
 related_code: [infra/compose/**, infra/nginx/**, infra/.env.example, core/src/config/database.js]
 ---
 
@@ -125,3 +125,5 @@ Nguồn cấu hình nginx theo môi trường: `infra/nginx/<env>/core.conf`, `i
 | 1.6 | 2026-10-05 | Noti chạy cả ở production (cổng 8101, allowlist bắt buộc, `PROD_NOTI_ENABLED`); mục 4a thêm phần production (SPEC-MAIL-001) | DYC |
 | 1.7 | 2026-10-05 | Thêm biến `NOTI_ALWAYS_CC` (tuỳ chọn) vào bảng biến Noti | DYC |
 | 1.8 | 2026-10-07 | Staging chuyển sang domain `dyclub.tech` (`tckt-hub-staging`, `ctd-hoso-staging`); production giữ duckdns | DYC |
+| 1.9 | 2026-10-10 | Bổ sung `client_max_body_size` (`55m` cho Core, `8m` cho CTD) và `X-Content-Type-Options: nosniff` vào cấu hình Nginx staging/production (`SEC-10`, #99) | DYC |
+

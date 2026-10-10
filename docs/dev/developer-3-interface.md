@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-GUIDE-003
 title: Interface Guide for Developer 3 - Directives & Submissions API
-version: 1.4
+version: 1.5
 status: active
 audience: [dev, ai]
 owner: Developer 2
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/routes/directives.js, core/src/routes/submissions.js, core/src/policies/access.js, core/src/services/audit.js, core/src/serializers/summary.js]
 ---
 
@@ -470,3 +470,5 @@ try {
 | 1.2 | 2026-10-02 | Cập nhật giao diện điều hành | DYC |
 | 1.3 | 2026-10-03 | Sửa dòng lịch sử 1.2 bị lỗi mã hoá và nằm nhầm trong bảng action code; bỏ chú thích HTML thừa cuối file | DYC |
 | 1.4 | 2026-10-09 | Chuyển trạng thái hướng dẫn: API đã được triển khai; trỏ tới tài liệu contract và phân quyền hiện hành | DYC |
+| 1.5 | 2026-10-10 | Cập nhật kiểm tra sở hữu đơn vị (`from_unit_id`/`to_unit_id`) và quyền chỉ đọc của DYC trên `/api/directives*` & `/api/submissions*` (`SEC-01`, #99) | DYC |
+

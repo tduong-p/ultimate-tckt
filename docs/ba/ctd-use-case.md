@@ -1,11 +1,11 @@
 ---
 doc_id: BA-CTD-001
 title: Use case Công tác Đảng (CTD)
-version: 1.0
+version: 1.1
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-09-24
+updated: 2026-10-10
 related_code: [services/ctd-api/backend/app/api/cases.py, services/ctd-api/backend/app/api/documents.py, services/ctd-api/backend/app/api/auth.py, services/ctd-api/backend/app/seeds/workflow_seed.py]
 ---
 
@@ -79,3 +79,5 @@ Theo `.kiro/specs/nen-tang-da-don-vi/requirements.md` Yêu cầu 8: CTD sẽ đ�
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-09-24 | Bản đầu (viết lại từ tài liệu cũ khi gộp monorepo) | DYC |
+| 1.1 | 2026-10-10 | Ghi nhận giới hạn tối đa 5 lần nhập sai OTP (`SEC-02`) và cơ chế chống MIME sniffing/DoS khi tải tệp (`SEC-05`, `SEC-06`, #99) | DYC |
+

@@ -63,3 +63,20 @@ def test_dang_nhap_bang_mat_khau_admin(client, db):
     # Thử sai mật khẩu
     wrong = client.post("/api/auth/verify", json={"email": admin.email, "code": "SaiPass@999"})
     assert wrong.status_code == 401
+
+
+def test_nhap_sai_otp_qua_5_lan_ma_bi_huy(client, db):
+    db.add(User(email="sv-bruteforce@sis.hust.edu.vn", role=Role.SINH_VIEN))
+    db.commit()
+    ConsoleMailer.sent.clear()
+    client.post("/api/auth/request-code", json={"email": "sv-bruteforce@sis.hust.edu.vn"})
+    real_code = ConsoleMailer.sent[0]["body"].split()[-1]
+
+    for _ in range(5):
+        bad = client.post("/api/auth/verify", json={"email": "sv-bruteforce@sis.hust.edu.vn", "code": "000000"})
+        assert bad.status_code == 401
+
+    # Sau 5 lần nhập sai, mã thật cũng bị hủy hiệu lực (chống brute-force OTP)
+    after_lockout = client.post("/api/auth/verify", json={"email": "sv-bruteforce@sis.hust.edu.vn", "code": real_code})
+    assert after_lockout.status_code == 401
+

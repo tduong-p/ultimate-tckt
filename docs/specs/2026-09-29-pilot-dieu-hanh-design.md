@@ -1,7 +1,7 @@
 ---
 doc_id: SPEC-PILOT-001
 title: Design — MVP Điều hành dùng thử nội bộ TCKT (pilot)
-version: 3.0
+version: 3.1
 status: draft
 audience: [dev, ai, ops]
 owner: DYC
@@ -266,3 +266,5 @@ không chờ issue này.
 | 2.9 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
 | 2.10 | 2026-10-09 | Ghi nhận nhánh triển khai web đợt 5 có bổ sung `modules` vào `req.unit` và API/UI Giao việc, Trình; xem DEV-API-001 và SPEC-WEB-003 | DYC |
 | 3.0 | 2026-10-10 | Liên kết tới hợp đồng cutover: UI pilot tại `/legacy/`, `web/` tại `/` trong giai đoạn chuyển tiếp | DYC |
+| 3.1 | 2026-10-10 | Ghi nhận bản vá bảo mật #99 trên Core, CTD và Nginx (`SEC-01` → `SEC-10`); không đổi thiết kế pilot | DYC |
+

@@ -1,7 +1,7 @@
 ---
 doc_id: AI-PIT-001
 title: Bẫy đã gặp
-version: 1.20
+version: 1.21
 status: active
 audience: [ai, dev]
 owner: DYC
@@ -176,6 +176,12 @@ Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong kho
 - **`AtlassianNavigation.renderProfile` phải giữ identity ổn định.** Atlaskit dùng callback này như component type; tạo callback inline trong `PageLayout` khiến phần con bị unmount/remount khi đổi route. Nếu `NotificationCenter` nằm trong đó, `announced` bị reset và popup cũ có thể hiện lại. Dùng callback ổn định với `useCallback` và kiểm tra state của header qua điều hướng.
 - **Lỗi tải thông báo không phải danh sách rỗng.** Khi `GET /api/notifications` lỗi mà giao diện chỉ dùng `data?.notifications ?? []`, người dùng thấy "Chưa có thông báo." thay vì lỗi kết nối; render trạng thái lỗi riêng và chỉ hiện trạng thái rỗng sau lần tải thành công.
 
+## Bẫy bảo mật đa đơn vị và tải tệp (Kiểm toán ATTT #99)
+
+- **Kiểm tra cổng module (`requireModule`) không thay thế kiểm tra sở hữu bản ghi (`from_unit_id` / `to_unit_id`).** Nhiều đơn vị có thể cùng bật một module (`dieu-hanh`); mọi endpoint chi tiết (`GET /:id`) và thao tác ghi (`acknowledge`, `link-activity`, `submit`, `respond`, `withdraw`) phải kiểm tra `req.unit.id` khớp đơn vị nhận/gửi và chặn ghi khi `req.unit.kind === 'platform_owner'` (DYC chỉ đọc).
+- **Cho người dùng tự sửa `email` trong `/api/account` mà không chặn `DEVOPS_EMAILS`.** Vì hàm cấp quyền `ensureDevopsGainDycMembership` tự động gắn membership `platform_owner` cho email nằm trong `DEVOPS_EMAILS`, route tự sửa hồ sơ cá nhân bắt buộc phải từ chối mọi yêu cầu đổi sang email thuộc `DEVOPS_EMAILS`.
+- **Trả lại `content_type` do client gửi khi phục vụ file local.** Kiểm tra đuôi tên file lúc upload (`.pdf`, `.png`) không ngăn được client gửi kèm header `Content-Type: text/html`. Khi trả file từ đĩa, luôn suy ra `media_type` từ phần mở rộng chuẩn hóa kèm `X-Content-Type-Options: nosniff`.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -201,3 +207,5 @@ Cột `weight_presets.points` là `TINYINT UNSIGNED`; dù route kiểm trong kho
 | 1.18 | 2026-10-09 | Thêm bẫy đợt 4: URL thông báo là hash cũ, tránh poll đôi; header cần callback ổn định; tách lỗi tải khỏi danh sách rỗng | DYC |
 | 1.19 | 2026-10-09 | Thêm bẫy test mock req.unit.modules che lỗi middleware/session thật khi kiểm tra cổng module | DYC |
 | 1.20 | 2026-10-10 | Chuẩn hoá lịch sử bẫy đợt 3–5 sau khi tích hợp các PR frontend | DYC |
+| 1.21 | 2026-10-10 | Thêm bẫy bảo mật từ đợt Kiểm toán ATTT (#99): IDOR liên đơn vị, tự đổi email sang `DEVOPS_EMAILS`, MIME sniffing khi tải file | DYC |
+

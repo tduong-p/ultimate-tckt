@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 7.0
+version: 7.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-07
+updated: 2026-10-10
 related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/deadline-notifications.js, core/src/services/reminder-rules.js, core/src/services/notification-recipients.js, core/src/email.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js, core/src/config/database.js]
 ---
 
@@ -134,3 +134,5 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 6.1 | 2026-10-05 | Sửa mô tả khung giờ (ngoài khung không tạo gì), người nhận `activity.proposed`, hai nhãn `activity.type`/`activity.priority`; thêm kiểm tra giờ một lần mỗi lượt và dừng gửi sau lỗi tạm thời | DYC |
 | 6.2 | 2026-10-05 | Production có Noti trong compose; `CORE_NOTI_API_KEY` trống = tắt gửi (SPEC-MAIL-001) | DYC |
 | 7.0 | 2026-10-07 | Subject gom thread `[hoạt động] công việc`, `activity.title` bắt buộc cho `task.*`; thêm `comment.mentioned`; bảng người nhận; `task.assigned` bỏ user không hoạt động | DYC |
+| 7.1 | 2026-10-10 | Xác nhận bản vá bảo mật #99 trên `tasks.js` (`X-Content-Type-Options: nosniff`) không đổi luồng gửi thông báo | DYC |
+

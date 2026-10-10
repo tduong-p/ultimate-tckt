@@ -1,11 +1,11 @@
 ---
 doc_id: BA-OPS-001
 title: Use case điều hành hoạt động TCKT
-version: 2.7
+version: 2.8
 status: active
 audience: [ba]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/reports.js, core/src/routes/notifications.js]
 ---
 
@@ -97,3 +97,5 @@ Chi tiết đầy đủ (acceptance criteria dạng EARS): `.kiro/specs/nen-tang
 | 2.5 | 2026-10-02 | Email không còn do Rule Engine; thông báo ngoài app đi qua `notifier` và sẽ do Noti đảm nhận | DYC |
 | 2.6 | 2026-10-05 | #49: nhắc chưa xác nhận trong 24 giờ–7 ngày, khung gửi 07:00–21:59; không tự thông báo cho người thao tác | DYC |
 | 2.7 | 2026-10-09 | Cập nhật mục 7: API Core và web Giao việc/Trình đã có; progress_percent và nguồn ops_log còn lại | DYC |
+| 2.8 | 2026-10-10 | Bản vá bảo mật #99: kiểm tra sở hữu đơn vị trên Giao việc/Trình (`SEC-01`) và gắn `X-Content-Type-Options: nosniff` khi tải tệp công việc (`SEC-06`) | DYC |
+

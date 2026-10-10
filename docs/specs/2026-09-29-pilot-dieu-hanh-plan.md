@@ -1,7 +1,7 @@
 ---
 doc_id: PLAN-PILOT-001
 title: Kế hoạch triển khai — MVP Điều hành dùng thử nội bộ (pilot)
-version: 1.20
+version: 1.21
 status: draft
 audience: [dev, ai]
 owner: DYC
@@ -632,3 +632,5 @@ trước khi tạo trên GitHub.
 | 1.18 | 2026-10-08 | Ghi nhận hotfix PR #81: trang chi tiết hoạt động tra khung Participants bằng `#participants-head` thay vì qua nút `#volunteer` (nút ẩn khi người xem đã tham gia → lỗi `null.closest`, trang trắng); asset `?v=2.10.1`; phạm vi không đổi | DYC |
 | 1.19 | 2026-10-09 | Ghi nhận nhánh web đợt 5 bổ sung module vào unit context/session và luồng Giao việc/Trình; chưa thay đổi lộ trình pilot | DYC |
 | 1.20 | 2026-10-10 | Liên kết tới lộ trình cutover giao diện và vị trí legacy theo SPEC-WEB-003 | DYC |
+| 1.21 | 2026-10-10 | Ghi nhận bản vá bảo mật #99 (`SEC-01` → `SEC-10`) trên Core và CTD; phạm vi kế hoạch pilot không đổi | DYC |
+
