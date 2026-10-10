@@ -121,3 +121,27 @@ test('invalid filters return 400; outsider unit gets 403', async () => {
     assert.equal(res.status, 403);
   } finally { await ctx.close(); await ctx.teardown(); }
 });
+
+test('tasks of another unit never leak: private activity without policy, and with a visibility policy', async () => {
+  const ctx = await setup();
+  try {
+    const { unitIdByCode } = require('./helpers/fixtures');
+    const btvId = await unitIdByCode(ctx.pool, 'BTV');
+    const tcktId = await unitIdByCode(ctx.pool, 'TCKT');
+    await ctx.pool.execute('INSERT IGNORE INTO unit_modules(unit_id, module_id) VALUES (?, ?)', [btvId, 'dieu-hanh']);
+    await ctx.pool.execute('DELETE FROM unit_visibility_policies WHERE viewer_unit_id=? AND owner_unit_id=?', [btvId, tcktId]);
+    const btvUser = await createUser(ctx.pool, { role: 'member', units: [['BTV', 'btv_lead']] });
+    await ctx.mk({ primary_assignee_id: ctx.member.id }, daysFromToday(3));
+    await ctx.pool.execute('UPDATE activities SET is_public=1 WHERE id=?', [ctx.activityId]);
+
+    await ctx.client.login(btvUser.email, btvUser.password);
+    const noPolicy = await ctx.client.request('GET', '/api/tasks');
+    assert.equal(noPolicy.status, 200);
+    assert.deepEqual(noPolicy.json, []);
+
+    await ctx.pool.execute("INSERT INTO unit_visibility_policies(viewer_unit_id, owner_unit_id, level) VALUES (?, ?, 'full_readonly')", [btvId, tcktId]);
+    const withPolicy = await ctx.client.request('GET', '/api/tasks');
+    assert.equal(withPolicy.status, 200);
+    assert.deepEqual(withPolicy.json, []);
+  } finally { await ctx.close(); await ctx.teardown(); }
+});

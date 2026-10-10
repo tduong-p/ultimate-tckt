@@ -6,7 +6,7 @@ const { dateInVietnam } = require('../date-vn');
 const { notifyTaskUpdated } = require('../services/batch-notify');
 
 function createTaskRoutes(context) {
-  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, scopeFor, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
+  const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
   const router = express.Router();
 
   async function canTouchTask(context, req, taskId) {
@@ -62,7 +62,10 @@ router.get('/api/tasks', auth, asyncRoute(async (req, res) => {
   if ((from && !ISO_DATE.test(from)) || (to && !ISO_DATE.test(to))) return res.status(400).json({ error: 'Ngày phải có dạng YYYY-MM-DD.' });
   if (teamRaw && !/^\d+$/.test(teamRaw)) return res.status(400).json({ error: 'Tổ không hợp lệ.' });
   const flag = (value) => value === '1' || value === 'true';
-  const scope = await scopeFor(req.actor, 'activities');
+  // Own unit only (+ activityScope): cross-unit rows granted by visibility policies are summary-only elsewhere, so never listed here.
+  const isPlatformOwner = req.actor.unit && req.actor.unit.kind === 'platform_owner';
+  const own = activityScope(req.actor, 'a');
+  const scope = isPlatformOwner ? { sql: '1=1', params: [] } : { sql: `(a.unit_id=? AND ${own.sql})`, params: [req.actor.unit.id, ...own.params] };
   const where = [scope.sql];
   const params = [req.actor.id, ...scope.params];
   if (flag(q.mine)) where.push('mine.user_id IS NOT NULL');
