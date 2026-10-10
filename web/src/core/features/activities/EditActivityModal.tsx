@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
 import { useQuery } from '@tanstack/react-query';
+import { Dialog, Button } from '../../../ui';
 import { fetchTeams, updateActivity, type ActivityDetail, type UpdateActivityPayload } from '../../api';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { LinkField } from '../../../shared/components/LinkField';
@@ -86,65 +83,78 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
   const leadId = Number(form.leadTeamId);
   const activeTeamIds = effectiveTeamIds(form);
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: 'var(--ui-radius-sm, 4px)',
+    border: '1px solid var(--ui-border)',
+    background: 'var(--ui-bg-input, var(--ui-bg-card))',
+    color: 'var(--ui-text)',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+    outline: 'none',
+  };
+
   return (
     <>
-      <ModalTransition>
-        {isOpen && (
-          <Modal onClose={onClose} width="large">
-            <ModalHeader>
-              <ModalTitle>Sửa thông tin khác</ModalTitle>
-            </ModalHeader>
-            <ModalBody>
-              <FieldRow label="Loại hoạt động" htmlFor="edit-activity-type">
-                <NativeSelect id="edit-activity-type" value={form.type} options={EDIT_TYPE_OPTIONS} onChange={(v) => set('type', v)} />
-              </FieldRow>
-              <FieldRow label="Địa điểm" htmlFor="edit-activity-location">
-                <Textfield id="edit-activity-location" value={form.location} onChange={(e) => set('location', (e.target as HTMLInputElement).value)} />
-              </FieldRow>
-              {form.type === 'assigned' && (
-                <FieldRow label="Yêu cầu bởi" htmlFor="edit-activity-requested">
-                  <Textfield id="edit-activity-requested" value={form.requestedBy} onChange={(e) => set('requestedBy', (e.target as HTMLInputElement).value)} />
-                </FieldRow>
-              )}
-              <FieldRow label="Kết quả" htmlFor="edit-activity-result">
-                <TextArea id="edit-activity-result" minimumRows={2} value={form.resultSummary} onChange={(e) => set('resultSummary', (e.target as HTMLTextAreaElement).value)} />
-              </FieldRow>
-              <LinkField label="Link đề án (không bắt buộc)" value={form.proposalUrl} onChange={(v) => set('proposalUrl', v)} />
-              <div style={{ margin: '12px 0' }}>
-                <label>
-                  <input type="checkbox" checked={form.isPublic} onChange={(e) => set('isPublic', e.target.checked)} /> Hiển thị trên trang công khai
-                </label>
-              </div>
-              <LinkField label="Link ảnh công khai (không bắt buộc)" value={form.publicImageUrl} onChange={(v) => set('publicImageUrl', v)} />
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+        title="Sửa thông tin khác"
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', width: '100%' }}>
+            <Button onClick={onClose}>
+              Huỷ
+            </Button>
+            <Button variant="primary" disabled={save.isPending} onClick={submit}>
+              Lưu thay đổi
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <FieldRow label="Loại hoạt động" htmlFor="edit-activity-type">
+            <NativeSelect id="edit-activity-type" value={form.type} options={EDIT_TYPE_OPTIONS} onChange={(v) => set('type', v)} />
+          </FieldRow>
+          <FieldRow label="Địa điểm" htmlFor="edit-activity-location">
+            <input id="edit-activity-location" value={form.location} onChange={(e) => set('location', e.target.value)} style={inputStyle} />
+          </FieldRow>
+          {form.type === 'assigned' && (
+            <FieldRow label="Yêu cầu bởi" htmlFor="edit-activity-requested">
+              <input id="edit-activity-requested" value={form.requestedBy} onChange={(e) => set('requestedBy', e.target.value)} style={inputStyle} />
+            </FieldRow>
+          )}
+          <FieldRow label="Kết quả" htmlFor="edit-activity-result">
+            <textarea id="edit-activity-result" rows={2} value={form.resultSummary} onChange={(e) => set('resultSummary', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
+          </FieldRow>
+          <LinkField label="Link đề án (không bắt buộc)" value={form.proposalUrl} onChange={(v) => set('proposalUrl', v)} />
+          <div style={{ margin: '4px 0' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.isPublic} onChange={(e) => set('isPublic', e.target.checked)} /> Hiển thị trên trang công khai
+            </label>
+          </div>
+          <LinkField label="Link ảnh công khai (không bắt buộc)" value={form.publicImageUrl} onChange={(v) => set('publicImageUrl', v)} />
 
-              {isAdmin && (
-                <div style={{ marginTop: 16 }}>
-                  <FieldRow label="Trạng thái" htmlFor="edit-activity-status">
-                    <NativeSelect id="edit-activity-status" value={form.status} options={EDIT_STATUS_OPTIONS} onChange={(v) => set('status', v)} />
-                  </FieldRow>
-                  <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-                    <legend style={{ fontWeight: 600, marginBottom: 4 }}>Các Tổ tham gia</legend>
-                    {teamOptions.map((t) => (
-                      <label key={t.id} style={{ display: 'block', padding: '2px 0' }}>
-                        <input type="checkbox" checked={activeTeamIds.includes(t.id)} disabled={t.id === leadId} onChange={() => toggleTeam(t.id)} /> {t.name}
-                      </label>
-                    ))}
-                  </fieldset>
-                </div>
-              )}
-              {error && <ErrorText>{error}</ErrorText>}
-            </ModalBody>
-            <ModalFooter>
-              <Button appearance="subtle" onClick={onClose}>
-                Huỷ
-              </Button>
-              <Button appearance="primary" isLoading={save.isPending} onClick={submit}>
-                Lưu thay đổi
-              </Button>
-            </ModalFooter>
-          </Modal>
-        )}
-      </ModalTransition>
+          {isAdmin && (
+            <div style={{ marginTop: 8 }}>
+              <FieldRow label="Trạng thái" htmlFor="edit-activity-status">
+                <NativeSelect id="edit-activity-status" value={form.status} options={EDIT_STATUS_OPTIONS} onChange={(v) => set('status', v)} />
+              </FieldRow>
+              <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+                <legend style={{ fontWeight: 600, marginBottom: 4, fontSize: '13px' }}>Các Tổ tham gia</legend>
+                {teamOptions.map((t) => (
+                  <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '2px 0', fontSize: '13px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={activeTeamIds.includes(t.id)} disabled={t.id === leadId} onChange={() => toggleTeam(t.id)} /> {t.name}
+                  </label>
+                ))}
+              </fieldset>
+            </div>
+          )}
+          {error && <ErrorText>{error}</ErrorText>}
+        </div>
+      </Dialog>
       <ConfirmDialog
         isOpen={pendingCancel !== null}
         title="Huỷ và xoá hoạt động?"

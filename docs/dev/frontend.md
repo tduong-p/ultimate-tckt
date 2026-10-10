@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.33
+version: 1.34
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -254,3 +254,4 @@ Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, kho�
 | 1.31 | 2026-10-10 | Lịch, Tổ, Thành viên dùng kit mới (`peopleKit`, `ppl-`/`team-`/`cal-`/`mem-`); vạch hôm nay Gantt theo ngày thật; xoá `TeamCheckboxes` | DYC |
 | 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
 | 1.33 | 2026-10-10 | Trình (Submissions) dùng kit mới (`submissions.css`, `parts.tsx`); chuyển LinkField, ReasonDialog, ConfirmDialog và phần còn lại trong task drawer sang kit mới | DYC |
+| 1.34 | 2026-10-10 | Tài khoản, Đăng nhập, Onboarding, Bộ trọng số và các dialog còn lại chuyển sang UI kit mới; dọn dẹp Atlaskit trong core và shared | DYC |

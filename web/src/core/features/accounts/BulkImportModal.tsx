@@ -1,6 +1,4 @@
 import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import TextArea from '@atlaskit/textarea';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, bulkImportUsers } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
@@ -10,7 +8,7 @@ import { FormField } from '../people/FormField';
 import { invalidatePeople } from '../people/invalidate';
 
 export const BulkImportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => (
-  <ModalTransition>{isOpen && <BulkImportDialog onClose={onClose} />}</ModalTransition>
+  isOpen ? <BulkImportDialog onClose={onClose} /> : null
 );
 
 const BulkImportDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -46,7 +44,25 @@ const BulkImportDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         htmlFor={textId}
         hint="Tài khoản được tạo là thành viên, đăng nhập SSO, chưa thuộc Tổ nào. Email sai hoặc đã có sẽ bị bỏ qua."
       >
-        <TextArea id={textId} value={text} minimumRows={8} onChange={(e) => setText(e.target.value)} />
+        <textarea
+          id={textId}
+          value={text}
+          rows={8}
+          onChange={(e) => setText(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            borderRadius: 'var(--ui-radius-sm, 4px)',
+            border: '1px solid var(--ui-border)',
+            background: 'var(--ui-bg-input, var(--ui-bg-card))',
+            color: 'var(--ui-text)',
+            fontSize: '13px',
+            fontFamily: 'monospace',
+            boxSizing: 'border-box',
+            outline: 'none',
+            resize: 'vertical',
+          }}
+        />
       </FormField>
     </FormDialog>
   );

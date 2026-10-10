@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -22,7 +21,10 @@ export function getStoredTheme(): ThemeMode {
 
 export function applyGlobalTheme(theme: ThemeMode) {
   try {
-    setGlobalTheme({ colorMode: theme });
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-color-mode', theme);
+    }
     if (typeof window !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     }

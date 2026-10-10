@@ -1,6 +1,4 @@
 import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import Textfield from '@atlaskit/textfield';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, updateMyAccount, type SessionData } from '../../api';
 import { MEMBERS_KEY, SESSION_KEY } from '../../queryKeys';
@@ -13,7 +11,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+$/;
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 export const MyAccountModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => (
-  <ModalTransition>{isOpen && <MyAccountDialog onClose={onClose} />}</ModalTransition>
+  isOpen ? <MyAccountDialog onClose={onClose} /> : null
 );
 
 const MyAccountDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -45,20 +43,32 @@ const MyAccountDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     mutation.mutate();
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: 'var(--ui-radius-sm, 4px)',
+    border: '1px solid var(--ui-border)',
+    background: 'var(--ui-bg-input, var(--ui-bg-card))',
+    color: 'var(--ui-text)',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+    outline: 'none',
+  };
+
   return (
     <FormDialog title="Tài khoản của tôi" submitLabel="Lưu tài khoản" isSubmitting={mutation.isPending} error={error} onSubmit={submit} onClose={onClose}>
       <p style={{ marginTop: 0 }}><strong>{user?.name}</strong> — chỉ quản lý mới đổi được tên và vai trò của tài khoản.</p>
       <FormField label="Email" htmlFor={ids.email}>
-        <Textfield id={ids.email} type="email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} />
+        <input id={ids.email} type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
       </FormField>
       <FormField label="Số điện thoại" htmlFor={ids.phone}>
-        <Textfield id={ids.phone} value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} />
+        <input id={ids.phone} value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
       </FormField>
       <FormField label="Màu đại diện" htmlFor={ids.color}>
         <input id={ids.color} type="color" value={color} onChange={(e) => setColor(e.target.value)} />
       </FormField>
       <FormField label="Mật khẩu mới" htmlFor={ids.password} hint="Để trống để giữ mật khẩu hiện tại. Tối thiểu 8 ký tự.">
-        <Textfield id={ids.password} type="password" value={password} onChange={(e) => setPassword((e.target as HTMLInputElement).value)} />
+        <input id={ids.password} type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
       </FormField>
     </FormDialog>
   );

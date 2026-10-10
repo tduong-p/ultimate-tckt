@@ -1,8 +1,7 @@
 import React from 'react';
-import { token } from '@atlaskit/tokens';
 
 export const ErrorText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <p role="alert" style={{ margin: '4px 0 0', color: token('color.text.danger', '#AE2E24') }}>
+  <p role="alert" style={{ margin: '4px 0 0', color: 'var(--ui-danger)' }}>
     {children}
   </p>
 );
@@ -21,10 +20,10 @@ const controlStyle: React.CSSProperties = {
   boxSizing: 'border-box',
   padding: '8px',
   font: 'inherit',
-  borderRadius: 3,
-  border: `1px solid ${token('color.border.input', '#8590A2')}`,
-  background: token('color.background.input', '#FFFFFF'),
-  color: token('color.text', '#172B4D'),
+  borderRadius: 'var(--ui-radius-sm, 4px)',
+  border: '1px solid var(--ui-border)',
+  background: 'var(--ui-bg-input, var(--ui-bg-card))',
+  color: 'var(--ui-text)',
 };
 
 export interface SelectOption {

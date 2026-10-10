@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { token } from '@atlaskit/tokens';
-import Button from '@atlaskit/button/new';
-import Lozenge from '@atlaskit/lozenge';
 import { useQuery } from '@tanstack/react-query';
+import { Button, Badge } from '../../../ui';
 import { apiErrorMessage, fetchMembers, type MemberItem } from '../../api';
 import { MEMBERS_KEY } from '../../queryKeys';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
@@ -15,13 +13,7 @@ import { getRoleLabel, ROLE_OPTIONS } from '../people/roleLabels';
 import { useCurrentUser } from '../people/useCurrentUser';
 import { BulkImportModal } from './BulkImportModal';
 import { WeightPresetsPanel } from './WeightPresetsPanel';
-
-const cell: React.CSSProperties = {
-  padding: '8px 10px',
-  textAlign: 'left',
-  borderBottom: `1px solid ${token('color.border', '#DFE1E6')}`,
-  verticalAlign: 'top',
-};
+import './accounts.css';
 
 /** `#accounts`: chỉ admin (AppRoutes chặn). Bộ trọng số và nhập hàng loạt gắn thêm ở Task 7, 8. */
 export const AccountsView: React.FC = () => {
@@ -46,28 +38,28 @@ export const AccountsView: React.FC = () => {
   }, [data, query, role, auth]);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 4 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+    <div className="acc">
+      <div className="acc-header">
         <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Quản trị tài khoản</h1>
-          <p style={{ margin: '6px 0 0', fontSize: 14, color: token('color.text.subtle', '#5E6C84') }}>
+          <h1 className="acc-title">Quản trị tài khoản</h1>
+          <p className="acc-subtitle">
             Tạo, sửa và xoá tài khoản, nhập danh sách hàng loạt, cấu hình bộ trọng số.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="acc-actions">
           <Button onClick={() => setImporting(true)}>Nhập danh sách hàng loạt</Button>
-          <Button appearance="primary" onClick={() => setCreating(true)}>Thêm tài khoản</Button>
+          <Button variant="primary" onClick={() => setCreating(true)}>Thêm tài khoản</Button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+      <div className="acc-filters">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm theo tên, email, số điện thoại, Tổ"
           aria-label="Tìm tài khoản"
-          style={{ flex: '1 1 280px', height: 32, padding: '0 10px', borderRadius: 3, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D') }}
+          className="acc-search"
         />
         <select aria-label="Lọc theo vai trò" style={{ ...selectStyle, width: 180 }} value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="all">Tất cả vai trò</option>
@@ -81,31 +73,43 @@ export const AccountsView: React.FC = () => {
       </div>
 
       {isLoading && <LottieLoading message="Đang tải danh sách tài khoản..." size={140} />}
-      {error != null && <p role="alert" style={{ color: token('color.text.danger', '#AE2E24') }}>{apiErrorMessage(error, 'Không tải được danh sách tài khoản.')}</p>}
+      {error != null && <p role="alert" style={{ color: 'var(--ui-danger)' }}>{apiErrorMessage(error, 'Không tải được danh sách tài khoản.')}</p>}
       {data && (
         <>
-          <p style={{ fontSize: 13 }}>{filtered.length} tài khoản</p>
+          <p style={{ fontSize: 13, color: 'var(--ui-text-muted)' }}>{filtered.length} tài khoản</p>
           {filtered.length === 0 ? (
             <p>Không tìm thấy tài khoản phù hợp. Thử đổi từ khoá hoặc bộ lọc.</p>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <div className="acc-table-wrap">
+              <table className="acc-table">
                 <thead>
-                  <tr><th style={cell}>Tài khoản</th><th style={cell}>Tổ</th><th style={cell}>Vai trò</th><th style={cell}>Đăng nhập</th><th style={cell}><span style={{ position: 'absolute', left: -9999 }}>Thao tác</span></th></tr>
+                  <tr>
+                    <th>Tài khoản</th>
+                    <th>Tổ</th>
+                    <th>Vai trò</th>
+                    <th>Đăng nhập</th>
+                    <th><span style={{ position: 'absolute', left: -9999 }}>Thao tác</span></th>
+                  </tr>
                 </thead>
                 <tbody>
                   {filtered.map((m) => (
                     <tr key={m.id}>
-                      <td style={cell}>
+                      <td>
                         <strong>{m.name}</strong>
-                        <div style={{ fontSize: 12, color: token('color.text.subtle', '#5E6C84') }}>{m.email}{m.phone ? ` · ${m.phone}` : ''}</div>
+                        <div className="acc-subtle-text">{m.email}{m.phone ? ` · ${m.phone}` : ''}</div>
                       </td>
-                      <td style={cell}>{m.teams || 'Chưa có Tổ'}</td>
-                      <td style={cell}><Lozenge>{getRoleLabel(m.role)}</Lozenge></td>
-                      <td style={cell}><Lozenge appearance={m.auth_provider === 'microsoft' ? 'new' : 'default'}>{m.auth_provider === 'microsoft' ? 'SSO' : 'Cục bộ'}</Lozenge></td>
-                      <td style={{ ...cell, whiteSpace: 'nowrap' }}>
-                        <Button appearance="subtle" aria-label={`Sửa ${m.name}`} onClick={() => setEditing(m)}>Sửa</Button>
-                        {m.id !== me?.id && <Button appearance="subtle" aria-label={`Xoá ${m.name}`} onClick={() => setDeleting(m)}>Xoá</Button>}
+                      <td>{m.teams || 'Chưa có Tổ'}</td>
+                      <td><Badge tone="neutral">{getRoleLabel(m.role)}</Badge></td>
+                      <td>
+                        <Badge tone={m.auth_provider === 'microsoft' ? 'info' : 'neutral'}>
+                          {m.auth_provider === 'microsoft' ? 'SSO' : 'Cục bộ'}
+                        </Badge>
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <Button size="sm" aria-label={`Sửa ${m.name}`} onClick={() => setEditing(m)}>Sửa</Button>
+                        {m.id !== me?.id && (
+                          <Button size="sm" aria-label={`Xoá ${m.name}`} onClick={() => setDeleting(m)}>Xoá</Button>
+                        )}
                       </td>
                     </tr>
                   ))}

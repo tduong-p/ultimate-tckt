@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import { token } from '@atlaskit/tokens';
+import { Button } from '../../../ui';
 import { apiErrorMessage, loginUser } from '../../api';
 import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { ThemeToggle } from '../../../shared/components/ThemeToggle';
@@ -53,8 +51,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 0.9fr)',
         minHeight: '100vh',
-        backgroundColor: token('elevation.surface', '#FFFFFF'),
-        fontFamily: 'var(--ds-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
+        backgroundColor: 'var(--ui-bg-main, #FFFFFF)',
+        fontFamily: 'var(--ui-font)',
       }}
       className="login-container-responsive"
     >
@@ -249,7 +247,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           alignItems: 'center',
           padding: '40px 24px',
           position: 'relative',
-          backgroundColor: token('elevation.surface', '#FFFFFF'),
+          backgroundColor: 'var(--ui-bg-main, #FFFFFF)',
         }}
       >
         {/* Top Header Actions (Theme Toggle & Language Toggle) */}
@@ -270,7 +268,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             aria-label="Chuyển đổi ngôn ngữ"
             style={{
               background: 'none',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
+              border: '1px solid var(--ui-border)',
               borderRadius: '6px',
               padding: '6px 10px',
               cursor: 'pointer',
@@ -279,14 +277,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               display: 'flex',
               gap: '4px',
               alignItems: 'center',
-              color: token('color.text', '#172B4D'),
+              color: 'var(--ui-text)',
             }}
           >
-            <span style={{ color: isVi ? token('color.text', '#172B4D') : token('color.text.subtlest', '#6B778C') }}>
+            <span style={{ color: isVi ? 'var(--ui-text)' : 'var(--ui-text-faint)' }}>
               VN
             </span>
-            <span style={{ color: token('color.border', '#DFE1E6') }}>|</span>
-            <span style={{ color: !isVi ? token('color.text', '#172B4D') : token('color.text.subtlest', '#6B778C') }}>
+            <span style={{ color: 'var(--ui-border)' }}>|</span>
+            <span style={{ color: !isVi ? 'var(--ui-text)' : 'var(--ui-text-faint)' }}>
               EN
             </span>
           </button>
@@ -320,7 +318,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               fontWeight: 700,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: token('color.text.brand', '#0052CC'),
+              color: 'var(--ui-focus, #0052CC)',
               display: 'inline-block',
               marginBottom: '8px',
             }}
@@ -331,7 +329,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             style={{
               fontSize: '26px',
               fontWeight: 800,
-              color: token('color.text', '#172B4D'),
+              color: 'var(--ui-text)',
               margin: '0 0 6px 0',
               letterSpacing: '-0.02em',
             }}
@@ -341,7 +339,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           <p
             style={{
               fontSize: '14px',
-              color: token('color.text.subtlest', '#6B778C'),
+              color: 'var(--ui-text-2)',
               margin: '0 0 24px 0',
             }}
           >
@@ -361,17 +359,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               boxSizing: 'border-box',
               padding: '10px 16px',
               borderRadius: '6px',
-              backgroundColor: '#FFFFFF',
-              border: `1px solid ${token('color.border', '#DFE1E6')}`,
-              color: token('color.text', '#172B4D'),
+              backgroundColor: 'var(--ui-bg-card, #FFFFFF)',
+              border: '1px solid var(--ui-border)',
+              color: 'var(--ui-text)',
               fontSize: '14px',
               fontWeight: 600,
               textDecoration: 'none',
-              boxShadow: '0 1px 2px rgba(9, 30, 66, 0.08)',
+              boxShadow: 'var(--ui-shadow)',
               transition: 'background-color 0.15s ease',
             }}
           >
-            {/* Animated Microsoft Start Lottie Logo */}
             <MicrosoftLottieLogo size={20} />
             <span>{isVi ? 'Đăng nhập bằng tài khoản HUST' : 'Sign in with Microsoft HUST'}</span>
           </a>
@@ -383,16 +380,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               alignItems: 'center',
               gap: '10px',
               margin: '20px 0',
-              color: token('color.text.subtlest', '#6B778C'),
+              color: 'var(--ui-text-faint)',
               fontSize: '10px',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
             }}
           >
-            <div style={{ flex: 1, height: '1px', backgroundColor: token('color.border', '#EBECF0') }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--ui-border)' }} />
             <span>{isVi ? 'HOẶC SỬ DỤNG TÀI KHOẢN NỘI BỘ' : 'OR USE YOUR LOCAL ACCOUNT'}</span>
-            <div style={{ flex: 1, height: '1px', backgroundColor: token('color.border', '#EBECF0') }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--ui-border)' }} />
           </div>
 
           {/* Error Notice */}
@@ -401,11 +398,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               role="alert"
               aria-live="assertive"
               style={{
-                backgroundColor: '#FFEBE6',
-                border: '1px solid #FF8F73',
+                backgroundColor: 'var(--ui-st-blocked, #FFEBE6)',
+                border: '1px solid var(--ui-danger, #FF8F73)',
                 borderRadius: '6px',
                 padding: '10px 14px',
-                color: '#BF2600',
+                color: 'var(--ui-pr-urgent, #BF2600)',
                 fontSize: '13px',
                 lineHeight: 1.4,
                 marginBottom: '16px',
@@ -424,21 +421,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   display: 'block',
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: token('color.text.subtle', '#42526E'),
+                  color: 'var(--ui-text-2)',
                   marginBottom: '6px',
                 }}
               >
                 {isVi ? 'Địa chỉ email' : 'Email address'}
               </label>
-              <Textfield
+              <input
                 id="login-email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="vidu@hust.edu.vn"
-                isRequired
+                required
+                style={{
+                  width: '100%',
+                  height: '36px',
+                  padding: '0 10px',
+                  borderRadius: 'var(--ui-radius)',
+                  border: '1px solid var(--ui-border-strong)',
+                  background: 'var(--ui-bg-main)',
+                  color: 'var(--ui-text)',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
@@ -449,28 +457,39 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   display: 'block',
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: token('color.text.subtle', '#42526E'),
+                  color: 'var(--ui-text-2)',
                   marginBottom: '6px',
                 }}
               >
                 {isVi ? 'Mật khẩu' : 'Password'}
               </label>
-              <Textfield
+              <input
                 id="login-password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                isRequired
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  height: '36px',
+                  padding: '0 10px',
+                  borderRadius: 'var(--ui-radius)',
+                  border: '1px solid var(--ui-border-strong)',
+                  background: 'var(--ui-bg-main)',
+                  color: 'var(--ui-text)',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
               />
             </div>
 
             <Button
               type="submit"
-              appearance="primary"
-              shouldFitContainer
-              isLoading={isLoading}
+              variant="primary"
+              disabled={isLoading}
+              style={{ width: '100%', height: '36px', fontSize: '14px', justifyContent: 'center' }}
             >
               {isVi ? 'Đăng nhập →' : 'Sign in →'}
             </Button>

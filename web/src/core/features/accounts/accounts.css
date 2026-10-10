@@ -1,0 +1,19 @@
+/* Quản trị tài khoản & Bộ trọng số. Chỉ dùng token --ui-*. Tiền tố acc-. */
+.acc { max-width: 1200px; margin: 0 auto; padding-top: 4px; font-family: var(--ui-font); color: var(--ui-text); }
+.acc-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.acc-title { margin: 0; font-size: 24px; font-weight: 600; color: var(--ui-text); }
+.acc-subtitle { margin: 6px 0 0; font-size: 14px; color: var(--ui-text-muted); }
+.acc-actions { display: flex; gap: 8px; }
+.acc-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.acc-search { flex: 1 1 280px; height: 32px; padding: 0 10px; border-radius: var(--ui-radius-sm); border: 1px solid var(--ui-border); background: var(--ui-bg-input, var(--ui-bg-card)); color: var(--ui-text); box-sizing: border-box; }
+.acc-search:focus { outline: none; border-color: var(--ui-focus); }
+.acc-table-wrap { overflow-x: auto; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.acc-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.acc-table th { padding: 8px 12px; text-align: left; font-size: 11.5px; font-weight: 500; color: var(--ui-text-faint, var(--ui-text-muted)); border-bottom: 1px solid var(--ui-border); white-space: nowrap; }
+.acc-table td { padding: 8px 12px; border-bottom: 1px solid var(--ui-border); vertical-align: top; }
+.acc-table tbody tr:last-child td { border-bottom: 0; }
+.acc-table tbody tr:hover { background: var(--ui-bg-hover); }
+.acc-subtle-text { font-size: 12px; color: var(--ui-text-muted); }
+.acc-preset-panel { margin-top: 32px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); padding: 16px; background: var(--ui-bg-card); }
+.acc-preset-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.acc-preset-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--ui-border); }
