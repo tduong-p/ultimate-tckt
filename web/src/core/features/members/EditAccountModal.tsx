@@ -1,25 +1,21 @@
-import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import Textfield from '@atlaskit/textfield';
+import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, fetchTeams, updateUser, type MemberItem, type UpdateUserPayload } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { TEAMS_KEY } from '../../queryKeys';
 import { useToast } from '../../../shared/components/Toast';
-import { FormDialog } from '../people/FormDialog';
-import { FormField, selectStyle } from '../people/FormField';
+import { Field, Select } from '../../../ui';
+import { PeopleFormDialog, TeamChecks } from '../people/peopleKit';
 import { invalidatePeople } from '../people/invalidate';
 import { ROLE_OPTIONS } from '../people/roleLabels';
-import { TeamCheckboxes } from '../people/TeamCheckboxes';
 
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 export const EditAccountModal: React.FC<{ member: MemberItem | null; onClose: () => void }> = ({ member, onClose }) => (
-  <ModalTransition>{member && <EditAccountDialog member={member} onClose={onClose} />}</ModalTransition>
+  <>{member && <EditAccountDialog member={member} onClose={onClose} />}</>
 );
 
 const EditAccountDialog: React.FC<{ member: MemberItem; onClose: () => void }> = ({ member, onClose }) => {
-  const ids = { name: useId(), email: useId(), phone: useId(), color: useId(), role: useId(), password: useId() };
   const caps = useCapabilities();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -64,34 +60,33 @@ const EditAccountDialog: React.FC<{ member: MemberItem; onClose: () => void }> =
   };
 
   return (
-    <FormDialog title="Sửa tài khoản" submitLabel="Lưu" isSubmitting={mutation.isPending} error={error} onSubmit={submit} onClose={onClose}>
-      <FormField label="Họ và tên" htmlFor={ids.name}>
-        <Textfield id={ids.name} value={name} onChange={(e) => setName((e.target as HTMLInputElement).value)} />
-      </FormField>
+    <PeopleFormDialog title="Sửa tài khoản" submitLabel="Lưu" submitting={mutation.isPending} error={error} onSubmit={submit} onClose={onClose}>
+      <Field label="Họ và tên">
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
       {caps.isExec && (
-        <FormField label="Email" htmlFor={ids.email}>
-          <Textfield id={ids.email} type="email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} />
-        </FormField>
+        <Field label="Email">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </Field>
       )}
-      <FormField label="Số điện thoại" htmlFor={ids.phone}>
-        <Textfield id={ids.phone} value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} />
-      </FormField>
-      <FormField label="Màu đại diện" htmlFor={ids.color}>
-        <input id={ids.color} type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-      </FormField>
+      <Field label="Số điện thoại">
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+      </Field>
+      <Field label="Màu đại diện">
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+      </Field>
       {caps.isExec && (
         <>
-          <FormField label="Vai trò" htmlFor={ids.role}>
-            <select id={ids.role} style={selectStyle} value={role} onChange={(e) => setRole(e.target.value)}>
-              {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </FormField>
-          <FormField label="Mật khẩu mới" htmlFor={ids.password} hint="Để trống để giữ mật khẩu hiện tại.">
-            <Textfield id={ids.password} type="password" value={password} onChange={(e) => setPassword((e.target as HTMLInputElement).value)} />
-          </FormField>
+          <Field label="Vai trò">
+            <Select value={role} onChange={setRole} options={ROLE_OPTIONS} />
+          </Field>
+          <Field label="Mật khẩu mới">
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </Field>
+          <p className="ppl-hint">Để trống để giữ mật khẩu hiện tại.</p>
         </>
       )}
-      <TeamCheckboxes teams={allowedTeams} value={teamIds} onChange={setTeamIds} />
-    </FormDialog>
+      <TeamChecks teams={allowedTeams} value={teamIds} onChange={setTeamIds} />
+    </PeopleFormDialog>
   );
 };

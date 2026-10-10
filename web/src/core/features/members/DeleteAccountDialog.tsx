@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, deleteUser, type DeleteUserResult, type MemberItem } from '../../api';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { PeopleConfirmDialog } from '../people/peopleKit';
 import { useToast } from '../../../shared/components/Toast';
 import { invalidatePeople } from '../people/invalidate';
 
@@ -27,12 +27,12 @@ export const DeleteAccountDialog: React.FC<{ member: MemberItem | null; onClose:
     },
   });
   return (
-    <ConfirmDialog
-      isOpen={member !== null}
+    <PeopleConfirmDialog
+      open={member !== null}
       title="Xoá tài khoản"
-      appearance="danger"
+      danger
       confirmLabel="Xoá tài khoản"
-      isLoading={mutation.isPending}
+      loading={mutation.isPending}
       onConfirm={() => member && mutation.mutate(member.id)}
       onCancel={onClose}
     >
@@ -40,6 +40,6 @@ export const DeleteAccountDialog: React.FC<{ member: MemberItem | null; onClose:
         Xoá tài khoản <strong>{member?.name}</strong>? Nếu tài khoản đã có lịch sử công việc, hệ thống chỉ vô hiệu hoá;
         Tổ trưởng chỉ gỡ được tài khoản khỏi Tổ của mình.
       </p>
-    </ConfirmDialog>
+    </PeopleConfirmDialog>
   );
 };

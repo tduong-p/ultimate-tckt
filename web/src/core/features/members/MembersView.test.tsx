@@ -34,6 +34,38 @@ describe('MembersView', () => {
     expect(screen.getByText('Nguyễn Văn Huy')).toBeDefined();
   });
 
+  it('lọc theo Tổ và theo vai trò bằng ô chọn có tên truy cập', async () => {
+    renderWithApp(<MembersView />);
+    await screen.findByText('Phạm Việt Bách');
+    fireEvent.change(screen.getByLabelText('Lọc theo Tổ'), { target: { value: '2' } });
+    await waitFor(() => expect(screen.queryByText('Phạm Việt Bách')).toBeNull());
+    expect(screen.getByText('Nguyễn Văn Huy')).toBeDefined();
+    fireEvent.change(screen.getByLabelText('Lọc theo Tổ'), { target: { value: 'all' } });
+    fireEvent.change(screen.getByLabelText('Lọc theo vai trò'), { target: { value: 'leader' } });
+    await waitFor(() => expect(screen.queryByText('Nguyễn Văn Huy')).toBeNull());
+    expect(screen.getByText('Phạm Việt Bách')).toBeDefined();
+  });
+
+  it('lọc không ra ai: báo không khớp bộ lọc', async () => {
+    renderWithApp(<MembersView />);
+    await screen.findByText('Phạm Việt Bách');
+    fireEvent.change(screen.getByPlaceholderText('Tìm thành viên...'), { target: { value: 'zzz' } });
+    expect(await screen.findByText('Không tìm thấy thành viên phù hợp với tiêu chí tìm kiếm hoặc bộ lọc hiện tại.')).toBeDefined();
+  });
+
+  it('lỗi tải hiện thông báo lỗi', async () => {
+    vi.mocked(api.fetchMembers).mockRejectedValue(new Error('x'));
+    renderWithApp(<MembersView />);
+    expect(await screen.findByText('Lỗi tải dữ liệu thành viên')).toBeDefined();
+  });
+
+  it('hộp Tạo tài khoản là dialog; nút Tạo gửi form', async () => {
+    renderWithApp(<MembersView />, { role: 'admin', teams: harnessTeams });
+    await screen.findByText('Phạm Việt Bách');
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo tài khoản' }));
+    expect(await screen.findByRole('dialog', { name: 'Tạo tài khoản' })).toBeDefined();
+  });
+
   it('danh sách rỗng hiện trạng thái trống', async () => {
     vi.mocked(api.fetchMembers).mockResolvedValue([]);
     renderWithApp(<MembersView />);

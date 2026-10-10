@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.30
+version: 1.31
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -202,6 +202,13 @@ Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/
 - Lưu xong: toast "Đã lưu" và làm mới `useInvalidateTaskCaches`. 409 hiện "Công việc đã bị người khác sửa", nút "Tải lại" / "Giữ của tôi", `Lưu` bị khoá tới khi chọn. 403/400 hiện lỗi và giữ nháp.
 - `KanbanBoard` và `CreateTaskModal` dùng kit mới (`kanban.css` tiền tố `kb-`; `Dialog`/`Field`/`Select`), giữ nguyên hành vi, thông báo và luật kéo-thả.
 
+### Lịch, Tổ, Thành viên — `web/src/core/features/{calendar,teams,members}/`
+
+Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, khoá query, quyền, trạng thái rỗng/tải/lỗi và tên truy cập. Vẫn dùng hộp thoại tạo/sửa (không có phiên sửa tại chỗ).
+- `features/people/peopleKit.tsx`: `PeopleFormDialog` (kit `Dialog` + form, nút gửi ở chân qua `form=`), `PeopleConfirmDialog`, `TeamChecks`. CSS dùng chung `people/people.css` (tiền tố `ppl-`); riêng từng màn: `teams.css` (`team-`), `calendar.css` (`cal-`), `members.css` (`mem-`). Chỉ token `--ui-*`.
+- `FormDialog`/`FormField` Atlaskit trong `people/` còn được `accounts/*` và `session/MyAccountModal` dùng nên chưa xoá; `TeamCheckboxes` đã xoá. Toast vẫn là `useToast` Atlaskit dùng chung (shell chưa gắn toast của kit).
+- Lịch: chế độ xem là nút `aria-pressed`; lọc Tổ là ô chọn "Lọc theo Tổ" (`participatesInTeam`); pill/dòng/thanh Gantt là `<button>` mở hoạt động; vạch "hôm nay" Gantt (`gantt-today-line`) tính từ ngày Việt Nam hiện tại, chỉ hiện ở tháng hiện tại; lỗi tải hiện "Không tải được lịch hoạt động.". `GANTT_COLORS` vẫn export và đặt màu thanh inline.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -237,3 +244,4 @@ Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/
 | 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
 | 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |
 | 1.30 | 2026-10-10 | Chi tiết công việc sửa tại chỗ (ngăn kéo, `editable[]`, 409 Tải lại); xoá `EditTaskDialog`; Kanban và Giao việc dùng kit mới | DYC |
+| 1.31 | 2026-10-10 | Lịch, Tổ, Thành viên dùng kit mới (`peopleKit`, `ppl-`/`team-`/`cal-`/`mem-`); vạch hôm nay Gantt theo ngày thật; xoá `TeamCheckboxes` | DYC |

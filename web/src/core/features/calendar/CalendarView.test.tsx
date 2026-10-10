@@ -272,15 +272,49 @@ describe('CalendarView', () => {
     await screen.findByText('Hoạt động của Tổ khác');
     await screen.findByText('Họp giao ban Đoàn đầu tháng 10');
 
-    const teamSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.focus(teamSelect);
-    fireEvent.keyDown(teamSelect, { key: 'ArrowDown' });
-    fireEvent.click(await screen.findByText('Tuyên giáo - Truyền thông', { selector: '[class*="option"], [id*="option"]' }));
+    fireEvent.change(screen.getByLabelText('Lọc theo Tổ'), { target: { value: '2' } });
 
     await waitFor(() => expect(screen.queryByText('Hoạt động của Tổ khác')).toBeNull());
     // chủ trì (id 2) và phối hợp (id 1) đều còn
     expect(screen.getByText('Hội thảo Đổi mới Phương thức Sinh hoạt Chi đoàn')).toBeDefined();
     expect(screen.getByText('Họp giao ban Đoàn đầu tháng 10')).toBeDefined();
+  });
+
+  it('vạch "hôm nay" của Gantt nằm đúng ngày hôm nay và chỉ hiện ở tháng hiện tại', async () => {
+    renderWithClient(<CalendarView />);
+    fireEvent.click(screen.getByText('Biểu đồ Gantt'));
+    const line = await screen.findByTestId('gantt-today-line');
+    // 08/10/2026, tháng có 31 ngày: giữa cột thứ 8
+    expect(parseFloat(line.style.left)).toBeCloseTo(((8 - 0.5) / 31) * 100, 3);
+    fireEvent.click(screen.getByLabelText('Tháng sau'));
+    expect(screen.queryByTestId('gantt-today-line')).toBeNull();
+  });
+
+  it('vạch "hôm nay" theo ngày hệ thống chứ không cố định tháng 10/2026', async () => {
+    vi.setSystemTime(new Date('2026-12-15T03:00:00.000Z'));
+    vi.mocked(api.fetchActivities).mockResolvedValue([
+      { ...mockActivities[0], start_date: '2026-12-10T00:00:00.000Z', deadline: '2026-12-20T00:00:00.000Z' },
+    ]);
+    renderWithClient(<CalendarView />);
+    fireEvent.click(screen.getByText('Biểu đồ Gantt'));
+    const line = await screen.findByTestId('gantt-today-line');
+    expect(parseFloat(line.style.left)).toBeCloseTo(((15 - 0.5) / 31) * 100, 3);
+  });
+
+  it('chuyển chế độ xem và bộ lọc Tổ có tên truy cập; chế độ đang chọn báo aria-pressed', () => {
+    renderWithClient(<CalendarView />);
+    expect(screen.getByLabelText('Lọc theo Tổ')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Tháng' }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Danh sách' }));
+    expect(screen.getByRole('button', { name: 'Danh sách' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Tháng' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('lỗi tải hoạt động hiện thông báo trong chế độ danh sách', async () => {
+    vi.mocked(api.fetchActivities).mockRejectedValue(new Error('x'));
+    renderWithClient(<CalendarView />);
+    fireEvent.click(screen.getByText('Danh sách'));
+    expect(await screen.findByText('Không tải được lịch hoạt động.')).toBeDefined();
   });
 
   it('hiển thị "Cần chỉnh sửa" cho changes_requested trong danh sách', async () => {
