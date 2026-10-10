@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.23
+version: 1.24
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -154,6 +154,21 @@ Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (
 - `useShortcuts`: `c` (onCreate), `/` (onSearch, tuỳ chọn), `g` rồi `i` trong 1 giây → `/inbox`; bỏ qua khi đang gõ trong input/textarea/select/contenteditable hoặc có Ctrl/Cmd/Alt/Shift (trừ `/`), phím lặp, đang soạn IME, hoặc đích nằm trong `[role=dialog]`/`[aria-modal]`/`[role=textbox|combobox]`. Drawer: mở thì focus mục đầu, đóng thì trả focus về hamburger.
 - `useTheme`: dùng `getStoredTheme`/`applyGlobalTheme` (key `tckt_theme`, token Atlaskit cho màn cũ). Atlaskit cũng ghi `data-theme` trên `<html>`
   (`dark:dark light:light …`), nên shell thêm từ `light`/`dark` vào danh sách và dựng lại khi bị ghi đè; `tokens.css` khớp theo từ (`[data-theme~='dark']`).
+
+## Sửa tại chỗ + Lưu/Hủy — `web/src/core/edit/` và `ui/EditBar`
+
+Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:id/batch` hoặc `/api/activities/:id/batch` (api.md mục Task Batch).
+- `useEditSession<T>({ original, editable, patch, onSaved })`: `original` là bản chi tiết từ GET, `editable` là `editable[]` của GET đó (trường khác bị `set` bỏ qua).
+  `value(k)` trả nháp hoặc gốc; `set(k, v)` ghi nháp; `dirty`/`changedKeys` so sánh sâu với bản gốc (sửa rồi trả về gốc → không dirty; ngày là chuỗi, mảng so theo cấu trúc).
+  `save()` chỉ gửi trường đổi trong `changes` và giá trị GỐC của đúng các trường đó trong `base`; đang `saving` thì `set`/`discard` bị bỏ qua và `save()` lần hai trả lại cùng promise (không gửi đôi).
+  Thành công → xoá nháp, gọi `onSaved` (nơi màn refetch/invalidate query). Thất bại → giữ nháp, trả `{ok:false, kind, fields?, message}` với `kind` = `conflict` (409, `fields` = `conflicts[]`), `forbidden` (403, `forbidden[]`), `validation` (400) hoặc `error`.
+  `original` đổi khi đang có nháp (refetch) → khoá nào đã bằng bản gốc mới thì rơi khỏi nháp, khoá còn khác giữ nguyên.
+- `editApi.ts`: `patchTaskBatch(id, {changes, base})`, `patchActivityBatch(...)` và `classifyBatchError(err)`; màn truyền `patch: (c, b) => patchTaskBatch(id, { changes: c, base: b })`.
+- `useEditGuard(dirty)` (gọi trong màn): `beforeunload` chỉ đăng ký khi dirty và đăng ký cờ dirty với `EditGuardProvider` (gắn trong `Shell`). `useConfirmNavigate()` bọc nút/link điều hướng do màn tự xử lý: dirty thì hỏi ("Ở lại"/"Bỏ thay đổi").
+  HashRouter không có `useBlocker`, nên provider còn nghe `hashchange` để chặn đổi route qua sidebar/link; giới hạn: router có thể đã render route mới trong khoảnh khắc trước khi hash được trả lại, nên màn dùng phiên sửa nên giữ nháp ở cấp màn đứng trên route (không ở component con bị remount theo route).
+- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy, bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
+  Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
+
 - Tạm: `/inbox` là placeholder trong `AppRoutes.tsx` cho tới khi có màn Hộp thư thật.
 
 ## Lịch sử phiên bản
@@ -184,3 +199,4 @@ Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (
 | 1.21 | 2026-10-10 | UI kit: token `--ui-*`, `Menu.label` bắt buộc, quy ước aria-label cho nút icon, `TabsContent` | DYC |
 | 1.22 | 2026-10-10 | Shell mới `web/src/core/shell/` (sidebar, drawer, phím tắt, theme, Hộp thư); token dark khớp theo từ | DYC |
 | 1.23 | 2026-10-10 | Shell: thêm Tổng quan, siết phím tắt, focus drawer | DYC |
+| 1.24 | 2026-10-10 | Sửa tại chỗ: `useEditSession`, `EditGuardProvider`/`useEditGuard`, `EditBar`, `editApi` (batch + phân loại lỗi) | DYC |

@@ -18,5 +18,7 @@ export { PriorityIcon } from './PriorityIcon';
 export type { Priority, PriorityIconProps } from './PriorityIcon';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeTone } from './Badge';
+export { EditBar } from './EditBar';
+export type { EditBarProps } from './EditBar';
 export { Field } from './Field';
 export type { FieldProps } from './Field';

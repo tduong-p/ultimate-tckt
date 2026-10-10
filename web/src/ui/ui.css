@@ -97,3 +97,9 @@
 @media (prefers-reduced-motion: reduce) {
   [class^='ui-'], [class*=' ui-'] { transition: none !important; animation: none !important; }
 }
+
+/* EditBar */
+.ui-editbar { position: sticky; bottom: 12px; z-index: 20; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding: 8px 12px; background: var(--ui-bg-card); border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); box-shadow: 0 4px 16px rgba(15, 18, 25, 0.12); font-family: var(--ui-font); font-size: 12px; color: var(--ui-text); }
+.ui-editbar-text { color: var(--ui-text-2); }
+.ui-editbar-error { color: var(--ui-pr-urgent); }
+.ui-editbar-actions { display: flex; gap: 8px; margin-left: auto; }

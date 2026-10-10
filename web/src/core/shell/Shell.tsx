@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../../ui/tokens.css';
 import '../../ui/ui.css';
 import './shell.css';
+import { EditGuardProvider } from '../edit/EditGuard';
 import { NotificationPopups } from '../features/notifications/NotificationPopups';
 import { Icon } from './icons';
 import { Sidebar } from './Sidebar';
@@ -84,7 +85,7 @@ export const Shell: React.FC<ShellProps> = ({
         onClose={closeDrawer}
       />
       <main className="shell-main">
-        <div className="shell-content">{children}</div>
+        <div className="shell-content"><EditGuardProvider>{children}</EditGuardProvider></div>
       </main>
       <NotificationPopups />
     </div>

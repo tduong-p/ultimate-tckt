@@ -1,0 +1,102 @@
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { classifyBatchError, type BatchError } from './editApi';
+
+type Draft = Record<string, unknown>;
+
+export type SaveResult = { ok: true } | ({ ok: false } & BatchError);
+
+export interface EditSession<T> {
+  /** Nháp nếu có, không thì bản gốc. */
+  value<K extends keyof T>(key: K): T[K];
+  set<K extends keyof T>(key: K, v: T[K]): void;
+  dirty: boolean;
+  changedKeys: (keyof T)[];
+  save(): Promise<SaveResult>;
+  discard(): void;
+  saving: boolean;
+}
+
+export interface UseEditSessionOptions<T> {
+  original: T;
+  /** Danh sách trường được sửa (`editable[]` từ GET chi tiết). Trường khác bị `set` bỏ qua. */
+  editable: string[];
+  patch: (changes: Draft, base: Draft) => Promise<unknown>;
+  onSaved?: () => void;
+}
+
+export function deepEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a);
+  const kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  return ka.every((k) => deepEqual((a as Draft)[k], (b as Draft)[k]));
+}
+
+export function useEditSession<T extends object>(opts: UseEditSessionOptions<T>): EditSession<T> {
+  const { original } = opts;
+  const [draft, setDraft] = useState<Draft>({});
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const inFlight = useRef<Promise<SaveResult> | null>(null);
+  const latest = useRef(opts);
+  latest.current = opts;
+
+  // Chỉ giữ khoá còn khác bản gốc hiện tại (sửa lại về gốc, hoặc gốc mới đã bằng nháp thì rơi khỏi nháp).
+  const effective = useMemo(() => {
+    const out: Draft = {};
+    for (const [k, v] of Object.entries(draft)) {
+      if (!deepEqual(v, (original as Draft)[k])) out[k] = v;
+    }
+    return out;
+  }, [draft, original]);
+  const effectiveRef = useRef(effective);
+  effectiveRef.current = effective;
+
+  const changedKeys = Object.keys(effective) as (keyof T)[];
+
+  const set = useCallback(<K extends keyof T>(key: K, v: T[K]) => {
+    if (savingRef.current) return;
+    if (!latest.current.editable.includes(key as string)) return;
+    setDraft((d) => ({ ...d, [key as string]: v }));
+  }, []);
+
+  const value = <K extends keyof T>(key: K): T[K] =>
+    (key as string) in effective ? (effective[key as string] as T[K]) : original[key];
+
+  const discard = useCallback(() => {
+    if (savingRef.current) return;
+    setDraft({});
+  }, []);
+
+  const save = useCallback((): Promise<SaveResult> => {
+    if (inFlight.current) return inFlight.current;
+    const changes = effectiveRef.current;
+    const keys = Object.keys(changes);
+    if (keys.length === 0) return Promise.resolve({ ok: true });
+    const base: Draft = {};
+    for (const k of keys) base[k] = (latest.current.original as Draft)[k];
+
+    savingRef.current = true;
+    setSaving(true);
+    const run = (async (): Promise<SaveResult> => {
+      try {
+        await latest.current.patch(changes, base);
+      } catch (err) {
+        return { ok: false, ...classifyBatchError(err) };
+      } finally {
+        savingRef.current = false;
+        inFlight.current = null;
+        setSaving(false);
+      }
+      setDraft({});
+      latest.current.onSaved?.();
+      return { ok: true };
+    })();
+    inFlight.current = run;
+    return run;
+  }, []);
+
+  return { value, set, dirty: changedKeys.length > 0, changedKeys, save, discard, saving };
+}
