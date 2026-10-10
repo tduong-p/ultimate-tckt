@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -98,6 +98,40 @@ describe('phím tắt', () => {
   });
 });
 
+describe('phím tắt: ngoại lệ', () => {
+  it('bỏ qua phím lặp, đang soạn IME, trong dialog/textbox/combobox và khi giữ Shift', async () => {
+    const onCreate = vi.fn();
+    const onSearch = vi.fn();
+    const { user } = setup({ props: { onCreate, onSearch } });
+    fireEvent.keyDown(document.body, { key: 'c', repeat: true });
+    fireEvent.keyDown(document.body, { key: 'c', isComposing: true });
+    fireEvent.keyDown(document.body, { key: 'C', shiftKey: true });
+    expect(onCreate).not.toHaveBeenCalled();
+
+    const dlg = document.createElement('div');
+    dlg.setAttribute('role', 'dialog');
+    const btn = document.createElement('button');
+    dlg.appendChild(btn);
+    const modal = document.createElement('div');
+    modal.setAttribute('aria-modal', 'true');
+    const btn2 = document.createElement('button');
+    modal.appendChild(btn2);
+    const tb = document.createElement('div');
+    tb.setAttribute('role', 'textbox');
+    const inner = document.createElement('span');
+    tb.appendChild(inner);
+    document.body.append(dlg, modal, tb);
+    for (const el of [btn, btn2, inner]) fireEvent.keyDown(el, { key: 'c' });
+    expect(onCreate).not.toHaveBeenCalled();
+    dlg.remove(); modal.remove(); tb.remove();
+
+    await user.keyboard('c');
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(document.body, { key: '/', shiftKey: true });
+    expect(onSearch).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('drawer', () => {
   it('hamburger mở/đóng, Escape đóng, chọn mục đóng', async () => {
     const { user } = setup();
@@ -123,6 +157,25 @@ describe('drawer', () => {
     await user.click(screen.getByTestId('shell-scrim'));
     expect(isOpen()).toBe(false);
   });
+
+  it('mở thì focus mục đầu tiên, đóng thì trả focus về hamburger', async () => {
+    const { user } = setup();
+    const burger = screen.getByRole('button', { name: /menu/i });
+    await user.click(burger);
+    expect(sidebar().querySelector('.shell-nav-item')).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(burger).toHaveFocus();
+  });
+
+  it('Escape đã bị xử lý nơi khác (defaultPrevented) thì không đóng drawer', async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole('button', { name: /menu/i }));
+    const stop = (e: KeyboardEvent) => e.preventDefault();
+    document.addEventListener('keydown', stop, true);
+    await user.keyboard('{Escape}');
+    document.removeEventListener('keydown', stop, true);
+    expect(sidebar().classList.contains('shell-sidebar--open')).toBe(true);
+  });
 });
 
 describe('aria-current', () => {
@@ -136,7 +189,13 @@ describe('aria-current', () => {
     expect(current()).toEqual(['Hoạt động']);
   });
 
-  it('/my-tasks-today không tô sáng Việc của tôi; /inbox tô sáng Hộp thư', () => {
+  it('/dashboard tô sáng Tổng quan', () => {
+    setup({ path: '/dashboard' });
+    expect(current()).toContain('Tổng quan');
+    expect(screen.getByRole('button', { name: 'Về trang tổng quan' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('/my-tasks-today không có mục riêng (Task 8 sẽ chuyển hướng về tab Hôm nay của Việc của tôi); /inbox tô sáng Hộp thư', () => {
     setup({ path: '/my-tasks-today' });
     expect(current()).toEqual([]);
     cleanup();
@@ -162,6 +221,11 @@ describe('quyền hiển thị mục', () => {
   it('hiện từng nhóm theo cờ', () => {
     setup({ props: { canViewDieuHanh: true, canViewReports: true, canViewAccounts: true } });
     for (const n of ['Giao việc', 'Trình', 'Báo cáo', 'Quản trị tài khoản']) expect(has(n)).toBe(true);
+  });
+
+  it('Tổng quan luôn hiện', () => {
+    setup();
+    expect(has('Tổng quan')).toBe(true);
   });
 
   it('chỉ dieuHanh', () => {
@@ -196,10 +260,16 @@ describe('theme', () => {
 });
 
 describe('Hộp thư và poller', () => {
-  it('huy hiệu hiện số chưa đọc, 100+ rút gọn, 0 thì ẩn', async () => {
+  it('huy hiệu hiện số chưa đọc kèm nhãn truy cập', async () => {
     setup({ unread: 4 });
     expect(await screen.findByTestId('notification-badge')).toHaveTextContent('4');
-    expect(screen.getByRole('button', { name: /Hộp thư/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hộp thư, 4 chưa xem' })).toBeInTheDocument();
+    expect(screen.getByTestId('notification-badge')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('150 chưa đọc hiện 99+', async () => {
+    setup({ unread: 150 });
+    expect(await screen.findByTestId('notification-badge')).toHaveTextContent('99+');
   });
 
   it('không có huy hiệu khi 0 chưa đọc', async () => {

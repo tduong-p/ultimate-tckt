@@ -15,11 +15,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ active, onCl
   const { data } = useNotifications();
   const unread = data?.unread_count ?? 0;
   return (
-    <button type="button" className="shell-nav-item" aria-current={active ? 'page' : undefined} onClick={onClick}>
+    <button type="button" className="shell-nav-item" aria-label={unread > 0 ? `Hộp thư, ${unread} chưa xem` : 'Hộp thư'} aria-current={active ? 'page' : undefined} onClick={onClick}>
       <Icon name="inbox" />
       <span className="shell-nav-label">Hộp thư</span>
       {unread > 0 && (
-        <span className="shell-nav-count" data-testid="notification-badge" aria-label={`${unread} chưa xem`}>
+        <span className="shell-nav-count" data-testid="notification-badge" aria-hidden="true">
           {unread > 99 ? '99+' : unread}
         </span>
       )}

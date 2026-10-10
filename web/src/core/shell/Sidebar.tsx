@@ -42,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const go = (path: string) => { navigate(path); onClose(); };
 
   const work: NavDef[] = [
+    { path: '/dashboard', label: 'Tổng quan', icon: 'grid' },
     { path: '/activities', label: 'Hoạt động', icon: 'activity', alsoPaths: ['/activity'] },
     { path: '/documents', label: 'Văn bản', icon: 'document' },
     { path: '/directives', label: 'Giao việc', icon: 'directive', alsoPaths: ['/directive'], show: canViewDieuHanh },
@@ -82,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className={`shell-scrim${open ? ' shell-scrim--on' : ''}`} onClick={onClose} aria-hidden="true" data-testid="shell-scrim" />
       <nav className={`shell-sidebar${open ? ' shell-sidebar--open' : ''}`} aria-label="Điều hướng chính" id="shell-sidebar">
         <div className="shell-sidebar-head">
-          <button type="button" className="shell-org" aria-label="Về trang tổng quan" onClick={() => go('/dashboard')}>
+          <button type="button" className="shell-org" aria-label="Về trang tổng quan" aria-current={matches(pathname, '/dashboard') ? 'page' : undefined} onClick={() => go('/dashboard')}>
             <span className="shell-org-mark">T</span>
             <span className="shell-org-name">TCKT</span>
           </button>

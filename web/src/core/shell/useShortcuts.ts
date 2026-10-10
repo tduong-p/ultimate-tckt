@@ -11,8 +11,10 @@ export interface ShortcutHandlers {
 
 const SEQUENCE_MS = 1000;
 
+/** Đang gõ, hoặc đang ở trong dialog/ô nhập tuỳ biến: phím tắt không được can thiệp. */
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
+  if (target.closest('[role="dialog"],[aria-modal="true"],[role="textbox"],[role="combobox"]')) return true;
   if (target.isContentEditable || target.getAttribute('contenteditable') === 'true' || target.getAttribute('contenteditable') === '') return true;
   return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
 }
@@ -25,12 +27,13 @@ export function useShortcuts(handlers: ShortcutHandlers): void {
   useEffect(() => {
     let lastG = 0;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.defaultPrevented || e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
       if (isTypingTarget(e.target)) return;
       const key = e.key.toLowerCase();
       const now = Date.now();
       const gPending = lastG > 0 && now - lastG <= SEQUENCE_MS;
       lastG = 0;
+      if (e.shiftKey && key !== '/') return;
       if (key === 'g') {
         lastG = now;
       } else if (key === 'i' && gPending) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../ui/tokens.css';
 import '../../ui/ui.css';
@@ -35,9 +35,20 @@ export const Shell: React.FC<ShellProps> = ({
 
   useShortcuts({ onCreate, onSearch, onGoInbox: () => navigate('/inbox') });
 
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (drawerOpen) {
+      document.querySelector<HTMLElement>('#shell-sidebar .shell-nav-item')?.focus();
+    } else if (wasOpen.current) {
+      burgerRef.current?.focus();
+    }
+    wasOpen.current = drawerOpen;
+  }, [drawerOpen]);
+
   useEffect(() => {
     if (!drawerOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawerOpen(false); };
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) setDrawerOpen(false); };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [drawerOpen]);
@@ -46,6 +57,7 @@ export const Shell: React.FC<ShellProps> = ({
     <div className="shell">
       <header className="shell-topbar">
         <button
+          ref={burgerRef}
           type="button"
           className="shell-icon-btn"
           aria-label={drawerOpen ? 'Đóng menu' : 'Mở menu'}
