@@ -192,6 +192,8 @@
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
 | [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 2.0 | active | dev, ai, ops |
 | [PLAN-WEBP7-001](specs/2026-10-10-web-dot-7-thay-ui-cu-plan.md) | Kế hoạch triển khai — web/ đợt 7 (thay frontend Core tại /) | 1.0 | active | dev, ai |
+| [SPEC-WEB-004](specs/2026-10-10-web-giao-dien-moi-design.md) | Design — Giao diện web mới (Linear-style) thay Atlaskit | 1.0 | draft | dev, ai, ops |
+| [PLAN-WEB-003](specs/2026-10-10-web-giao-dien-moi-plan.md) | Kế hoạch triển khai — Giao diện web mới (Linear-style) thay Atlaskit | 1.0 | draft | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |
