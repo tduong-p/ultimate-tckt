@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.29
+version: 1.30
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -68,7 +68,7 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
 Đợt 2 (SPEC-WEB-003 §4.2, `web/src/core/features/tasks/`):
 - Hộp chi tiết công việc: `useTaskModal().open(id, { focusSubmit })` từ mọi danh sách (Tổng quan, Chi tiết hoạt động, Việc của tôi); route `#task/:id` mở hộp trên nền Tổng quan.
 - Quyền ẩn/hiện nằm ở `web/src/core/features/tasks/taskPermissions.ts` (bắt chước `core/src/routes/tasks.js` và `policies/access.js`); màn không tự viết điều kiện vai trò:
-  - Sửa công việc: chỉ `canManageTeam(task.team_id)`; sửa 4 trường `deadline`, `start_date`, `priority`, `deliverable`.
+  - Sửa công việc: sửa tại chỗ trong chi tiết theo `editable[]` của server (xem mục "Chi tiết công việc"); `EditTaskDialog` đã bị xoá.
   - Checklist thêm/tích/xoá và thêm tài liệu: `canUpdate` (`canTouchTask`).
   - Đổi trạng thái: được giao hoặc quản lý Tổ, chỉ khi `todo`/`in_progress`.
   - Nộp nghiệm thu: người được giao và `todo`/`in_progress`.
@@ -194,6 +194,14 @@ Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/
   Duyệt (kind chứa `review`), kết hợp theo AND (`notificationFilters.ts`). Core chỉ trả 20 thông báo mới nhất nên bộ lọc chỉ thấy chừng đó; khi đủ 20, màn hiện chú thích "Hiển thị 20 thông báo gần nhất". Mở một mục dùng `useOpenNotification` (đánh dấu đã xem + `notificationRoute(url)`);
   "Đánh dấu tất cả đã đọc" dùng `markAllNotificationsSeen` + `markAllSeen`.
 
+### Chi tiết công việc — `web/src/core/features/tasks/`
+
+`TaskDetailModal` là ngăn kéo bên phải (`<aside aria-label="Chi tiết công việc">`, CSS `tasks.css`, tiền tố `tk-`; không phải `role=dialog` để phím tắt của `EditBar` hoạt động). Giữ nguyên các điểm vào và URL (`useTaskModal().open(id)`, `/task/:id`).
+- Phiên sửa (`useEditSession` + `useEditGuard` + `EditBar`) nằm trong `TaskDetailModal`, sống suốt thời gian mở; `TaskModalProvider` bọc thêm `EditGuardProvider` riêng vì provider của Shell không phủ tới nó. Đóng khi còn nháp → hỏi xác nhận; đổi `taskId` thì bỏ nháp.
+- Trường sửa lấy từ `editable[]` của `GET /api/tasks/:id`: `title`, `description` (người được giao cũng sửa được), `team_id`, `primary_assignee_id`, `start_date`, `deadline`, `priority`, `deliverable` (Tổ trưởng/phó trở lên); lưu bằng một `PATCH /api/tasks/:id/batch`. `title` và `deadline` không được để trống (ô `aria-invalid` + focus); ngày bắt đầu phải <= hạn chót. Không có UI sửa `co_assignee_ids` (server nhận nhưng chưa có ô nhập).
+- Lưu xong: toast "Đã lưu" và làm mới `useInvalidateTaskCaches`. 409 hiện "Công việc đã bị người khác sửa", nút "Tải lại" / "Giữ của tôi", `Lưu` bị khoá tới khi chọn. 403/400 hiện lỗi và giữ nháp.
+- `KanbanBoard` và `CreateTaskModal` dùng kit mới (`kanban.css` tiền tố `kb-`; `Dialog`/`Field`/`Select`), giữ nguyên hành vi, thông báo và luật kéo-thả.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -228,3 +236,4 @@ Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/
 | 1.26 | 2026-10-10 | Việc của tôi (`features/mine/`, tab trên URL, `GET /api/tasks`) và Hộp thư (`Inbox`) thay `MyTasksView`/`MyTasksToday`/placeholder | DYC |
 | 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
 | 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |
+| 1.30 | 2026-10-10 | Chi tiết công việc sửa tại chỗ (ngăn kéo, `editable[]`, 409 Tải lại); xoá `EditTaskDialog`; Kanban và Giao việc dùng kit mới | DYC |

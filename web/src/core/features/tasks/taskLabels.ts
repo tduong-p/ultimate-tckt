@@ -73,3 +73,22 @@ const UPDATE_KIND_LABELS: Record<string, string> = {
 
 export const getUpdateKindLabel = (kind?: string | null): string => UPDATE_KIND_LABELS[kind ?? ''] ?? kind ?? '';
 
+
+export interface Option {
+  value: string;
+  label: string;
+}
+
+export const PRIORITY_OPTIONS: Option[] = [
+  { value: 'low', label: 'Thấp' },
+  { value: 'medium', label: 'Trung bình' },
+  { value: 'high', label: 'Cao' },
+  { value: 'urgent', label: 'Khẩn cấp' },
+];
+
+export const STAGE_OPTIONS: Option[] = [
+  { value: 'before', label: 'Trước sự kiện' },
+  { value: 'during', label: 'Trong sự kiện' },
+  { value: 'after', label: 'Sau sự kiện' },
+  { value: 'general', label: 'Chung' },
+];

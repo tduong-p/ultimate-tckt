@@ -3,24 +3,10 @@ import Textfield from '@atlaskit/textfield';
 import TextArea from '@atlaskit/textarea';
 import { token } from '@atlaskit/tokens';
 
-export interface Option {
-  value: string;
-  label: string;
-}
+import type { Option } from './taskLabels';
+export type { Option } from './taskLabels';
 
-export const PRIORITY_OPTIONS: Option[] = [
-  { value: 'low', label: 'Thấp' },
-  { value: 'medium', label: 'Trung bình' },
-  { value: 'high', label: 'Cao' },
-  { value: 'urgent', label: 'Khẩn cấp' },
-];
-
-export const STAGE_OPTIONS: Option[] = [
-  { value: 'before', label: 'Trước sự kiện' },
-  { value: 'during', label: 'Trong sự kiện' },
-  { value: 'after', label: 'Sau sự kiện' },
-  { value: 'general', label: 'Chung' },
-];
+export { PRIORITY_OPTIONS, STAGE_OPTIONS } from './taskLabels';
 
 export const ATTACHMENT_KIND_OPTIONS: Option[] = [
   { value: 'clarification', label: 'Làm rõ' },

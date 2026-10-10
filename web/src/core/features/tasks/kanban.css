@@ -1,0 +1,25 @@
+/* Bảng Kanban của hoạt động. Chỉ dùng token --ui-*. Tiền tố kb-. */
+.kb { padding-top: 4px; font-family: var(--ui-font); color: var(--ui-text); }
+.kb-back { display: inline-block; font-size: 12px; color: var(--ui-focus); text-decoration: none; }
+.kb-back:hover { text-decoration: underline; }
+.kb-state { margin: 16px 0; font-size: 13px; color: var(--ui-text-2); }
+.kb-state--error { color: var(--ui-st-blocked); }
+.kb-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+.kb-h1 { margin: 0; font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
+.kb-sub { margin: 2px 0 0; font-size: 12px; color: var(--ui-text-2); }
+.kb-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; align-items: start; }
+.kb-col { background: var(--ui-bg-app); border: 1px solid var(--ui-border); border-radius: var(--ui-radius); padding: 8px; min-height: 120px; }
+.kb-col--over { background: var(--ui-bg-select); border-color: var(--ui-focus); }
+.kb-col-title { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--ui-text-2); }
+.kb-empty { margin: 0; font-size: 12px; color: var(--ui-text-faint); }
+.kb-card { background: var(--ui-bg-card); border: 1px solid var(--ui-border); border-radius: var(--ui-radius); padding: 10px 12px; margin-bottom: 8px; }
+.kb-card--drag { cursor: grab; }
+.kb-badges { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.kb-priority { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ui-text-2); }
+.kb-card-title { display: block; width: 100%; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; text-align: left; color: var(--ui-text); cursor: pointer; overflow-wrap: anywhere; }
+.kb-card-title:hover { text-decoration: underline; }
+.kb-card-title:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 1px; border-radius: 2px; }
+.kb-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 11.5px; color: var(--ui-text-faint); }
+.kb-meta--row { justify-content: space-between; }
+.kb-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+@media (max-width: 767px) { .kb-cols { grid-template-columns: 1fr; } }

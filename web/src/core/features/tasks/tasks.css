@@ -1,0 +1,42 @@
+/* Công việc (chi tiết, Kanban, tạo mới). Chỉ dùng token --ui-*. Tiền tố tk- (chi tiết, tạo mới) và kb- (Kanban). */
+.tk-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(10, 12, 18, 0.32); }
+.tk-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; width: min(640px, 100vw); display: flex; flex-direction: column; background: var(--ui-bg-card); border-left: 1px solid var(--ui-border-strong); box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12); font-family: var(--ui-font); color: var(--ui-text); box-sizing: border-box; }
+.tk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--ui-border); flex: none; }
+.tk-head-label { font-size: 12px; font-weight: 600; color: var(--ui-text-2); }
+.tk-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 16px; }
+.tk-state { margin: 16px 0; font-size: 13px; color: var(--ui-text-2); }
+.tk-state--error { color: var(--ui-st-blocked); }
+.tk-title { margin: 0 0 4px; font-size: 20px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.tk-title-input, .tk-desc-input { display: block; width: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: var(--ui-radius); background: transparent; color: var(--ui-text); font-family: var(--ui-font); }
+.tk-title-input { padding: 2px 6px; margin-left: -7px; font-size: 20px; font-weight: 600; line-height: 1.25; }
+.tk-desc-input { padding: 4px 6px; margin-left: -7px; font-size: 13px; line-height: 1.5; resize: vertical; min-height: 64px; }
+.tk-title-input:hover, .tk-desc-input:hover { border-color: var(--ui-border); }
+.tk-title-input:focus-visible, .tk-desc-input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; background: var(--ui-bg-main); }
+.tk-title-input[aria-invalid='true'], .tk-desc-input[aria-invalid='true'], .tk-input[aria-invalid='true'] { border-color: var(--ui-pr-urgent); }
+.tk-sub { margin: 0 0 8px; font-size: 12px; color: var(--ui-text-2); }
+.tk-sub a { color: var(--ui-focus); }
+.tk-desc { margin: 0 0 12px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ui-text-2); }
+.tk-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+.tk-dl { margin: 8px 0 12px; }
+.tk-prop { display: flex; gap: 8px; align-items: center; padding: 3px 0; min-height: 28px; flex-wrap: wrap; }
+.tk-prop dt { width: 130px; flex: none; font-size: 12px; color: var(--ui-text-faint); }
+.tk-prop dd { margin: 0; min-width: 0; flex: 1; font-size: 13px; overflow-wrap: anywhere; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tk-people { display: flex; flex-direction: column; gap: 2px; }
+.tk-input { height: 28px; padding: 0 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); background: var(--ui-bg-main); color: var(--ui-text); font: inherit; font-size: 12px; box-sizing: border-box; }
+.tk-input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; border-color: var(--ui-focus); }
+.tk-input--area { height: auto; min-height: 56px; width: 100%; padding: 6px 8px; resize: vertical; }
+.tk-section { margin: 14px 0; }
+.tk-h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.tk-muted { margin: 0; font-size: 12px; color: var(--ui-text-2); }
+.tk-right { text-align: right; }
+.tk-notice { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding: 8px 12px; border: 1px solid var(--ui-st-blocked); border-radius: var(--ui-radius); background: var(--ui-bg-card); font-size: 12px; }
+.tk-notice-actions { display: flex; gap: 8px; margin-left: auto; }
+@media (max-width: 767px) {
+  .tk-prop dt { width: 100%; }
+  .tk-title, .tk-title-input { font-size: 18px; }
+}
+
+/* Form giao việc */
+.tk-form { display: flex; flex-direction: column; gap: 10px; }
+.tk-input--full { width: 100%; height: 32px; }
+.tk-form-error { margin: 8px 0 0; font-size: 12px; color: var(--ui-st-blocked); }

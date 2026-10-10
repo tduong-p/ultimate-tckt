@@ -74,19 +74,20 @@ describe('TaskDetailModal', () => {
     expect(screen.queryByRole('button', { name: 'Xác nhận nhận việc' })).toBeNull();
   });
 
-  it('nút Sửa chỉ hiện với người quản lý Tổ của công việc', async () => {
-    vi.mocked(api.fetchTask).mockResolvedValue(detail() as never);
-    renderApp(<TaskDetailModal taskId={5} onClose={() => {}} />, { teams: [{ id: 2, can_manage: 0 }] });
-    await screen.findByText('Dựng sân khấu');
+  it('không còn nút/hộp "Sửa" riêng: sửa tại chỗ theo editable[] (xem TaskDetailEdit.test)', async () => {
+    vi.mocked(api.fetchTask).mockResolvedValue(detail({ editable: ['title', 'description'] }) as never);
+    renderApp(<TaskDetailModal taskId={5} onClose={() => {}} />, { session: makeSession({ id: 3, role: 'leader' }), teams: [{ id: 2, can_manage: 1 }] });
+    expect(await screen.findByRole('textbox', { name: 'Tiêu đề công việc' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Sửa' })).toBeNull();
-    cleanup();
+  });
 
-    renderApp(<TaskDetailModal taskId={5} onClose={() => {}} />, {
-      session: makeSession({ id: 3, role: 'leader' }),
-      teams: [{ id: 2, can_manage: 1 }],
-    });
-    fireEvent.click(await screen.findByRole('button', { name: 'Sửa' }));
-    expect(await screen.findByText('Sửa công việc: Dựng sân khấu')).toBeDefined();
+  it('nút Đóng gọi onClose', async () => {
+    vi.mocked(api.fetchTask).mockResolvedValue(detail() as never);
+    const onClose = vi.fn();
+    renderApp(<TaskDetailModal taskId={5} onClose={onClose} />);
+    await screen.findByText('Dựng sân khấu');
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('nộp nghiệm thu chỉ cho người được giao khi todo/in_progress; mở từ nút tích thì cuộn tới đó', async () => {

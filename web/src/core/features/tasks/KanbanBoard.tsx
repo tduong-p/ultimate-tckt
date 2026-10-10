@@ -1,15 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
-import Lozenge from '@atlaskit/lozenge';
-import { token } from '@atlaskit/tokens';
+import { Avatar, Badge, Button, PriorityIcon, StatusIcon, type Priority } from '../../../ui';
 import { apiErrorMessage, fetchActivityBoard, updateTaskStatus, type TaskItem, type TaskTransitionStatus } from '../../api';
 import { activityBoardKey } from '../../queryKeys';
 import { useCapabilities } from '../../capabilities';
 import { useToast } from '../../../shared/components/Toast';
 import { formatVnDate, todayVnKey, toVnDateKey } from '../../../shared/utils/date';
-import { getTaskPriorityAppearance, getTaskPriorityLabel } from './taskLabels';
+import { getTaskPriorityLabel } from './taskLabels';
 import {
   canMoveTask,
   canReviewTask,
@@ -24,6 +22,7 @@ import { SubmitReviewDialog } from './SubmitReviewDialog';
 import { ReviewButtons } from './ReviewButtons';
 import { ReviewDialog } from './ReviewDialog';
 import { SelfLogModal } from './SelfLogModal';
+import './kanban.css';
 
 const COLUMNS = [
   { status: 'todo', label: 'Cần làm' },
@@ -32,6 +31,8 @@ const COLUMNS = [
   { status: 'done', label: 'Hoàn thành' },
 ] as const;
 type ColumnStatus = (typeof COLUMNS)[number]['status'];
+
+const priorityOf = (p: string): Priority => (p === 'low' || p === 'medium' || p === 'high' || p === 'urgent' ? p : 'none');
 
 /** Kéo-thả chỉ bật khi thiết bị có con trỏ chính xác; thiết bị cảm ứng dùng nút trên thẻ. */
 function supportsPointerDrag(): boolean {
@@ -113,6 +114,7 @@ export const KanbanBoard: React.FC = () => {
     return (
       <article
         key={task.id}
+        className={dnd ? 'kb-card kb-card--drag' : 'kb-card'}
         draggable={dnd}
         onDragStart={(e) => {
           dragId.current = task.id;
@@ -122,54 +124,41 @@ export const KanbanBoard: React.FC = () => {
           dragId.current = null;
           setOverColumn(null);
         }}
-        style={{
-          background: token('elevation.surface.raised', '#FFFFFF'),
-          border: `1px solid ${token('color.border', '#DFE1E6')}`,
-          borderRadius: 4,
-          padding: 12,
-          marginBottom: 8,
-          cursor: dnd ? 'grab' : 'default',
-        }}
       >
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
-          <Lozenge appearance={getTaskPriorityAppearance(task.priority)}>{getTaskPriorityLabel(task.priority)}</Lozenge>
-          {Boolean(task.is_self_logged) && <Lozenge appearance="new">Tự ghi nhận</Lozenge>}
-          {task.weight !== undefined && task.weight !== null && Boolean(task.is_self_logged) && (
-            <Lozenge>{`${task.weight}đ`}</Lozenge>
-          )}
-          {overdue && <Lozenge appearance="removed">Quá hạn</Lozenge>}
+        <div className="kb-badges">
+          <span className="kb-priority">
+            <PriorityIcon priority={priorityOf(task.priority)} />
+            {getTaskPriorityLabel(task.priority)}
+          </span>
+          {Boolean(task.is_self_logged) && <Badge tone="info">Tự ghi nhận</Badge>}
+          {task.weight !== undefined && task.weight !== null && Boolean(task.is_self_logged) && <Badge>{`${task.weight}đ`}</Badge>}
+          {overdue && <Badge tone="danger">Quá hạn</Badge>}
         </div>
-        <button
-          type="button"
-          onClick={() => open(task.id)}
-          style={{
-            border: 'none',
-            background: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            font: 'inherit',
-            fontWeight: 600,
-            textAlign: 'left',
-            color: token('color.text', '#172B4D'),
-          }}
-        >
+        <button type="button" className="kb-card-title" onClick={() => open(task.id)}>
           {task.title}
         </button>
-        <div style={{ fontSize: 12, color: token('color.text.subtle', '#626F86'), marginTop: 4 }}>
-          {task.primary_assignee_name || 'Chưa giao'}
+        <div className="kb-meta">
+          {task.primary_assignee_name ? (
+            <>
+              <Avatar name={task.primary_assignee_name} size={16} />
+              {task.primary_assignee_name}
+            </>
+          ) : (
+            'Chưa giao'
+          )}
         </div>
-        <div style={{ fontSize: 12, color: token('color.text.subtle', '#626F86'), display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+        <div className="kb-meta kb-meta--row">
           <span>{`${Number(task.checklist_done || 0)}/${Number(task.checklist_total || 0)} việc con`}</span>
           <span>{formatVnDate(task.deadline)}</span>
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+        <div className="kb-actions">
           {status === 'todo' && (isAssignedTo(task, userId) || manages) && (
-            <Button spacing="compact" onClick={() => moveMutation.mutate({ id: task.id, status: 'in_progress' })}>
+            <Button size="sm" onClick={() => moveMutation.mutate({ id: task.id, status: 'in_progress' })}>
               Bắt đầu làm
             </Button>
           )}
           {canSubmitForReview(task, userId) && (
-            <Button spacing="compact" appearance="primary" onClick={() => setSubmitTask(task)}>
+            <Button size="sm" variant="primary" onClick={() => setSubmitTask(task)}>
               Nộp nghiệm thu
             </Button>
           )}
@@ -179,39 +168,38 @@ export const KanbanBoard: React.FC = () => {
     );
   };
 
-  if (!Number.isInteger(activityId) || activityId < 1) return <p>Không tìm thấy hoạt động.</p>;
+  if (!Number.isInteger(activityId) || activityId < 1) return <p className="kb-state">Không tìm thấy hoạt động.</p>;
 
   return (
-    <div style={{ paddingTop: 4 }}>
-      <Link to={`/activity/${activityId}`}>← Quay lại hoạt động</Link>
-      {query.isLoading && <p>Đang tải bảng công việc...</p>}
+    <div className="kb">
+      <Link to={`/activity/${activityId}`} className="kb-back">← Quay lại hoạt động</Link>
+      {query.isLoading && <p className="kb-state">Đang tải bảng công việc...</p>}
       {query.isError && (
-        <p role="alert" style={{ color: token('color.text.danger', '#AE2E24') }}>
+        <p role="alert" className="kb-state kb-state--error">
           {apiErrorMessage(query.error, 'Không tải được bảng công việc.')}
         </p>
       )}
       {activity && data && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', margin: '12px 0' }}>
+          <div className="kb-head">
             <div>
-              <h1 style={{ fontSize: 24, margin: 0 }}>{activity.title}</h1>
-              <p style={{ margin: '4px 0 0', color: token('color.text.subtle', '#626F86') }}>
-                Bảng Kanban{dnd ? ' · Kéo thẻ để đổi trạng thái' : ''}
-              </p>
+              <h1 className="kb-h1">{activity.title}</h1>
+              <p className="kb-sub">Bảng Kanban{dnd ? ' · Kéo thẻ để đổi trạng thái' : ''}</p>
             </div>
             {(activity.status === 'approved' || activity.status === 'active') && (
-              <Button appearance="primary" onClick={() => setSelfLogOpen(true)}>
+              <Button variant="primary" onClick={() => setSelfLogOpen(true)}>
                 Tự ghi nhận việc
               </Button>
             )}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, alignItems: 'start' }}>
+          <div className="kb-cols">
             {COLUMNS.map((col) => {
               const items = tasks.filter((t) => normalizeTaskStatus(t.status) === col.status);
               return (
                 <section
                   key={col.status}
                   aria-label={col.label}
+                  className={overColumn === col.status ? 'kb-col kb-col--over' : 'kb-col'}
                   onDragOver={(e) => {
                     if (dnd) {
                       e.preventDefault();
@@ -225,24 +213,12 @@ export const KanbanBoard: React.FC = () => {
                       handleDrop(col.status);
                     }
                   }}
-                  style={{
-                    background:
-                      overColumn === col.status
-                        ? token('color.background.selected', '#E9F2FF')
-                        : token('color.background.neutral', '#F1F2F4'),
-                    borderRadius: 4,
-                    padding: 8,
-                    minHeight: 120,
-                  }}
                 >
-                  <h2 style={{ fontSize: 13, margin: '0 0 8px' }}>
+                  <h2 className="kb-col-title">
+                    <StatusIcon status={col.status} size={12} />
                     {col.label} ({items.length})
                   </h2>
-                  {items.length === 0 ? (
-                    <p style={{ color: token('color.text.subtle', '#626F86'), fontSize: 13, margin: 0 }}>Trống</p>
-                  ) : (
-                    items.map(renderCard)
-                  )}
+                  {items.length === 0 ? <p className="kb-empty">Trống</p> : items.map(renderCard)}
                 </section>
               );
             })}

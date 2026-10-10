@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { EditGuardProvider } from '../../edit/EditGuard';
 import { TaskDetailModal } from './TaskDetailModal';
 
 export interface TaskModalApi {
@@ -11,7 +12,7 @@ export interface TaskModalApi {
 export const TaskModalContext = createContext<TaskModalApi>({ open: () => {}, close: () => {} });
 export const useTaskModal = (): TaskModalApi => useContext(TaskModalContext);
 
-/** Giữ hộp chi tiết công việc; phải nằm trong Router. Mở từ mọi danh sách bằng `useTaskModal().open(id)`. */
+/** Giữ ngăn chi tiết công việc; phải nằm trong Router. Mở từ mọi danh sách bằng `useTaskModal().open(id)`. */
 export const TaskModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [current, setCurrent] = useState<{ taskId: number; focusSubmit: boolean } | null>(null);
   const location = useLocation();
@@ -29,7 +30,12 @@ export const TaskModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return (
     <TaskModalContext.Provider value={value}>
       {children}
-      {current && <TaskDetailModal taskId={current.taskId} focusSubmit={current.focusSubmit} onClose={close} />}
+      {current && (
+        // Provider riêng: ngăn chi tiết nằm ngoài EditGuardProvider của Shell nên cần guard của chính nó (nháp + xác nhận khi đóng).
+        <EditGuardProvider>
+          <TaskDetailModal taskId={current.taskId} focusSubmit={current.focusSubmit} onClose={close} />
+        </EditGuardProvider>
+      )}
     </TaskModalContext.Provider>
   );
 };
