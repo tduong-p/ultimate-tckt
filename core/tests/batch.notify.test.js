@@ -51,15 +51,16 @@ async function withEnv(fn) {
   } finally { await server.close(); await teardown(); }
 }
 
-test('one consolidated task.updated lists both changed fields; the actor gets nothing', async () => {
-  await withEnv(async ({ request, login, sent, leader, member, taskId }) => {
+test('one consolidated task.updated lists both changed fields; event lead included, the actor gets nothing', async () => {
+  await withEnv(async ({ request, login, sent, leader, member, eventLead, taskId }) => {
     await login(leader);
     const res = await request('PATCH', `/api/tasks/${taskId}/batch`, { changes: { title: 'Tên mới', deadline: '2030-06-01' }, base: {} });
     assert.equal(res.status, 200);
     await settle();
-    assert.equal(sent.length, 1);
-    assert.deepEqual(emailsOf(sent, 'task.updated'), [member.email]);
-    const [event] = sent;
+    assert.equal(sent.length, 2);
+    assert.deepEqual(emailsOf(sent, 'task.updated'), [member.email, eventLead.email].sort());
+    assert.ok(!sent.some(e => e.recipient.email === leader.email));
+    const event = sent[0];
     assert.deepEqual(event.data.changed, ['Tiêu đề', 'Hạn']);
     assert.equal(event.data.title, 'Tên mới');
     assert.ok(event.data.actorName);
@@ -68,25 +69,25 @@ test('one consolidated task.updated lists both changed fields; the actor gets no
 });
 
 test('team lead and assignee both receive task.updated when an admin edits', async () => {
-  await withEnv(async ({ request, login, sent, admin, leader, member, taskId, pool }) => {
+  await withEnv(async ({ request, login, sent, admin, leader, member, eventLead, taskId, pool }) => {
     await login(admin);
     assert.equal((await request('PATCH', `/api/tasks/${taskId}/batch`, { changes: { priority: 'urgent' }, base: {} })).status, 200);
     await settle();
-    assert.deepEqual(emailsOf(sent, 'task.updated'), [leader.email, member.email].sort());
+    assert.deepEqual(emailsOf(sent, 'task.updated'), [leader.email, member.email, eventLead.email].sort());
     const [rows] = await pool.query("SELECT user_id,task_id FROM notifications WHERE kind='task.updated' ORDER BY user_id");
-    assert.equal(rows.length, 2);
+    assert.equal(rows.length, 3);
     assert.ok(rows.every(r => r.task_id === taskId));
   });
 });
 
 test('newly added assignees get task.assigned instead of task.updated', async () => {
-  await withEnv(async ({ request, login, sent, leader, member, newcomer, taskId }) => {
+  await withEnv(async ({ request, login, sent, leader, member, newcomer, eventLead, taskId }) => {
     await login(leader);
     const res = await request('PATCH', `/api/tasks/${taskId}/batch`, { changes: { title: 'Đổi tên', co_assignee_ids: [newcomer.id] }, base: {} });
     assert.equal(res.status, 200);
     await settle();
     assert.deepEqual(emailsOf(sent, 'task.assigned'), [newcomer.email]);
-    assert.deepEqual(emailsOf(sent, 'task.updated'), [member.email]);
+    assert.deepEqual(emailsOf(sent, 'task.updated'), [member.email, eventLead.email].sort());
     assert.ok(!sent.some(e => e.event === 'task.updated' && e.recipient.email === newcomer.email));
   });
 });
@@ -128,5 +129,25 @@ test('a no-op activity batch sends nothing', async () => {
     assert.equal((await request('PATCH', `/api/activities/${activityId}/batch`, { changes: { priority: 'medium' }, base: {} })).status, 200);
     await settle();
     assert.equal(sent.length, 0);
+  });
+});
+
+test('an event lead who is the actor is not notified', async () => {
+  await withEnv(async ({ request, login, sent, eventLead, leader, member, taskId, pool }) => {
+    await pool.execute('INSERT INTO task_assignees(task_id,user_id,is_primary) VALUES(?,?,0)', [taskId, eventLead.id]);
+    await login(eventLead);
+    assert.equal((await request('PATCH', `/api/tasks/${taskId}/batch`, { changes: { title: 'Do trưởng BTC sửa' }, base: {} })).status, 200);
+    await settle();
+    assert.deepEqual(emailsOf(sent, 'task.updated'), [leader.email, member.email].sort());
+  });
+});
+
+test('an event lead who is also an assignee is notified once', async () => {
+  await withEnv(async ({ request, login, sent, admin, eventLead, taskId, pool }) => {
+    await pool.execute('INSERT INTO task_assignees(task_id,user_id,is_primary) VALUES(?,?,0)', [taskId, eventLead.id]);
+    await login(admin);
+    assert.equal((await request('PATCH', `/api/tasks/${taskId}/batch`, { changes: { priority: 'high' }, base: {} })).status, 200);
+    await settle();
+    assert.equal(sent.filter(e => e.recipient.email === eventLead.email).length, 1);
   });
 });

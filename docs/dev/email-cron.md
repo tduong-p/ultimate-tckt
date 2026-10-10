@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 7.1
+version: 7.2
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -71,7 +71,7 @@ Mọi route truyền `actorId` (người thao tác) để facade bỏ thông bá
 `type`, `deadline`, `priority` và đi tới admin + vice_admin; `activity.decided` khi hoạt động đã xoá thì không có `path`.
 
 `task.updated` / `activity.updated` gửi **một thư gộp mỗi lần lưu**, `data` gồm `actorName`, `title` (tên mới), `changed` (nhãn tiếng Việt của các trường đã đổi, lấy từ `FIELD_LABEL` của
-`task-batch.js` / `activity-batch.js`), `task`/`activity` và `activity.title`. Lần lưu không đổi gì (no-op) không gửi gì. Mỗi người nhận còn có một dòng trong ứng dụng
+`task-batch.js` / `activity-batch.js`), `task`/`activity` và `activity.title`. Lần lưu không đổi gì (no-op) không gửi gì. Giới hạn đã biết: `sourceKey` dùng epoch giây nên hai lần lưu cùng một giây dùng chung khoá và thư thứ hai bị Noti loại (dedupe). Mỗi người nhận còn có một dòng trong ứng dụng
 (`kind` = `task.updated` / `activity.updated`, hoặc `task_assigned` cho người mới được giao). Việc gửi chạy sau commit, lỗi bị log và không làm hỏng response.
 Subject theo quy tắc thread bên dưới (`[hoạt động] công việc`); câu "<người sửa> đã cập nhật…" nằm trong thân thư.
 
@@ -92,7 +92,7 @@ trong thân thư, không nằm trong subject. Vì vậy mọi event `task.*` **b
 | `task.assigned` | mọi người được giao **đang hoạt động** (cả thông báo trong ứng dụng) |
 | `task.review_requested` | `findReviewRecipients`: tổ trưởng/tổ phó + trưởng BTC, không còn ai thì admin |
 | `task.reviewed` | mọi người được giao đang hoạt động |
-| `task.updated` | người được giao + tổ trưởng/tổ phó của tổ, trừ người lưu; người **mới được giao** trong lần lưu đó nhận `task.assigned` (`task-assigned:<taskId>:<userId>:<epoch>`) thay vì `task.updated` |
+| `task.updated` | người được giao + tổ trưởng/tổ phó của tổ + trưởng sự kiện (`event_lead`) của hoạt động (chỉ người đang hoạt động, mỗi người một thư), trừ người lưu; người **mới được giao** trong lần lưu đó nhận `task.assigned` (`task-assigned:<taskId>:<userId>:<epoch>`) thay vì `task.updated` |
 | `activity.updated` | trưởng sự kiện hiện tại và người vừa bị thay, trừ người lưu |
 | `task.response` | người giao việc + người được giao, trừ người đăng và trừ người đã nhận `comment.mentioned` cho cùng bình luận |
 | `comment.mentioned` | người được gắn thẻ (route đã kiểm tra đang hoạt động và xem được hoạt động; không tự gắn thẻ mình) |
@@ -144,3 +144,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 6.2 | 2026-10-05 | Production có Noti trong compose; `CORE_NOTI_API_KEY` trống = tắt gửi (SPEC-MAIL-001) | DYC |
 | 7.0 | 2026-10-07 | Subject gom thread `[hoạt động] công việc`, `activity.title` bắt buộc cho `task.*`; thêm `comment.mentioned`; bảng người nhận; `task.assigned` bỏ user không hoạt động | DYC |
 | 7.1 | 2026-10-10 | Thêm `task.updated` / `activity.updated` (thông báo gộp theo lô, `services/batch-notify.js`); người mới được giao nhận `task.assigned`; dòng trong ứng dụng cho các sự kiện này | DYC |
+| 7.2 | 2026-10-10 | `task.updated` gửi cả trưởng sự kiện; ghi giới hạn hai lần lưu cùng giây trùng `sourceKey` | DYC |

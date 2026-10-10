@@ -35,13 +35,15 @@ async function notifyTaskUpdated(context, actor, { task, changed, addedAssignees
   const { db, notifier } = context;
   const labelList = labels(TASK_LABEL, changed || []);
   if (!labelList.length) return;
-  const [[current]] = await db.execute('SELECT t.id,t.title,t.team_id,t.activity_id,DATE_FORMAT(t.deadline,\'%Y-%m-%d\') deadline,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id WHERE t.id=?', [task.id]);
+  const [[current]] = await db.execute('SELECT t.id,t.title,t.team_id,t.activity_id,a.event_lead_id,DATE_FORMAT(t.deadline,\'%Y-%m-%d\') deadline,a.title activity_title FROM tasks t JOIN activities a ON a.id=t.activity_id WHERE t.id=?', [task.id]);
   if (!current) return;
   const [users] = await db.query(
     `SELECT u.id,u.name,u.email FROM users u JOIN task_assignees ta ON ta.user_id=u.id WHERE ta.task_id=? AND u.is_active=1
      UNION
-     SELECT u.id,u.name,u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1) AND u.is_active=1`,
-    [current.id, current.team_id]
+     SELECT u.id,u.name,u.email FROM users u JOIN user_teams ut ON ut.user_id=u.id WHERE ut.team_id=? AND (ut.is_lead=1 OR ut.is_vice_lead=1) AND u.is_active=1
+     UNION
+     SELECT u.id,u.name,u.email FROM users u WHERE u.id=? AND u.is_active=1`,
+    [current.id, current.team_id, current.event_lead_id || 0]
   );
   const added = new Set(addedAssignees.map(Number));
   const epoch = nowSeconds();
