@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
-import { token } from '@atlaskit/tokens';
+import { Button } from '../../../ui';
 import {
   acknowledgeDirective, apiErrorMessage, fetchDirective, linkDirectiveActivity, respondDirective, submitDirectiveResult,
 } from '../../api';
-import { LottieLoading } from '../../../shared/components/LottieLoading';
-import { ReasonDialog } from '../../../shared/components/ReasonDialog';
 import { useToast } from '../../../shared/components/Toast';
 import { formatVnDate } from '../../../shared/utils/date';
 import { DIRECTIVE_KEY, DIRECTIVES_KEY, SUBMISSIONS_KEY } from '../dieuhanh/queryKeys';
@@ -17,15 +14,16 @@ import {
   canAcknowledgeDirective, canLinkActivity, canRespondDirective, canSubmitDirective,
 } from '../dieuhanh/permissions';
 import { directiveStatus, sourceText, submissionStatus } from '../dieuhanh/labels';
-import { ErrorText, StatusLozenge } from '../dieuhanh/parts';
+import { ErrorLine, ReasonFormDialog, StatusBadge } from './dirKit';
+import './directives.css';
 import { AcknowledgeDialog, LinkActivityDialog, SubmitResultDialog } from './DirectiveDialogs';
 
 type Dialog = null | 'ack' | 'link' | 'submit' | 'accept' | 'revise';
 
-const Info: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div style={{ marginBottom: 8 }}>
-    <div style={{ fontSize: 12, color: token('color.text.subtle', '#5E6C84') }}>{label}</div>
-    <div>{children}</div>
+const Info: React.FC<{ label: string; children: React.ReactNode; wide?: boolean }> = ({ label, children, wide }) => (
+  <div className={wide ? 'dir-body' : undefined}>
+    <div className="dir-info-item-label">{label}</div>
+    <div className="dir-info-item-value">{children}</div>
   </div>
 );
 
@@ -65,53 +63,61 @@ export const DirectiveDetailView: React.FC = () => {
     onSuccess: (_r, vars) => done(vars.response === 'accepted' ? 'Đã chấp nhận kết quả.' : 'Đã yêu cầu sửa.'), onError: fail,
   });
 
-  if (isLoading) return <LottieLoading message="Đang tải chỉ đạo..." size={80} />;
-  if (error || !d) return <ErrorText message={apiErrorMessage(error, 'Không tải được chỉ đạo.')} />;
+  if (isLoading) return <p role="status" className="ppl-state">Đang tải chỉ đạo...</p>;
+  if (error || !d) return <ErrorLine message={apiErrorMessage(error, 'Không tải được chỉ đạo.')} />;
 
   const status = directiveStatus(d.status);
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto' }}>
-      <p><Link to="/directives">← Danh sách chỉ đạo</Link></p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <h1 style={{ margin: 0 }}>{d.title}</h1>
-        <StatusLozenge label={status.label} tone={status.tone} />
+    <div className="dir">
+      <Link className="dir-back" to="/directives">← Danh sách chỉ đạo</Link>
+      <div className="dir-title-row">
+        <h1 className="ppl-h1">{d.title}</h1>
+        <StatusBadge label={status.label} tone={status.tone} />
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '16px 0' }}>
-        {canAcknowledgeDirective(actor, d) && <Button appearance="primary" onClick={() => setDialog('ack')}>Tiếp nhận</Button>}
+      <div className="dir-actions">
+        {canAcknowledgeDirective(actor, d) && <Button variant="primary" onClick={() => setDialog('ack')}>Tiếp nhận</Button>}
         {canLinkActivity(actor, d) && <Button onClick={() => setDialog('link')}>Gắn hoạt động</Button>}
-        {canSubmitDirective(actor, d) && <Button appearance="primary" onClick={() => setDialog('submit')}>Nộp kết quả</Button>}
+        {canSubmitDirective(actor, d) && <Button variant="primary" onClick={() => setDialog('submit')}>Nộp kết quả</Button>}
         {canRespondDirective(actor, d) && (
           <>
-            <Button appearance="primary" onClick={() => setDialog('accept')}>Chấp nhận</Button>
-            <Button appearance="danger" onClick={() => setDialog('revise')}>Yêu cầu sửa</Button>
+            <Button variant="primary" onClick={() => setDialog('accept')}>Chấp nhận</Button>
+            <Button variant="danger" onClick={() => setDialog('revise')}>Yêu cầu sửa</Button>
           </>
         )}
       </div>
 
-      <Info label="Đơn vị giao">{d.from_unit_name ?? `Đơn vị #${d.from_unit_id}`}</Info>
-      <Info label="Đơn vị nhận">{d.to_unit_name ?? `Đơn vị #${d.to_unit_id}`}</Info>
-      <Info label="Hạn hoàn thành">{formatVnDate(d.deadline) || '—'}</Info>
-      <Info label="Người giao">{d.created_by_name ?? '—'}</Info>
-      <Info label="Người phụ trách">{d.owner_name ?? 'Chưa có'}</Info>
-      {d.acknowledged_at && <Info label="Tiếp nhận lúc">{formatVnDate(d.acknowledged_at)}</Info>}
-      {d.body && <Info label="Nội dung"><span style={{ whiteSpace: 'pre-wrap' }}>{d.body}</span></Info>}
+      <div className="dir-info">
+        <Info label="Đơn vị giao">{d.from_unit_name ?? `Đơn vị #${d.from_unit_id}`}</Info>
+        <Info label="Đơn vị nhận">{d.to_unit_name ?? `Đơn vị #${d.to_unit_id}`}</Info>
+        <Info label="Hạn hoàn thành">{formatVnDate(d.deadline) || '—'}</Info>
+        <Info label="Người giao">{d.created_by_name ?? '—'}</Info>
+        <Info label="Người phụ trách">{d.owner_name ?? 'Chưa có'}</Info>
+        {d.acknowledged_at && <Info label="Tiếp nhận lúc">{formatVnDate(d.acknowledged_at)}</Info>}
+        {d.body && <Info label="Nội dung" wide>{d.body}</Info>}
+      </div>
 
-      <h2 style={{ marginTop: 24 }}>Hoạt động liên kết</h2>
-      {d.activities.length === 0 ? <p>Chưa gắn hoạt động nào.</p> : (
-        <ul>{d.activities.map((a) => <li key={a.id}><Link to={`/activity/${a.id}`}>{a.title}</Link> ({getActivityStatusMeta(a.status).text})</li>)}</ul>
+      <h2 className="dir-h2">Hoạt động liên kết</h2>
+      {d.activities.length === 0 ? <p className="dir-muted">Chưa gắn hoạt động nào.</p> : (
+        <ul className="dir-list">
+          {d.activities.map((a) => (
+            <li key={a.id} className="dir-list-item"><span><Link to={`/activity/${a.id}`}>{a.title}</Link> ({getActivityStatusMeta(a.status).text})</span></li>
+          ))}
+        </ul>
       )}
 
-      <h2 style={{ marginTop: 24 }}>Kết quả đã nộp</h2>
-      {d.submissions.length === 0 ? <p>Chưa nộp kết quả.</p> : (
-        <ul>
+      <h2 className="dir-h2">Kết quả đã nộp</h2>
+      {d.submissions.length === 0 ? <p className="dir-muted">Chưa nộp kết quả.</p> : (
+        <ul className="dir-list">
           {d.submissions.map((s) => {
             const st = submissionStatus(s);
             return (
-              <li key={s.id} style={{ marginBottom: 8 }}>
-                <Link to={`/submission/${s.id}`}>{sourceText(s)}</Link>{' '}
-                <StatusLozenge label={st.label} tone={st.tone} />
-                {s.note && <div>Ghi chú: {s.note}</div>}
-                {s.response_note && <div>Phản hồi: {s.response_note}</div>}
+              <li key={s.id} className="dir-list-item">
+                <div className="dir-list-item-main">
+                  <Link to={`/submission/${s.id}`}>{sourceText(s)}</Link>
+                  <StatusBadge label={st.label} tone={st.tone} />
+                </div>
+                {s.note && <div className="dir-note">Ghi chú: {s.note}</div>}
+                {s.response_note && <div className="dir-note">Phản hồi: {s.response_note}</div>}
               </li>
             );
           })}
@@ -124,10 +130,10 @@ export const DirectiveDetailView: React.FC = () => {
         onSubmit={(activityId) => link.mutate(activityId)} onCancel={() => setDialog(null)} />
       <SubmitResultDialog isOpen={dialog === 'submit'} directive={d} isLoading={submit.isPending}
         onSubmit={(payload) => submit.mutate(payload)} onCancel={() => setDialog(null)} />
-      <ReasonDialog isOpen={dialog === 'accept'} title="Chấp nhận kết quả" label="Ghi chú" required={false} confirmLabel="Chấp nhận"
+      <ReasonFormDialog isOpen={dialog === 'accept'} title="Chấp nhận kết quả" label="Ghi chú" required={false} confirmLabel="Chấp nhận"
         isLoading={respond.isPending} onSubmit={(note) => respond.mutate({ response: 'accepted', response_note: note || undefined })}
         onCancel={() => setDialog(null)} />
-      <ReasonDialog isOpen={dialog === 'revise'} title="Yêu cầu sửa" confirmLabel="Gửi yêu cầu" appearance="danger"
+      <ReasonFormDialog isOpen={dialog === 'revise'} title="Yêu cầu sửa" confirmLabel="Gửi yêu cầu" danger
         isLoading={respond.isPending} onSubmit={(note) => respond.mutate({ response: 'revision_requested', response_note: note })}
         onCancel={() => setDialog(null)} />
     </div>

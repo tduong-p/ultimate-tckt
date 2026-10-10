@@ -1,0 +1,96 @@
+/* Hoạt động (danh sách + chi tiết). Chỉ dùng token --ui-*. Tiền tố act-. */
+.act { max-width: 1100px; font-family: var(--ui-font); color: var(--ui-text); }
+.act a { color: var(--ui-focus); }
+.act-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.act-h1 { margin: 0; font-size: 18px; font-weight: 600; }
+.act-sub { margin: 2px 0 0; font-size: 12px; color: var(--ui-text-2); }
+.act-state { margin: 24px 8px; font-size: 13px; color: var(--ui-text-2); }
+.act-state--error { color: var(--ui-st-blocked); }
+.act-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 16px; text-align: center; border: 1px dashed var(--ui-border-strong); border-radius: var(--ui-radius); }
+.act-empty-title { font-size: 14px; font-weight: 600; }
+.act-empty-text { margin: 0; font-size: 12px; color: var(--ui-text-2); max-width: 420px; }
+
+/* Danh sách */
+.act-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.act-search { flex: 1 1 240px; min-width: 0; height: 28px; padding: 0 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); background: var(--ui-bg-main); color: var(--ui-text); font: inherit; font-size: 12px; box-sizing: border-box; }
+.act-search:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; border-color: var(--ui-focus); }
+.act-group-title { margin: 14px 0 2px; padding: 0 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ui-text-faint); }
+.act-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.act-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--ui-border); }
+.act-row:hover { background: var(--ui-bg-hover); }
+.act-row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 8px; color: inherit; text-decoration: none; border-radius: var(--ui-radius); }
+.act-row-main:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; }
+.act-row-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-text-faint); }
+.act-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.act-row-title { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-row-meta { font-size: 11.5px; color: var(--ui-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-row-date { flex: none; font-size: 11.5px; color: var(--ui-text-2); font-variant-numeric: tabular-nums; }
+.act-row-link { flex: none; font-size: 11.5px; padding-right: 8px; }
+.act-progress { flex: none; width: 56px; height: 4px; border-radius: 2px; background: var(--ui-bg-select); overflow: hidden; }
+.act-progress > span { display: block; height: 100%; background: var(--ui-st-done); }
+
+/* Chi tiết */
+.act-back { display: inline-block; margin-bottom: 10px; font-size: 12px; text-decoration: none; }
+.act-title { margin: 0 0 6px; font-size: 22px; font-weight: 600; overflow-wrap: anywhere; line-height: 1.25; }
+.act-title-input, .act-desc-input { display: block; width: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: var(--ui-radius); background: transparent; color: var(--ui-text); font-family: var(--ui-font); }
+.act-title-input { padding: 2px 6px; margin-left: -7px; font-size: 22px; font-weight: 600; line-height: 1.25; }
+.act-desc-input { padding: 4px 6px; margin-left: -7px; font-size: 13px; line-height: 1.5; resize: vertical; min-height: 64px; }
+.act-title-input:hover, .act-desc-input:hover { border-color: var(--ui-border); }
+.act-title-input:focus-visible, .act-desc-input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; background: var(--ui-bg-main); }
+.act-desc { margin: 0 0 12px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ui-text-2); }
+.act-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
+.act-cols { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+.act-main { flex: 2 1 480px; min-width: 0; }
+.act-side { flex: 1 1 280px; min-width: 0; }
+.act-card { border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); padding: 12px 14px; margin-bottom: 12px; }
+.act-card-title { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--ui-text-2); text-transform: uppercase; letter-spacing: 0.03em; }
+.act-dl { margin: 0; }
+.act-prop { display: flex; gap: 8px; align-items: center; padding: 3px 0; min-height: 28px; flex-wrap: wrap; }
+.act-prop dt { width: 120px; flex: none; font-size: 12px; color: var(--ui-text-faint); }
+.act-prop dd { margin: 0; min-width: 0; flex: 1; font-size: 13px; overflow-wrap: anywhere; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.act-input { height: 28px; padding: 0 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); background: var(--ui-bg-main); color: var(--ui-text); font: inherit; font-size: 12px; box-sizing: border-box; }
+.act-input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; border-color: var(--ui-focus); }
+.act-muted { color: var(--ui-text-2); font-size: 12px; }
+.act-li { padding: 6px 0; border-top: 1px solid var(--ui-border); }
+.act-li:first-child { border-top: 0; }
+.act-li-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.act-notice { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding: 8px 12px; border: 1px solid var(--ui-st-blocked); border-radius: var(--ui-radius); background: var(--ui-bg-card); font-size: 12px; }
+.act-notice-actions { display: flex; gap: 8px; margin-left: auto; }
+.act-tag { display: inline-block; padding: 0 6px; border-radius: 10px; background: var(--ui-bg-select); font-size: 11.5px; }
+.act-stage { margin: 8px 0 2px; font-size: 13px; font-weight: 600; }
+.act-form-row { margin-bottom: 10px; }
+.act-textarea { width: 100%; box-sizing: border-box; min-height: 72px; padding: 6px 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); background: var(--ui-bg-main); color: var(--ui-text); font: inherit; font-size: 12px; }
+.act-textarea:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; border-color: var(--ui-focus); }
+.act-error { margin: 4px 0 0; font-size: 12px; color: var(--ui-pr-urgent); }
+@media (max-width: 767px) {
+  .act-prop dt { width: 100%; }
+  .act-title, .act-title-input { font-size: 18px; }
+  .act-row { flex-wrap: wrap; }
+  .act-row-meta { white-space: normal; }
+}
+.act-field-error { margin: 4px 0 0; color: var(--ui-st-blocked); font-size: 12px; }
+.act-input--wide { width: 100%; }
+.act-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.act-muted { color: var(--ui-text-2); font-size: 12px; }
+.act-flat { margin: 0 0 8px; }
+.act-list { margin: 0; padding: 0; list-style: none; }
+.act-stage { margin-bottom: 12px; }
+.act-stage-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.act-task, .act-update { padding: 8px 0; border-top: 1px solid var(--ui-border); }
+.act-task-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.act-task-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; color: var(--ui-text-2); font-size: 12px; }
+.act-task-deliv, .act-update-body { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.act-attach { margin-top: 8px; }
+.act-attach-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.act-attach-title { font-size: 12px; font-weight: 600; color: var(--ui-text-2); }
+.act-attach-list { margin: 4px 0; padding-left: 18px; }
+.act-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.act-tag { padding: 0 6px; border-radius: 10px; background: var(--ui-bg-hover); font-size: 12px; }
+.act-timeline { margin-bottom: 12px; }
+.act-form-row { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.act-form-row > label { font-size: 12px; font-weight: 600; }
+.act-row-title { color: var(--ui-text); font-size: 13px; font-weight: 500; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-row-title:hover { text-decoration: underline; }
+.act-row { cursor: pointer; padding: 0 8px; }
+.act-row .ui-badge { flex: none; }
+@media (max-width: 640px) { .act-progress, .act-row-date { display: none; } }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
+import './tasks.css';
 import type { BoardTeam } from '../../api';
 import { CreateTaskModal } from './CreateTaskModal';
 import { SelfLogModal } from './SelfLogModal';
@@ -25,10 +26,10 @@ export const ActivityTaskActions: React.FC<ActivityTaskActionsProps> = ({
   const [selfLogOpen, setSelfLogOpen] = useState(false);
   const canSelfLog = activityStatus === 'approved' || activityStatus === 'active';
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+    <div className="tk-links">
       <Link to={`/board/${activityId}`}>Bảng Kanban</Link>
       {canManage && (
-        <Button appearance="primary" onClick={() => setCreateOpen(true)}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)}>
           Giao việc
         </Button>
       )}

@@ -5,7 +5,9 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '../../../shared/components/Toast';
 import { BOOTSTRAP_KEY, SESSION_KEY } from '../../queryKeys';
-import type { ActivityDetail, ActivityItem, TeamItem, SessionMembership, SessionUnit } from '../../api';
+import { EditGuardProvider } from '../../edit/EditGuard';
+import type { ActivityDetailData } from './activityEdit';
+import type { ActivityItem, TeamItem, SessionMembership, SessionUnit } from '../../api';
 
 /** Hiện đường dẫn hiện tại để test kiểm tra điều hướng. */
 export const Probe = () => <div data-testid="path">{useLocation().pathname}</div>;
@@ -40,22 +42,24 @@ export function renderInApp(ui: React.ReactElement, opts: AppOptions = {}) {
   const utils = render(
     <QueryClientProvider client={qc}>
       <ToastProvider>
-        <MemoryRouter initialEntries={[path]}>
-          <Routes>
-            <Route path={routePath} element={ui} />
-            <Route path="*" element={<Probe />} />
-          </Routes>
-        </MemoryRouter>
+        <EditGuardProvider>
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route path={routePath} element={ui} />
+              <Route path="*" element={<Probe />} />
+            </Routes>
+          </MemoryRouter>
+        </EditGuardProvider>
       </ToastProvider>
     </QueryClientProvider>
   );
   return { qc, ...utils };
 }
 
-type DetailOverrides = Partial<Omit<ActivityDetail, 'activity'>> & { activity?: Partial<ActivityItem> };
+type DetailOverrides = Partial<Omit<ActivityDetailData, 'activity'>> & { activity?: Partial<ActivityItem> };
 
-export function makeDetail(over: DetailOverrides = {}): ActivityDetail {
-  const base: ActivityDetail = {
+export function makeDetail(over: DetailOverrides = {}): ActivityDetailData {
+  const base: ActivityDetailData = {
     activity: {
       id: 5,
       title: 'Ngày hội Kỹ thuật',

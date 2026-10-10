@@ -1,7 +1,4 @@
 import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
 import { settingErrorMessage, type WeightPreset, type WeightPresetPayload } from '../../api';
 import { FormDialog } from '../people/FormDialog';
 import { FormField } from '../people/FormField';
@@ -14,7 +11,7 @@ export interface WeightPresetModalProps {
 }
 
 export const WeightPresetModal: React.FC<WeightPresetModalProps> = ({ isOpen, preset, onClose, onSubmit }) => (
-  <ModalTransition>{isOpen && <WeightPresetDialog preset={preset} onClose={onClose} onSubmit={onSubmit} />}</ModalTransition>
+  isOpen ? <WeightPresetDialog preset={preset} onClose={onClose} onSubmit={onSubmit} /> : null
 );
 
 const WeightPresetDialog: React.FC<Omit<WeightPresetModalProps, 'isOpen'>> = ({ preset, onClose, onSubmit }) => {
@@ -51,21 +48,38 @@ const WeightPresetDialog: React.FC<Omit<WeightPresetModalProps, 'isOpen'>> = ({ 
     }
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: 'var(--ui-radius-sm, 4px)',
+    border: '1px solid var(--ui-border)',
+    background: 'var(--ui-bg-input, var(--ui-bg-card))',
+    color: 'var(--ui-text)',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+    outline: 'none',
+  };
+
   return (
     <FormDialog title={preset ? 'Sửa preset' : 'Thêm preset'} submitLabel="Lưu" isSubmitting={busy} error={error} onSubmit={() => void submit()} onClose={onClose}>
       <FormField label="Tên preset" htmlFor={ids.name}>
-        <Textfield id={ids.name} maxLength={100} value={name} onChange={(e) => setName((e.target as HTMLInputElement).value)} />
+        <input id={ids.name} maxLength={100} value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
       </FormField>
       <FormField label="Điểm (0–10)" htmlFor={ids.points}>
-        <Textfield id={ids.points} inputMode="numeric" value={points} onChange={(e) => setPoints((e.target as HTMLInputElement).value)} />
+        <input id={ids.points} inputMode="numeric" value={points} onChange={(e) => setPoints(e.target.value)} style={inputStyle} />
       </FormField>
       <FormField label="Thứ tự" htmlFor={ids.order}>
-        <Textfield id={ids.order} inputMode="numeric" value={order} onChange={(e) => setOrder((e.target as HTMLInputElement).value)} />
+        <input id={ids.order} inputMode="numeric" value={order} onChange={(e) => setOrder(e.target.value)} style={inputStyle} />
       </FormField>
       <FormField label="Mô tả" htmlFor={ids.description}>
-        <TextArea id={ids.description} value={description} minimumRows={2} maxLength={255} onChange={(e) => setDescription(e.target.value)} />
+        <textarea id={ids.description} value={description} rows={2} maxLength={255} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} />
       </FormField>
-      {preset && <div><input id={ids.active} type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />{' '}<label htmlFor={ids.active}>Đang dùng</label></div>}
+      {preset && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+          <input id={ids.active} type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+          <label htmlFor={ids.active} style={{ fontSize: '13px', cursor: 'pointer' }}>Đang dùng</label>
+        </div>
+      )}
     </FormDialog>
   );
 };

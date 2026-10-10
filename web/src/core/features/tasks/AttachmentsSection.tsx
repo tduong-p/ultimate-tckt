@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
-import { token } from '@atlaskit/tokens';
+import { Button } from '../../../ui';
 import { taskAttachmentContentUrl, type TaskAttachment } from '../../api';
 import { QuotaBar } from '../../../shared/components/QuotaBar';
 import { isHttpUrl } from '../../../shared/utils/url';
@@ -8,6 +7,7 @@ import { formatBytes } from '../../../shared/utils/bytes';
 import { formatVnDate } from '../../../shared/utils/date';
 import { getAttachmentKindLabel } from './taskLabels';
 import { AddAttachmentDialog } from './AddAttachmentDialog';
+import './tasks.css';
 
 export interface AttachmentsSectionProps {
   taskId: number;
@@ -22,21 +22,21 @@ export const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({ taskId, 
   const used = attachments.reduce((sum, a) => sum + Number(a.size_bytes || 0), 0);
   return (
     <section aria-label="Tài liệu và liên kết">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 8px' }}>
-        <h3 style={{ fontSize: 14, margin: 0 }}>Tài liệu và liên kết</h3>
+      <div className="tk-sec-head">
+        <h3 className="tk-h3">Tài liệu và liên kết</h3>
         {canAttach && (
-          <Button spacing="compact" onClick={() => setOpen(true)}>
+          <Button size="sm" onClick={() => setOpen(true)}>
             Thêm tài liệu
           </Button>
         )}
       </div>
       <QuotaBar usedBytes={used} />
       {attachments.length === 0 && (
-        <p style={{ color: token('color.text.subtle', '#626F86') }}>Chưa có tài liệu hay liên kết.</p>
+        <p className="tk-muted">Chưa có tài liệu hay liên kết.</p>
       )}
-      <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0' }}>
+      <ul className="tk-list">
         {attachments.map((a) => (
-          <li key={a.id} style={{ padding: '6px 0' }}>
+          <li key={a.id} className="tk-list-item">
             <a
               href={a.link_url && isHttpUrl(a.link_url) ? a.link_url : taskAttachmentContentUrl(a.id)}
               target="_blank"
@@ -44,7 +44,7 @@ export const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({ taskId, 
             >
               {a.label}
             </a>
-            <div style={{ fontSize: 12, color: token('color.text.subtle', '#626F86') }}>
+            <div className="tk-meta">
               {a.user_name} · {getAttachmentKindLabel(a.kind)}
               {Number(a.size_bytes) > 0 ? ` · ${formatBytes(Number(a.size_bytes))}` : ''} · {formatVnDate(a.created_at)}
             </div>

@@ -1,13 +1,10 @@
-import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
+import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, createTeam, updateTeam, type TeamItem } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { useToast } from '../../../shared/components/Toast';
-import { FormDialog } from '../people/FormDialog';
-import { FormField } from '../people/FormField';
+import { Field } from '../../../ui';
+import { PeopleFormDialog } from '../people/peopleKit';
 import { invalidatePeople } from '../people/invalidate';
 
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
@@ -21,11 +18,10 @@ export interface TeamFormModalProps {
 }
 
 export const TeamFormModal: React.FC<TeamFormModalProps> = ({ isOpen, team, onClose }) => (
-  <ModalTransition>{isOpen && <TeamFormDialog team={team ?? null} onClose={onClose} />}</ModalTransition>
+  <>{isOpen && <TeamFormDialog team={team ?? null} onClose={onClose} />}</>
 );
 
 const TeamFormDialog: React.FC<{ team: TeamItem | null; onClose: () => void }> = ({ team, onClose }) => {
-  const ids = { name: useId(), description: useId(), color: useId() };
   const caps = useCapabilities();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -67,27 +63,27 @@ const TeamFormDialog: React.FC<{ team: TeamItem | null; onClose: () => void }> =
   };
 
   return (
-    <FormDialog
+    <PeopleFormDialog
       title={isEdit ? `Sửa Tổ ${team.name}` : 'Tạo Tổ'}
       submitLabel={isEdit ? 'Lưu' : 'Tạo'}
-      isSubmitting={mutation.isPending}
+      submitting={mutation.isPending}
       error={error}
       onSubmit={submit}
       onClose={onClose}
     >
       {canEditText && (
         <>
-          <FormField label="Tên Tổ" htmlFor={ids.name}>
-            <Textfield id={ids.name} value={name} onChange={(e) => setName((e.target as HTMLInputElement).value)} />
-          </FormField>
-          <FormField label="Mô tả" htmlFor={ids.description}>
-            <TextArea id={ids.description} value={description} minimumRows={2} onChange={(e) => setDescription(e.target.value)} />
-          </FormField>
+          <Field label="Tên Tổ">
+            <input value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label="Mô tả">
+            <textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </Field>
         </>
       )}
-      <FormField label="Màu của Tổ" htmlFor={ids.color}>
-        <input id={ids.color} type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-      </FormField>
-    </FormDialog>
+      <Field label="Màu của Tổ">
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+      </Field>
+    </PeopleFormDialog>
   );
 };

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
 import { apiErrorMessage, fetchMembers, fetchWeightPresets, logTask, type BoardTeam } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { LinkField } from '../../../shared/components/LinkField';
 import { isHttpUrl } from '../../../shared/utils/url';
 import { useInvalidateTaskCaches } from './useTaskCaches';
 import { useCurrentUserId } from './taskPermissions';
+import { TaskFormDialog } from './TaskFormDialog';
 import { AreaField, ErrorText, SelectField, TextField } from './formFields';
 
 export interface SelfLogModalProps {
@@ -106,54 +105,36 @@ export const SelfLogModal: React.FC<SelfLogModalProps> = ({ isOpen, activityId, 
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="small" shouldScrollInViewport>
-          <ModalHeader>
-            <ModalTitle>Tự ghi nhận việc</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <TextField label="Tên công việc" required value={title} onChange={setTitle} />
-            <SelectField
-              label="Tổ phụ trách"
-              required
-              value={teamId}
-              onChange={setTeamId}
-              placeholder="Chọn Tổ"
-              options={activityTeams.map((t) => ({ value: String(t.team_id), label: t.name }))}
-            />
-            {presets.length > 0 && (
-              <SelectField
-                label="Mẫu trọng số"
-                value=""
-                onChange={choosePreset}
-                placeholder="Chọn mẫu (không bắt buộc)"
-                options={presets.map((p) => ({ value: String(p.id), label: `${p.name} (${p.points} điểm)` }))}
-              />
-            )}
-            <TextField
-              label="Trọng số (0–10)"
-              type="number"
-              min={0}
-              max={10}
-              step={1}
-              value={weight}
-              onChange={setWeight}
-            />
-            <LinkField label="Liên kết minh chứng" value={link} onChange={(v) => { setLink(v); setError(''); }} />
-            <AreaField label="Mô tả" value={description} onChange={setDescription} />
-            <ErrorText>{error}</ErrorText>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
-            </Button>
-            <Button appearance="primary" isLoading={mutation.isPending} onClick={submit}>
-              Ghi nhận
-            </Button>
-          </ModalFooter>
-        </Modal>
+    <TaskFormDialog
+      isOpen={isOpen}
+      title="Tự ghi nhận việc"
+      submitLabel="Ghi nhận"
+      submitting={mutation.isPending}
+      onSubmit={submit}
+      onClose={onClose}
+    >
+      <TextField label="Tên công việc" required value={title} onChange={setTitle} />
+      <SelectField
+        label="Tổ phụ trách"
+        required
+        value={teamId}
+        onChange={setTeamId}
+        placeholder="Chọn Tổ"
+        options={activityTeams.map((t) => ({ value: String(t.team_id), label: t.name }))}
+      />
+      {presets.length > 0 && (
+        <SelectField
+          label="Mẫu trọng số"
+          value=""
+          onChange={choosePreset}
+          placeholder="Chọn mẫu (không bắt buộc)"
+          options={presets.map((p) => ({ value: String(p.id), label: `${p.name} (${p.points} điểm)` }))}
+        />
       )}
-    </ModalTransition>
+      <TextField label="Trọng số (0–10)" type="number" min={0} max={10} step={1} value={weight} onChange={setWeight} />
+      <LinkField label="Liên kết minh chứng" value={link} onChange={(v) => { setLink(v); setError(''); }} />
+      <AreaField label="Mô tả" value={description} onChange={setDescription} />
+      <ErrorText>{error}</ErrorText>
+    </TaskFormDialog>
   );
 };

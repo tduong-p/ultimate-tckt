@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
+import './tasks.css';
 import { acknowledgeTask, reviewTask, updateTaskStatus, type TaskItem } from '../../api';
 import { ReviewDecisionModal } from './ReviewDecisionModal';
 import { SubmitReviewModal } from './SubmitReviewModal';
@@ -27,36 +28,36 @@ export const TaskActionButtons: React.FC<TaskActionButtonsProps> = ({ task, canR
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="tk-actions">
         {task.status === 'todo' && (
           <>
-            <Button appearance="discovery" spacing="compact" isLoading={ack.isPending} isDisabled={busy} onClick={() => ack.mutate()}>
+            <Button size="sm" disabled={busy} onClick={() => ack.mutate()}>
               Nhận việc
             </Button>
-            <Button appearance="primary" spacing="compact" isLoading={status.isPending} isDisabled={busy} onClick={() => status.mutate('in_progress')}>
+            <Button variant="primary" size="sm" disabled={busy} onClick={() => status.mutate('in_progress')}>
               Bắt đầu làm
             </Button>
           </>
         )}
         {task.status === 'in_progress' && (
           <>
-            <Button appearance="primary" spacing="compact" isDisabled={busy} onClick={() => setDialog('submit')}>
+            <Button variant="primary" size="sm" disabled={busy} onClick={() => setDialog('submit')}>
               Nộp nghiệm thu
             </Button>
-            <Button appearance="subtle" spacing="compact" isLoading={status.isPending} isDisabled={busy} onClick={() => status.mutate('todo')}>
+            <Button size="sm" disabled={busy} onClick={() => status.mutate('todo')}>
               Tạm dừng
             </Button>
           </>
         )}
         {task.status === 'review' && canReview && (
           <>
-            <Button appearance="primary" spacing="compact" isLoading={approve.isPending} isDisabled={busy} onClick={() => approve.mutate()}>
+            <Button variant="primary" size="sm" disabled={busy} onClick={() => approve.mutate()}>
               Duyệt đạt
             </Button>
-            <Button appearance="warning" spacing="compact" isDisabled={busy} onClick={() => setDialog('reject')}>
+            <Button size="sm" disabled={busy} onClick={() => setDialog('reject')}>
               Yêu cầu làm lại
             </Button>
-            <Button appearance="danger" spacing="compact" isDisabled={busy} onClick={() => setDialog('cancel')}>
+            <Button variant="danger" size="sm" disabled={busy} onClick={() => setDialog('cancel')}>
               Bác bỏ
             </Button>
           </>

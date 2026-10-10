@@ -7,57 +7,36 @@ const detail = makeDetail({
 });
 
 describe('initialEditForm', () => {
-  it('lấy giá trị từ hoạt động và danh sách Tổ', () => {
-    expect(initialEditForm(detail)).toMatchObject({
-      title: 'Ngày hội Kỹ thuật',
+  it('chỉ lấy các trường ngoài batch từ hoạt động và danh sách Tổ', () => {
+    const form = initialEditForm(detail);
+    expect(form).toMatchObject({
       type: 'event',
-      priority: 'high',
-      startDate: '2026-11-01',
-      deadline: '2026-11-30',
       location: 'Hội trường A',
       requestedBy: '',
       proposalUrl: 'https://drive.example/de-an',
       isPublic: true,
       publicImageUrl: 'https://img.example/a.jpg',
       status: 'approved',
-      eventLeadId: '7',
       leadTeamId: '2',
       teamIds: [2, 3],
     });
+    for (const key of ['title', 'description', 'priority', 'startDate', 'deadline', 'eventLeadId']) expect(form).not.toHaveProperty(key);
   });
 });
 
 describe('validateEditForm', () => {
   const base = initialEditForm(detail);
-  it('hợp lệ thì trả null', () => expect(validateEditForm(base, true)).toBeNull());
-  it('thiếu tiêu đề, mô tả hoặc hạn chót', () => {
-    const msg = 'Vui lòng nhập tiêu đề, mô tả và hạn chót.';
-    expect(validateEditForm({ ...base, title: '  ' }, false)).toBe(msg);
-    expect(validateEditForm({ ...base, description: '' }, false)).toBe(msg);
-    expect(validateEditForm({ ...base, deadline: '' }, false)).toBe(msg);
-  });
-  it('ngày bắt đầu sau hạn chót', () => {
-    expect(validateEditForm({ ...base, startDate: '2026-12-15' }, false)).toBe('Ngày bắt đầu phải trước hoặc bằng hạn chót.');
-  });
+  it('hợp lệ thì trả null', () => expect(validateEditForm(base)).toBeNull());
   it('link không phải http(s)', () => {
-    expect(validateEditForm({ ...base, proposalUrl: 'ftp://x' }, false)).toBe('Liên kết phải bắt đầu bằng http:// hoặc https://.');
-    expect(validateEditForm({ ...base, publicImageUrl: 'javascript:alert(1)' }, false)).toBe('Liên kết phải bắt đầu bằng http:// hoặc https://.');
-  });
-  it('admin phải có Tổ chủ trì, người quản lý thì không bị kiểm', () => {
-    expect(validateEditForm({ ...base, leadTeamId: '' }, true)).toBe('Vui lòng chọn Tổ chủ trì.');
-    expect(validateEditForm({ ...base, leadTeamId: '' }, false)).toBeNull();
+    expect(validateEditForm({ ...base, proposalUrl: 'ftp://x' })).toBe('Liên kết phải bắt đầu bằng http:// hoặc https://.');
+    expect(validateEditForm({ ...base, publicImageUrl: 'javascript:alert(1)' })).toBe('Liên kết phải bắt đầu bằng http:// hoặc https://.');
   });
 });
 
 describe('buildUpdatePayload', () => {
   const initial = initialEditForm(detail);
   const common = {
-    title: 'Ngày hội Kỹ thuật',
-    description: 'Ngày hội giới thiệu các câu lạc bộ kỹ thuật.',
     type: 'event',
-    priority: 'high',
-    start_date: '2026-11-01',
-    deadline: '2026-11-30',
     location: 'Hội trường A',
     requested_by: '',
     result_summary: '',
@@ -65,21 +44,24 @@ describe('buildUpdatePayload', () => {
     is_public: true,
     public_image_url: 'https://img.example/a.jpg',
   };
+  const BATCH_KEYS = ['title', 'description', 'priority', 'start_date', 'deadline', 'event_lead_id'];
 
-  it('không phải admin: chỉ tập con, không bao giờ có status/event_lead_id/team_id/team_ids', () => {
-    const form = { ...initial, title: '  Tên mới  ', status: 'cancelled', eventLeadId: '', leadTeamId: '3', teamIds: [3] };
+  it('không phải admin: không có trường batch, status, team_id, team_ids', () => {
+    const form = { ...initial, location: '  Sân B  ', status: 'cancelled', teamIds: [3] };
     const payload = buildUpdatePayload(form, initial, false);
-    expect(payload).toEqual({ ...common, title: 'Tên mới' });
-    for (const key of ['status', 'event_lead_id', 'team_id', 'team_ids']) expect(payload).not.toHaveProperty(key);
+    expect(payload).toEqual({ ...common, location: 'Sân B' });
+    for (const key of [...BATCH_KEYS, 'status', 'team_id', 'team_ids']) expect(payload).not.toHaveProperty(key);
   });
 
-  it('admin không đổi gì thì cũng không gửi trường admin', () => {
-    expect(buildUpdatePayload(initial, initial, true)).toEqual(common);
+  it('admin không đổi gì thì cũng không gửi trường admin hay trường batch', () => {
+    const payload = buildUpdatePayload(initial, initial, true);
+    expect(payload).toEqual(common);
+    for (const key of BATCH_KEYS) expect(payload).not.toHaveProperty(key);
   });
 
-  it('admin đổi trạng thái, Trưởng BTC và Tổ thì gửi đúng các trường đó', () => {
-    const form = { ...initial, status: 'active', eventLeadId: '', leadTeamId: '3', teamIds: [2, 3] };
-    expect(buildUpdatePayload(form, initial, true)).toEqual({ ...common, status: 'active', event_lead_id: null, team_id: 3, team_ids: [3, 2] });
+  it('admin đổi trạng thái và Tổ tham gia: gửi status, team_id là Tổ chủ trì ban đầu và team_ids', () => {
+    const form = { ...initial, status: 'active', teamIds: [2, 3, 4] };
+    expect(buildUpdatePayload(form, initial, true)).toEqual({ ...common, status: 'active', team_id: 2, team_ids: [2, 3, 4] });
   });
 
   it('luôn gửi ảnh công khai và link đề án (rỗng để xoá) cùng is_public', () => {

@@ -1,7 +1,6 @@
 import React, { useId } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { token } from '@atlaskit/tokens';
 import { apiErrorMessage, switchUnit, type SessionData } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { SESSION_KEY } from '../../queryKeys';
@@ -31,11 +30,29 @@ export const UnitSwitcher: React.FC = () => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
       <label htmlFor={id} style={{ fontSize: 12 }}>Đơn vị</label>
-      <select id={id} value={unit?.id ?? ''} disabled={mutation.isPending}
-        onChange={(e) => { const next = Number(e.target.value); if (next && next !== unit?.id) mutation.mutate(next); }}
-        style={{ padding: '4px 6px', borderRadius: 4, border: `1px solid ${token('color.border', '#DFE1E6')}`, background: token('elevation.surface', '#fff'), color: token('color.text', '#172B4D'), maxWidth: 180 }}>
+      <select
+        id={id}
+        value={unit?.id ?? ''}
+        disabled={mutation.isPending}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          if (next && next !== unit?.id) mutation.mutate(next);
+        }}
+        style={{
+          padding: '4px 6px',
+          borderRadius: 'var(--ui-radius-sm, 4px)',
+          border: '1px solid var(--ui-border)',
+          background: 'var(--ui-bg-input, var(--ui-bg-card))',
+          color: 'var(--ui-text)',
+          maxWidth: 180,
+        }}
+      >
         {!unit && <option value="" disabled>Chọn đơn vị</option>}
-        {memberships.map((m) => <option key={m.unit_id} value={m.unit_id}>{m.name}</option>)}
+        {memberships.map((m) => (
+          <option key={m.unit_id} value={m.unit_id}>
+            {m.name}
+          </option>
+        ))}
       </select>
     </div>
   );

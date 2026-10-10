@@ -1,12 +1,13 @@
 ---
 doc_id: ADR-0016-001
 title: web/ (React + Atlaskit) thay thế frontend Core tại /
-version: 1.0
-status: active
+version: 1.1
+status: deprecated
 audience: [dev, ai, ops]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 supersedes: 0015
+superseded_by: 0017
 related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deploy.yml]
 ---
 
@@ -46,3 +47,4 @@ related_code: [web/**, core/src/app.js, core/Dockerfile, .github/workflows/deplo
 | Version | Ngày | Thay đổi | Người |
 |---|---|---|---|
 | 1.0 | 2026-10-09 | Bản đầu: `web/` thay frontend Core tại `/`, hash router tương thích link cũ, `/legacy` chuyển tiếp | DYC |
+| 1.1 | 2026-10-10 | Đánh dấu superseded bởi ADR-0017 (thay Atlaskit bằng UI kit tokens + Radix UI) | DYC |

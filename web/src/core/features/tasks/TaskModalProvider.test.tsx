@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { TaskModalProvider, TaskRoute, useTaskModal } from './TaskModalProvider';
 import { renderApp } from './testUtils';
@@ -89,5 +89,25 @@ describe('TaskModalProvider', () => {
     );
     expect(screen.getByText('về-tổng-quan')).toBeDefined();
     expect(api.fetchTask).not.toHaveBeenCalled();
+  });
+
+  it('đang có nháp: Đóng hỏi xác nhận; Ở lại giữ ngăn và nháp, Bỏ thay đổi mới đóng', async () => {
+    vi.mocked(api.fetchTask).mockResolvedValue({ ...detail, editable: ['title'] } as never);
+    renderApp(
+      <TaskModalProvider>
+        <Opener />
+      </TaskModalProvider>,
+      { path: '/my-tasks' }
+    );
+    fireEvent.click(screen.getByText('mở việc'));
+    const box = await screen.findByRole('textbox', { name: 'Tiêu đề công việc' });
+    fireEvent.change(box, { target: { value: 'Đã sửa dở' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(await screen.findByText('Bạn có thay đổi chưa lưu. Rời đi sẽ mất các thay đổi này.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Ở lại' }));
+    expect((screen.getByRole('textbox', { name: 'Tiêu đề công việc' }) as HTMLInputElement).value).toBe('Đã sửa dở');
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Bỏ thay đổi' }));
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Tiêu đề công việc' })).toBeNull());
   });
 });

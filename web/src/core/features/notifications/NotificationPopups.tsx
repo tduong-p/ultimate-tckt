@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { token } from '@atlaskit/tokens';
-import NotificationIcon from '@atlaskit/icon/core/notification';
 import { fetchNotifications, type NotificationItem } from '../../api';
 import { notificationBody, notificationTitle } from './notificationText';
 import { NOTIFICATIONS_KEY } from './useNotifications';
 import { useOpenNotification } from './useOpenNotification';
+
+const BellIcon = () => (
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, marginTop: 2 }}>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
 
 const MAX_POPUPS = 3;
 const POPUP_MS = 7000;
@@ -19,12 +24,25 @@ const PopupCard: React.FC<{ item: NotificationItem; onOpen: (item: NotificationI
     <button
       type="button"
       onClick={() => onOpen(item)}
-      style={{ display: 'flex', gap: 10, textAlign: 'left', width: 320, maxWidth: 'calc(100vw - 32px)', padding: '10px 14px', border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: 6, cursor: 'pointer', background: token('elevation.surface.overlay', '#fff'), color: token('color.text', '#172B4D'), boxShadow: token('elevation.shadow.overlay', '0 8px 12px rgba(9,30,66,.15)') }}
+      style={{
+        display: 'flex',
+        gap: 10,
+        textAlign: 'left',
+        width: 320,
+        maxWidth: 'calc(100vw - 32px)',
+        padding: '10px 14px',
+        border: '1px solid var(--ui-border)',
+        borderRadius: 'var(--ui-radius-sm, 6px)',
+        cursor: 'pointer',
+        background: 'var(--ui-bg-card)',
+        color: 'var(--ui-text)',
+        boxShadow: 'var(--ui-shadow-md)',
+      }}
     >
-      <NotificationIcon label="" />
+      <BellIcon />
       <span>
         <strong style={{ display: 'block' }}>{notificationTitle(item.title)}</strong>
-        <span>{notificationBody(item.body)}</span>
+        <span style={{ color: 'var(--ui-text-muted)' }}>{notificationBody(item.body)}</span>
       </span>
     </button>
   );

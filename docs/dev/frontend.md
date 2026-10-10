@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.19
+version: 1.35
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -11,7 +11,7 @@ related_code: [core/public/**, core/src/app.js, core/Dockerfile, .dockerignore, 
 
 # Frontend
 
-Repo có các frontend riêng biệt: Core `web/` thay UI cũ tại `/`, UI cũ được giữ tại `/legacy/` trong thời gian chuyển tiếp, và CTD có frontend riêng. `web/` dùng React + Vite + Atlaskit (xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-07-frontend-migration.md`). Test `web/`: `cd web && npm test && npm run build`
+Repo có các frontend riêng biệt: Core `web/` thay UI cũ tại `/`, UI cũ được giữ tại `/legacy/` trong thời gian chuyển tiếp, và CTD có frontend riêng. `web/` dùng React + Vite + UI Kit (CSS tokens) + Radix UI (thay thế Atlaskit theo ADR-0017, xem `docs/dev/kien-truc.md` và `docs/specs/2026-10-10-web-giao-dien-moi-design.md`). Test `web/`: `cd web && npm test && npm run build`
 (job CI `test-web`, xem `docs/dev/test.md`).
 
 ## Core cũ — `core/public/` (JavaScript thuần, chỉ vá lỗi tới khi gỡ, ADR-0016)
@@ -66,9 +66,9 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
 ### Công việc và Kanban (web/)
 
 Đợt 2 (SPEC-WEB-003 §4.2, `web/src/core/features/tasks/`):
-- Hộp chi tiết công việc: `useTaskModal().open(id, { focusSubmit })` từ mọi danh sách (Tổng quan, Việc hôm nay, Chi tiết hoạt động, Việc của tôi); route `#task/:id` mở hộp trên nền Tổng quan.
+- Hộp chi tiết công việc: `useTaskModal().open(id, { focusSubmit })` từ mọi danh sách (Tổng quan, Chi tiết hoạt động, Việc của tôi); route `#task/:id` mở hộp trên nền Tổng quan.
 - Quyền ẩn/hiện nằm ở `web/src/core/features/tasks/taskPermissions.ts` (bắt chước `core/src/routes/tasks.js` và `policies/access.js`); màn không tự viết điều kiện vai trò:
-  - Sửa công việc: chỉ `canManageTeam(task.team_id)`; sửa 4 trường `deadline`, `start_date`, `priority`, `deliverable`.
+  - Sửa công việc: sửa tại chỗ trong chi tiết theo `editable[]` của server (xem mục "Chi tiết công việc"); `EditTaskDialog` đã bị xoá.
   - Checklist thêm/tích/xoá và thêm tài liệu: `canUpdate` (`canTouchTask`).
   - Đổi trạng thái: được giao hoặc quản lý Tổ, chỉ khi `todo`/`in_progress`.
   - Nộp nghiệm thu: người được giao và `todo`/`in_progress`.
@@ -79,7 +79,7 @@ Các thao tác ghi dùng mutation, toast lỗi từ `apiErrorMessage` và làm m
 - Kanban (`#/board/:id`): hiển thị 4 cột theo giai đoạn; chỉ chuyển trực tiếp `todo ↔ in_progress`; thả vào Chờ duyệt/Hoàn thành mở hộp nộp/duyệt; kéo-thả chỉ kích hoạt khi `(pointer: fine)`.
 - Trang chi tiết hoạt động (`#/activity/:id`): gắn `ActivityTaskActions` (Bảng Kanban, Giao việc, Tự ghi nhận việc), tiêu đề việc mở hộp chi tiết qua `TaskTitleButton`, và nút Thêm tài liệu theo việc khi có quyền.
 
-Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; người duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ) nằm trong thẻ việc của `MyTasksToday` và `MyTasksView`. Mọi thao tác ghi qua `useTaskMutation` (toast tiếng Việt, lỗi qua `apiErrorMessage`, làm mới cache bằng `invalidateTasks` trong `taskKeys.ts`). `SubmitReviewModal` và `ReviewDecisionModal` mở từ các nút đó. `CreateTaskModal` mở từ nút "Tạo nhiệm vụ" trên `ActivityActions`; nút chỉ hiện khi cờ `canCreateTask` của `deriveActivityActions` bằng `canManage`. API nhiệm vụ nằm ở `api/tasks.ts`.
+Nhiệm vụ (`web/src/core/features/tasks/`): `TaskActionButtons` (Nhận việc, Bắt đầu làm, Nộp nghiệm thu, Tạm dừng; người duyệt thêm Duyệt đạt, Yêu cầu làm lại, Bác bỏ) hiện không còn được màn nào dùng, chỉ giữ lại để xoá khi dọn các màn cũ; màn Việc của tôi mới (`features/mine/`) có nút Xác nhận / Bắt đầu làm / Tạm dừng riêng, còn Nộp nghiệm thu và Duyệt nằm trong hộp chi tiết. Mọi thao tác ghi qua `useTaskMutation` (toast tiếng Việt, lỗi qua `apiErrorMessage`, làm mới cache bằng `invalidateTasks` trong `taskKeys.ts`). `SubmitReviewModal` và `ReviewDecisionModal` mở từ các nút đó. `CreateTaskModal` mở từ nút "Tạo nhiệm vụ" trên `ActivityActions`; nút chỉ hiện khi cờ `canCreateTask` của `deriveActivityActions` bằng `canManage`. API nhiệm vụ nằm ở `api/tasks.ts`.
 
 Trang chi tiết hoạt động: route `#/activity/:id` dựng `ActivityDetailView`. Thanh hành động `ActivityActions` lấy điều kiện hiện nút từ `deriveActivityActions` trong `activityPermissions.ts` để bắt chước quyền server; server vẫn kiểm quyền khi nhận request. Mọi thao tác ghi qua `useActivityMutation`: hiện toast tiếng Việt, làm mới cache `['core-activity', id]`; khi hoạt động bị xoá thì gọi `forgetActivity` và về `#/activities`. Các màn không bọc Router (danh sách, lịch, Tổng quan) mở chi tiết bằng `<a href="#/activity/ID">` hoặc `goToActivity(id)` trong `web/src/core/navigation.ts`.
 
@@ -131,6 +131,91 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 - Sửa `web/` khi được tạo: mỗi nhóm chỉ sửa `src/modules/<module>/` của mình; sửa `shell/` hoặc `ui/` dùng chung
   phải qua review của nhóm Core (xem `.kiro/specs/nen-tang-da-don-vi/design.md` §3).
 
+## UI kit mới — `web/src/ui/` (Radix + CSS tuỳ biến, kiểu Linear)
+
+Bộ component dùng chung cho giao diện mới, chạy song song Atlaskit cho tới khi cutover (chưa gỡ phụ thuộc `@atlaskit`).
+Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (native `<select>`), `ToastProvider`/`useToast`,
+`Avatar`, `StatusIcon`, `PriorityIcon`, `Badge`, `Field`. Menu/Dialog/Tabs dựa trên Radix (`react-popover`, `react-dialog`, `react-tabs`).
+- Token màu/khoảng cách ở `tokens.css` (dark qua `[data-theme~='dark']` hoặc `prefers-color-scheme`); kiểu ở `ui.css`.
+  Mọi class có tiền tố `ui-`; CSS chỉ được import bởi component trong `web/src/ui/`, không đụng `html/body` hay phần tử toàn cục.
+- Test cạnh từng component (`*.test.tsx`) import `./test-setup` (jest-dom + dọn DOM sau mỗi test). Truy vấn theo role/label.
+- Token CSS đặt tên `--ui-*` (không dùng biến chung như `--text`). `Menu` bắt buộc `label` (tên truy cập của nút mở menu).
+  Nút chỉ có icon (Button, trigger…) BẮT BUỘC truyền `aria-label`. `Tabs` nhận panel qua `TabsContent` (children).
+- Không thêm Tailwind/shadcn. Component mới thêm vào đây, không thêm vào `web/src/prototype/` (chỉ tham chiếu, không import).
+
+## Shell giao diện mới — `web/src/core/shell/`
+
+`Shell` (thay `shared/layouts/PageLayout`, dùng ở `SignedInShell` trong `core/main.tsx`) = sidebar + vùng nội dung; dưới 768px sidebar là drawer
+(nút hamburger, scrim, Escape/chọn mục thì đóng). Import `ui/tokens.css`, `ui/ui.css`, `shell.css` (class tiền tố `shell-`, chỉ token `--ui-*`).
+- `Sidebar`: Hộp thư (`/inbox`, huy hiệu chưa đọc) · Việc của tôi · Tổng quan (`/dashboard`) · Hoạt động · Văn bản · Giao việc/Trình (khi `unitHasDieuHanh`) · Các tổ · Lịch ·
+  Thành viên · Báo cáo (`isManager`) · Lưu trữ · Quản trị tài khoản (`isExec`) · Tài khoản (mở `MyAccountModal`) · đổi giao diện · đăng xuất.
+  `aria-current="page"` theo tiền tố route (`/activity/:id` → Hoạt động, `/team/:id` → Các tổ…). `UnitSwitcher` (shell) chỉ hiện khi ≥ 2 đơn vị.
+- `NotificationBell` là mục Hộp thư và là **nơi duy nhất** gọi `useNotifications` (poll 60s); `NotificationPopups` gắn một lần trong `Shell`. Không gắn `features/notifications/NotificationBell` cũ cùng lúc.
+- `useShortcuts`: `c` (onCreate), `/` (onSearch, tuỳ chọn), `g` rồi `i` trong 1 giây → `/inbox`; bỏ qua khi đang gõ trong input/textarea/select/contenteditable hoặc có Ctrl/Cmd/Alt/Shift (trừ `/`), phím lặp, đang soạn IME, hoặc đích nằm trong `[role=dialog]`/`[aria-modal]`/`[role=textbox|combobox]`. Drawer: mở thì focus mục đầu, đóng thì trả focus về hamburger.
+- `useTheme`: dùng `getStoredTheme`/`applyGlobalTheme` (key `tckt_theme`, token Atlaskit cho màn cũ). Atlaskit cũng ghi `data-theme` trên `<html>`
+  (`dark:dark light:light …`), nên shell thêm từ `light`/`dark` vào danh sách và dựng lại khi bị ghi đè; `tokens.css` khớp theo từ (`[data-theme~='dark']`).
+
+## Sửa tại chỗ + Lưu/Hủy — `web/src/core/edit/` và `ui/EditBar`
+
+Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:id/batch` hoặc `/api/activities/:id/batch` (api.md mục Task Batch).
+- `useEditSession<T>({ original, editable, patch, onSaved })`: `original` là bản chi tiết từ GET, `editable` là `editable[]` của GET đó (trường khác bị `set` bỏ qua).
+  `value(k)` trả nháp hoặc gốc; `set(k, v)` ghi nháp; `dirty`/`changedKeys` so sánh sâu với bản gốc (sửa rồi trả về gốc → không dirty; ngày là chuỗi, mảng so theo cấu trúc).
+  `save()` chỉ gửi trường đổi trong `changes` và giá trị GỐC của đúng các trường đó trong `base`; đang `saving` thì `set`/`discard` bị bỏ qua và `save()` lần hai trả lại cùng promise (không gửi đôi).
+  Thành công → xoá nháp, gọi `onSaved` (nơi màn refetch/invalidate query). Thất bại → giữ nháp, trả `{ok:false, kind, fields?, message}` với `kind` = `conflict` (409, `fields` = `conflicts[]`), `forbidden` (403, `forbidden[]`), `validation` (400) hoặc `error`.
+  `original` đổi khi đang có nháp (refetch) → khoá nào đã bằng bản gốc mới thì rơi khỏi nháp, khoá còn khác giữ nguyên.
+- `editApi.ts`: `patchTaskBatch(id, {changes, base})`, `patchActivityBatch(...)` và `classifyBatchError(err)`; màn truyền `patch: (c, b) => patchTaskBatch(id, { changes: c, base: b })`.
+- `useEditGuard(dirty)` (gọi trong màn): `beforeunload` chỉ đăng ký khi dirty và đăng ký cờ dirty với `EditGuardProvider` (gắn trong `Shell`). `useConfirmNavigate()` bọc nút/link điều hướng do màn tự xử lý: dirty thì hỏi ("Ở lại"/"Bỏ thay đổi").
+  HashRouter không có `useBlocker` và nghe `popstate` (bắn TRƯỚC `hashchange`), nên điều hướng bằng link được chặn ở pha capture của `click`:
+  khi dirty, click vào `a[href^="#"]` (không phím bổ trợ, không `target=_blank`) bị chặn và hiện hộp xác nhận; "Bỏ thay đổi" mới đổi hash (cờ `bypass` chỉ cho đúng một lần điều hướng).
+  `hashchange` chỉ là đường dự phòng cho Back/Forward và gõ URL: lúc đó router đã đổi route nên màn giữ nháp có thể đã unmount, và việc trả hash về thêm/đổi một mục lịch sử (chấp nhận).
+  QUY TẮC: giữ phiên sửa ở component cấp route hoặc một cha sống qua đổi route, không ở component con bị remount theo route.
+- Conflict (409): nháp được giữ nhưng màn PHẢI refetch `original`. "Lấy bản mới" = `discard()` + refetch; "Giữ của tôi" = refetch rồi `save()` lại (`base` luôn theo `original` mới nhất).
+  `onSaved` nên trả promise của refetch: nháp chỉ bị xoá sau khi nó xong (không nháy về giá trị cũ); lỗi trong `onSaved` bị bỏ qua, `save()` vẫn trả `{ok:true}`.
+- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error saveDisabled />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy (Escape bỏ qua khi đang gõ trong input/textarea/select/contenteditable), bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
+  Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
+  `saveDisabled` khoá nút Lưu và `Mod+Enter`: màn Hoạt động dùng khi banner xung đột 409 đang hiện, cho tới khi người dùng chọn "Lấy bản mới" hoặc "Giữ của tôi".
+
+Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/src/ui`, CSS `activities.css`, tiền tố `act-`): danh sách `ActivitiesView` gọn kiểu Linear (giữ bộ lọc, query key `['core-activities', ...]`, link `#/activity/:id`); chi tiết `ActivityDetailView` giữ phiên sửa ở cấp route (`useEditSession` + `useEditGuard` + `EditBar`).
+- Trường sửa tại chỗ lấy từ `editable[]` của `GET /api/activities/:id` (chỉ khi `canWriteActivities`, DYC luôn chỉ đọc): `title`, `description`, `deadline`, `start_date`, `priority`, `team_id`, `event_lead_id` (lưu bằng một `PATCH /api/activities/:id/batch`). Tiêu đề/mô tả/hạn chót không được để trống.
+- Lỗi lưu: 403 liệt kê tên trường bị cấm và giữ nháp; 400 hiện lỗi; 409 hiện "đã bị người khác sửa" với "Lấy bản mới" / "Giữ của tôi" (xem mục trên). Trường bắt buộc trống: ô được `aria-invalid` và focus vào ô trống đầu tiên; ô tiêu đề có `aria-label` "Tiêu đề hoạt động".
+- Trường NGOÀI hợp đồng batch vẫn sửa bằng `EditActivityModal` ("Sửa thông tin khác", Atlaskit, nút "Sửa khác" trên `ActivityActions`): CHỈ loại, địa điểm, yêu cầu bởi, kết quả, link đề án, công khai/ảnh; admin thêm trạng thái và danh sách Các Tổ tham gia (batch chỉ biểu diễn được `team_id`). Modal KHÔNG còn sửa trường batch (tiêu đề, mô tả, ưu tiên, ngày, Trưởng BTC, Tổ chủ trì) vì PATCH cũ không có base/409.
+- Hộp thoại lý do/xác nhận xoá của `ActivityActions` là `ActivityDialogs.tsx` (kit `Dialog`), không còn dùng `ReasonDialog`/`ConfirmDialog` Atlaskit.
+
+### Việc của tôi và Hộp thư
+
+- `features/mine/MineView.tsx` (route `/my-tasks`): tab `Hôm nay · Quá hạn · Chờ tôi duyệt · Tất cả`, tab nằm trên URL `?tab=today|overdue|review|all`.
+  Không có `tab` ⇒ `all` (giữ nghĩa `#/my-tasks` cũ); `tab` sai ⇒ `today`. `/my-tasks-today` chuyển hướng `replace` về `/my-tasks?tab=today`;
+  mục sidebar "Việc của tôi" trỏ `/my-tasks?tab=today` và sáng với mọi tab (và `/my-tasks-today`).
+- Dữ liệu: `GET /api/tasks?mine=1` (việc tôi được giao) và `GET /api/tasks?pending_review=1` (Core lọc quyền duyệt), qua `fetchMyTaskList` (`mineTasks.ts`).
+  Chia tab phía client bằng `groupMine` (ngày Việt Nam): Quá hạn = chưa xong/huỷ & hạn < hôm nay; Hôm nay = chưa xong/huỷ, chưa quá hạn, hạn hôm nay HOẶC đang làm;
+  Chờ tôi duyệt = kết quả `pending_review`; Tất cả = mọi việc chưa xong/huỷ của tôi. Khoá query nằm dưới tiền tố `core-my-tasks-today` nên `useInvalidateTaskCaches` làm mới chúng.
+  Huy hiệu "Mới được giao" = `acknowledged_at` rỗng; "Bị trả lại" = có `review_feedback` và đang không ở `review`/`done`.
+- `features/notifications/Inbox.tsx` (route `/inbox`): chỉ ĐỌC cache `core-notifications` (`enabled: false`), không thêm poller; lọc Chưa đọc / Nhắc tên (`comment_tag`, `*mention*`) /
+  Duyệt (kind chứa `review`), kết hợp theo AND (`notificationFilters.ts`). Core chỉ trả 20 thông báo mới nhất nên bộ lọc chỉ thấy chừng đó; khi đủ 20, màn hiện chú thích "Hiển thị 20 thông báo gần nhất". Mở một mục dùng `useOpenNotification` (đánh dấu đã xem + `notificationRoute(url)`);
+  "Đánh dấu tất cả đã đọc" dùng `markAllNotificationsSeen` + `markAllSeen`.
+
+### Chi tiết công việc — `web/src/core/features/tasks/`
+
+`TaskDetailModal` là ngăn kéo bên phải (`<aside aria-label="Chi tiết công việc">`, CSS `tasks.css`, tiền tố `tk-`; không phải `role=dialog` để phím tắt của `EditBar` hoạt động). Giữ nguyên các điểm vào và URL (`useTaskModal().open(id)`, `/task/:id`).
+- Phiên sửa (`useEditSession` + `useEditGuard` + `EditBar`) nằm trong `TaskDetailModal`, sống suốt thời gian mở; `TaskModalProvider` bọc thêm `EditGuardProvider` riêng vì provider của Shell không phủ tới nó. Đóng khi còn nháp → hỏi xác nhận; đổi `taskId` thì bỏ nháp.
+- Trường sửa lấy từ `editable[]` của `GET /api/tasks/:id`: `title`, `description` (người được giao cũng sửa được), `team_id`, `primary_assignee_id`, `start_date`, `deadline`, `priority`, `deliverable` (Tổ trưởng/phó trở lên); lưu bằng một `PATCH /api/tasks/:id/batch`. `title` và `deadline` không được để trống (ô `aria-invalid` + focus); ngày bắt đầu phải <= hạn chót. Không có UI sửa `co_assignee_ids` (server nhận nhưng chưa có ô nhập).
+- Lưu xong: toast "Đã lưu" và làm mới `useInvalidateTaskCaches`. 409 hiện "Công việc đã bị người khác sửa", nút "Tải lại" / "Giữ của tôi", `Lưu` bị khoá tới khi chọn. 403/400 hiện lỗi và giữ nháp.
+- `KanbanBoard` và `CreateTaskModal` dùng kit mới (`kanban.css` tiền tố `kb-`; `Dialog`/`Field`/`Select`), giữ nguyên hành vi, thông báo và luật kéo-thả.
+
+### Lịch, Tổ, Thành viên — `web/src/core/features/{calendar,teams,members}/`
+
+Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, khoá query, quyền, trạng thái rỗng/tải/lỗi và tên truy cập. Vẫn dùng hộp thoại tạo/sửa (không có phiên sửa tại chỗ).
+- `features/people/peopleKit.tsx`: `PeopleFormDialog` (kit `Dialog` + form, nút gửi ở chân qua `form=`), `PeopleConfirmDialog`, `TeamChecks`. CSS dùng chung `people/people.css` (tiền tố `ppl-`); riêng từng màn: `teams.css` (`team-`), `calendar.css` (`cal-`), `members.css` (`mem-`). Chỉ token `--ui-*`.
+- `FormDialog`/`FormField` Atlaskit trong `people/` còn được `accounts/*` và `session/MyAccountModal` dùng nên chưa xoá; `TeamCheckboxes` đã xoá. Toast vẫn là `useToast` Atlaskit dùng chung (shell chưa gắn toast của kit).
+- Lịch: chế độ xem là nút `aria-pressed`; lọc Tổ là ô chọn "Lọc theo Tổ" (`participatesInTeam`); pill/dòng/thanh Gantt là `<button>` mở hoạt động; vạch "hôm nay" Gantt (`gantt-today-line`) tính từ ngày Việt Nam hiện tại, chỉ hiện ở tháng hiện tại; lỗi tải hiện "Không tải được lịch hoạt động.". `GANTT_COLORS` vẫn export và đặt màu thanh inline.
+
+### Văn bản, Giao việc, Báo cáo, Lưu trữ — `web/src/core/features/{documents,directives,reports,archive}/`
+
+Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, khoá query, quyền, trạng thái rỗng/tải/lỗi; không có phiên sửa tại chỗ. Chưa gồm Trình (`submissions/`, việc riêng).
+- CSS riêng từng màn: `documents.css` (`doc-`), `directives.css` (`dir-`), `reports.css` (`rep-`), `archive.css` (`arc-`); khung đầu trang/trạng thái rỗng/ô nhập dùng chung `people/people.css` (`ppl-`). Chỉ token `--ui-*`.
+- `DocumentFormModal` dùng `PeopleFormDialog` (mount mới mỗi lần mở); bộ lọc năm/Tổ là `Select` có nhãn "Lọc theo năm"/"Lọc theo Tổ" (native select, nên tên Tổ xuất hiện cả ở option).
+- `directives/dirKit.tsx`: `DirFormDialog`, `ReasonFormDialog` (thay `ReasonDialog` Atlaskit trong màn này), `SelectField`, `QueryStatus`, `StatusBadge` (đổi tông Lozenge sang `Badge`). `dieuhanh/parts.tsx` và `shared/components/{ReasonDialog,LinkField}` còn được `submissions/*`/màn khác dùng nên chưa xoá. Toast vẫn là `useToast` Atlaskit dùng chung.
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -155,3 +240,19 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |
 | 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
 | 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
+| 1.20 | 2026-10-10 | Thêm UI kit mới `web/src/ui/` (Radix + CSS tuỳ biến) | DYC |
+| 1.21 | 2026-10-10 | UI kit: token `--ui-*`, `Menu.label` bắt buộc, quy ước aria-label cho nút icon, `TabsContent` | DYC |
+| 1.22 | 2026-10-10 | Shell mới `web/src/core/shell/` (sidebar, drawer, phím tắt, theme, Hộp thư); token dark khớp theo từ | DYC |
+| 1.23 | 2026-10-10 | Shell: thêm Tổng quan, siết phím tắt, focus drawer | DYC |
+| 1.24 | 2026-10-10 | Sửa tại chỗ: `useEditSession`, `EditGuardProvider`/`useEditGuard`, `EditBar`, `editApi` (batch + phân loại lỗi) | DYC |
+| 1.25 | 2026-10-10 | Sửa tại chỗ: chặn link ở pha capture, hợp đồng conflict/refetch, quy tắc vị trí phiên sửa | DYC |
+| 1.27 | 2026-10-10 | Sửa mô tả: `TaskActionButtons` không còn được dùng; Hộp thư ghi chú giới hạn 20 thông báo; bỏ chữ "Task 8" khỏi tiêu đề mục | DYC |
+| 1.26 | 2026-10-10 | Việc của tôi (`features/mine/`, tab trên URL, `GET /api/tasks`) và Hộp thư (`Inbox`) thay `MyTasksView`/`MyTasksToday`/placeholder | DYC |
+| 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
+| 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |
+| 1.30 | 2026-10-10 | Chi tiết công việc sửa tại chỗ (ngăn kéo, `editable[]`, 409 Tải lại); xoá `EditTaskDialog`; Kanban và Giao việc dùng kit mới | DYC |
+| 1.31 | 2026-10-10 | Lịch, Tổ, Thành viên dùng kit mới (`peopleKit`, `ppl-`/`team-`/`cal-`/`mem-`); vạch hôm nay Gantt theo ngày thật; xoá `TeamCheckboxes` | DYC |
+| 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
+| 1.33 | 2026-10-10 | Trình (Submissions) dùng kit mới (`submissions.css`, `parts.tsx`); chuyển LinkField, ReasonDialog, ConfirmDialog và phần còn lại trong task drawer sang kit mới | DYC |
+| 1.34 | 2026-10-10 | Tài khoản, Đăng nhập, Onboarding, Bộ trọng số và các dialog còn lại chuyển sang UI kit mới; dọn dẹp Atlaskit trong core và shared | DYC |
+| 1.35 | 2026-10-10 | Hoàn tất cutover toàn bộ Core sang UI kit CSS tokens + Radix UI theo ADR-0017 | DYC |

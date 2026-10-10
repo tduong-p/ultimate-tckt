@@ -1,0 +1,27 @@
+/* Chỉ đạo (Giao việc): danh sách, chi tiết, hộp thoại. Chỉ dùng token --ui-*. Tiền tố dir-. Khung/tiêu đề dùng ppl- từ people.css. */
+.dir { max-width: 1100px; font-family: var(--ui-font); color: var(--ui-text); }
+.dir a:not(.ui-btn) { color: var(--ui-focus); }
+.dir-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.dir-filter { display: flex; flex-direction: column; gap: 4px; }
+.dir-filter label { font-size: 11px; font-weight: 500; color: var(--ui-text-2); }
+.dir-table-wrap { overflow-x: auto; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.dir-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.dir-table th { padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 500; color: var(--ui-text-faint); border-bottom: 1px solid var(--ui-border); white-space: nowrap; }
+.dir-table td { padding: 9px 12px; border-bottom: 1px solid var(--ui-border); vertical-align: middle; }
+.dir-table tbody tr:last-child td { border-bottom: 0; }
+.dir-table tbody tr:hover { background: var(--ui-bg-hover); }
+.dir-title-link { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.dir-title-link:hover { text-decoration: underline; }
+.dir-back { display: inline-block; margin-bottom: 8px; font-size: 12px; }
+.dir-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dir-actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+.dir-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 16px; padding: 12px 14px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.dir-info-item-label { font-size: 11px; color: var(--ui-text-faint); }
+.dir-info-item-value { font-size: 13px; }
+.dir-body { grid-column: 1 / -1; white-space: pre-wrap; }
+.dir-h2 { margin: 20px 0 6px; font-size: 13px; font-weight: 600; }
+.dir-list { list-style: none; margin: 0; padding: 0; }
+.dir-list-item { padding: 8px; border-bottom: 1px solid var(--ui-border); font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.dir-list-item-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dir-note { font-size: 11.5px; color: var(--ui-text-2); }
+.dir-muted { margin: 0; font-size: 12px; color: var(--ui-text-2); }

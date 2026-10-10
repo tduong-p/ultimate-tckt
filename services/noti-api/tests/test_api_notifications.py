@@ -156,7 +156,7 @@ def test_templates_listing_filtered(client, make_client):
     r_all = client.get("/v1/templates", headers=auth(key_all))
     assert r_all.status_code == 200
     keys = [t["key"] for t in r_all.json()["templates"]]
-    assert len(keys) == 12
+    assert len(keys) == 14
 
     _, key_restricted = make_client("restricted_user", allowed=("task.assigned",))
     r_res = client.get("/v1/templates", headers=auth(key_restricted))

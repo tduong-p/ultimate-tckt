@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { token } from '@atlaskit/tokens';
-import NotificationIcon from '@atlaskit/icon/core/notification';
 import { apiErrorMessage, markAllNotificationsSeen, type NotificationsResponse } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { formatVnDate } from '../../../shared/utils/date';
@@ -9,6 +7,13 @@ import { markAllSeen } from './notificationCache';
 import { deliveryLabel, notificationBody, notificationTitle } from './notificationText';
 import { NOTIFICATIONS_KEY, useNotifications } from './useNotifications';
 import { useOpenNotification } from './useOpenNotification';
+
+const BellIcon = () => (
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
 
 /** Nút chuông ở thanh trên: huy hiệu số chưa xem và bảng thông báo (giữ 7 ngày). */
 export const NotificationBell: React.FC = () => {
@@ -62,13 +67,13 @@ export const NotificationBell: React.FC = () => {
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={toggle}
-        style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 4, display: 'flex', alignItems: 'center', color: token('color.icon', '#42526E') }}
+        style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 4, display: 'flex', alignItems: 'center', color: 'var(--ui-text-muted)' }}
       >
-        <NotificationIcon label="" />
+        <BellIcon />
         {unread > 0 && (
           <span
             data-testid="notification-badge"
-            style={{ position: 'absolute', top: 0, right: 0, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, fontSize: 10, lineHeight: '16px', fontWeight: 700, textAlign: 'center', color: '#fff', background: token('color.background.danger.bold', '#C9372C'), boxSizing: 'border-box' }}
+            style={{ position: 'absolute', top: 0, right: 0, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, fontSize: 10, lineHeight: '16px', fontWeight: 700, textAlign: 'center', color: '#fff', background: 'var(--ui-danger)', boxSizing: 'border-box' }}
           >
             {unread > 99 ? '99+' : String(unread)}
           </span>
@@ -79,21 +84,21 @@ export const NotificationBell: React.FC = () => {
         <div
           role="dialog"
           aria-label="Thông báo"
-          style={{ position: 'absolute', right: 0, top: '100%', zIndex: 600, width: 360, maxWidth: 'calc(100vw - 32px)', maxHeight: '70vh', overflowY: 'auto', background: token('elevation.surface.overlay', '#fff'), border: `1px solid ${token('color.border', '#DFE1E6')}`, borderRadius: 6, boxShadow: token('elevation.shadow.overlay', '0 8px 12px rgba(9,30,66,.15)') }}
+          style={{ position: 'absolute', right: 0, top: '100%', zIndex: 600, width: 360, maxWidth: 'calc(100vw - 32px)', maxHeight: '70vh', overflowY: 'auto', background: 'var(--ui-bg-card)', border: '1px solid var(--ui-border)', borderRadius: 6, boxShadow: 'var(--ui-shadow-md)' }}
         >
-          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${token('color.border', '#DFE1E6')}` }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--ui-border)' }}>
             <strong>Thông báo</strong>
-            <div style={{ fontSize: 12, color: token('color.text.subtle', '#5E6C84') }}>Lưu trong 7 ngày</div>
+            <div style={{ fontSize: 12, color: 'var(--ui-text-muted)' }}>Lưu trong 7 ngày</div>
           </div>
           {isError && (
-            <p role="alert" style={{ padding: 16, margin: 0, color: token('color.text.danger', '#AE2A19') }}>
+            <p role="alert" style={{ padding: 16, margin: 0, color: 'var(--ui-danger)' }}>
               {apiErrorMessage(error, 'Không tải được thông báo.')}
             </p>
           )}
           {items.length === 0 && isPending ? (
-            <p style={{ padding: 16, margin: 0, color: token('color.text.subtle', '#5E6C84') }}>Đang tải thông báo…</p>
+            <p style={{ padding: 16, margin: 0, color: 'var(--ui-text-muted)' }}>Đang tải thông báo…</p>
           ) : items.length === 0 && !isError ? (
-            <p style={{ padding: 16, margin: 0, color: token('color.text.subtle', '#5E6C84') }}>Chưa có thông báo.</p>
+            <p style={{ padding: 16, margin: 0, color: 'var(--ui-text-muted)' }}>Chưa có thông báo.</p>
           ) : items.length > 0 ? (
             items.map((n) => (
               <button
@@ -105,7 +110,7 @@ export const NotificationBell: React.FC = () => {
                   setOpen(false);
                   openNotification(n);
                 }}
-                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', border: 'none', borderBottom: `1px solid ${token('color.border', '#DFE1E6')}`, cursor: 'pointer', background: n.seen_at ? 'transparent' : token('color.background.information', '#E9F2FF'), color: token('color.text', '#172B4D') }}
+                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', border: 'none', borderBottom: '1px solid var(--ui-border)', cursor: 'pointer', background: n.seen_at ? 'transparent' : 'var(--ui-bg-hover)', color: 'var(--ui-text)' }}
               >
                 <strong style={{ display: 'block' }}>{notificationTitle(n.title)}</strong>
                 <span style={{ display: 'block', margin: '2px 0' }}>{notificationBody(n.body)}</span>
@@ -113,7 +118,7 @@ export const NotificationBell: React.FC = () => {
                   {n.email_status && <span>{deliveryLabel('email', n.email_status)}</span>}
                   {n.push_status && <span>{deliveryLabel('push', n.push_status)}</span>}
                 </span>
-                <small style={{ color: token('color.text.subtle', '#5E6C84') }}>{formatVnDate(n.created_at)}</small>
+                <small style={{ color: 'var(--ui-text-muted)' }}>{formatVnDate(n.created_at)}</small>
               </button>
             ))
           ) : null}

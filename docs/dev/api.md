@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 5.9
+version: 6.3
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-09
+updated: 2026-10-10
 related_code: [core/src/routes/**, services/ctd-api/backend/app/api/**]
 ---
 
@@ -37,6 +37,8 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET/PATCH/DELETE | `/api/activities/:id` | `activities.js` |
 | POST | `/api/activities/:id/{submit,approve,reject,request-changes,volunteer,participants,updates,tasks,log-task}` | `activities.js` |
 | GET/PATCH | `/api/tasks/:id` | `tasks.js` |
+| PATCH | `/api/activities/:id/batch` | `activities.js` |
+| PATCH | `/api/tasks/:id/batch` | `tasks.js` |
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
 | GET | `/api/task-attachments/:id/content` | `tasks.js` |
@@ -63,6 +65,8 @@ Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả
 | GET | `/api/units`, `/api/units/:id/members` | `units.js` |
 | PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
+
+`GET /api/notifications` trả tối đa 20 thông báo mới nhất của người gọi (`id, kind, title, body, url, task_id, activity_id, seen_at, ...`) và `unread_count` (đếm toàn bộ, không phụ thuộc bộ lọc). Query: `unread=1` chỉ lấy chưa đọc; `kind=<tên>` khớp đúng, `kind=<tiền tố>.` (ví dụ `task.`) khớp mọi kind bắt đầu bằng tiền tố đó, gồm cả kind cũ dạng `task_assigned`.
 
 `GET /api/teams` trả các Tổ đang hoạt động trong phạm vi đơn vị của người xem (`scopeFor(...,'teams')`, gồm đơn vị được
 `unit_visibility_policies` cho xem), kèm `member_count`, `active_count` và `can_manage` (người gọi là Tổ trưởng/Tổ phó).
@@ -470,6 +474,51 @@ Xóa thành viên khỏi đơn vị.
 
 ---
 
+## Task List và editable[]
+
+### GET /api/tasks
+
+Danh sách công việc người gọi được thấy, qua cùng phạm vi với `GET /api/activities` (`scopeFor(actor, 'activities')`: đơn vị + hoạt động công khai/được tham gia; không rò sang đơn vị khác). Query tuỳ chọn: `mine=1` (chỉ việc được giao cho mình), `status` (`todo|in_progress|review|done|cancelled`), `team_id`, `from`/`to` (`YYYY-MM-DD`, lọc theo `deadline`), `overdue=1` (`deadline` < hôm nay theo giờ VN, trừ `done`/`cancelled`), `pending_review=1` (`status='review'` và người gọi nghiệm thu được theo `canReviewTask`).
+
+Trả mảng `{ id, title, status, priority, deadline, team_id, team_name, activity_id, activity_title, primary_assignee_id, assignee_name, acknowledged_at, review_feedback }`, sắp theo `deadline, id`, tối đa 500. `acknowledged_at` là dấu xác nhận của chính người gọi (null nếu không được giao hoặc chưa xác nhận); `review_feedback` là cột `tasks.review_feedback` (lần nghiệm thu gần nhất). Tham số sai (status, ngày, team_id) trả 400.
+
+### editable[] trong chi tiết
+
+`GET /api/tasks/:id` và `GET /api/activities/:id` có thêm `editable: string[]` — các trường người gọi được sửa qua `PATCH .../batch` (cùng quy tắc quyền theo trường ở trên). Các trường cũ giữ nguyên.
+
+## Task Batch
+
+### PATCH /api/tasks/:id/batch
+
+Sửa nhiều trường của một công việc trong một giao dịch (tất cả hoặc không gì cả).
+
+Body: `{ "changes": { <field>: <value> }, "base": { <field>: <giá trị lúc mở form> } }`.
+Trường hợp lệ: `title, description, primary_assignee_id, co_assignee_ids, team_id, deadline, start_date, priority, deliverable`.
+
+- Quyền theo từng trường: người quản lý tổ (hoặc điều hành) sửa tất cả; người được giao chỉ sửa `title`, `description`. Đổi `team_id` còn cần quản lý được tổ đích.
+- 404: công việc không tồn tại hoặc người gọi không thấy hoạt động chứa nó.
+- 403 `{ forbidden: [...] }`: có trường ngoài quyền (không ghi gì).
+- 400: trường lạ (`fields`), tiêu đề/hạn rỗng, `priority` ngoài enum, ngày sai dạng `YYYY-MM-DD`, tổ hoặc người được giao không hợp lệ.
+- 409 `{ conflicts: [...] }`: với trường thật sự đổi, `base[field]` khác giá trị hiện tại (không ghi gì). Trường không có trong `base` thì không kiểm tra.
+- 200 `{ changed: [...] }`: `changed` rỗng khi không có gì khác đi (không thông báo).
+- Thông báo gộp theo lô do `services/batch-notify.js` đảm nhiệm.
+
+### PATCH /api/activities/:id/batch
+
+Sửa nhiều trường của một hoạt động trong một giao dịch (tất cả hoặc không gì cả). Cùng khuôn với `PATCH /api/tasks/:id/batch`; `PATCH /api/activities/:id` cũ giữ nguyên.
+
+Body: `{ "changes": { <field>: <value> }, "base": { <field>: <giá trị lúc mở form> } }`.
+Trường hợp lệ: `title, description, deadline, start_date, priority, team_id, event_lead_id`.
+
+- Quyền theo từng trường: `admin`/`vice_admin` sửa tất cả; trưởng sự kiện (`event_lead_id` là người gọi) chỉ sửa `title`, `description`; người khác (kể cả DYC, chỉ đọc) không sửa trường nào.
+- 404: hoạt động không tồn tại hoặc người gọi không thấy (cùng điều kiện với `GET /api/activities/:id`).
+- 403 `{ forbidden: [...] }`: có trường ngoài quyền (không ghi gì).
+- 400: trường lạ (`fields`), tiêu đề/mô tả/hạn rỗng, `priority` ngoài enum, ngày sai dạng `YYYY-MM-DD`, tổ không tồn tại/đã ngừng, người phụ trách không tồn tại/ngừng hoạt động. `event_lead_id: null` là gỡ người phụ trách.
+- 409 `{ conflicts: [...] }`: với trường thật sự đổi, `base[field]` khác giá trị hiện tại (không ghi gì). Trường không có trong `base` thì không kiểm tra.
+- 200 `{ changed: [...] }`: `changed` rỗng khi không có gì khác đi (kể cả `changes` rỗng).
+- Đổi `team_id` đặt tổ đó là tổ `primary` trong `activity_teams` (thêm nếu chưa có), các tổ khác thành `supporting`, không gỡ tổ nào.
+- Thông báo gộp theo lô do `services/batch-notify.js` đảm nhiệm (`notifyActivityUpdated`, gọi sau commit).
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -514,3 +563,7 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.7 | 2026-10-05 | #49: route Core truyền `actorId` cho thông báo; `users.js` từ chối email không gửi được (xem DEV-MAIL-001) | DYC |
 | 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
 | 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
+| 6.0 | 2026-10-10 | Thêm `PATCH /api/tasks/:id/batch` (sửa nhiều trường một lần, quyền theo từng trường, 409 khi `base` cũ; chi tiết ở mục Endpoint Details) | DYC |
+| 6.1 | 2026-10-10 | Thêm `PATCH /api/activities/:id/batch` (quyền theo trường: admin/vice_admin tất cả, trưởng sự kiện chỉ title/description) | DYC |
+| 6.2 | 2026-10-10 | Thêm `GET /api/tasks` (danh sách theo phạm vi, bộ lọc mine/overdue/pending_review) và `editable[]` trong `GET /api/tasks/:id`, `GET /api/activities/:id` | DYC |
+| 6.3 | 2026-10-10 | `GET /api/notifications` thêm `unread=1`, `kind=<tên đúng \| tiền tố kết thúc bằng '.'>` và trả `task_id`, `activity_id`; hai route batch gửi thông báo gộp (DEV-MAIL-001) | DYC |

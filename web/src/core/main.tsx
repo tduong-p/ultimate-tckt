@@ -1,12 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppProvider from '@atlaskit/app-provider';
 import { HashRouter } from 'react-router-dom';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
-import '@atlaskit/css-reset';
 import '../shared/styles/responsive.css';
 import { LottieLoading } from '../shared/components/LottieLoading';
-import { PageLayout } from '../shared/layouts/PageLayout';
+import { Shell } from './shell/Shell';
 import { LoginView } from './features/auth/LoginView';
 import { OnboardingView } from './features/auth/OnboardingView';
 import { AppRoutes } from './AppRoutes';
@@ -16,9 +14,7 @@ import { TaskModalProvider } from './features/tasks/TaskModalProvider';
 import { MyAccountModal } from './features/session/MyAccountModal';
 import { fetchSession, logoutUser, type SessionData, type SessionUser } from './api';
 import { SESSION_KEY } from './queryKeys';
-import { UnitSwitcher } from './features/session/UnitSwitcher';
 import { unitHasDieuHanh } from './features/dieuhanh/permissions';
-import { NotificationCenter } from './features/notifications/NotificationCenter';
 
 // Bỏ mọi dữ liệu của người dùng cũ rồi đánh dấu chưa đăng nhập để App hiện màn đăng nhập.
 function resetToLoggedOut(queryClient: QueryClient) {
@@ -107,20 +103,18 @@ const SignedInShell: React.FC<{ userName: string; user: SessionUser; onLogout: (
   const [accountOpen, setAccountOpen] = React.useState(false);
   const openAccount = React.useCallback(() => setAccountOpen(true), []);
   const closeAccount = React.useCallback(() => setAccountOpen(false), []);
-  const headerExtras = React.useMemo(() => <><NotificationCenter /><UnitSwitcher /></>, []);
   return (
     <>
-    <PageLayout
+    <Shell
       user={user}
       onLogout={onLogout}
       canViewReports={caps.isManager}
       canViewDieuHanh={unitHasDieuHanh(caps.unit)}
       canViewAccounts={caps.isExec}
       onOpenAccount={openAccount}
-      headerExtras={headerExtras}
     >
       <AppRoutes userName={userName} />
-    </PageLayout>
+    </Shell>
       <MyAccountModal isOpen={accountOpen} onClose={closeAccount} />
     </>
   );
@@ -131,11 +125,9 @@ const rootEl = document.getElementById('root');
 if (rootEl) {
   ReactDOM.createRoot(rootEl).render(
     <React.StrictMode>
-      <AppProvider>
-        <QueryClientProvider client={defaultQueryClient}>
-          <App />
-        </QueryClientProvider>
-      </AppProvider>
+      <QueryClientProvider client={defaultQueryClient}>
+        <App />
+      </QueryClientProvider>
     </React.StrictMode>
   );
 }

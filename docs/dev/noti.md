@@ -1,11 +1,11 @@
 ---
 doc_id: DEV-NOTI-001
 title: Hướng dẫn phát triển và vận hành service Noti
-version: 2.0
+version: 2.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-07
+updated: 2026-10-10
 related_code: [services/noti-api/**]
 ---
 
@@ -263,3 +263,4 @@ Cách đặt key cho từng use case: `docs/playbooks/viet-http-request-noti.md`
 | 1.6 | 2026-10-05 | Noti có trong compose production (cổng 8101, `PROD_NOTI_ENABLED`); allowlist production bắt buộc khác rỗng | DYC |
 | 1.7 | 2026-10-05 | Thêm `NOTI_ALWAYS_CC`: CC cố định cho mọi thư, thêm sau allowlist (mục 2.6) | DYC |
 | 2.0 | 2026-10-07 | Quy tắc subject mới gom thread theo hoạt động/công việc (bỏ `[DYC] (TCKT-id)`); thêm template `comment.mentioned` | DYC |
+| 2.1 | 2026-10-10 | Thêm template `task.updated`, `activity.updated` (14 template) | DYC |

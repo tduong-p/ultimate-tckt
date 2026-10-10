@@ -1,6 +1,5 @@
 import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { token } from '@atlaskit/tokens';
 
 export interface LottieLoadingProps {
   size?: number | string;
@@ -30,7 +29,7 @@ export const LottieLoading: React.FC<LottieLoadingProps> = ({
               bottom: 0,
               width: '100vw',
               height: '100vh',
-              backgroundColor: token('elevation.surface', '#FFFFFF'),
+              backgroundColor: 'var(--ui-bg-card, #FFFFFF)',
               zIndex: 9999,
             }
           : {
@@ -50,7 +49,7 @@ export const LottieLoading: React.FC<LottieLoadingProps> = ({
             marginTop: '12px',
             fontSize: '14px',
             fontWeight: 500,
-            color: token('color.text.subtle', '#42526E'),
+            color: 'var(--ui-text-2, #42526E)',
             letterSpacing: '-0.01em',
           }}
         >

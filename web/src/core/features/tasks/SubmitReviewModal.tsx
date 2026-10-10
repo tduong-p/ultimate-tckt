@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
+import { Field } from '../../../ui';
 import { submitTaskReview, type SubmitTaskReviewPayload, type TaskItem } from '../../api';
 import { isHttpUrl } from '../../../shared/utils/url';
-import { ErrorText, FieldRow } from '../activities/formBits';
+import { ErrorText } from './formFields';
+import { TaskFormDialog } from './TaskFormDialog';
 import { useTaskMutation } from './useTaskMutation';
 
 export interface SubmitReviewModalProps {
@@ -43,31 +41,21 @@ export const SubmitReviewModal: React.FC<SubmitReviewModalProps> = ({ task, isOp
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="medium">
-          <ModalHeader>
-            <ModalTitle>{`Nộp nghiệm thu: ${task.title}`}</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <FieldRow label="Link minh chứng" htmlFor="submit-review-link">
-              <Textfield id="submit-review-link" value={linkUrl} placeholder="https://drive.google.com/..." onChange={(e) => setLinkUrl((e.target as HTMLInputElement).value)} />
-            </FieldRow>
-            <FieldRow label="Ghi chú bàn giao" htmlFor="submit-review-notes">
-              <TextArea id="submit-review-notes" minimumRows={3} value={notes} onChange={(e) => setNotes((e.target as HTMLTextAreaElement).value)} />
-            </FieldRow>
-            {error && <ErrorText>{error}</ErrorText>}
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
-            </Button>
-            <Button appearance="primary" isLoading={submit.isPending} onClick={onSubmit}>
-              Gửi nghiệm thu
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+    <TaskFormDialog
+      isOpen={isOpen}
+      title={`Nộp nghiệm thu: ${task.title}`}
+      submitLabel="Gửi nghiệm thu"
+      submitting={submit.isPending}
+      onSubmit={onSubmit}
+      onClose={onClose}
+    >
+      <Field label="Link minh chứng">
+        <input value={linkUrl} placeholder="https://drive.google.com/..." onChange={(e) => setLinkUrl(e.target.value)} />
+      </Field>
+      <Field label="Ghi chú bàn giao">
+        <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </Field>
+      <ErrorText>{error}</ErrorText>
+    </TaskFormDialog>
   );
 };

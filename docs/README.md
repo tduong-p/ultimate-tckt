@@ -22,14 +22,15 @@
 | [ADR-0013-001](adr/0013-go-email-cu-va-onesignal.md) | Gỡ module email cũ và OneSignal khỏi Core | 1.0 | active | dev, ai |
 | [ADR-0014-001](adr/0014-noti-service.md) | Service Noti — gửi thông báo email theo template qua HTTP API | 1.0 | active | dev, ai |
 | [ADR-0015-001](adr/0015-poc-frontend-react-atlaskit.md) | Cho phép xây dựng POC frontend React + Atlaskit | 1.0 | active | dev, ai |
-| [ADR-0016-001](adr/0016-web-thay-the-frontend-core.md) | web/ (React + Atlaskit) thay thế frontend Core tại / | 1.0 | active | dev, ai, ops |
+| [ADR-0016-001](adr/0016-web-thay-the-frontend-core.md) | web/ (React + Atlaskit) thay thế frontend Core tại / | 1.1 | deprecated | dev, ai, ops |
+| [ADR-0017-001](adr/0017-giao-dien-web-radix-thay-atlaskit.md) | Giao diện web mới bằng UI Kit thuần CSS (tokens) và Radix UI thay thế Atlaskit | 1.0 | active | dev, ai, ops |
 
 ## ai
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
 | [AI-INV-001](ai/bat-bien.md) | Bất biến — điều không được phá | 4.5 | active | ai, dev |
-| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.20 | active | ai, dev |
+| [AI-PIT-001](ai/bay-da-gap.md) | Bẫy đã gặp | 1.21 | active | ai, dev |
 | [AI-CHK-001](ai/kiem-tra.md) | Cách kiểm tra trước khi coi là xong | 1.12 | active | ai, dev |
 | [AI-MAP-001](ai/tim-o-dau.md) | Cần X thì xem file nào | 2.3 | active | ai, dev |
 
@@ -49,15 +50,15 @@
 
 | Tài liệu | Tiêu đề | Version | Trạng thái | Đối tượng |
 |---|---|---|---|---|
-| [DEV-API-001](dev/api.md) | API | 5.9 | active | dev, ai |
+| [DEV-API-001](dev/api.md) | API | 6.3 | active | dev, ai |
 | [DEV-LOCAL-001](dev/chay-local.md) | Chạy dự án ở máy local | 1.3 | active | dev, ai, onboarding |
 | [DEV-DB-001](dev/db-migration.md) | Migration cơ sở dữ liệu | 2.2 | active | dev, ai |
 | [DEV-GUIDE-003](dev/developer-3-interface.md) | Interface Guide for Developer 3 - Directives & Submissions API | 1.4 | active | dev, ai |
-| [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 7.0 | active | dev, ai |
-| [DEV-FE-001](dev/frontend.md) | Frontend | 1.19 | active | dev, ai |
-| [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.5 | active | dev, ai |
+| [DEV-MAIL-001](dev/email-cron.md) | Thông báo của Core (email, push và nhắc hạn) | 7.2 | active | dev, ai |
+| [DEV-FE-001](dev/frontend.md) | Frontend | 1.35 | active | dev, ai |
+| [DEV-ARCH-001](dev/kien-truc.md) | Kiến trúc hệ thống | 3.6 | active | dev, ai |
 | [DEV-TZ-001](dev/mui-gio.md) | Múi giờ và xử lý thời gian | 1.1 | active | dev, ai |
-| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.0 | active | dev, ai |
+| [DEV-NOTI-001](dev/noti.md) | Hướng dẫn phát triển và vận hành service Noti | 2.1 | active | dev, ai |
 | [DEV-RBAC-001](dev/phan-quyen.md) | Phân quyền | 6.5 | active | dev, ai |
 | [DEV-CONV-001](dev/quy-uoc-code.md) | Quy ước code | 1.0 | active | dev, ai |
 | [DEV-MOD-001](dev/ranh-gioi-module.md) | Ranh giới module và quy tắc thay đổi liên module | 1.9 | active | dev, ai |
@@ -190,8 +191,10 @@
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.2 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.1 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 2.0 | active | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 2.1 | deprecated | dev, ai, ops |
 | [PLAN-WEBP7-001](specs/2026-10-10-web-dot-7-thay-ui-cu-plan.md) | Kế hoạch triển khai — web/ đợt 7 (thay frontend Core tại /) | 1.0 | active | dev, ai |
+| [SPEC-WEB-004](specs/2026-10-10-web-giao-dien-moi-design.md) | Design — Giao diện web mới (Linear-style) thay Atlaskit | 1.1 | active | dev, ai, ops |
+| [PLAN-WEB-003](specs/2026-10-10-web-giao-dien-moi-plan.md) | Kế hoạch triển khai — Giao diện web mới (Linear-style) thay Atlaskit | 1.1 | active | dev, ai |
 | [SPEC-UNIT-002](specs/nen-tang-da-don-vi-design.md) | Design — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-001](specs/nen-tang-da-don-vi-requirements.md) | Requirements — Nền tảng đa đơn vị (GĐ1) | 1.1 | active | ba, dev, ai |
 | [SPEC-UNIT-003](specs/nen-tang-da-don-vi-tasks.md) | Tasks — Nền tảng đa đơn vị (GĐ1) | 2.0 | active | ba, dev, ai |

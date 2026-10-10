@@ -1,15 +1,14 @@
 import type { ActivityDetail, UpdateActivityPayload } from '../../api';
 import { LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
 import { isHttpUrl } from '../../../shared/utils/url';
-import { toVnDateKey } from '../../../shared/utils/date';
 
+/**
+ * Form của modal "Sửa thông tin khác": CHỈ các trường mà batch (activity-batch.js) không phủ.
+ * Tiêu đề, mô tả, ưu tiên, ngày, Trưởng BTC, Tổ chủ trì sửa tại chỗ qua batch (có base/409).
+ * Danh sách Tổ tham gia batch không biểu diễn được nên vẫn ở đây; `leadTeamId` chỉ để gửi kèm team_id.
+ */
 export interface EditForm {
-  title: string;
-  description: string;
   type: string;
-  priority: string;
-  startDate: string;
-  deadline: string;
   location: string;
   requestedBy: string;
   resultSummary: string;
@@ -17,8 +16,7 @@ export interface EditForm {
   isPublic: boolean;
   publicImageUrl: string;
   status: string;
-  /** '' = không có. */
-  eventLeadId: string;
+  /** Tổ chủ trì hiện tại, không sửa ở modal. */
   leadTeamId: string;
   teamIds: number[];
 }
@@ -49,12 +47,7 @@ export function initialEditForm(detail: ActivityDetail): EditForm {
   const primary = detail.activityTeams.find((t) => t.role === 'primary');
   const lead = primary?.team_id ?? a.team_id ?? 0;
   return {
-    title: a.title ?? '',
-    description: a.description ?? '',
     type: a.type ?? 'event',
-    priority: a.priority ?? 'medium',
-    startDate: toVnDateKey(a.start_date),
-    deadline: toVnDateKey(a.deadline),
     location: a.location ?? '',
     requestedBy: a.requested_by ?? '',
     resultSummary: a.result_summary ?? '',
@@ -62,7 +55,6 @@ export function initialEditForm(detail: ActivityDetail): EditForm {
     isPublic: Boolean(a.is_public),
     publicImageUrl: a.public_image_url ?? '',
     status: a.status,
-    eventLeadId: a.event_lead_id ? String(a.event_lead_id) : '',
     leadTeamId: lead ? String(lead) : '',
     teamIds: detail.activityTeams.map((t) => t.team_id),
   };
@@ -74,27 +66,19 @@ export function effectiveTeamIds(form: EditForm): number[] {
   return Array.from(new Set([...(lead ? [lead] : []), ...form.teamIds]));
 }
 
-export function validateEditForm(form: EditForm, isAdmin: boolean): string | null {
-  if (!form.title.trim() || !form.description.trim() || !form.deadline) return 'Vui lòng nhập tiêu đề, mô tả và hạn chót.';
-  if (form.startDate && form.startDate > form.deadline) return 'Ngày bắt đầu phải trước hoặc bằng hạn chót.';
+export function validateEditForm(form: EditForm): string | null {
   const proposal = form.proposalUrl.trim();
   const image = form.publicImageUrl.trim();
   if ((proposal && !isHttpUrl(proposal)) || (image && !isHttpUrl(image))) return LINK_ERROR_MESSAGE;
-  if (isAdmin && !form.leadTeamId) return 'Vui lòng chọn Tổ chủ trì.';
   return null;
 }
 
 const sameSet = (a: number[], b: number[]) => a.length === b.length && a.every((x) => b.includes(x));
 
-/** Người không phải admin KHÔNG BAO GIỜ gửi status/event_lead_id/team_id/team_ids (server trả 403 hoặc bỏ qua). */
+/** Người không phải admin KHÔNG BAO GIỜ gửi status/team_id/team_ids (server trả 403 hoặc bỏ qua). */
 export function buildUpdatePayload(form: EditForm, initial: EditForm, isAdmin: boolean): UpdateActivityPayload {
   const payload: UpdateActivityPayload = {
-    title: form.title.trim(),
-    description: form.description.trim(),
     type: form.type,
-    priority: form.priority,
-    start_date: form.startDate,
-    deadline: form.deadline,
     location: form.location.trim(),
     requested_by: form.requestedBy.trim(),
     result_summary: form.resultSummary.trim(),
@@ -105,9 +89,8 @@ export function buildUpdatePayload(form: EditForm, initial: EditForm, isAdmin: b
   };
   if (!isAdmin) return payload;
   if (form.status !== initial.status) payload.status = form.status;
-  if (form.eventLeadId !== initial.eventLeadId) payload.event_lead_id = form.eventLeadId ? Number(form.eventLeadId) : null;
   const teams = effectiveTeamIds(form);
-  if (form.leadTeamId !== initial.leadTeamId || !sameSet(teams, effectiveTeamIds(initial))) {
+  if (!sameSet(teams, effectiveTeamIds(initial))) {
     payload.team_id = Number(form.leadTeamId);
     payload.team_ids = teams;
   }

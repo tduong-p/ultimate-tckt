@@ -1,23 +1,19 @@
-import React, { useId, useState } from 'react';
-import { ModalTransition } from '@atlaskit/modal-dialog';
-import Textfield from '@atlaskit/textfield';
+import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiErrorMessage, createUser, fetchTeams } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { TEAMS_KEY } from '../../queryKeys';
 import { useToast } from '../../../shared/components/Toast';
-import { FormDialog } from '../people/FormDialog';
-import { FormField, selectStyle } from '../people/FormField';
+import { Field, Select } from '../../../ui';
+import { PeopleFormDialog, TeamChecks } from '../people/peopleKit';
 import { invalidatePeople } from '../people/invalidate';
 import { ROLE_OPTIONS } from '../people/roleLabels';
-import { TeamCheckboxes } from '../people/TeamCheckboxes';
 
 export const CreateAccountModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => (
-  <ModalTransition>{isOpen && <CreateAccountDialog onClose={onClose} />}</ModalTransition>
+  <>{isOpen && <CreateAccountDialog onClose={onClose} />}</>
 );
 
 const CreateAccountDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const ids = { name: useId(), email: useId(), password: useId(), role: useId(), phone: useId() };
   const caps = useCapabilities();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -64,34 +60,37 @@ const CreateAccountDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => 
   };
 
   return (
-    <FormDialog title="Tạo tài khoản" submitLabel="Tạo" isSubmitting={mutation.isPending} error={error} onSubmit={submit} onClose={onClose}>
-      <FormField label="Họ và tên" htmlFor={ids.name}>
-        <Textfield id={ids.name} value={name} onChange={(e) => setName((e.target as HTMLInputElement).value)} />
-      </FormField>
-      <FormField label="Email" htmlFor={ids.email}>
-        <Textfield id={ids.email} type="email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} />
-      </FormField>
-      <fieldset style={{ border: 'none', padding: 0, margin: '0 0 12px' }}>
-        <legend style={{ fontSize: 12, fontWeight: 600 }}>Kiểu đăng nhập</legend>
-        <label><input type="radio" name="auth-kind" checked={kind === 'local'} onChange={() => setKind('local')} /> Cục bộ (mật khẩu)</label>{' '}
-        <label><input type="radio" name="auth-kind" checked={kind === 'microsoft'} onChange={() => setKind('microsoft')} /> SSO Microsoft</label>
+    <PeopleFormDialog title="Tạo tài khoản" submitLabel="Tạo" submitting={mutation.isPending} error={error} onSubmit={submit} onClose={onClose}>
+      <Field label="Họ và tên">
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
+      <Field label="Email">
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      </Field>
+      <fieldset className="ppl-fieldset">
+        <legend className="ppl-legend">Kiểu đăng nhập</legend>
+        <div className="ppl-inline">
+          <label className="ppl-check"><input type="radio" name="auth-kind" checked={kind === 'local'} onChange={() => setKind('local')} /> Cục bộ (mật khẩu)</label>
+          <label className="ppl-check"><input type="radio" name="auth-kind" checked={kind === 'microsoft'} onChange={() => setKind('microsoft')} /> SSO Microsoft</label>
+        </div>
       </fieldset>
       {kind === 'local' && (
-        <FormField label="Mật khẩu" htmlFor={ids.password} hint="Tối thiểu 8 ký tự.">
-          <Textfield id={ids.password} type="password" value={password} onChange={(e) => setPassword((e.target as HTMLInputElement).value)} />
-        </FormField>
+        <>
+          <Field label="Mật khẩu">
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </Field>
+          <p className="ppl-hint">Tối thiểu 8 ký tự.</p>
+        </>
       )}
       {caps.isExec && (
-        <FormField label="Vai trò" htmlFor={ids.role}>
-          <select id={ids.role} style={selectStyle} value={role} onChange={(e) => setRole(e.target.value)}>
-            {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </FormField>
+        <Field label="Vai trò">
+          <Select value={role} onChange={setRole} options={ROLE_OPTIONS} />
+        </Field>
       )}
-      <FormField label="Số điện thoại" htmlFor={ids.phone}>
-        <Textfield id={ids.phone} value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} />
-      </FormField>
-      <TeamCheckboxes teams={allowedTeams} value={teamIds} onChange={setTeamIds} />
-    </FormDialog>
+      <Field label="Số điện thoại">
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+      </Field>
+      <TeamChecks teams={allowedTeams} value={teamIds} onChange={setTeamIds} />
+    </PeopleFormDialog>
   );
 };

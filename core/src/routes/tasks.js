@@ -1,6 +1,9 @@
 const express = require('express');
 const { findReviewRecipients } = require('../services/notification-recipients');
 const { createAttachment } = require('../services/task-attachments');
+const { applyTaskBatch, taskEditableFields } = require('../services/task-batch');
+const { dateInVietnam } = require('../date-vn');
+const { notifyTaskUpdated } = require('../services/batch-notify');
 
 function createTaskRoutes(context) {
   const { db, auth, admin, manager, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, canReviewTask, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto } = context;
@@ -16,6 +19,17 @@ function createTaskRoutes(context) {
   }
 
 router.patch('/api/tasks/:id',auth,asyncRoute(async(req,res)=>{const [rows]=await db.execute('SELECT t.*,EXISTS(SELECT 1 FROM task_assignees ta WHERE ta.task_id=t.id AND ta.user_id=?) assigned_to_me FROM tasks t WHERE t.id=?',[req.actor.id,req.params.id]);const task=one(rows);if(!task)return res.status(404).json({error:'Task not found.'});const manages=await canManageTeam(req.actor,task.team_id);if(!manages&&!task.assigned_to_me)return res.status(403).json({error:'You cannot update this task.'});const allowed=manages?['deadline','start_date','priority','deliverable']:[];const entries=Object.entries(req.body).filter(([key])=>allowed.includes(key));if(!entries.length)return res.status(400).json({error:'No valid fields supplied.'});await db.execute(`UPDATE tasks SET ${entries.map(([k])=>`${k}=?`).join(',')} WHERE id=?`,[...entries.map(([,v])=>v||null),req.params.id]);res.json({ok:true})}));
+
+router.patch('/api/tasks/:id/batch', auth, asyncRoute(async (req, res) => {
+  const [rows] = await db.execute('SELECT id,activity_id FROM tasks WHERE id=?', [req.params.id]);
+  const found = one(rows);
+  if (!found || !(await visibleActivity(req.actor, found.activity_id))) return res.status(404).json({ error: 'Không tìm thấy công việc.' });
+  const result = await applyTaskBatch(context, { actor: req.actor, taskId: found.id, changes: req.body.changes, base: req.body.base });
+  if (result.notify) {
+    try { await notifyTaskUpdated(context, req.actor, result.notify); } catch (error) { logger.error(`Unable to prepare task ${found.id} batch notifications.`, error); }
+  }
+  res.status(result.status).json(result.body);
+}));
 
 router.post('/api/tasks/:id/attachments', auth, taskUpload.single('file'), asyncRoute(async (req, res) => {
   const [tasks] = await db.execute('SELECT id,activity_id FROM tasks WHERE id=?', [req.params.id]);
@@ -35,7 +49,46 @@ router.post('/api/tasks/:id/attachments', auth, taskUpload.single('file'), async
 const inlineSafeMimeByExtension={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.gif':'image/gif','.webp':'image/webp','.heic':'image/heic','.pdf':'application/pdf'};
 router.get('/api/task-attachments/:id/content',auth,asyncRoute(async(req,res)=>{const [rows]=await db.execute('SELECT x.*,t.activity_id FROM task_attachments x JOIN tasks t ON t.id=x.task_id WHERE x.id=?',[req.params.id]);const item=one(rows);if(!item||!item.stored_name||!(await visibleActivity(req.actor,item.activity_id)))return res.status(404).json({error:'Attachment not found.'});const filePath=path.join(attachmentRoot,path.basename(item.stored_name));if(!fs.existsSync(filePath))return res.status(404).json({error:'Stored file not found.'});const ext=path.extname(item.stored_name).toLowerCase(),safeMime=inlineSafeMimeByExtension[ext];res.type(safeMime||'application/octet-stream');res.setHeader('Content-Disposition',`${safeMime?'inline':'attachment'}; filename*=UTF-8''${encodeURIComponent(item.original_name)}`);res.sendFile(filePath)}));
 
-router.get('/api/tasks/:id',auth,asyncRoute(async(req,res)=>{const [taskRows]=await db.execute(`SELECT t.*,a.title activity_title,a.description activity_description,a.status activity_status,a.deadline activity_deadline,te.name team_name,GROUP_CONCAT(DISTINCT u.name ORDER BY u.name SEPARATOR ', ') assignee_name,GROUP_CONCAT(DISTINCT u.id ORDER BY u.id) assignee_ids FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN teams te ON te.id=t.team_id LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN users u ON u.id=ta.user_id WHERE t.id=? GROUP BY t.id`,[req.params.id]);const task=one(taskRows);if(!task||!(await visibleActivity(req.actor,task.activity_id)))return res.status(404).json({error:'Task not found.'});const [[attachments],[updates],[checklist],[assignees]]=await Promise.all([db.execute('SELECT x.id,x.task_id,x.kind,x.label,x.link_url,x.original_name,x.mime_type,x.size_bytes,x.created_at,u.name user_name FROM task_attachments x JOIN users u ON u.id=x.user_id WHERE x.task_id=? ORDER BY x.created_at DESC',[task.id]),db.execute('SELECT n.*,u.name user_name,u.avatar_color FROM updates n JOIN users u ON u.id=n.user_id WHERE n.task_id=? ORDER BY n.created_at DESC',[task.id]),db.execute('SELECT * FROM task_checklists WHERE task_id=? ORDER BY sort_order,id',[task.id]),db.execute('SELECT ta.user_id,ta.is_primary,ta.acknowledged_at,u.name,u.email,u.avatar_color FROM task_assignees ta JOIN users u ON u.id=ta.user_id WHERE ta.task_id=? ORDER BY ta.is_primary DESC,u.name',[task.id])]);const myAssignee=assignees.find(a=>a.user_id===req.actor.id),assigned=Boolean(myAssignee),manages=await canManageTeam(req.actor,task.team_id);res.json({task,assignees,attachments,updates,checklist,canUpdate:assigned||manages,myAcknowledgedAt:myAssignee?.acknowledged_at||null})}));
+const TASK_STATUSES = ['todo', 'in_progress', 'review', 'done', 'cancelled'];
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+router.get('/api/tasks', auth, asyncRoute(async (req, res) => {
+  const q = req.query;
+  const status = q.status === undefined || q.status === '' ? null : String(q.status);
+  const from = q.from === undefined || q.from === '' ? null : String(q.from);
+  const to = q.to === undefined || q.to === '' ? null : String(q.to);
+  const teamRaw = q.team_id === undefined || q.team_id === '' ? null : String(q.team_id);
+  if (status && !TASK_STATUSES.includes(status)) return res.status(400).json({ error: 'Trạng thái không hợp lệ.' });
+  if ((from && !ISO_DATE.test(from)) || (to && !ISO_DATE.test(to))) return res.status(400).json({ error: 'Ngày phải có dạng YYYY-MM-DD.' });
+  if (teamRaw && !/^\d+$/.test(teamRaw)) return res.status(400).json({ error: 'Tổ không hợp lệ.' });
+  const flag = (value) => value === '1' || value === 'true';
+  // Own unit only (+ activityScope): cross-unit rows granted by visibility policies are summary-only elsewhere, so never listed here.
+  const isPlatformOwner = req.actor.unit && req.actor.unit.kind === 'platform_owner';
+  const own = activityScope(req.actor, 'a');
+  const scope = isPlatformOwner ? { sql: '1=1', params: [] } : { sql: `(a.unit_id=? AND ${own.sql})`, params: [req.actor.unit.id, ...own.params] };
+  const where = [scope.sql];
+  const params = [req.actor.id, ...scope.params];
+  if (flag(q.mine)) where.push('mine.user_id IS NOT NULL');
+  if (status) { where.push('t.status=?'); params.push(status); }
+  if (teamRaw) { where.push('t.team_id=?'); params.push(Number(teamRaw)); }
+  if (from) { where.push('t.deadline>=?'); params.push(from); }
+  if (to) { where.push('t.deadline<=?'); params.push(to); }
+  if (flag(q.overdue)) { where.push("t.deadline<? AND t.status NOT IN ('done','cancelled')"); params.push(dateInVietnam()); }
+  if (flag(q.pending_review)) where.push("t.status='review'");
+  const [rows] = await db.execute(
+    `SELECT t.id,t.title,t.status,t.priority,DATE_FORMAT(t.deadline,'%Y-%m-%d') deadline,t.team_id,te.name team_name,t.activity_id,a.title activity_title,a.event_lead_id,t.primary_assignee_id,pu.name assignee_name,mine.acknowledged_at,t.review_feedback FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN teams te ON te.id=t.team_id LEFT JOIN users pu ON pu.id=t.primary_assignee_id LEFT JOIN task_assignees mine ON mine.task_id=t.id AND mine.user_id=? WHERE ${where.join(' AND ')} ORDER BY t.deadline IS NULL,t.deadline,t.id LIMIT 500`,
+    params
+  );
+  let result = rows;
+  if (flag(q.pending_review)) {
+    const allowed = [];
+    for (const row of rows) if (await canReviewTask(req.actor, row)) allowed.push(row);
+    result = allowed;
+  }
+  res.json(result.map(({ event_lead_id, ...row }) => row));
+}));
+
+router.get('/api/tasks/:id',auth,asyncRoute(async(req,res)=>{const [taskRows]=await db.execute(`SELECT t.*,a.title activity_title,a.description activity_description,a.status activity_status,a.deadline activity_deadline,te.name team_name,GROUP_CONCAT(DISTINCT u.name ORDER BY u.name SEPARATOR ', ') assignee_name,GROUP_CONCAT(DISTINCT u.id ORDER BY u.id) assignee_ids FROM tasks t JOIN activities a ON a.id=t.activity_id JOIN teams te ON te.id=t.team_id LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN users u ON u.id=ta.user_id WHERE t.id=? GROUP BY t.id`,[req.params.id]);const task=one(taskRows);if(!task||!(await visibleActivity(req.actor,task.activity_id)))return res.status(404).json({error:'Task not found.'});const [[attachments],[updates],[checklist],[assignees]]=await Promise.all([db.execute('SELECT x.id,x.task_id,x.kind,x.label,x.link_url,x.original_name,x.mime_type,x.size_bytes,x.created_at,u.name user_name FROM task_attachments x JOIN users u ON u.id=x.user_id WHERE x.task_id=? ORDER BY x.created_at DESC',[task.id]),db.execute('SELECT n.*,u.name user_name,u.avatar_color FROM updates n JOIN users u ON u.id=n.user_id WHERE n.task_id=? ORDER BY n.created_at DESC',[task.id]),db.execute('SELECT * FROM task_checklists WHERE task_id=? ORDER BY sort_order,id',[task.id]),db.execute('SELECT ta.user_id,ta.is_primary,ta.acknowledged_at,u.name,u.email,u.avatar_color FROM task_assignees ta JOIN users u ON u.id=ta.user_id WHERE ta.task_id=? ORDER BY ta.is_primary DESC,u.name',[task.id])]);const myAssignee=assignees.find(a=>a.user_id===req.actor.id),assigned=Boolean(myAssignee),manages=await canManageTeam(req.actor,task.team_id);res.json({task,assignees,attachments,updates,checklist,canUpdate:assigned||manages,myAcknowledgedAt:myAssignee?.acknowledged_at||null,editable:await taskEditableFields(context,req.actor,{...task,assigned_to_me:assigned})})}));
 
 router.post('/api/tasks/:id/acknowledge', auth, asyncRoute(async (req, res) => {
   const [result] = await db.execute('UPDATE task_assignees SET acknowledged_at=NOW() WHERE task_id=? AND user_id=? AND acknowledged_at IS NULL', [req.params.id, req.actor.id]);

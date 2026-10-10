@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
+import { Button, Dialog, Field, Select } from '../../../ui';
 import { apiErrorMessage, createTask, fetchTeamMembers, type BoardTeam } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { useToast } from '../../../shared/components/Toast';
 import { PeoplePicker } from '../../../shared/components/PeoplePicker';
 import { useInvalidateTaskCaches } from './useTaskCaches';
-import { AreaField, ErrorText, PRIORITY_OPTIONS, SelectField, STAGE_OPTIONS, TextField } from './formFields';
+import { PRIORITY_OPTIONS, STAGE_OPTIONS } from './taskLabels';
+import './tasks.css';
 
 export interface CreateTaskModalProps {
   isOpen: boolean;
@@ -136,68 +136,82 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     mutation.mutate();
   };
 
+  const withPlaceholder = (placeholder: string, options: { value: string; label: string }[]) => [
+    { value: '', label: placeholder },
+    ...options,
+  ];
+
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="medium" shouldScrollInViewport>
-          <ModalHeader>
-            <ModalTitle>Giao việc</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            {teamOptions.length === 0 ? (
-              <p role="alert">Bạn không quản lý Tổ nào của hoạt động này nên chưa giao việc được.</p>
-            ) : (
-              <>
-                <TextField label="Tiêu đề" required value={title} onChange={setTitle} />
-                {showStage && <SelectField label="Giai đoạn" value={stage} onChange={setStage} options={STAGE_OPTIONS} />}
-                <SelectField
-                  label="Tổ phụ trách"
-                  required
-                  value={teamId}
-                  onChange={changeTeam}
-                  options={teamOptions}
-                  placeholder="Chọn Tổ"
-                />
-                {membersQuery.isError && (
-                  <ErrorText>{apiErrorMessage(membersQuery.error, 'Không tải được thành viên của Tổ.')}</ErrorText>
-                )}
-                <SelectField
-                  label="Người phụ trách chính"
-                  required
-                  value={primaryId}
-                  onChange={changePrimary}
-                  options={members.map((m) => ({ value: String(m.id), label: m.name }))}
-                  placeholder="Chọn người"
-                  disabled={teamNumber === 0}
-                />
-                <PeoplePicker
-                  label="Đồng phụ trách"
-                  people={members}
-                  value={coIds}
-                  onChange={setCoIds}
-                  excludeIds={primaryId ? [Number(primaryId)] : []}
-                />
-                <TextField label="Ngày bắt đầu" type="date" value={startDate} onChange={setStartDate} />
-                <TextField label="Hạn chót" type="date" required value={deadline} onChange={setDeadline} />
-                <SelectField label="Mức ưu tiên" value={priority} onChange={setPriority} options={PRIORITY_OPTIONS} />
-                <AreaField label="Sản phẩm cần nộp" value={deliverable} onChange={setDeliverable} rows={2} />
-                <AreaField label="Mô tả" value={description} onChange={setDescription} />
-              </>
-            )}
-            <ErrorText>{error}</ErrorText>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title="Giao việc"
+      footer={(
+        <>
+          <Button onClick={onClose}>Huỷ</Button>
+          {teamOptions.length > 0 && (
+            <Button variant="primary" disabled={mutation.isPending} onClick={submit}>
+              Giao việc
             </Button>
-            {teamOptions.length > 0 && (
-              <Button appearance="primary" isLoading={mutation.isPending} onClick={submit}>
-                Giao việc
-              </Button>
-            )}
-          </ModalFooter>
-        </Modal>
+          )}
+        </>
       )}
-    </ModalTransition>
+    >
+      {teamOptions.length === 0 ? (
+        <p role="alert">Bạn không quản lý Tổ nào của hoạt động này nên chưa giao việc được.</p>
+      ) : (
+        <div className="tk-form">
+          <Field label="Tiêu đề *">
+            <input className="tk-input tk-input--full" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </Field>
+          {showStage && (
+            <Field label="Giai đoạn">
+              <Select value={stage} onChange={setStage} options={STAGE_OPTIONS} />
+            </Field>
+          )}
+          <Field label="Tổ phụ trách *">
+            <Select value={teamId} onChange={changeTeam} options={withPlaceholder('Chọn Tổ', teamOptions)} />
+          </Field>
+          {membersQuery.isError && (
+            <p role="alert" className="tk-form-error">
+              {apiErrorMessage(membersQuery.error, 'Không tải được thành viên của Tổ.')}
+            </p>
+          )}
+          <Field label="Người phụ trách chính *">
+            <Select
+              value={primaryId}
+              onChange={changePrimary}
+              options={withPlaceholder('Chọn người', members.map((m) => ({ value: String(m.id), label: m.name })))}
+              disabled={teamNumber === 0}
+            />
+          </Field>
+          <PeoplePicker
+            label="Đồng phụ trách"
+            people={members}
+            value={coIds}
+            onChange={setCoIds}
+            excludeIds={primaryId ? [Number(primaryId)] : []}
+          />
+          <Field label="Ngày bắt đầu">
+            <input className="tk-input tk-input--full" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          </Field>
+          <Field label="Hạn chót *">
+            <input className="tk-input tk-input--full" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          </Field>
+          <Field label="Mức ưu tiên">
+            <Select value={priority} onChange={setPriority} options={PRIORITY_OPTIONS} />
+          </Field>
+          <Field label="Sản phẩm cần nộp">
+            <textarea className="tk-input tk-input--area" rows={2} value={deliverable} onChange={(e) => setDeliverable(e.target.value)} />
+          </Field>
+          <Field label="Mô tả">
+            <textarea className="tk-input tk-input--area" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </Field>
+        </div>
+      )}
+      {error && <p role="alert" className="tk-form-error">{error}</p>}
+    </Dialog>
   );
 };

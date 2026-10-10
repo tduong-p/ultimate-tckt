@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { token } from '@atlaskit/tokens';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
+import { Button } from '../../../ui';
 import { acknowledgeFacultyNotice, apiErrorMessage, submitStudentClass, type SessionUser } from '../../api';
 
 interface OnboardingViewProps {
@@ -49,7 +47,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ user, onDone }) 
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
-        backgroundColor: token('elevation.surface.sunken', '#F7F8F9'),
+        backgroundColor: 'var(--ui-bg-page)',
       }}
     >
       <div
@@ -59,10 +57,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ user, onDone }) 
           width: '100%',
           maxWidth: '440px',
           padding: '32px',
-          borderRadius: '8px',
-          backgroundColor: token('elevation.surface.raised', '#FFFFFF'),
-          boxShadow: token('elevation.shadow.raised', '0 1px 1px rgba(9, 30, 66, 0.25)'),
-          color: token('color.text', '#172B4D'),
+          borderRadius: 'var(--ui-radius-lg, 8px)',
+          backgroundColor: 'var(--ui-bg-card)',
+          boxShadow: 'var(--ui-shadow-md)',
+          border: '1px solid var(--ui-border)',
+          color: 'var(--ui-text)',
         }}
       >
         {isFaculty ? (
@@ -70,20 +69,20 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ user, onDone }) 
             <h1 id="onboarding-title" style={{ margin: '0 0 12px', fontSize: '20px' }}>
               Chào mừng đến với TCKT Activity Hub
             </h1>
-            <p style={{ margin: '0 0 24px', color: token('color.text.subtle', '#5E6C84') }}>
+            <p style={{ margin: '0 0 24px', color: 'var(--ui-text-muted)' }}>
               Để được cấp quyền, phân công nhiệm vụ hoặc cần thêm thông tin, vui lòng liên hệ quản trị viên
               hoặc gửi email tới{' '}
               <a href="mailto:van.nguyendinh@hust.edu.vn">van.nguyendinh@hust.edu.vn</a>.
             </p>
             {error && (
-              <p role="alert" style={{ color: token('color.text.danger', '#AE2E24') }}>
+              <p role="alert" style={{ color: 'var(--ui-danger)' }}>
                 {error}
               </p>
             )}
             <Button
-              appearance="primary"
-              shouldFitContainer
-              isDisabled={isSubmitting}
+              variant="primary"
+              style={{ width: '100%' }}
+              disabled={isSubmitting}
               onClick={() => run(acknowledgeFacultyNotice)}
             >
               Tôi đã hiểu
@@ -94,19 +93,19 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ user, onDone }) 
             <h1 id="onboarding-title" style={{ margin: '0 0 12px', fontSize: '20px' }}>
               Khai báo lớp của bạn
             </h1>
-            <p style={{ margin: '0 0 16px', color: token('color.text.subtle', '#5E6C84') }}>
+            <p style={{ margin: '0 0 16px', color: 'var(--ui-text-muted)' }}>
               Vui lòng khai báo số lớp. Hệ thống sẽ hỏi lại sau mỗi lần đăng nhập cho tới khi bạn hoàn tất.
             </p>
             <div
               style={{
                 marginBottom: '16px',
                 padding: '12px',
-                borderRadius: '6px',
-                backgroundColor: token('color.background.neutral', '#F1F2F4'),
+                borderRadius: 'var(--ui-radius-md, 6px)',
+                backgroundColor: 'var(--ui-bg-subtle)',
               }}
             >
               <strong>{user.cohort || 'Chưa xác định khóa'}</strong>
-              <div style={{ fontSize: '12px', color: token('color.text.subtle', '#5E6C84') }}>
+              <div style={{ fontSize: '12px', color: 'var(--ui-text-muted)' }}>
                 {user.entrance_year
                   ? `Năm nhập học ${user.entrance_year}`
                   : 'Suy ra từ email sinh viên HUST của bạn'}
@@ -115,22 +114,33 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ user, onDone }) 
             <label htmlFor="onboarding-class" style={{ display: 'block', fontWeight: 600, marginBottom: '6px' }}>
               Số lớp
             </label>
-            <Textfield
+            <input
               id="onboarding-class"
               aria-label="Số lớp"
               maxLength={100}
               placeholder="VD: Điện 1, Điện tử 2"
               value={classNumber}
-              onChange={(e) => setClassNumber((e.target as HTMLInputElement).value)}
+              onChange={(e) => setClassNumber(e.target.value)}
               autoFocus
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 'var(--ui-radius-sm, 4px)',
+                border: '1px solid var(--ui-border)',
+                backgroundColor: 'var(--ui-bg-input, var(--ui-bg-card))',
+                color: 'var(--ui-text)',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                outline: 'none',
+              }}
             />
             {error && (
-              <p role="alert" style={{ color: token('color.text.danger', '#AE2E24') }}>
+              <p role="alert" style={{ color: 'var(--ui-danger)' }}>
                 {error}
               </p>
             )}
             <div style={{ marginTop: '16px' }}>
-              <Button type="submit" appearance="primary" shouldFitContainer isDisabled={isSubmitting}>
+              <Button type="submit" variant="primary" style={{ width: '100%' }} disabled={isSubmitting}>
                 Lưu và tiếp tục
               </Button>
             </div>

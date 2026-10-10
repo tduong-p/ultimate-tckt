@@ -1,9 +1,4 @@
-import React, { useEffect, useId, useMemo, useState } from 'react';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
-import { token } from '@atlaskit/tokens';
+import React, { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   apiErrorMessage,
@@ -14,7 +9,10 @@ import {
   type DocumentTeamOption,
 } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
-import { LinkField, LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
+import { LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
+import { Field, Select } from '../../../ui';
+import { PeopleFormDialog } from '../people/peopleKit';
+import './documents.css';
 import { isHttpUrl } from '../../../shared/utils/url';
 import { todayVnKey } from '../../../shared/utils/date';
 
@@ -71,38 +69,17 @@ function validate(form: FormState): string | null {
   return null;
 }
 
-const selectStyle: React.CSSProperties = {
-  width: '100%',
-  height: 40,
-  padding: '0 8px',
-  borderRadius: 3,
-  border: `1px solid ${token('color.border', '#DFE1E6')}`,
-  background: token('elevation.surface', '#fff'),
-  color: token('color.text', '#172B4D'),
+export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({ isOpen, document, issueTeams, onClose }) => {
+  if (!isOpen) return null;
+  // Mỗi lần mở (hoặc đổi văn bản) là một lần mount mới: form nạp lại, tải lại danh sách giữa chừng không xoá chữ đang gõ.
+  return <DocumentForm key={document?.id ?? 'new'} document={document} issueTeams={issueTeams} onClose={onClose} />;
 };
 
-const FieldRow: React.FC<{ htmlFor: string; label: string; children: React.ReactNode }> = ({ htmlFor, label, children }) => (
-  <div style={{ marginBottom: 12 }}>
-    <label htmlFor={htmlFor} style={{ display: 'block', marginBottom: 4, fontSize: 12, fontWeight: 600 }}>{label}</label>
-    {children}
-  </div>
-);
-
-export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({ isOpen, document, issueTeams, onClose }) => {
+const DocumentForm: React.FC<Omit<DocumentFormModalProps, 'isOpen'>> = ({ document, issueTeams, onClose }) => {
   const queryClient = useQueryClient();
   const toast = useToast();
-  const ids = { name: useId(), year: useId(), team: useId(), visibility: useId(), description: useId() };
   const [form, setForm] = useState<FormState>(() => initialState(document, issueTeams));
   const [error, setError] = useState('');
-
-  // Chỉ nạp lại form khi mở hộp hoặc đổi văn bản; tải lại danh sách giữa chừng không được xoá chữ đang gõ.
-  useEffect(() => {
-    if (isOpen) {
-      setForm(initialState(document, issueTeams));
-      setError('');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, document?.id]);
 
   const teamOptions = useMemo(() => {
     if (document && !issueTeams.some((t) => t.id === document.issuing_team_id)) {
@@ -147,51 +124,47 @@ export const DocumentFormModal: React.FC<DocumentFormModalProps> = ({ isOpen, do
   };
 
   const noTeam = teamOptions.length === 0;
+  const linkInvalid = form.link_url.trim() !== '' && !isHttpUrl(form.link_url);
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="medium">
-          <ModalHeader><ModalTitle>{document ? 'Sửa văn bản' : 'Thêm văn bản'}</ModalTitle></ModalHeader>
-          <ModalBody>
-            <form noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}>
-              <FieldRow htmlFor={ids.name} label="Tên văn bản *">
-                <Textfield id={ids.name} value={form.name} maxLength={200} onChange={(e) => set('name', (e.target as HTMLInputElement).value)} />
-              </FieldRow>
-              <LinkField label="Liên kết văn bản" isRequired value={form.link_url} onChange={(v) => set('link_url', v)} />
-              <div style={{ height: 12 }} />
-              <FieldRow htmlFor={ids.year} label="Năm áp dụng *">
-                <Textfield id={ids.year} type="number" min={1900} max={2100} value={form.year} onChange={(e) => set('year', (e.target as HTMLInputElement).value)} />
-              </FieldRow>
-              <FieldRow htmlFor={ids.team} label="Tổ ban hành *">
-                <select id={ids.team} value={form.team} style={selectStyle} onChange={(e) => set('team', e.target.value)}>
-                  <option value="">Chọn Tổ</option>
-                  {teamOptions.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </FieldRow>
-              {noTeam && (
-                <p style={{ color: token('color.text.warning', '#946F00'), marginTop: -4 }}>
-                  Bạn chưa thuộc Tổ nào nên chưa thể ban hành văn bản.
-                </p>
-              )}
-              <FieldRow htmlFor={ids.visibility} label="Phạm vi xem *">
-                <select id={ids.visibility} value={form.visibility} style={selectStyle} onChange={(e) => set('visibility', e.target.value as FormState['visibility'])}>
-                  <option value="issuing_team">Thành viên Tổ ban hành</option>
-                  <option value="all_teams">Tất cả các Tổ</option>
-                </select>
-              </FieldRow>
-              <FieldRow htmlFor={ids.description} label="Mô tả *">
-                <TextArea id={ids.description} value={form.description} maxLength={4000} minimumRows={3} onChange={(e) => set('description', e.target.value)} />
-              </FieldRow>
-              {error && <p role="alert" style={{ color: token('color.text.danger', '#AE2E24') }}>{error}</p>}
-            </form>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>Huỷ</Button>
-            <Button appearance="primary" isLoading={mutation.isPending} isDisabled={noTeam} onClick={submit}>Lưu văn bản</Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+    <PeopleFormDialog
+      title={document ? 'Sửa văn bản' : 'Thêm văn bản'}
+      submitLabel="Lưu văn bản"
+      submitting={mutation.isPending || noTeam}
+      error={error}
+      onSubmit={submit}
+      onClose={onClose}
+    >
+      <Field label="Tên văn bản *">
+        <input value={form.name} maxLength={200} onChange={(e) => set('name', e.target.value)} />
+      </Field>
+      <Field label="Liên kết văn bản *" error={linkInvalid ? LINK_ERROR_MESSAGE : undefined}>
+        <input type="url" value={form.link_url} placeholder="https://" onChange={(e) => set('link_url', e.target.value)} />
+      </Field>
+      <Field label="Năm áp dụng *">
+        <input type="number" min={1900} max={2100} value={form.year} onChange={(e) => set('year', e.target.value)} />
+      </Field>
+      <Field label="Tổ ban hành *">
+        <Select
+          value={form.team}
+          onChange={(v) => set('team', v)}
+          options={[{ value: '', label: 'Chọn Tổ' }, ...teamOptions.map((t) => ({ value: String(t.id), label: t.name }))]}
+        />
+      </Field>
+      {noTeam && <p className="doc-warn">Bạn chưa thuộc Tổ nào nên chưa thể ban hành văn bản.</p>}
+      <Field label="Phạm vi xem *">
+        <Select
+          value={form.visibility}
+          onChange={(v) => set('visibility', v as FormState['visibility'])}
+          options={[
+            { value: 'issuing_team', label: 'Thành viên Tổ ban hành' },
+            { value: 'all_teams', label: 'Tất cả các Tổ' },
+          ]}
+        />
+      </Field>
+      <Field label="Mô tả *">
+        <textarea rows={3} value={form.description} maxLength={4000} onChange={(e) => set('description', e.target.value)} />
+      </Field>
+    </PeopleFormDialog>
   );
 };

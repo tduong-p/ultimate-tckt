@@ -1,0 +1,24 @@
+/* Trình: danh sách, chi tiết, hộp thoại. Chỉ dùng token --ui-*. Tiền tố sub-. Khung/tiêu đề dùng ppl- từ people.css. */
+.sub { max-width: 1100px; font-family: var(--ui-font); color: var(--ui-text); }
+.sub a:not(.ui-btn) { color: var(--ui-focus); }
+.sub-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.sub-filter { display: flex; flex-direction: column; gap: 4px; }
+.sub-filter label { font-size: 11px; font-weight: 500; color: var(--ui-text-2); }
+.sub-table-wrap { overflow-x: auto; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.sub-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.sub-table th { padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 500; color: var(--ui-text-faint); border-bottom: 1px solid var(--ui-border); white-space: nowrap; }
+.sub-table td { padding: 9px 12px; border-bottom: 1px solid var(--ui-border); vertical-align: middle; }
+.sub-table tbody tr:last-child td { border-bottom: 0; }
+.sub-table tbody tr:hover { background: var(--ui-bg-hover); }
+.sub-title-link { font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.sub-title-link:hover { text-decoration: underline; }
+.sub-back { display: inline-block; margin-bottom: 8px; font-size: 12px; }
+.sub-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sub-actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+.sub-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 16px; padding: 12px 14px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.sub-info-item { display: flex; flex-direction: column; gap: 2px; }
+.sub-info-item-label { font-size: 11px; color: var(--ui-text-faint); }
+.sub-info-item-value { font-size: 13px; }
+.sub-note { grid-column: 1 / -1; white-space: pre-wrap; }
+.sub-h2 { margin: 20px 0 6px; font-size: 13px; font-weight: 600; }
+.sub-directive-hint { margin-top: 8px; font-size: 12px; color: var(--ui-text-2); }

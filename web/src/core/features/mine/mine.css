@@ -1,0 +1,20 @@
+/* Việc của tôi. Chỉ dùng token --ui-*. */
+.mine { max-width: 880px; font-family: var(--ui-font); color: var(--ui-text); }
+.mine-title { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+.mine-panel { padding-top: 8px; }
+.mine-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.mine-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--ui-border); padding-right: 8px; }
+.mine-row:hover { background: var(--ui-bg-hover); }
+.mine-row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 8px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: var(--ui-radius); }
+.mine-row-main:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; }
+.mine-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mine-row-title { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mine-row-meta { font-size: 11.5px; color: var(--ui-text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mine-row-date { flex: none; font-size: 11.5px; color: var(--ui-text-2); font-variant-numeric: tabular-nums; }
+.mine-row-date--late { color: var(--ui-st-blocked); font-weight: 600; }
+.mine-state { margin: 24px 8px; font-size: 13px; color: var(--ui-text-2); }
+.mine-state--error { color: var(--ui-st-blocked); }
+@media (max-width: 767px) {
+  .mine-row { flex-wrap: wrap; }
+  .mine-row-meta { white-space: normal; }
+}

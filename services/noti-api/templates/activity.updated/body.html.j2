@@ -1,0 +1,16 @@
+{% extends "_layout/layout.html.j2" %}
+{% block content %}
+<p>Xin chào <strong>{{ recipient_name or "bạn" }}</strong>,</p>
+<p><strong>{{ actorName }}</strong> đã cập nhật hoạt động:</p>
+<div style="background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px; margin: 16px 0;">
+  <p style="margin: 0 0 8px 0;"><strong>Hoạt động:</strong> {{ activity.title }}</p>
+  <p style="margin: 0 0 4px 0;"><strong>Đã thay đổi:</strong></p>
+  <ul style="margin: 0; padding-left: 20px;">
+    {% for field in changed %}<li>{{ field }}</li>
+    {% endfor %}
+  </ul>
+</div>
+<p>
+  <a class="button" href="{{ base_url }}{{ activity.path }}">Xem chi tiết hoạt động</a>
+</p>
+{% endblock %}

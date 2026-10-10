@@ -1,20 +1,27 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
-import { token } from '@atlaskit/tokens';
+import { Button, Select } from '../../../ui';
 import { apiErrorMessage, fetchDirectives } from '../../api';
-import { LottieLoading } from '../../../shared/components/LottieLoading';
 import { formatVnDate } from '../../../shared/utils/date';
 import { DIRECTIVES_KEY } from '../dieuhanh/queryKeys';
 import { useDhActor } from '../dieuhanh/useDhActor';
 import { canCreateDirective } from '../dieuhanh/permissions';
 import { DIRECTIVE_STATUS, directiveStatus } from '../dieuhanh/labels';
-import { ErrorText, FIELD_STYLE, StatusLozenge } from '../dieuhanh/parts';
+import { ErrorLine, StatusBadge } from './dirKit';
+import './directives.css';
 import { CreateDirectiveModal } from './CreateDirectiveModal';
 
 type Direction = 'all' | 'received' | 'sent';
-const CELL: React.CSSProperties = { padding: '8px 12px', textAlign: 'left', borderBottom: `1px solid ${token('color.border', '#DFE1E6')}` };
+const DIRECTION_OPTIONS = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'received', label: 'Nhận về' },
+  { value: 'sent', label: 'Đơn vị mình gửi' },
+];
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Tất cả' },
+  ...Object.entries(DIRECTIVE_STATUS).map(([value, { label }]) => ({ value, label })),
+];
 
 export const DirectivesView: React.FC = () => {
   const actor = useDhActor();
@@ -30,47 +37,40 @@ export const DirectivesView: React.FC = () => {
   }), [data, direction, status, actor.unitId]);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 4 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-        <h1 style={{ margin: 0 }}>Giao việc</h1>
-        {canCreateDirective(actor) && <Button appearance="primary" onClick={() => setCreating(true)}>Giao việc mới</Button>}
+    <div className="dir">
+      <div className="ppl-head">
+        <h1 className="ppl-h1">Giao việc</h1>
+        {canCreateDirective(actor) && <Button variant="primary" onClick={() => setCreating(true)}>Giao việc mới</Button>}
       </div>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
-        <div>
+      <div className="dir-filters">
+        <div className="dir-filter">
           <label htmlFor="dir-direction">Hướng</label>
-          <select id="dir-direction" value={direction} onChange={(e) => setDirection(e.target.value as Direction)} style={FIELD_STYLE}>
-            <option value="all">Tất cả</option>
-            <option value="received">Nhận về</option>
-            <option value="sent">Đơn vị mình gửi</option>
-          </select>
+          <Select id="dir-direction" value={direction} onChange={(v) => setDirection(v as Direction)} options={DIRECTION_OPTIONS} />
         </div>
-        <div>
+        <div className="dir-filter">
           <label htmlFor="dir-status">Trạng thái</label>
-          <select id="dir-status" value={status} onChange={(e) => setStatus(e.target.value)} style={FIELD_STYLE}>
-            <option value="all">Tất cả</option>
-            {Object.entries(DIRECTIVE_STATUS).map(([value, { label }]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          <Select id="dir-status" value={status} onChange={setStatus} options={STATUS_OPTIONS} />
         </div>
       </div>
-      {isLoading && <LottieLoading message="Đang tải chỉ đạo..." size={80} />}
-      {error && <ErrorText message={apiErrorMessage(error, 'Không tải được danh sách chỉ đạo.')} />}
-      {!isLoading && !error && rows.length === 0 && <p>Chưa có chỉ đạo nào.</p>}
+      {isLoading && <p role="status" className="ppl-state">Đang tải chỉ đạo...</p>}
+      {error && <ErrorLine message={apiErrorMessage(error, 'Không tải được danh sách chỉ đạo.')} />}
+      {!isLoading && !error && rows.length === 0 && <p className="ppl-muted">Chưa có chỉ đạo nào.</p>}
       {rows.length > 0 && (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="dir-table-wrap">
+          <table className="dir-table">
             <thead>
-              <tr>{['Tiêu đề', 'Đơn vị giao', 'Đơn vị nhận', 'Hạn', 'Trạng thái'].map((h) => <th key={h} style={CELL}>{h}</th>)}</tr>
+              <tr>{['Tiêu đề', 'Đơn vị giao', 'Đơn vị nhận', 'Hạn', 'Trạng thái'].map((h) => <th key={h}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {rows.map((d) => {
                 const s = directiveStatus(d.status);
                 return (
                   <tr key={d.id}>
-                    <td style={CELL}><Link to={`/directive/${d.id}`}>{d.title}</Link></td>
-                    <td style={CELL}>{d.from_unit_name ?? `Đơn vị #${d.from_unit_id}`}</td>
-                    <td style={CELL}>{d.to_unit_name ?? `Đơn vị #${d.to_unit_id}`}</td>
-                    <td style={CELL}>{formatVnDate(d.deadline) || '—'}</td>
-                    <td style={CELL}><StatusLozenge label={s.label} tone={s.tone} /></td>
+                    <td><Link className="dir-title-link" to={`/directive/${d.id}`}>{d.title}</Link></td>
+                    <td>{d.from_unit_name ?? `Đơn vị #${d.from_unit_id}`}</td>
+                    <td>{d.to_unit_name ?? `Đơn vị #${d.to_unit_id}`}</td>
+                    <td>{formatVnDate(d.deadline) || '—'}</td>
+                    <td><StatusBadge label={s.label} tone={s.tone} /></td>
                   </tr>
                 );
               })}

@@ -1,6 +1,5 @@
 import React from 'react';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
+import { Button, Dialog } from '../../../ui';
 import { SubmitReviewForm } from './SubmitReviewForm';
 
 export interface SubmitReviewDialogProps {
@@ -11,21 +10,12 @@ export interface SubmitReviewDialogProps {
 }
 
 export const SubmitReviewDialog: React.FC<SubmitReviewDialogProps> = ({ isOpen, taskId, taskTitle, onClose }) => (
-  <ModalTransition>
-    {isOpen && (
-      <Modal onClose={onClose} width="small">
-        <ModalHeader>
-          <ModalTitle>{`Nộp nghiệm thu: ${taskTitle}`}</ModalTitle>
-        </ModalHeader>
-        <ModalBody>
-          <SubmitReviewForm taskId={taskId} onDone={onClose} />
-        </ModalBody>
-        <ModalFooter>
-          <Button appearance="subtle" onClick={onClose}>
-            Đóng
-          </Button>
-        </ModalFooter>
-      </Modal>
-    )}
-  </ModalTransition>
+  <Dialog
+    open={isOpen}
+    onOpenChange={(open) => { if (!open) onClose(); }}
+    title={`Nộp nghiệm thu: ${taskTitle}`}
+    footer={<Button onClick={onClose}>Đóng</Button>}
+  >
+    <SubmitReviewForm taskId={taskId} onDone={onClose} />
+  </Dialog>
 );

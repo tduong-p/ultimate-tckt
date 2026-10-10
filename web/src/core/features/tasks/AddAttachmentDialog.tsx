@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
 import { addTaskAttachment, apiErrorMessage, type TaskAttachmentKind } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { LinkField, LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
 import { isHttpUrl } from '../../../shared/utils/url';
 import { useInvalidateTaskCaches } from './useTaskCaches';
+import { TaskFormDialog } from './TaskFormDialog';
 import { ATTACHMENT_KIND_OPTIONS, ErrorText, SelectField, TextField } from './formFields';
 
 export interface AddAttachmentDialogProps {
@@ -58,42 +58,27 @@ export const AddAttachmentDialog: React.FC<AddAttachmentDialogProps> = ({ isOpen
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="small">
-          <ModalHeader>
-            <ModalTitle>{`Thêm tài liệu: ${taskTitle}`}</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <SelectField
-              label="Loại"
-              value={kind}
-              onChange={(v) => setKind(v as TaskAttachmentKind)}
-              options={ATTACHMENT_KIND_OPTIONS}
-            />
-            <TextField label="Tên hiển thị" value={label} maxLength={180} onChange={setLabel} />
-            <LinkField
-              label="Liên kết"
-              value={link}
-              onChange={(v) => {
-                setLink(v);
-                setError('');
-              }}
-              isRequired
-            />
-            <ErrorText>{error}</ErrorText>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
-            </Button>
-            <Button appearance="primary" isLoading={mutation.isPending} onClick={submit}>
-              Thêm
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+    <TaskFormDialog
+      isOpen={isOpen}
+      title={`Thêm tài liệu: ${taskTitle}`}
+      submitLabel="Thêm"
+      submitting={mutation.isPending}
+      onSubmit={submit}
+      onClose={onClose}
+    >
+      <SelectField label="Loại" value={kind} onChange={(v) => setKind(v as TaskAttachmentKind)} options={ATTACHMENT_KIND_OPTIONS} />
+      <TextField label="Tên hiển thị" value={label} maxLength={180} onChange={setLabel} />
+      <LinkField
+        label="Liên kết"
+        value={link}
+        onChange={(v) => {
+          setLink(v);
+          setError('');
+        }}
+        isRequired
+      />
+      <ErrorText>{error}</ErrorText>
+    </TaskFormDialog>
   );
 };
 
@@ -102,7 +87,7 @@ export const AddAttachmentButton: React.FC<{ taskId: number; taskTitle: string }
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button spacing="compact" onClick={() => setOpen(true)}>
+      <Button size="sm" onClick={() => setOpen(true)}>
         Thêm tài liệu
       </Button>
       <AddAttachmentDialog isOpen={open} taskId={taskId} taskTitle={taskTitle} onClose={() => setOpen(false)} />
