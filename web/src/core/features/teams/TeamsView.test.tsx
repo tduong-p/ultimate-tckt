@@ -54,6 +54,7 @@ describe('TeamsView', () => {
     const spy = vi.spyOn(qc, 'invalidateQueries').mockResolvedValue(undefined);
     await screen.findByText('Tổ A');
     fireEvent.click(screen.getByRole('button', { name: 'Tạo Tổ' }));
+    expect(await screen.findByRole('dialog', { name: 'Tạo Tổ' })).toBeDefined();
     fireEvent.change(await screen.findByLabelText('Tên Tổ'), { target: { value: '  Tổ mới ' } });
     fireEvent.change(screen.getByLabelText('Mô tả'), { target: { value: 'Mô tả mới' } });
     fireEvent.click(screen.getByRole('button', { name: 'Tạo' }));
@@ -148,6 +149,23 @@ describe('TeamsView', () => {
     const { container } = renderWithApp(<TeamsView />);
     expect(await screen.findByText('Chưa có tổ nào')).toBeDefined();
     expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+  });
+
+  it('Enter trong ô tên gửi form tạo Tổ', async () => {
+    vi.mocked(api.createTeam).mockResolvedValueOnce({ id: 9 });
+    renderWithApp(<TeamsView />, { role: 'admin' });
+    await screen.findByText('Tổ A');
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo Tổ' }));
+    const name = await screen.findByLabelText('Tên Tổ');
+    fireEvent.change(name, { target: { value: 'Tổ Enter' } });
+    fireEvent.submit(name.closest('form')!);
+    await waitFor(() => expect(api.createTeam).toHaveBeenCalledTimes(1));
+  });
+
+  it('lỗi tải Tổ hiện thông báo lỗi', async () => {
+    vi.mocked(api.fetchTeams).mockRejectedValue(new Error('x'));
+    renderWithApp(<TeamsView />);
+    expect(await screen.findByText('Lỗi tải dữ liệu Tổ')).toBeDefined();
   });
 
   it('"Quản lý thành viên" mở hộp thành viên của đúng Tổ', async () => {

@@ -1,0 +1,56 @@
+/* Tổ: danh sách, trang Tổ, hộp thành viên. Chỉ dùng token --ui-*. Tiền tố team-. */
+.team { max-width: 1100px; font-family: var(--ui-font); color: var(--ui-text); }
+.team a:not(.ui-btn) { color: var(--ui-focus); }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.team-card { display: flex; flex-direction: column; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); overflow: hidden; }
+.team-card-bar { height: 3px; width: 100%; }
+.team-card-body { display: flex; flex-direction: column; flex: 1; padding: 12px 14px; gap: 8px; }
+.team-card-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+.team-card-title a { color: inherit !important; text-decoration: none; }
+.team-card-title a:hover { text-decoration: underline; }
+.team-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.team-card-desc { margin: 0; flex: 1; font-size: 12px; line-height: 1.45; color: var(--ui-text-2); }
+.team-stats { display: flex; gap: 24px; padding-top: 8px; border-top: 1px solid var(--ui-border); }
+.team-stat-value { display: block; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.team-stat-label { display: block; font-size: 11px; color: var(--ui-text-faint); }
+.team-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.team-danger { color: var(--ui-pr-urgent); }
+
+/* Trang Tổ */
+.team-back { display: inline-block; margin-bottom: 8px; font-size: 12px; }
+.team-kpis { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.team-kpi { flex: 1 1 130px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius); background: var(--ui-bg-card); }
+.team-kpi-label { font-size: 11px; color: var(--ui-text-faint); }
+.team-kpi-value { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.team-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap: 16px; align-items: start; }
+.team-section { margin-bottom: 16px; }
+.team-h2 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.team-list { list-style: none; margin: 0; padding: 0; }
+.team-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px; border-bottom: 1px solid var(--ui-border); color: inherit !important; text-decoration: none; border-radius: var(--ui-radius); }
+.team-row:hover { background: var(--ui-bg-hover); }
+.team-row:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; }
+.team-row-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.team-row-title { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.team-row-meta { font-size: 11.5px; color: var(--ui-text-faint); }
+.team-row-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 11.5px; color: var(--ui-text-2); }
+.team-late { color: var(--ui-st-blocked); font-weight: 600; }
+.team-progress { margin-top: 4px; height: 3px; border-radius: 2px; background: var(--ui-bg-select); overflow: hidden; }
+.team-progress > span { display: block; height: 100%; background: var(--ui-st-done); }
+.team-member { display: flex; gap: 8px; padding: 6px 0; align-items: flex-start; }
+.team-member-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 500; }
+.team-member-meta { font-size: 11.5px; color: var(--ui-text-faint); }
+.team-member-mail { font-size: 11.5px; overflow-wrap: anywhere; }
+
+/* Hộp thành viên */
+.team-mlist { list-style: none; margin: 0; padding: 0; }
+.team-mrow { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--ui-border); }
+.team-mrow-main { flex: 1; min-width: 0; }
+.team-mrow-name { font-size: 13px; font-weight: 500; }
+.team-mrow-mail { font-size: 11.5px; color: var(--ui-text-faint); overflow-wrap: anywhere; }
+.team-mrole { flex: none; font-size: 11.5px; color: var(--ui-text-2); }
+.team-madd { margin-top: 14px; }
+.team-madd .ppl-form { margin-top: 6px; }
+
+@media (max-width: 767px) {
+  .team-layout { grid-template-columns: minmax(0, 1fr); }
+}

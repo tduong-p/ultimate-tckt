@@ -42,6 +42,12 @@ describe('TeamMembersModal', () => {
     await waitFor(() => expect(spy).toHaveBeenCalledWith({ queryKey: ['core-team'] }));
   });
 
+  it('mở trong hộp thoại có tên "Thành viên Tổ <tên>" và nút Đóng', async () => {
+    open('admin', 1);
+    expect(await screen.findByRole('dialog', { name: 'Thành viên Tổ Tổ A' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toBeDefined();
+  });
+
   it('admin: tài khoản admin/vice_admin không có ô đổi vai trò; không có nút xoá cạnh chính mình', async () => {
     open('admin', 1);
     await screen.findByText('Tôi Admin');

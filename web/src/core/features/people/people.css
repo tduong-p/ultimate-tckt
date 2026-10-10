@@ -1,0 +1,20 @@
+/* Tổ, Thành viên và hộp thoại dùng chung. Chỉ dùng token --ui-*. Tiền tố ppl-. */
+.ppl-form { display: flex; flex-direction: column; gap: 10px; }
+.ppl-error { margin: 8px 0 0; font-size: 12px; color: var(--ui-pr-urgent); }
+.ppl-hint { margin: 0; font-size: 11px; color: var(--ui-text-faint); }
+.ppl-fieldset { margin: 0; padding: 6px 10px 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); }
+.ppl-legend { padding: 0 4px; font-size: 11px; font-weight: 500; color: var(--ui-text-2); }
+.ppl-check { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 12px; cursor: pointer; }
+.ppl-check input { margin: 0; }
+.ppl-inline { display: flex; gap: 14px; flex-wrap: wrap; }
+.ppl-muted { margin: 0; font-size: 12px; color: var(--ui-text-2); }
+.ppl-input { height: 28px; padding: 0 8px; border: 1px solid var(--ui-border-strong); border-radius: var(--ui-radius); background: var(--ui-bg-main); color: var(--ui-text); font: inherit; font-size: 12px; box-sizing: border-box; min-width: 0; }
+.ppl-input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -1px; border-color: var(--ui-focus); }
+.ppl-state { margin: 24px 8px; font-size: 13px; color: var(--ui-text-2); }
+.ppl-state--error { color: var(--ui-st-blocked); }
+.ppl-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 40px 16px; text-align: center; border: 1px dashed var(--ui-border-strong); border-radius: var(--ui-radius); }
+.ppl-empty-title { font-size: 14px; font-weight: 600; }
+.ppl-empty-text { margin: 0; font-size: 12px; color: var(--ui-text-2); max-width: 440px; }
+.ppl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.ppl-h1 { margin: 0; font-size: 18px; font-weight: 600; }
+.ppl-sub { margin: 2px 0 0; font-size: 12px; color: var(--ui-text-2); }
