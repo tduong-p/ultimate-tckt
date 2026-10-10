@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.19
+version: 1.20
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -131,6 +131,16 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 - Sửa `web/` khi được tạo: mỗi nhóm chỉ sửa `src/modules/<module>/` của mình; sửa `shell/` hoặc `ui/` dùng chung
   phải qua review của nhóm Core (xem `.kiro/specs/nen-tang-da-don-vi/design.md` §3).
 
+## UI kit mới — `web/src/ui/` (Radix + CSS tuỳ biến, kiểu Linear)
+
+Bộ component dùng chung cho giao diện mới, chạy song song Atlaskit cho tới khi cutover (chưa gỡ phụ thuộc `@atlaskit`).
+Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (native `<select>`), `ToastProvider`/`useToast`,
+`Avatar`, `StatusIcon`, `PriorityIcon`, `Badge`, `Field`. Menu/Dialog/Tabs dựa trên Radix (`react-popover`, `react-dialog`, `react-tabs`).
+- Token màu/khoảng cách ở `tokens.css` (dark qua `[data-theme='dark']` hoặc `prefers-color-scheme`); kiểu ở `ui.css`.
+  Mọi class có tiền tố `ui-`; CSS chỉ được import bởi component trong `web/src/ui/`, không đụng `html/body` hay phần tử toàn cục.
+- Test cạnh từng component (`*.test.tsx`) import `./test-setup` (jest-dom + dọn DOM sau mỗi test). Truy vấn theo role/label.
+- Không thêm Tailwind/shadcn. Component mới thêm vào đây, không thêm vào `web/src/prototype/` (chỉ tham chiếu, không import).
+
 ## Lịch sử phiên bản
 
 | Version | Ngày | Thay đổi | Người |
@@ -155,3 +165,4 @@ trị này thay vì tạo từ đầu, nhưng kiểm lại độ tương phản/
 | 1.17 | 2026-10-10 | Ghi nhận luồng Giao việc/Trình đợt 5 tích hợp cùng Tổ, tài khoản và thông báo | DYC |
 | 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
 | 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
+| 1.20 | 2026-10-10 | Thêm UI kit mới `web/src/ui/` (Radix + CSS tuỳ biến) | DYC |
