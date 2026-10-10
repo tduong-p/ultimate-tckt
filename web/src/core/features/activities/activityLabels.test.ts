@@ -6,6 +6,7 @@ import {
   getActivityTypeShortLabel,
   getActivityProgressPercent,
   participatesInTeam,
+  describeActivityFields,
 } from './activityLabels';
 
 describe('activityLabels', () => {
@@ -48,5 +49,10 @@ describe('activityLabels', () => {
     expect(participatesInTeam({ team_id: 9, team_names: 'A, B' }, { id: 2, name: 'B' })).toBe(true);
     expect(participatesInTeam({ team_id: 9, team_names: 'A, B' }, { id: 2, name: 'C' })).toBe(false);
     expect(participatesInTeam({}, { id: 2, name: 'C' })).toBe(false);
+  });
+
+  it('describeActivityFields dịch tên trường sang tiếng Việt', () => {
+    expect(describeActivityFields(['title', 'team_id', 'lạ'])).toBe('Tiêu đề, Tổ điều phối, lạ');
+    expect(describeActivityFields()).toBe('');
   });
 });

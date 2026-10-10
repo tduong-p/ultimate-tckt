@@ -1,76 +1,33 @@
 // web/src/core/features/activities/ActivityInfoSections.tsx
 import React from 'react';
-import Lozenge from '@atlaskit/lozenge';
-import { token } from '@atlaskit/tokens';
+import { Badge, type BadgeTone } from '../../../ui';
 import type { ActivityItem, ActivityParticipant, ActivityTeamRow, ProposalHistoryItem } from '../../api';
-import { getActivityStatusMeta, getActivityTypeLabel } from './activityLabels';
-import { getTaskPriorityAppearance, getTaskPriorityLabel } from '../tasks/taskLabels';
+import { getActivityTypeLabel } from './activityLabels';
 import { formatVnDate } from '../../../shared/utils/date';
-import { isHttpUrl } from '../../../shared/utils/url';
+import './activities.css';
 
 export const Card: React.FC<{ title: string; testId: string; children: React.ReactNode }> = ({ title, testId, children }) => (
-  <section
-    data-testid={testId}
-    style={{
-      border: `1px solid ${token('color.border', '#DFE1E6')}`,
-      borderRadius: 6,
-      padding: 16,
-      marginBottom: 16,
-      background: token('elevation.surface.raised', '#FFFFFF'),
-    }}
-  >
-    <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>{title}</h2>
+  <section data-testid={testId} className="act-card">
+    <h2 className="act-card-title">{title}</h2>
     {children}
   </section>
 );
 
-const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div style={{ display: 'flex', gap: 8, padding: '4px 0', flexWrap: 'wrap' }}>
-    <dt style={{ width: 130, flexShrink: 0, color: token('color.text.subtle', '#5E6C84') }}>{label}</dt>
-    <dd style={{ margin: 0, minWidth: 0, overflowWrap: 'anywhere' }}>{children}</dd>
+export const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="act-prop">
+    <dt>{label}</dt>
+    <dd>{children}</dd>
   </div>
 );
 
-const dateRange = (activity: ActivityItem): string => {
-  const start = formatVnDate(activity.start_date);
-  const end = formatVnDate(activity.deadline);
-  return start ? `${start} – ${end}` : end;
+export const STATUS_TONE: Record<string, BadgeTone> = {
+  proposed: 'neutral',
+  changes_requested: 'warning',
+  approved: 'success',
+  active: 'info',
+  completed: 'success',
+  cancelled: 'danger',
 };
-
-export const ActivityHero: React.FC<{ activity: ActivityItem }> = ({ activity }) => {
-  const status = getActivityStatusMeta(activity.status);
-  return (
-    <header style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-        <Lozenge appearance={status.appearance}>{status.label}</Lozenge>
-        <Lozenge appearance={getTaskPriorityAppearance(activity.priority)}>{`Ưu tiên: ${getTaskPriorityLabel(activity.priority)}`}</Lozenge>
-      </div>
-      <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 600, overflowWrap: 'anywhere' }}>{activity.title}</h1>
-      {activity.description && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{activity.description}</p>}
-    </header>
-  );
-};
-
-export const ActivityGeneralInfo: React.FC<{ activity: ActivityItem; teams: ActivityTeamRow[] }> = ({ activity, teams }) => (
-  <Card title="Thông tin chung" testId="section-info">
-    <dl style={{ margin: 0 }}>
-      <Row label="Các Tổ">{teams.map((t) => t.name).join(', ') || activity.team_name || '—'}</Row>
-      <Row label="Thời gian">{dateRange(activity)}</Row>
-      <Row label="Địa điểm">{activity.location || '—'}</Row>
-      <Row label="Người tạo">{activity.creator_name || '—'}</Row>
-      <Row label="Trưởng BTC">{activity.event_lead_name || '—'}</Row>
-      <Row label="Đề án">
-        {activity.proposal_document_url && isHttpUrl(activity.proposal_document_url) ? (
-          <a href={activity.proposal_document_url} target="_blank" rel="noopener noreferrer">
-            Mở link đề án
-          </a>
-        ) : (
-          '—'
-        )}
-      </Row>
-    </dl>
-  </Card>
-);
 
 const TEAM_ROLE_LABELS: Record<string, string> = { primary: 'Chủ trì', supporting: 'Phối hợp' };
 const DEFAULT_RESPONSIBILITY_LABELS: Record<string, string> = {
@@ -81,16 +38,16 @@ const DEFAULT_RESPONSIBILITY_LABELS: Record<string, string> = {
 export const ActivityTeamsCard: React.FC<{ teams: ActivityTeamRow[] }> = ({ teams }) => (
   <Card title="Tổ tham gia" testId="section-teams">
     {teams.length === 0 ? (
-      <p style={{ margin: 0 }}>Chưa có Tổ nào.</p>
+      <p className="act-muted">Chưa có Tổ nào.</p>
     ) : (
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+      <ul className="act-list">
         {teams.map((t) => (
-          <li key={t.team_id} style={{ padding: '4px 0' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <li key={t.team_id} className="act-li">
+            <div className="act-li-head">
               <strong>{t.name}</strong>
-              <Lozenge appearance={t.role === 'primary' ? 'inprogress' : 'default'}>{TEAM_ROLE_LABELS[t.role] ?? t.role}</Lozenge>
+              <Badge tone={t.role === 'primary' ? 'info' : 'neutral'}>{TEAM_ROLE_LABELS[t.role] ?? t.role}</Badge>
             </div>
-            {t.responsibility && <div style={{ color: token('color.text.subtle', '#5E6C84') }}>{DEFAULT_RESPONSIBILITY_LABELS[t.responsibility] ?? t.responsibility}</div>}
+            {t.responsibility && <div className="act-muted">{DEFAULT_RESPONSIBILITY_LABELS[t.responsibility] ?? t.responsibility}</div>}
           </li>
         ))}
       </ul>
@@ -107,16 +64,16 @@ const PARTICIPANT_STATE_LABELS: Record<string, string> = {
 export const ActivityParticipantsCard: React.FC<{ participants: ActivityParticipant[] }> = ({ participants }) => (
   <Card title="Người tham gia" testId="section-participants">
     {participants.length === 0 ? (
-      <p style={{ margin: 0 }}>Chưa có người tham gia.</p>
+      <p className="act-muted">Chưa có người tham gia.</p>
     ) : (
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+      <ul className="act-list">
         {participants.map((p) => (
-          <li key={p.user_id} style={{ padding: '4px 0' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <li key={p.user_id} className="act-li">
+            <div className="act-li-head">
               <strong>{p.name}</strong>
-              <Lozenge appearance={p.state === 'confirmed' ? 'success' : 'default'}>{PARTICIPANT_STATE_LABELS[p.state] ?? p.state}</Lozenge>
+              <Badge tone={p.state === 'confirmed' ? 'success' : 'neutral'}>{PARTICIPANT_STATE_LABELS[p.state] ?? p.state}</Badge>
             </div>
-            {p.responsibility && <div style={{ color: token('color.text.subtle', '#5E6C84') }}>{p.responsibility}</div>}
+            {p.responsibility && <div className="act-muted">{p.responsibility}</div>}
           </li>
         ))}
       </ul>
@@ -126,7 +83,7 @@ export const ActivityParticipantsCard: React.FC<{ participants: ActivityParticip
 
 export const ActivityDetailsCard: React.FC<{ activity: ActivityItem }> = ({ activity }) => (
   <Card title="Chi tiết hoạt động" testId="section-details">
-    <dl style={{ margin: 0 }}>
+    <dl className="act-dl">
       <Row label="Loại">{getActivityTypeLabel(activity.type) ?? '—'}</Row>
       {activity.type === 'assigned' && <Row label="Yêu cầu bởi">{activity.requested_by || '—'}</Row>}
       <Row label="Ngày tạo">{formatVnDate(activity.created_at) || '—'}</Row>
@@ -146,17 +103,17 @@ const PROPOSAL_ACTION_LABELS: Record<string, string> = {
 export const ProposalHistoryCard: React.FC<{ history: ProposalHistoryItem[] }> = ({ history }) => (
   <Card title="Lịch sử đề án" testId="section-history">
     {history.length === 0 ? (
-      <p style={{ margin: 0 }}>Chưa có lịch sử.</p>
+      <p className="act-muted">Chưa có lịch sử.</p>
     ) : (
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+      <ul className="act-list">
         {history.map((h) => (
-          <li key={h.id} style={{ padding: '6px 0' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Lozenge appearance={h.action === 'approve' ? 'success' : h.action === 'reject' ? 'removed' : 'default'}>
+          <li key={h.id} className="act-li">
+            <div className="act-li-head">
+              <Badge tone={h.action === 'approve' ? 'success' : h.action === 'reject' ? 'danger' : 'neutral'}>
                 {PROPOSAL_ACTION_LABELS[h.action] ?? h.action}
-              </Lozenge>
+              </Badge>
               <span>{h.reviewer_name ? `${h.submitter_name ?? ''} → ${h.reviewer_name}` : h.submitter_name}</span>
-              <span style={{ color: token('color.text.subtle', '#5E6C84') }}>{formatVnDate(h.created_at)}</span>
+              <span className="act-muted">{formatVnDate(h.created_at)}</span>
             </div>
             {h.feedback_notes && <div style={{ whiteSpace: 'pre-wrap' }}>{h.feedback_notes}</div>}
           </li>

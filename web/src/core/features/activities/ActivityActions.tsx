@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
 import { useQuery } from '@tanstack/react-query';
 import {
   approveActivity,
@@ -13,8 +12,8 @@ import {
 } from '../../api';
 import { useCapabilities } from '../../capabilities';
 import { SESSION_KEY } from '../../queryKeys';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { ReasonDialog } from '../../../shared/components/ReasonDialog';
+import { Button } from '../../../ui';
+import { ActivityConfirmDialog, ActivityReasonDialog } from './ActivityDialogs';
 import { deriveActivityActions } from './activityPermissions';
 import { useActivityMutation } from './useActivityMutation';
 import { EditActivityModal } from './EditActivityModal';
@@ -51,31 +50,31 @@ export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: Reac
   const remove = useActivityMutation(id, () => deleteActivity(id), { message: 'Đã xoá hoạt động.', removed: () => true });
 
   return (
-    <div data-testid="activity-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '0 0 16px' }}>
+    <div data-testid="activity-actions" className="act-actions">
       {flags.canApprove && (
         <>
-          <Button appearance="primary" isLoading={approve.isPending} onClick={() => approve.mutate()}>
+          <Button variant="primary" disabled={approve.isPending} onClick={() => approve.mutate()}>
             Duyệt
           </Button>
           <Button onClick={() => setDialog('changes')}>Yêu cầu sửa</Button>
-          <Button appearance="danger" onClick={() => setDialog('reject')}>
+          <Button variant="danger" onClick={() => setDialog('reject')}>
             Từ chối
           </Button>
         </>
       )}
       {flags.canResubmit && (
-        <Button appearance="primary" isLoading={resubmit.isPending} onClick={() => resubmit.mutate()}>
+        <Button variant="primary" disabled={resubmit.isPending} onClick={() => resubmit.mutate()}>
           Nộp lại
         </Button>
       )}
-      {flags.canEdit && <Button onClick={() => setDialog('edit')}>Sửa</Button>}
+      {flags.canEdit && <Button onClick={() => setDialog('edit')}>Sửa khác</Button>}
       {flags.canDelete && (
-        <Button appearance="danger" onClick={() => setDialog('delete')}>
+        <Button variant="danger" onClick={() => setDialog('delete')}>
           Xoá hoạt động
         </Button>
       )}
       {flags.canVolunteer && (
-        <Button isLoading={volunteer.isPending} onClick={() => volunteer.mutate()}>
+        <Button disabled={volunteer.isPending} onClick={() => volunteer.mutate()}>
           Đăng ký tham gia
         </Button>
       )}
@@ -83,37 +82,37 @@ export const ActivityActions: React.FC<{ detail: ActivityDetail; children?: Reac
       {flags.canCreateTask && <Button onClick={() => setDialog('task')}>Tạo nhiệm vụ</Button>}
       {children}
 
-      <ReasonDialog
-        isOpen={dialog === 'changes'}
+      <ActivityReasonDialog
+        open={dialog === 'changes'}
         title="Yêu cầu chỉnh sửa đề án"
         label="Nội dung cần sửa"
         confirmLabel="Gửi yêu cầu"
-        isLoading={requestChanges.isPending}
+        loading={requestChanges.isPending}
         onSubmit={(reason) => requestChanges.mutate(reason)}
         onCancel={close}
       />
-      <ReasonDialog
-        isOpen={dialog === 'reject'}
+      <ActivityReasonDialog
+        open={dialog === 'reject'}
         title="Từ chối đề án"
         label="Lý do"
-        appearance="danger"
+        danger
         confirmLabel="Từ chối và xoá"
-        isLoading={reject.isPending}
+        loading={reject.isPending}
         onSubmit={(reason) => reject.mutate(reason)}
         onCancel={close}
       />
-      <ConfirmDialog
-        isOpen={dialog === 'delete'}
+      <ActivityConfirmDialog
+        open={dialog === 'delete'}
         title="Xoá hoạt động?"
-        appearance="danger"
+        danger
         confirmLabel="Xoá vĩnh viễn"
         confirmText={detail.activity.title}
-        isLoading={remove.isPending}
+        loading={remove.isPending}
         onConfirm={() => remove.mutate()}
         onCancel={close}
       >
         Hoạt động cùng toàn bộ công việc, tài liệu và cập nhật của nó sẽ bị xoá vĩnh viễn. Không thể hoàn tác.
-      </ConfirmDialog>
+      </ActivityConfirmDialog>
       <EditActivityModal isOpen={dialog === 'edit'} onClose={close} detail={detail} isAdmin={flags.canEditAdminFields} />
       <AddParticipantsModal isOpen={dialog === 'participants'} onClose={close} detail={detail} />
       <CreateTaskModal

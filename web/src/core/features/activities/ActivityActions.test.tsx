@@ -71,7 +71,7 @@ describe('ActivityActions', () => {
           { unit_id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty', role: 'leader' },
         ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
       });
-      expect(buttons()).toEqual(['Sửa', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
+      expect(buttons()).toEqual(['Sửa khác', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
     });
 
     it('DYC có membership TCKT leader quản lý Tổ của hoạt động vẫn được sửa', () => {
@@ -82,7 +82,7 @@ describe('ActivityActions', () => {
         ], currentUnit: { id: 1, code: 'TCKT', name: 'Ban TCKT', kind: 'faculty' },
         teams: [{ id: 2, name: 'Tuyên huấn', can_manage: 1 }],
       });
-      expect(buttons()).toEqual(['Sửa', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
+      expect(buttons()).toEqual(['Sửa khác', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
       qc.clear();
     });
 
@@ -110,12 +110,12 @@ describe('ActivityActions', () => {
 
     it('admin thấy các thao tác duyệt và xoá đề án chờ duyệt', () => {
       show('admin');
-      expect(buttons()).toEqual(['Duyệt', 'Yêu cầu sửa', 'Từ chối', 'Sửa', 'Xoá hoạt động', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
+      expect(buttons()).toEqual(['Duyệt', 'Yêu cầu sửa', 'Từ chối', 'Sửa khác', 'Xoá hoạt động', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
     });
 
     it('người quản lý không phải admin được sửa và thêm người, nhưng không được duyệt hay xoá', () => {
       show('leader');
-      expect(buttons()).toEqual(['Sửa', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
+      expect(buttons()).toEqual(['Sửa khác', 'Đăng ký tham gia', 'Thêm người tham gia', 'Tạo nhiệm vụ']);
     });
 
     it('người không quản lý không thấy nút thêm người tham gia', () => {
@@ -280,7 +280,7 @@ describe('ActivityActions', () => {
 
     it('mở được hộp thoại sửa và thêm người tham gia', async () => {
       show('admin');
-      fireEvent.click(screen.getByRole('button', { name: 'Sửa' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Sửa khác' }));
       expect(await screen.findByText('Sửa hoạt động')).toBeDefined();
       fireEvent.click(screen.getByRole('button', { name: 'Huỷ' }));
       await waitFor(() => expect(screen.queryByText('Sửa hoạt động')).toBeNull());

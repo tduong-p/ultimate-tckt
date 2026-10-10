@@ -66,9 +66,11 @@ describe('ActivityDetailView — thông tin', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Ngày hội Kỹ thuật' })).toBeDefined();
     expect(screen.getByText('Ngày hội giới thiệu các câu lạc bộ kỹ thuật.')).toBeDefined();
     expect(screen.getByText('Đề xuất')).toBeDefined();
-    expect(screen.getByText('Ưu tiên: Cao')).toBeDefined();
+
 
     const info = within(screen.getByTestId('section-info'));
+    expect(info.getByText('Ưu tiên')).toBeDefined();
+    expect(info.getByText('Cao')).toBeDefined();
     expect(info.getByText('Tuyên huấn, Truyền thông')).toBeDefined();
     expect(info.getByText('01/11/2026 – 30/11/2026')).toBeDefined();
     expect(info.getByText('Hội trường A')).toBeDefined();

@@ -78,3 +78,18 @@ export const participatesInTeam = (
   if (!activity.team_names) return false;
   return `, ${activity.team_names}, `.includes(`, ${team.name}, `);
 };
+
+/** Nhãn tiếng Việt của các trường sửa theo lô (khớp `FIELD_LABEL` của core/src/services/activity-batch.js). */
+export const ACTIVITY_FIELD_LABELS: Record<string, string> = {
+  title: 'Tiêu đề',
+  description: 'Mô tả',
+  deadline: 'Hạn chót',
+  start_date: 'Ngày bắt đầu',
+  priority: 'Ưu tiên',
+  team_id: 'Tổ điều phối',
+  event_lead_id: 'Trưởng Ban Tổ chức',
+};
+
+/** "Tiêu đề, Tổ điều phối"; trường lạ giữ nguyên tên. */
+export const describeActivityFields = (fields: string[] = []): string =>
+  fields.map((f) => ACTIVITY_FIELD_LABELS[f] ?? f).join(', ');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ActivitiesView } from './ActivitiesView';
 import * as api from '../../api';
@@ -100,8 +100,8 @@ describe('ActivitiesView', () => {
     expect(api.fetchActivities).toHaveBeenCalled();
     expect(await screen.findByText('Chiến dịch Mùa hè xanh 2026')).toBeDefined();
     expect(screen.getByText('Đại hội Đoàn Thanh niên nhiệm kỳ mới')).toBeDefined();
-    expect(screen.getByText('• Đã Duyệt')).toBeDefined();
-    expect(screen.getByText('• Đang diễn ra')).toBeDefined();
+    expect(screen.getByText('Đã Duyệt')).toBeDefined();
+    expect(within(screen.getAllByRole('list')[0]).getByText('Đang diễn ra')).toBeDefined();
 
     // Verify static K71 hardcoded card is gone
     expect(screen.queryByText(/Triển khai tạo tài khoản chi đoàn K71/i)).toBeNull();
@@ -163,17 +163,16 @@ describe('ActivitiesView', () => {
       { ...mockActivities[0], id: 3, title: 'Hoạt động cần sửa', status: 'changes_requested' },
     ]);
     renderWithClient(<ActivitiesView />);
-    expect(await screen.findByText('• Cần chỉnh sửa')).toBeDefined();
-    expect(screen.queryByText('• Đề xuất')).toBeNull();
+    expect(await screen.findByTestId('activity-card-3')).toBeDefined();
+    const row = within(screen.getByTestId('activity-card-3'));
+    expect(row.getByText('Cần chỉnh sửa')).toBeDefined();
+    expect(row.queryByText('Đề xuất')).toBeNull();
   });
 
   it('bộ lọc trạng thái có lựa chọn "Cần chỉnh sửa" và gửi changes_requested lên API', async () => {
     renderWithClient(<ActivitiesView />);
     await screen.findByText('Chiến dịch Mùa hè xanh 2026');
-    const statusSelect = screen.getAllByRole('combobox')[0];
-    fireEvent.focus(statusSelect);
-    fireEvent.keyDown(statusSelect, { key: 'ArrowDown' });
-    fireEvent.click(await screen.findByText('Cần chỉnh sửa'));
+    fireEvent.change(screen.getByLabelText('Lọc theo trạng thái'), { target: { value: 'changes_requested' } });
     await waitFor(() =>
       expect(api.fetchActivities).toHaveBeenLastCalledWith(
         expect.objectContaining({ status: 'changes_requested' })
@@ -210,10 +209,11 @@ describe('ActivitiesView', () => {
     ]);
     renderWithClient(<ActivitiesView />);
     expect(await screen.findByText('Hoạt động đơn vị bạn')).toBeDefined();
-    expect(screen.queryByText('Chung')).toBeNull();
-    expect(screen.queryByText('Sự kiện đơn vị')).toBeNull();
-    expect(screen.queryByText('Chỉ đạo cấp trên')).toBeNull();
-    expect(screen.queryByText(/người$/)).toBeNull();
+    const row = within(screen.getByTestId('activity-card-9'));
+    expect(row.queryByText('Chung')).toBeNull();
+    expect(row.queryByText(/Sự kiện đơn vị/)).toBeNull();
+    expect(row.queryByText(/Chỉ đạo cấp trên/)).toBeNull();
+    expect(row.queryByText(/người$/)).toBeNull();
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('60');
   });
 

@@ -1,10 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
+import { Button, Dialog, Select } from '../../../ui';
 import { addActivityParticipants, type ActivityDetail } from '../../api';
 import { PeoplePicker } from '../../../shared/components/PeoplePicker';
-import { ErrorText, FieldRow, NativeSelect } from './formBits';
 import { useActivityMutation } from './useActivityMutation';
 
 export const DEFAULT_RESPONSIBILITY = 'Người tham gia hoạt động';
@@ -57,39 +54,32 @@ export const AddParticipantsModal: React.FC<Props> = ({ isOpen, onClose, detail 
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="medium">
-          <ModalHeader>
-            <ModalTitle>Thêm người tham gia</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <FieldRow label="Lọc theo Tổ" htmlFor="add-participants-team">
-              <NativeSelect
-                id="add-participants-team"
-                value={teamFilter}
-                options={[{ value: '', label: 'Tất cả các Tổ' }, ...detail.activityTeams.map((team) => ({ value: String(team.team_id), label: team.name }))]}
-                onChange={setTeamFilter}
-              />
-            </FieldRow>
-            <PeoplePicker label="Chọn người tham gia" people={candidates} value={selected} onChange={setSelected} excludeIds={taken} />
-            <div style={{ marginTop: 12 }}>
-              <FieldRow label="Vai trò" htmlFor="add-participants-role">
-                <Textfield id="add-participants-role" value={responsibility} onChange={(event) => setResponsibility((event.target as HTMLInputElement).value)} />
-              </FieldRow>
-            </div>
-            {error && <ErrorText>{error}</ErrorText>}
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
-            </Button>
-            <Button appearance="primary" isLoading={add.isPending} onClick={submit}>
-              Thêm
-            </Button>
-          </ModalFooter>
-        </Modal>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => { if (!next) onClose(); }}
+      title="Thêm người tham gia"
+      footer={(
+        <>
+          <Button onClick={onClose}>Huỷ</Button>
+          <Button variant="primary" disabled={add.isPending} onClick={submit}>Thêm</Button>
+        </>
       )}
-    </ModalTransition>
+    >
+      <div className="act-form-row">
+        <label htmlFor="add-participants-team">Lọc theo Tổ</label>
+        <Select
+          id="add-participants-team"
+          value={teamFilter}
+          options={[{ value: '', label: 'Tất cả các Tổ' }, ...detail.activityTeams.map((team) => ({ value: String(team.team_id), label: team.name }))]}
+          onChange={setTeamFilter}
+        />
+      </div>
+      <PeoplePicker label="Chọn người tham gia" people={candidates} value={selected} onChange={setSelected} excludeIds={taken} />
+      <div className="act-form-row">
+        <label htmlFor="add-participants-role">Vai trò</label>
+        <input id="add-participants-role" className="act-input act-input--wide" value={responsibility} onChange={(event) => setResponsibility(event.target.value)} />
+      </div>
+      {error && <p role="alert" className="act-field-error">{error}</p>}
+    </Dialog>
   );
 };
