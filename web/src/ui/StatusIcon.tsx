@@ -10,16 +10,16 @@ export interface StatusIconProps {
 }
 
 const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
-  todo: { label: 'Cần làm', color: 'var(--st-backlog)' },
-  in_progress: { label: 'Đang làm', color: 'var(--st-active)' },
-  review: { label: 'Chờ duyệt', color: 'var(--st-review)' },
-  done: { label: 'Hoàn thành', color: 'var(--st-done)' },
-  cancelled: { label: 'Đã huỷ', color: 'var(--st-blocked)' },
+  todo: { label: 'Cần làm', color: 'var(--ui-st-backlog)' },
+  in_progress: { label: 'Đang làm', color: 'var(--ui-st-active)' },
+  review: { label: 'Chờ duyệt', color: 'var(--ui-st-review)' },
+  done: { label: 'Hoàn thành', color: 'var(--ui-st-done)' },
+  cancelled: { label: 'Đã huỷ', color: 'var(--ui-st-blocked)' },
 };
 
 export function StatusIcon({ status, size = 14, title }: StatusIconProps) {
   const { label, color: c } = STATUS_CONFIG[status];
-  const ariaLabel = title || label;
+  const ariaLabel = title ? `${title} – ${label}` : label;
 
   return (
     <svg

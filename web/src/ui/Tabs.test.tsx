@@ -2,7 +2,7 @@ import './test-setup';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Tabs, type TabDef } from './Tabs';
+import { Tabs, TabsContent, type TabDef } from './Tabs';
 
 describe('Tabs', () => {
   const tabs: TabDef[] = [
@@ -47,5 +47,16 @@ describe('Tabs', () => {
     );
 
     expect(screen.getByTestId('tab-content')).toBeInTheDocument();
+  });
+
+  it('hiển thị panel của tab đang chọn', () => {
+    render(
+      <Tabs value="active" onValueChange={vi.fn()} tabs={tabs}>
+        <TabsContent value="all">Nội dung tất cả</TabsContent>
+        <TabsContent value="active">Nội dung đang xử lý</TabsContent>
+      </Tabs>
+    );
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Nội dung đang xử lý');
+    expect(screen.queryByText('Nội dung tất cả')).not.toBeInTheDocument();
   });
 });

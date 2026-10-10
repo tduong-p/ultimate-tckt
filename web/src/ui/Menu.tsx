@@ -13,7 +13,7 @@ export interface MenuItemDef {
 export interface MenuProps {
   trigger: ReactNode;
   items: MenuItemDef[];
-  label?: string;
+  label: string;
   align?: 'start' | 'end';
 }
 

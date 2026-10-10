@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.20
+version: 1.21
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -139,6 +139,8 @@ Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (
 - Token màu/khoảng cách ở `tokens.css` (dark qua `[data-theme='dark']` hoặc `prefers-color-scheme`); kiểu ở `ui.css`.
   Mọi class có tiền tố `ui-`; CSS chỉ được import bởi component trong `web/src/ui/`, không đụng `html/body` hay phần tử toàn cục.
 - Test cạnh từng component (`*.test.tsx`) import `./test-setup` (jest-dom + dọn DOM sau mỗi test). Truy vấn theo role/label.
+- Token CSS đặt tên `--ui-*` (không dùng biến chung như `--text`). `Menu` bắt buộc `label` (tên truy cập của nút mở menu).
+  Nút chỉ có icon (Button, trigger…) BẮT BUỘC truyền `aria-label`. `Tabs` nhận panel qua `TabsContent` (children).
 - Không thêm Tailwind/shadcn. Component mới thêm vào đây, không thêm vào `web/src/prototype/` (chỉ tham chiếu, không import).
 
 ## Lịch sử phiên bản
@@ -166,3 +168,4 @@ Export qua `web/src/ui/index.ts`: `Button`, `Menu`, `Dialog`, `Tabs`, `Select` (
 | 1.18 | 2026-10-10 | Ghi cách cutover Core web tại `/`, legacy tại `/legacy/`, Vite entrypoint và Docker multi-stage từ root context | DYC |
 | 1.19 | 2026-10-10 | Giữ ổn định profile callback và header extras để thao tác mở hồ sơ không remount thông báo | DYC |
 | 1.20 | 2026-10-10 | Thêm UI kit mới `web/src/ui/` (Radix + CSS tuỳ biến) | DYC |
+| 1.21 | 2026-10-10 | UI kit: token `--ui-*`, `Menu.label` bắt buộc, quy ước aria-label cho nút icon, `TabsContent` | DYC |

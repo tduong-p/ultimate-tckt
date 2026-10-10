@@ -25,4 +25,9 @@ describe('Button', () => {
     expect(b).toHaveAttribute('type', 'button');
     expect(b).toHaveClass('ui-btn-danger', 'ui-btn-sm');
   });
+
+  it('nút chỉ có icon phải truyền aria-label để có tên truy cập', () => {
+    render(<Button aria-label="Đóng"><svg aria-hidden="true" /></Button>);
+    expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument();
+  });
 });

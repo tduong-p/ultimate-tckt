@@ -16,6 +16,8 @@ export interface TabsProps {
   children?: ReactNode;
 }
 
+export const TabsContent = TabsPrimitive.Content;
+
 export function Tabs({ value, onValueChange, tabs, children }: TabsProps) {
   return (
     <TabsPrimitive.Root

@@ -32,7 +32,7 @@ describe('StatusIcon', () => {
 
   it('hỗ trợ tiêu đề tuỳ chọn', () => {
     render(<StatusIcon status="todo" title="Việc cần hoàn thành sớm" />);
-    const icon = screen.getByRole('img', { name: 'Việc cần hoàn thành sớm' });
+    const icon = screen.getByRole('img', { name: 'Việc cần hoàn thành sớm – Cần làm' });
     expect(icon).toBeInTheDocument();
   });
 });

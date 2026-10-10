@@ -4,7 +4,7 @@ export { Menu } from './Menu';
 export type { MenuItemDef, MenuProps } from './Menu';
 export { Dialog } from './Dialog';
 export type { DialogProps } from './Dialog';
-export { Tabs } from './Tabs';
+export { Tabs, TabsContent } from './Tabs';
 export type { TabsProps, TabDef } from './Tabs';
 export { Select } from './Select';
 export type { SelectProps } from './Select';

@@ -66,6 +66,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={toast.id}
             className={`ui-toast ui-toast-${toast.tone}`}
+            role={toast.tone === 'error' ? 'alert' : undefined}
           >
             {toast.message}
           </div>

@@ -90,6 +90,8 @@ describe('Toast', () => {
 
     expect(infoToast).toHaveClass('ui-toast-info');
     expect(errorToast).toHaveClass('ui-toast-error');
+    expect(errorToast).toHaveAttribute('role', 'alert');
+    expect(infoToast).not.toHaveAttribute('role');
   });
 
   it('báo lỗi rõ ràng khi gọi useToast ngoài ToastProvider', () => {

@@ -29,7 +29,7 @@ export function PriorityIcon({ priority, size = 14 }: PriorityIconProps) {
         viewBox="0 0 14 14"
         focusable="false"
       >
-        <rect x="1" y="1" width="12" height="12" rx="3" fill="var(--pr-urgent)" />
+        <rect x="1" y="1" width="12" height="12" rx="3" fill="var(--ui-pr-urgent)" />
         <path
           d="M7 4v3.6M7 9.6v.2"
           stroke="#fff"
@@ -62,10 +62,10 @@ export function PriorityIcon({ priority, size = 14 }: PriorityIconProps) {
           rx="0.8"
           fill={
             level === 0
-              ? 'var(--text-faint)'
+              ? 'var(--ui-text-faint)'
               : i < level
-              ? 'var(--text-2)'
-              : 'var(--border-strong)'
+              ? 'var(--ui-text-2)'
+              : 'var(--ui-border-strong)'
           }
           opacity={level === 0 ? 0.6 : 1}
         />

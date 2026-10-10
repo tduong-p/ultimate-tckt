@@ -43,8 +43,8 @@ describe('Menu', () => {
     const items: MenuItemDef[] = [
       { id: '1', label: 'Chỉnh sửa', onSelect: onSelectEdit },
     ];
-    render(<Menu trigger="Tuỳ chọn" items={items} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Tuỳ chọn' }));
+    render(<Menu trigger="Tuỳ chọn" items={items} label="Menu" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
 
     const item = screen.getByRole('menuitem', { name: 'Chỉnh sửa' });
     await userEvent.click(item);
@@ -56,8 +56,8 @@ describe('Menu', () => {
   });
 
   it('đóng menu khi nhấn Escape', async () => {
-    render(<Menu trigger="Tuỳ chọn" items={sampleItems} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Tuỳ chọn' }));
+    render(<Menu trigger="Tuỳ chọn" items={sampleItems} label="Menu" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
     expect(screen.getByRole('menu')).toBeInTheDocument();
 
     await userEvent.keyboard('{Escape}');
@@ -67,8 +67,8 @@ describe('Menu', () => {
   });
 
   it('hỗ trợ điều hướng bằng phím mũi tên lên/xuống', async () => {
-    render(<Menu trigger="Tuỳ chọn" items={sampleItems} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Tuỳ chọn' }));
+    render(<Menu trigger="Tuỳ chọn" items={sampleItems} label="Menu" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
 
     const items = screen.getAllByRole('menuitem');
     items[0].focus();
