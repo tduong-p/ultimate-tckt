@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppProvider from '@atlaskit/app-provider';
 import { HashRouter } from 'react-router-dom';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
-import '@atlaskit/css-reset';
 import '../shared/styles/responsive.css';
 import { LottieLoading } from '../shared/components/LottieLoading';
 import { Shell } from './shell/Shell';
@@ -127,11 +125,9 @@ const rootEl = document.getElementById('root');
 if (rootEl) {
   ReactDOM.createRoot(rootEl).render(
     <React.StrictMode>
-      <AppProvider>
-        <QueryClientProvider client={defaultQueryClient}>
-          <App />
-        </QueryClientProvider>
-      </AppProvider>
+      <QueryClientProvider client={defaultQueryClient}>
+        <App />
+      </QueryClientProvider>
     </React.StrictMode>
   );
 }
