@@ -3,6 +3,8 @@ const { findReviewRecipients } = require('../services/notification-recipients');
 const { createAttachment } = require('../services/task-attachments');
 const { toSummaryView } = require('../serializers/summary');
 const { dateInVietnam } = require('../date-vn');
+const { applyActivityBatch } = require('../services/activity-batch');
+const { notifyActivityUpdated } = require('../services/batch-notify');
 
 function createActivityRoutes(context) {
   const { db, auth, admin, manager, managerOrEventLead, isLeadership, isExecutive, asyncRoute, validHttpUrl, one, ids, activityScope, leadsTeam, belongsToTeam, canManageTeam, managedTeamIds, canManageUser, canManageActivity, visibleActivity, bcrypt, ExcelJS, packageInfo, logger, notifier, taskUpload, attachmentKinds, allowedExtensions, attachmentRoot, path, fs, crypto, scopeFor } = context;
@@ -81,6 +83,16 @@ router.post('/api/activities/:id/reject', auth, admin, asyncRoute(async (req, re
 }));
 router.post('/api/activities/:id/request-changes', auth, admin, asyncRoute(async (req, res) => {
   await decideProposal(req, res, { action: 'request_changes', nextStatus: 'changes_requested', requireFeedback: true });
+}));
+
+router.patch('/api/activities/:id/batch', auth, asyncRoute(async (req, res) => {
+  const activityId = Number(req.params.id);
+  if (!Number.isInteger(activityId) || !(await visibleActivity(req.actor, activityId))) return res.status(404).json({ error: 'Không tìm thấy hoạt động.' });
+  const result = await applyActivityBatch(context, { actor: req.actor, activityId, changes: req.body.changes, base: req.body.base });
+  if (result.notify) {
+    try { await notifyActivityUpdated(context, req.actor, result.notify); } catch (error) { logger.error(`Unable to prepare activity ${activityId} batch notifications.`, error); }
+  }
+  res.status(result.status).json(result.body);
 }));
 
 router.get('/api/activities/:id',auth,asyncRoute(async(req,res)=>{if(!(await visibleActivity(req.actor,req.params.id)))return res.status(404).json({error:'Activity not found.'});const [[activities],[activityTeams],[tasks],[participants],[updates],[people],[taggablePeople],[attachments],[updateTags],[proposalHistory]]=await Promise.all([

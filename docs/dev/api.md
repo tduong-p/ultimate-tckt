@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 6.0
+version: 6.1
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -37,6 +37,7 @@ cập nhật lại bảng này (tăng version MINOR nếu chỉ thêm dòng, MAJ
 | GET/PATCH/DELETE | `/api/activities/:id` | `activities.js` |
 | POST | `/api/activities/:id/{submit,approve,reject,request-changes,volunteer,participants,updates,tasks,log-task}` | `activities.js` |
 | GET/PATCH | `/api/tasks/:id` | `tasks.js` |
+| PATCH | `/api/activities/:id/batch` | `activities.js` |
 | PATCH | `/api/tasks/:id/batch` | `tasks.js` |
 | POST | `/api/tasks/:id/{attachments,acknowledge,submit-review,review,cancel,checklist}` | `tasks.js` |
 | PATCH/DELETE | `/api/tasks/:id/checklist/:itemId`, `/api/tasks/:id/status` | `tasks.js` |
@@ -488,6 +489,22 @@ Trường hợp lệ: `title, description, primary_assignee_id, co_assignee_ids,
 - 200 `{ changed: [...] }`: `changed` rỗng khi không có gì khác đi (không thông báo).
 - Thông báo gộp theo lô do `services/batch-notify.js` đảm nhiệm.
 
+### PATCH /api/activities/:id/batch
+
+Sửa nhiều trường của một hoạt động trong một giao dịch (tất cả hoặc không gì cả). Cùng khuôn với `PATCH /api/tasks/:id/batch`; `PATCH /api/activities/:id` cũ giữ nguyên.
+
+Body: `{ "changes": { <field>: <value> }, "base": { <field>: <giá trị lúc mở form> } }`.
+Trường hợp lệ: `title, description, deadline, start_date, priority, team_id, event_lead_id`.
+
+- Quyền theo từng trường: `admin`/`vice_admin` sửa tất cả; trưởng sự kiện (`event_lead_id` là người gọi) chỉ sửa `title`, `description`; người khác (kể cả DYC, chỉ đọc) không sửa trường nào.
+- 404: hoạt động không tồn tại hoặc người gọi không thấy (cùng điều kiện với `GET /api/activities/:id`).
+- 403 `{ forbidden: [...] }`: có trường ngoài quyền (không ghi gì).
+- 400: trường lạ (`fields`), tiêu đề/mô tả/hạn rỗng, `priority` ngoài enum, ngày sai dạng `YYYY-MM-DD`, tổ không tồn tại/đã ngừng, người phụ trách không tồn tại/ngừng hoạt động. `event_lead_id: null` là gỡ người phụ trách.
+- 409 `{ conflicts: [...] }`: với trường thật sự đổi, `base[field]` khác giá trị hiện tại (không ghi gì). Trường không có trong `base` thì không kiểm tra.
+- 200 `{ changed: [...] }`: `changed` rỗng khi không có gì khác đi (kể cả `changes` rỗng).
+- Đổi `team_id` đặt tổ đó là tổ `primary` trong `activity_teams` (thêm nếu chưa có), các tổ khác thành `supporting`, không gỡ tổ nào.
+- Thông báo gộp theo lô do `services/batch-notify.js` đảm nhiệm (`notifyActivityUpdated`, gọi sau commit).
+
 ## CTD — `services/ctd-api/backend/app/api/*.py` (đăng ký qua `app/main.py`)
 
 | Method | Path | File |
@@ -533,3 +550,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 5.8 | 2026-10-08 | hotfix PR #79: `GET /api/teams` truyền tham số SQL đúng thứ tự (`user_id` cho `can_manage` trước, scope đơn vị sau); trước đó trả rỗng cho mọi tài khoản có id khác unit id | DYC |
 | 5.9 | 2026-10-09 | Ghi nhận API Giao việc/Trình, danh sách đơn vị nhận và `modules` trong đơn vị hiện tại của session | DYC |
 | 6.0 | 2026-10-10 | Thêm `PATCH /api/tasks/:id/batch` (sửa nhiều trường một lần, quyền theo từng trường, 409 khi `base` cũ; chi tiết ở mục Endpoint Details) | DYC |
+| 6.1 | 2026-10-10 | Thêm `PATCH /api/activities/:id/batch` (quyền theo trường: admin/vice_admin tất cả, trưởng sự kiện chỉ title/description) | DYC |
