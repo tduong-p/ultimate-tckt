@@ -34,7 +34,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       if (onLoginSuccess) {
         onLoginSuccess();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg = apiErrorMessage(
         err,
         isVi ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' : 'Login failed. Please check credentials.'

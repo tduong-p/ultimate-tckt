@@ -70,8 +70,11 @@ export function useEditSession<T extends object>(opts: UseEditSessionOptions<T>)
     setDraft((d) => ({ ...d, [key as string]: v }));
   }, []);
 
-  const value = <K extends keyof T>(key: K): T[K] =>
-    (key as string) in effective ? (effective[key as string] as T[K]) : original[key];
+  const value = useCallback(
+    <K extends keyof T>(key: K): T[K] =>
+      (key as string) in effective ? (effective[key as string] as T[K]) : original[key],
+    [effective, original]
+  );
 
   const discard = useCallback(() => {
     if (savingRef.current) return;
