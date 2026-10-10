@@ -33,6 +33,11 @@ describe('editApi', () => {
     expect(r.message).toBeTruthy();
   });
 
+  it('403 không có forbidden[] dùng thông điệp máy chủ', () => {
+    const r = classifyBatchError(axiosErr(403, { error: 'Bạn không có quyền' }));
+    expect(r).toMatchObject({ kind: 'forbidden', message: 'Bạn không có quyền' });
+  });
+
   it('400 -> validation dùng thông điệp máy chủ', () => {
     const r = classifyBatchError(axiosErr(400, { error: 'Tiêu đề không được để trống' }));
     expect(r.kind).toBe('validation');

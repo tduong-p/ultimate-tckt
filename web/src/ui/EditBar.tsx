@@ -13,6 +13,7 @@ export interface EditBarProps {
   error?: string;
 }
 
+const TYPING_SELECTOR = 'input,textarea,select,[contenteditable=""],[contenteditable="true"]';
 const IGNORE_SELECTOR = '[role=dialog],[role=menu],[role=listbox]';
 
 /** Thanh Lưu/Hủy hiện khi có thay đổi chưa lưu. `Mod+Enter` lưu, `Escape` hủy (trừ khi đang trong hộp thoại/menu). */
@@ -30,7 +31,7 @@ export function EditBar({ dirty, count, saving, onSave, onDiscard, error }: Edit
         e.preventDefault();
         if (!latest.current.saving) latest.current.onSave();
       } else if (e.key === 'Escape') {
-        if (latest.current.saving) return;
+        if (latest.current.saving || target?.closest(TYPING_SELECTOR)) return;
         e.preventDefault();
         latest.current.onDiscard();
       }

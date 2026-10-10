@@ -69,4 +69,14 @@ describe('EditBar', () => {
     render(<EditBar dirty {...props} error="Dữ liệu đã đổi" />);
     expect(screen.getByRole('alert')).toHaveTextContent('Dữ liệu đã đổi');
   });
+
+  it('Escape bị bỏ qua khi đang gõ trong input, Mod+Enter vẫn lưu', async () => {
+    const onSave = vi.fn(); const onDiscard = vi.fn();
+    render(<><EditBar dirty {...props} onSave={onSave} onDiscard={onDiscard} /><input aria-label="ô" /></>);
+    screen.getByLabelText('ô').focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onDiscard).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Control>}{Enter}{/Control}');
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
 });

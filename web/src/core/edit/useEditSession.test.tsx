@@ -114,4 +114,39 @@ describe('useEditSession', () => {
     expect(r).toEqual({ ok: true });
     expect(patch).not.toHaveBeenCalled();
   });
+
+  it('sau conflict, original đổi (refetch) thì lưu lại mang base mới', async () => {
+    const patch = vi.fn()
+      .mockRejectedValueOnce({ response: { status: 409, data: { conflicts: ['title'] } } })
+      .mockResolvedValue(undefined);
+    const { result, rerender } = setup(patch);
+    act(() => result.current.set('title', 'B'));
+    await act(async () => { await result.current.save(); });
+    rerender({ original: { ...orig, title: 'Z' } });
+    expect(result.current.value('title')).toBe('B');
+    await act(async () => { await result.current.save(); });
+    expect(patch).toHaveBeenLastCalledWith({ title: 'B' }, { title: 'Z' });
+  });
+
+  it('onSaved bất đồng bộ xong rồi mới xoá nháp (không nháy về giá trị cũ)', async () => {
+    let done!: () => void;
+    const onSaved = vi.fn(() => new Promise<void>((r) => { done = r; }));
+    const { result } = setup(vi.fn().mockResolvedValue(undefined), onSaved);
+    act(() => result.current.set('title', 'B'));
+    let p!: Promise<unknown>;
+    act(() => { p = result.current.save(); });
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(result.current.value('title')).toBe('B');
+    await act(async () => { done(); await p; });
+    expect(result.current.dirty).toBe(false);
+  });
+
+  it('onSaved ném lỗi vẫn trả ok', async () => {
+    const { result } = setup(vi.fn().mockResolvedValue(undefined), vi.fn((): void => { throw new Error('x'); }));
+    act(() => result.current.set('title', 'B'));
+    let r: unknown;
+    await act(async () => { r = await result.current.save(); });
+    expect(r).toEqual({ ok: true });
+    expect(result.current.dirty).toBe(false);
+  });
 });

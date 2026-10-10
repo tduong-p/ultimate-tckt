@@ -1,3 +1,5 @@
+import { HashRouter, Link, Route, Routes } from 'react-router-dom';
+import { useState } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -99,5 +101,55 @@ describe('hashchange guard', () => {
     await changeHash('#/b');
     expect(window.location.hash).toBe('#/b');
     expect(screen.queryByRole('button', { name: 'Ở lại' })).toBeNull();
+  });
+});
+
+describe('tích hợp HashRouter + Link', () => {
+  function PageA() {
+    const [text, setText] = useState('');
+    useEditGuard(text !== '');
+    return (
+      <div>
+        <input aria-label="nháp" value={text} onChange={(e) => setText(e.target.value)} />
+        <Link to="/b">sang B</Link>
+      </div>
+    );
+  }
+  const app = () => render(
+    <HashRouter>
+      <EditGuardProvider>
+        <Routes>
+          <Route path="/b" element={<div>trang B</div>} />
+          <Route path="*" element={<PageA />} />
+        </Routes>
+      </EditGuardProvider>
+    </HashRouter>,
+  );
+
+  it('Ở lại: giữ nháp và route không đổi', async () => {
+    window.location.hash = '#/';
+    app();
+    await userEvent.type(screen.getByLabelText('nháp'), 'abc');
+    await userEvent.click(screen.getByText('sang B'));
+    await userEvent.click(screen.getByRole('button', { name: 'Ở lại' }));
+    expect(screen.getByLabelText('nháp')).toHaveValue('abc');
+    expect(screen.queryByText('trang B')).toBeNull();
+    expect(window.location.hash).toBe('#/');
+  });
+
+  it('Bỏ thay đổi: chuyển sang route mới', async () => {
+    window.location.hash = '#/';
+    app();
+    await userEvent.type(screen.getByLabelText('nháp'), 'abc');
+    await userEvent.click(screen.getByText('sang B'));
+    await userEvent.click(screen.getByRole('button', { name: 'Bỏ thay đổi' }));
+    expect(await screen.findByText('trang B')).toBeInTheDocument();
+  });
+
+  it('không dirty: Link đi thẳng', async () => {
+    window.location.hash = '#/';
+    app();
+    await userEvent.click(screen.getByText('sang B'));
+    expect(await screen.findByText('trang B')).toBeInTheDocument();
   });
 });

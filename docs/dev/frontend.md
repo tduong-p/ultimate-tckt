@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.24
+version: 1.25
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -165,8 +165,13 @@ Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:i
   `original` đổi khi đang có nháp (refetch) → khoá nào đã bằng bản gốc mới thì rơi khỏi nháp, khoá còn khác giữ nguyên.
 - `editApi.ts`: `patchTaskBatch(id, {changes, base})`, `patchActivityBatch(...)` và `classifyBatchError(err)`; màn truyền `patch: (c, b) => patchTaskBatch(id, { changes: c, base: b })`.
 - `useEditGuard(dirty)` (gọi trong màn): `beforeunload` chỉ đăng ký khi dirty và đăng ký cờ dirty với `EditGuardProvider` (gắn trong `Shell`). `useConfirmNavigate()` bọc nút/link điều hướng do màn tự xử lý: dirty thì hỏi ("Ở lại"/"Bỏ thay đổi").
-  HashRouter không có `useBlocker`, nên provider còn nghe `hashchange` để chặn đổi route qua sidebar/link; giới hạn: router có thể đã render route mới trong khoảnh khắc trước khi hash được trả lại, nên màn dùng phiên sửa nên giữ nháp ở cấp màn đứng trên route (không ở component con bị remount theo route).
-- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy, bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
+  HashRouter không có `useBlocker` và nghe `popstate` (bắn TRƯỚC `hashchange`), nên điều hướng bằng link được chặn ở pha capture của `click`:
+  khi dirty, click vào `a[href^="#"]` (không phím bổ trợ, không `target=_blank`) bị chặn và hiện hộp xác nhận; "Bỏ thay đổi" mới đổi hash (cờ `bypass` chỉ cho đúng một lần điều hướng).
+  `hashchange` chỉ là đường dự phòng cho Back/Forward và gõ URL: lúc đó router đã đổi route nên màn giữ nháp có thể đã unmount, và việc trả hash về thêm/đổi một mục lịch sử (chấp nhận).
+  QUY TẮC: giữ phiên sửa ở component cấp route hoặc một cha sống qua đổi route, không ở component con bị remount theo route.
+- Conflict (409): nháp được giữ nhưng màn PHẢI refetch `original`. "Lấy bản mới" = `discard()` + refetch; "Giữ của tôi" = refetch rồi `save()` lại (`base` luôn theo `original` mới nhất).
+  `onSaved` nên trả promise của refetch: nháp chỉ bị xoá sau khi nó xong (không nháy về giá trị cũ); lỗi trong `onSaved` bị bỏ qua, `save()` vẫn trả `{ok:true}`.
+- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy (Escape bỏ qua khi đang gõ trong input/textarea/select/contenteditable), bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
   Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
 
 - Tạm: `/inbox` là placeholder trong `AppRoutes.tsx` cho tới khi có màn Hộp thư thật.
@@ -200,3 +205,4 @@ Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:i
 | 1.22 | 2026-10-10 | Shell mới `web/src/core/shell/` (sidebar, drawer, phím tắt, theme, Hộp thư); token dark khớp theo từ | DYC |
 | 1.23 | 2026-10-10 | Shell: thêm Tổng quan, siết phím tắt, focus drawer | DYC |
 | 1.24 | 2026-10-10 | Sửa tại chỗ: `useEditSession`, `EditGuardProvider`/`useEditGuard`, `EditBar`, `editApi` (batch + phân loại lỗi) | DYC |
+| 1.25 | 2026-10-10 | Sửa tại chỗ: chặn link ở pha capture, hợp đồng conflict/refetch, quy tắc vị trí phiên sửa | DYC |

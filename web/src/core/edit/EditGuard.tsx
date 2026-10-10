@@ -33,6 +33,24 @@ export function EditGuardProvider({ children }: { children: ReactNode }) {
     setPending(() => go);
   }, [isDirty]);
 
+  // Chặn ở pha capture, TRƯỚC khi React/router xử lý click: HashRouter nghe popstate (bắn trước hashchange)
+  // nên nếu để hashchange chặn thì màn giữ nháp đã bị unmount.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (!isDirty()) return;
+      const anchor = e.target instanceof Element ? e.target.closest('a[href^="#"]') : null;
+      if (!anchor || (anchor.getAttribute('target') ?? '_self') !== '_self') return;
+      const href = anchor.getAttribute('href') ?? '';
+      if (href === window.location.hash) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPending(() => () => { bypass.current = true; window.location.hash = href; });
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [isDirty]);
+
   useEffect(() => {
     const onHashChange = () => {
       const current = window.location.hash;
@@ -44,6 +62,8 @@ export function EditGuardProvider({ children }: { children: ReactNode }) {
       window.location.hash = lastHash.current;
       setPending(() => () => { bypass.current = true; window.location.hash = target; });
     };
+    // Giới hạn đã chấp nhận: đường dự phòng này (Back/Forward, gõ URL) chạy sau khi router đã đổi route nên màn có thể đã
+    // unmount; việc trả hash còn thêm/đổi một mục lịch sử. Màn phải giữ phiên sửa ở component route-level hoặc cha sống qua đổi route.
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [isDirty]);
@@ -54,9 +74,9 @@ export function EditGuardProvider({ children }: { children: ReactNode }) {
   const leave = () => {
     const go = pending;
     setPending(null);
-    // Các phiên sửa sẽ tự gỡ khi màn unmount; xoá cờ ngay để `go` không bị chặn lại.
-    dirtyIds.current.clear();
     go?.();
+    // `bypass` chỉ cho đúng một lần điều hướng; hashchange tự xoá, đây là lưới an toàn nếu hash không đổi.
+    setTimeout(() => { bypass.current = false; }, 100);
   };
 
   return (

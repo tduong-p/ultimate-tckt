@@ -46,7 +46,11 @@ export function classifyBatchError(err: unknown): BatchError {
     case 409:
       return { kind: 'conflict', fields: fieldList(data.conflicts), message: CONFLICT_MESSAGE };
     case 403:
-      return { kind: 'forbidden', fields: fieldList(data.forbidden), message: FORBIDDEN_MESSAGE };
+    {
+      const fields = fieldList(data.forbidden);
+      const hasServerMessage = typeof data.error === 'string' && data.error.trim() !== '';
+      return { kind: 'forbidden', fields, message: hasServerMessage ? apiErrorMessage(err) : FORBIDDEN_MESSAGE };
+    }
     case 400:
       return { kind: 'validation', fields: fieldList(data.fields), message: apiErrorMessage(err, DEFAULT_ERROR_MESSAGE) };
     default:

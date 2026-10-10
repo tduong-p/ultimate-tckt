@@ -21,7 +21,14 @@ export interface UseEditSessionOptions<T> {
   /** Danh sách trường được sửa (`editable[]` từ GET chi tiết). Trường khác bị `set` bỏ qua. */
   editable: string[];
   patch: (changes: Draft, base: Draft) => Promise<unknown>;
-  onSaved?: () => void;
+  /**
+   * Gọi sau khi lưu thành công; nên trả promise của refetch để nháp chỉ bị xoá khi bản gốc mới đã về (không nháy giá trị cũ).
+   * Lỗi trong `onSaved` bị bỏ qua: bản lưu đã thành công nên `save()` vẫn trả `{ok:true}`.
+   *
+   * Hợp đồng khi `save()` trả `conflict`: nháp được giữ, nhưng màn PHẢI refetch `original`.
+   * "Lấy bản mới" = `discard()` + refetch; "Giữ của tôi" = refetch rồi `save()` lại — `base` luôn lấy từ `original` mới nhất.
+   */
+  onSaved?: () => void | Promise<unknown>;
 }
 
 export function deepEqual(a: unknown, b: unknown): boolean {
@@ -40,6 +47,7 @@ export function useEditSession<T extends object>(opts: UseEditSessionOptions<T>)
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const inFlight = useRef<Promise<SaveResult> | null>(null);
+  // Ghi ref lúc render là chủ ý: `save()` ổn định (không đổi identity) nhưng luôn đọc `original`/`patch` mới nhất.
   const latest = useRef(opts);
   latest.current = opts;
 
@@ -84,14 +92,20 @@ export function useEditSession<T extends object>(opts: UseEditSessionOptions<T>)
       try {
         await latest.current.patch(changes, base);
       } catch (err) {
-        return { ok: false, ...classifyBatchError(err) };
-      } finally {
         savingRef.current = false;
         inFlight.current = null;
         setSaving(false);
+        return { ok: false, ...classifyBatchError(err) };
+      }
+      try {
+        await latest.current.onSaved?.();
+      } catch {
+        // bản lưu đã thành công; lỗi refetch không được biến thành lỗi lưu.
       }
       setDraft({});
-      latest.current.onSaved?.();
+      savingRef.current = false;
+      inFlight.current = null;
+      setSaving(false);
       return { ok: true };
     })();
     inFlight.current = run;
