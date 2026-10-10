@@ -16,10 +16,12 @@ EXPECTED_TEMPLATES = {
     "task.unacknowledged",
     "system.test",
     "comment.mentioned",
+    "task.updated",
+    "activity.updated",
 }
 
 
-def test_registry_has_all_12_templates():
+def test_registry_has_all_14_templates():
     reg = load_registry(ROOT)
     assert set(reg.templates.keys()) == EXPECTED_TEMPLATES
 

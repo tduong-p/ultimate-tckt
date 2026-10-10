@@ -1,0 +1,13 @@
+{% extends "_layout/layout.txt.j2" %}
+{% block content %}
+Xin chào {{ recipient_name or "bạn" }},
+
+{{ actorName }} đã cập nhật hoạt động:
+- Hoạt động: {{ activity.title }}
+- Đã thay đổi:
+{% for field in changed %}
+  + {{ field }}
+{% endfor %}
+
+Xem chi tiết tại: {{ base_url }}{{ activity.path }}
+{% endblock %}

@@ -1,12 +1,12 @@
 ---
 doc_id: DEV-MAIL-001
 title: Thông báo của Core (email, push và nhắc hạn)
-version: 7.0
+version: 7.1
 status: active
 audience: [dev, ai]
 owner: DYC
-updated: 2026-10-07
-related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/deadline-notifications.js, core/src/services/reminder-rules.js, core/src/services/notification-recipients.js, core/src/email.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js, core/src/config/database.js]
+updated: 2026-10-10
+related_code: [core/src/notifier.js, core/src/noti-sender.js, core/src/services/batch-notify.js, core/src/services/deadline-notifications.js, core/src/services/reminder-rules.js, core/src/services/notification-recipients.js, core/src/email.js, core/src/routes/activities.js, core/src/routes/tasks.js, core/src/routes/notifications.js, core/src/config/database.js]
 ---
 
 # Thông báo của Core
@@ -56,6 +56,8 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 | `activity.participant_added` | `routes/activities.js` (thêm người tham gia) | `activity-participant:<activityId>:<userId>` |
 | `activity.decided` | `routes/activities.js` (duyệt / từ chối / yêu cầu sửa) | `activity-decided:<activityId>:<proposalId\|deleted>:<creatorId>` |
 | `task.assigned` | `routes/activities.js` (giao việc) | `task-assigned:<taskId>:<userId>` |
+| `task.updated` | `routes/tasks.js` → `services/batch-notify.js` (`PATCH /api/tasks/:id/batch`, một sự kiện gộp mỗi lần lưu) | `task.updated:<taskId>:<epoch giây>` |
+| `activity.updated` | `routes/activities.js` → `services/batch-notify.js` (`PATCH /api/activities/:id/batch`) | `activity.updated:<activityId>:<epoch giây>` |
 | `task.response` | `routes/activities.js` (phản hồi) | `task-response:<updateId>:<userId>` |
 | `comment.mentioned` | `routes/activities.js` (gắn thẻ trong bình luận hoạt động hoặc công việc) | `comment-mention:<updateId>:<userId>` |
 | `task.review_requested` | `routes/activities.js` (log-task), `routes/tasks.js` (nộp nghiệm thu) | `task-review:<taskId>:<reviewerId>:<thời điểm request>` |
@@ -67,6 +69,11 @@ key lấy từ `CORE_NOTI_API_KEY` trong `.env` của VM (`docs/ops/moi-truong.m
 Mọi route truyền `actorId` (người thao tác) để facade bỏ thông báo tự gửi cho chính họ. Người nhận của
 `task.review_requested` lấy từ `findReviewRecipients` (`core/src/services/notification-recipients.js`); `activity.proposed` dùng truy vấn riêng (admin + vice_admin đang hoạt động) và mang
 `type`, `deadline`, `priority` và đi tới admin + vice_admin; `activity.decided` khi hoạt động đã xoá thì không có `path`.
+
+`task.updated` / `activity.updated` gửi **một thư gộp mỗi lần lưu**, `data` gồm `actorName`, `title` (tên mới), `changed` (nhãn tiếng Việt của các trường đã đổi, lấy từ `FIELD_LABEL` của
+`task-batch.js` / `activity-batch.js`), `task`/`activity` và `activity.title`. Lần lưu không đổi gì (no-op) không gửi gì. Mỗi người nhận còn có một dòng trong ứng dụng
+(`kind` = `task.updated` / `activity.updated`, hoặc `task_assigned` cho người mới được giao). Việc gửi chạy sau commit, lỗi bị log và không làm hỏng response.
+Subject theo quy tắc thread bên dưới (`[hoạt động] công việc`); câu "<người sửa> đã cập nhật…" nằm trong thân thư.
 
 ### Subject và thread
 
@@ -85,6 +92,8 @@ trong thân thư, không nằm trong subject. Vì vậy mọi event `task.*` **b
 | `task.assigned` | mọi người được giao **đang hoạt động** (cả thông báo trong ứng dụng) |
 | `task.review_requested` | `findReviewRecipients`: tổ trưởng/tổ phó + trưởng BTC, không còn ai thì admin |
 | `task.reviewed` | mọi người được giao đang hoạt động |
+| `task.updated` | người được giao + tổ trưởng/tổ phó của tổ, trừ người lưu; người **mới được giao** trong lần lưu đó nhận `task.assigned` (`task-assigned:<taskId>:<userId>:<epoch>`) thay vì `task.updated` |
+| `activity.updated` | trưởng sự kiện hiện tại và người vừa bị thay, trừ người lưu |
 | `task.response` | người giao việc + người được giao, trừ người đăng và trừ người đã nhận `comment.mentioned` cho cùng bình luận |
 | `comment.mentioned` | người được gắn thẻ (route đã kiểm tra đang hoạt động và xem được hoạt động; không tự gắn thẻ mình) |
 | `task.deadline_soon`, `task.overdue` | từng người được giao đang hoạt động của task chưa xong |
@@ -134,3 +143,4 @@ Ngoài ra, biến `DEVOPS_EMAILS` (trên VM là `CORE_DEVOPS_EMAILS`) là danh s
 | 6.1 | 2026-10-05 | Sửa mô tả khung giờ (ngoài khung không tạo gì), người nhận `activity.proposed`, hai nhãn `activity.type`/`activity.priority`; thêm kiểm tra giờ một lần mỗi lượt và dừng gửi sau lỗi tạm thời | DYC |
 | 6.2 | 2026-10-05 | Production có Noti trong compose; `CORE_NOTI_API_KEY` trống = tắt gửi (SPEC-MAIL-001) | DYC |
 | 7.0 | 2026-10-07 | Subject gom thread `[hoạt động] công việc`, `activity.title` bắt buộc cho `task.*`; thêm `comment.mentioned`; bảng người nhận; `task.assigned` bỏ user không hoạt động | DYC |
+| 7.1 | 2026-10-10 | Thêm `task.updated` / `activity.updated` (thông báo gộp theo lô, `services/batch-notify.js`); người mới được giao nhận `task.assigned`; dòng trong ứng dụng cho các sự kiện này | DYC |

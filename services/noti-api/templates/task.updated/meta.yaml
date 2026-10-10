@@ -1,0 +1,22 @@
+key: task.updated
+subject: "[{{ activity.title }}] {{ task.title }}"
+required:
+  - actorName
+  - title
+  - changed
+  - task.id
+  - task.title
+  - task.path
+  - activity.title
+data_example:
+  actorName: "Nguyễn Văn B"
+  title: "Làm poster hoạt động"
+  changed:
+    - "Tiêu đề"
+    - "Hạn"
+  task:
+    id: 120
+    title: "Làm poster hoạt động"
+    path: "/#activity/3"
+  activity:
+    title: "Tập huấn cán bộ Đoàn"

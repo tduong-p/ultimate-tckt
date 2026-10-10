@@ -160,3 +160,43 @@ test('a leader assigning a task to themselves gets no mail', async () => {
     assert.ok(!emailsOf(sent, 'task.assigned').includes(lead.email));
   });
 });
+
+test('GET /api/notifications filters by unread and kind, and returns task_id / activity_id', async () => {
+  await withEnv(async ({ pool, request, login }) => {
+    const teamId = await createTeam(pool);
+    const lead = await createUser(pool, { role: 'leader', team_id: teamId, is_lead: true });
+    const member = await createUser(pool, { role: 'member', team_id: teamId });
+    const activityId = await createActivity(pool, { team_id: teamId, creator_id: lead.id, status: 'approved' });
+    const taskId = await createTask(pool, { activity_id: activityId, team_id: teamId, primary_assignee_id: member.id, assigned_by: lead.id });
+    const add = (kind, key, { task = taskId, seen = false } = {}) => pool.execute(
+      `INSERT INTO notifications(user_id,activity_id,task_id,kind,title,body,url,source_key,seen_at,expires_at) VALUES(?,?,?,?,?,?,?,?,${seen ? 'NOW()' : 'NULL'},DATE_ADD(NOW(),INTERVAL 7 DAY))`,
+      [member.id, activityId, task, kind, 'T', 'B', '/#x', key]);
+    await add('task.updated', 'k1');
+    await add('task.updated', 'k2', { seen: true });
+    await add('task_assigned', 'k3');
+    await add('activity.updated', 'k4', { task: null });
+    await login(member);
+
+    const all = await request('GET', '/api/notifications');
+    assert.equal(all.json.notifications.length, 4);
+    assert.equal(all.json.unread_count, 3);
+    const withIds = all.json.notifications.find(n => n.kind === 'task.updated');
+    assert.equal(withIds.task_id, taskId);
+    assert.equal(withIds.activity_id, activityId);
+    assert.equal(all.json.notifications.find(n => n.kind === 'activity.updated').task_id, null);
+
+    const unread = await request('GET', '/api/notifications?unread=1');
+    assert.equal(unread.json.notifications.length, 3);
+    assert.ok(unread.json.notifications.every(n => n.seen_at === null));
+
+    const exact = await request('GET', '/api/notifications?kind=task.updated');
+    assert.deepEqual(exact.json.notifications.map(n => n.kind), ['task.updated', 'task.updated']);
+
+    const prefix = await request('GET', '/api/notifications?unread=1&kind=task.');
+    assert.deepEqual(prefix.json.notifications.map(n => n.kind).sort(), ['task.updated', 'task_assigned']);
+    assert.equal(prefix.json.unread_count, 3);
+
+    const none = await request('GET', '/api/notifications?kind=%25.');
+    assert.equal(none.json.notifications.length, 0);
+  });
+});

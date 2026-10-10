@@ -1,0 +1,19 @@
+key: activity.updated
+subject: "[{{ activity.title }}]"
+required:
+  - actorName
+  - title
+  - changed
+  - activity.id
+  - activity.title
+  - activity.path
+data_example:
+  actorName: "Nguyễn Văn B"
+  title: "Chiến dịch Mùa hè xanh 2026"
+  changed:
+    - "Tiêu đề"
+    - "Hạn"
+  activity:
+    id: 12
+    title: "Chiến dịch Mùa hè xanh 2026"
+    path: "/#activity/12"

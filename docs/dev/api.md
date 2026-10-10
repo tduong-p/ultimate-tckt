@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-API-001
 title: API
-version: 6.2
+version: 6.3
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -65,6 +65,8 @@ Quy tắc lỗi bổ sung (pilot PR 4): `POST /api/activities/:id/updates` trả
 | GET | `/api/units`, `/api/units/:id/members` | `units.js` |
 | PUT/DELETE | `/api/units/:id/members/:userId` | `units.js` |
 | GET/POST/PUT/DELETE/PATCH | `/api/admin/cron/{handlers,jobs[/:id][/activate\|deactivate\|run-now\|runs]}` | `settings-cron.js` |
+
+`GET /api/notifications` trả tối đa 20 thông báo mới nhất của người gọi (`id, kind, title, body, url, task_id, activity_id, seen_at, ...`) và `unread_count` (đếm toàn bộ, không phụ thuộc bộ lọc). Query: `unread=1` chỉ lấy chưa đọc; `kind=<tên>` khớp đúng, `kind=<tiền tố>.` (ví dụ `task.`) khớp mọi kind bắt đầu bằng tiền tố đó, gồm cả kind cũ dạng `task_assigned`.
 
 `GET /api/teams` trả các Tổ đang hoạt động trong phạm vi đơn vị của người xem (`scopeFor(...,'teams')`, gồm đơn vị được
 `unit_visibility_policies` cho xem), kèm `member_count`, `active_count` và `can_manage` (người gọi là Tổ trưởng/Tổ phó).
@@ -564,3 +566,4 @@ Mọi route trừ `/api/auth/*` yêu cầu header `Authorization: Bearer <token>
 | 6.0 | 2026-10-10 | Thêm `PATCH /api/tasks/:id/batch` (sửa nhiều trường một lần, quyền theo từng trường, 409 khi `base` cũ; chi tiết ở mục Endpoint Details) | DYC |
 | 6.1 | 2026-10-10 | Thêm `PATCH /api/activities/:id/batch` (quyền theo trường: admin/vice_admin tất cả, trưởng sự kiện chỉ title/description) | DYC |
 | 6.2 | 2026-10-10 | Thêm `GET /api/tasks` (danh sách theo phạm vi, bộ lọc mine/overdue/pending_review) và `editable[]` trong `GET /api/tasks/:id`, `GET /api/activities/:id` | DYC |
+| 6.3 | 2026-10-10 | `GET /api/notifications` thêm `unread=1`, `kind=<tên đúng \| tiền tố kết thúc bằng '.'>` và trả `task_id`, `activity_id`; hai route batch gửi thông báo gộp (DEV-MAIL-001) | DYC |
