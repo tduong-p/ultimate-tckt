@@ -22,7 +22,7 @@
 | [ADR-0013-001](adr/0013-go-email-cu-va-onesignal.md) | Gỡ module email cũ và OneSignal khỏi Core | 1.0 | active | dev, ai |
 | [ADR-0014-001](adr/0014-noti-service.md) | Service Noti — gửi thông báo email theo template qua HTTP API | 1.0 | active | dev, ai |
 | [ADR-0015-001](adr/0015-poc-frontend-react-atlaskit.md) | Cho phép xây dựng POC frontend React + Atlaskit | 1.0 | active | dev, ai |
-| [ADR-0016-001](adr/0016-web-thay-the-frontend-core.md) | web/ (React + Atlaskit) thay thế frontend Core tại / | 1.1 | superseded | dev, ai, ops |
+| [ADR-0016-001](adr/0016-web-thay-the-frontend-core.md) | web/ (React + Atlaskit) thay thế frontend Core tại / | 1.1 | deprecated | dev, ai, ops |
 | [ADR-0017-001](adr/0017-giao-dien-web-radix-thay-atlaskit.md) | Giao diện web mới bằng UI Kit thuần CSS (tokens) và Radix UI thay thế Atlaskit | 1.0 | active | dev, ai, ops |
 
 ## ai
@@ -191,7 +191,7 @@
 | [PLAN-WEBP4-001](specs/2026-10-09-web-dot-4-van-ban-thong-bao-plan.md) | Kế hoạch triển khai — web/ đợt 4 (Văn bản và chuông thông báo) | 1.2 | active | dev, ai |
 | [PLAN-WEBP5-001](specs/2026-10-09-web-dot-5-giao-viec-trinh-plan.md) | Kế hoạch triển khai — web/ đợt 5 (Giao việc và Trình) | 1.1 | active | dev, ai |
 | [PLAN-WEBP6-001](specs/2026-10-09-web-dot-6-nhat-ky-truc-ban-plan.md) | Kế hoạch triển khai — web/ đợt 6 (Nhật ký trực ban: backend Core rồi UI) | 1.0 | active | dev, ai |
-| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 2.1 | superseded | dev, ai, ops |
+| [SPEC-WEB-003](specs/2026-10-09-web-hoan-thien-thay-the-design.md) | Design — Hoàn thiện web/ để thay thế frontend Core | 2.1 | deprecated | dev, ai, ops |
 | [PLAN-WEBP7-001](specs/2026-10-10-web-dot-7-thay-ui-cu-plan.md) | Kế hoạch triển khai — web/ đợt 7 (thay frontend Core tại /) | 1.0 | active | dev, ai |
 | [SPEC-WEB-004](specs/2026-10-10-web-giao-dien-moi-design.md) | Design — Giao diện web mới (Linear-style) thay Atlaskit | 1.1 | active | dev, ai, ops |
 | [PLAN-WEB-003](specs/2026-10-10-web-giao-dien-moi-plan.md) | Kế hoạch triển khai — Giao diện web mới (Linear-style) thay Atlaskit | 1.1 | active | dev, ai |

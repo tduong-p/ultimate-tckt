@@ -2,7 +2,7 @@
 doc_id: ADR-0016-001
 title: web/ (React + Atlaskit) thay thế frontend Core tại /
 version: 1.1
-status: superseded
+status: deprecated
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10

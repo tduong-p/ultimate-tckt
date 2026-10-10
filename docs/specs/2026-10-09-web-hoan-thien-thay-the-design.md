@@ -2,7 +2,7 @@
 doc_id: SPEC-WEB-003
 title: Design — Hoàn thiện web/ để thay thế frontend Core
 version: 2.1
-status: superseded
+status: deprecated
 audience: [dev, ai, ops]
 owner: DYC
 updated: 2026-10-10
