@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
+import './tasks.css';
 import type { ReviewDecision } from '../../api';
 import { ReviewDialog, REVIEW_DECISIONS } from './ReviewDialog';
 
@@ -8,12 +9,12 @@ export const ReviewButtons: React.FC<{ taskId: number; taskTitle: string }> = ({
   const [decision, setDecision] = useState<ReviewDecision | null>(null);
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="tk-actions">
         {REVIEW_DECISIONS.map((d) => (
           <Button
             key={d.value}
-            spacing="compact"
-            appearance={d.value === 'approve' ? 'primary' : d.value === 'cancel' ? 'danger' : 'default'}
+            size="sm"
+            variant={d.value === 'approve' ? 'primary' : d.value === 'cancel' ? 'danger' : 'ghost'}
             onClick={() => setDecision(d.value)}
           >
             {d.label}

@@ -1,7 +1,6 @@
-import React, { useId } from 'react';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
-import { token } from '@atlaskit/tokens';
+import React from 'react';
+import { Field, Select } from '../../../ui';
+import './tasks.css';
 
 import type { Option } from './taskLabels';
 export type { Option } from './taskLabels';
@@ -22,25 +21,6 @@ export const COMMENT_KIND_OPTIONS: Option[] = [
   { value: 'evidence', label: 'Minh chứng' },
 ];
 
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 12,
-  fontWeight: 600,
-  margin: '12px 0 4px',
-  color: token('color.text.subtle', '#44546F'),
-};
-
-const selectStyle: React.CSSProperties = {
-  width: '100%',
-  padding: 8,
-  borderRadius: 3,
-  boxSizing: 'border-box',
-  fontSize: 14,
-  border: `1px solid ${token('color.border.input', '#8590A2')}`,
-  background: token('color.background.input', '#FFFFFF'),
-  color: token('color.text', '#172B4D'),
-};
-
 export const SelectField: React.FC<{
   label: string;
   value: string;
@@ -49,31 +29,16 @@ export const SelectField: React.FC<{
   required?: boolean;
   placeholder?: string;
   disabled?: boolean;
-}> = ({ label, value, onChange, options, required = false, placeholder, disabled = false }) => {
-  const id = useId();
-  return (
-    <div>
-      <label htmlFor={id} style={labelStyle}>
-        {label}
-        {required ? ' *' : ''}
-      </label>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        style={selectStyle}
-      >
-        {placeholder !== undefined && <option value="">{placeholder}</option>}
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
+}> = ({ label, value, onChange, options, required = false, placeholder, disabled = false }) => (
+  <Field label={`${label}${required ? ' *' : ''}`}>
+    <Select
+      value={value}
+      disabled={disabled}
+      onChange={onChange}
+      options={placeholder !== undefined ? [{ value: '', label: placeholder }, ...options] : options}
+    />
+  </Field>
+);
 
 export const TextField: React.FC<{
   label: string;
@@ -86,28 +51,20 @@ export const TextField: React.FC<{
   min?: number;
   max?: number;
   step?: number;
-}> = ({ label, value, onChange, type = 'text', required = false, maxLength, placeholder, min, max, step }) => {
-  const id = useId();
-  return (
-    <div>
-      <label htmlFor={id} style={labelStyle}>
-        {label}
-        {required ? ' *' : ''}
-      </label>
-      <Textfield
-        id={id}
-        type={type}
-        value={value}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
-        onChange={(e) => onChange((e.target as HTMLInputElement).value)}
-      />
-    </div>
-  );
-};
+}> = ({ label, value, onChange, type = 'text', required = false, maxLength, placeholder, min, max, step }) => (
+  <Field label={`${label}${required ? ' *' : ''}`}>
+    <input
+      type={type}
+      value={value}
+      maxLength={maxLength}
+      placeholder={placeholder}
+      min={min}
+      max={max}
+      step={step}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </Field>
+);
 
 export const AreaField: React.FC<{
   label: string;
@@ -116,28 +73,15 @@ export const AreaField: React.FC<{
   required?: boolean;
   placeholder?: string;
   rows?: number;
-}> = ({ label, value, onChange, required = false, placeholder, rows = 3 }) => {
-  const id = useId();
-  return (
-    <div>
-      <label htmlFor={id} style={labelStyle}>
-        {label}
-        {required ? ' *' : ''}
-      </label>
-      <TextArea
-        id={id}
-        value={value}
-        placeholder={placeholder}
-        minimumRows={rows}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-};
+}> = ({ label, value, onChange, required = false, placeholder, rows = 3 }) => (
+  <Field label={`${label}${required ? ' *' : ''}`}>
+    <textarea value={value} placeholder={placeholder} rows={rows} onChange={(e) => onChange(e.target.value)} />
+  </Field>
+);
 
 export const ErrorText: React.FC<{ children?: React.ReactNode }> = ({ children }) =>
   children ? (
-    <p role="alert" style={{ color: token('color.text.danger', '#AE2E24'), margin: '8px 0 0', fontSize: 13 }}>
+    <p role="alert" className="tk-form-error">
       {children}
     </p>
   ) : null;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
 import { useDhActor } from '../dieuhanh/useDhActor';
 import { canCreateSubmission } from '../dieuhanh/permissions';
 import { CreateSubmissionModal, type SubmissionPreset } from './CreateSubmissionModal';

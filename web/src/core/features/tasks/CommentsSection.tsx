@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
-import { token } from '@atlaskit/tokens';
+import { Button } from '../../../ui';
 import { apiErrorMessage, postTaskComment, type TaskCommentKind, type TaskUpdate } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { formatVnDate } from '../../../shared/utils/date';
 import { useInvalidateTaskCaches } from './useTaskCaches';
 import { getUpdateKindLabel } from './taskLabels';
+import './tasks.css';
 import { AreaField, COMMENT_KIND_OPTIONS, ErrorText, SelectField } from './formFields';
 
 export const CommentsSection: React.FC<{ taskId: number; activityId: number; updates: TaskUpdate[] }> = ({
@@ -41,15 +41,13 @@ export const CommentsSection: React.FC<{ taskId: number; activityId: number; upd
 
   return (
     <section aria-label="Bình luận công việc">
-      <h3 style={{ fontSize: 14, margin: '16px 0 8px' }}>Bình luận</h3>
-      {updates.length === 0 && (
-        <p style={{ color: token('color.text.subtle', '#626F86'), margin: 0 }}>Chưa có bình luận.</p>
-      )}
+      <h3 className="tk-h3 tk-sec-head">Bình luận</h3>
+      {updates.length === 0 && <p className="tk-muted">Chưa có bình luận.</p>}
       {updates.map((u) => (
-        <div key={u.id} style={{ padding: '6px 0', borderBottom: `1px solid ${token('color.border', '#DFE1E6')}` }}>
-          <strong>{u.user_name}</strong> <span style={{ fontSize: 12 }}>{getUpdateKindLabel(u.kind)}</span>
-          <p style={{ margin: '2px 0', whiteSpace: 'pre-wrap' }}>{u.body}</p>
-          <small style={{ color: token('color.text.subtle', '#626F86') }}>{formatVnDate(u.created_at)}</small>
+        <div key={u.id} className="tk-list-item">
+          <strong>{u.user_name}</strong> <span className="tk-comment-kind">{getUpdateKindLabel(u.kind)}</span>
+          <p className="tk-comment-body">{u.body}</p>
+          <small className="tk-meta">{formatVnDate(u.created_at)}</small>
         </div>
       ))}
       <SelectField
@@ -67,8 +65,8 @@ export const CommentsSection: React.FC<{ taskId: number; activityId: number; upd
         }}
       />
       <ErrorText>{error}</ErrorText>
-      <div style={{ marginTop: 8 }}>
-        <Button isLoading={mutation.isPending} onClick={submit}>
+      <div className="tk-section-actions">
+        <Button disabled={mutation.isPending} onClick={submit}>
           Gửi bình luận
         </Button>
       </div>

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
+import { Button } from '../../../ui';
 import { apiErrorMessage, submitTaskReview } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { LinkField, LINK_ERROR_MESSAGE } from '../../../shared/components/LinkField';
 import { isHttpUrl } from '../../../shared/utils/url';
 import { useInvalidateTaskCaches } from './useTaskCaches';
 import { AreaField, ErrorText } from './formFields';
+import './tasks.css';
 
 /** Form nộp nghiệm thu: link bắt buộc (server từ chối khi thiếu), ghi chú tuỳ chọn. */
 export const SubmitReviewForm: React.FC<{ taskId: number; onDone?: () => void }> = ({ taskId, onDone }) => {
@@ -42,7 +43,7 @@ export const SubmitReviewForm: React.FC<{ taskId: number; onDone?: () => void }>
   };
 
   return (
-    <div>
+    <div className="tk-form">
       <LinkField
         label="Liên kết minh chứng"
         value={link}
@@ -54,8 +55,8 @@ export const SubmitReviewForm: React.FC<{ taskId: number; onDone?: () => void }>
       />
       <AreaField label="Ghi chú" value={notes} onChange={setNotes} />
       <ErrorText>{error}</ErrorText>
-      <div style={{ marginTop: 12 }}>
-        <Button appearance="primary" isLoading={mutation.isPending} onClick={submit}>
+      <div className="tk-section-actions">
+        <Button variant="primary" disabled={mutation.isPending} onClick={submit}>
           Nộp nghiệm thu
         </Button>
       </div>

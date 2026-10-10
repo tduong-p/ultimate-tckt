@@ -1,7 +1,7 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import TextArea from '@atlaskit/textarea';
+import { Field } from '../../../ui';
 import {
   apiErrorMessage, createSubmission, fetchActivities, fetchDieuHanhUnits, fetchDirectives, type SubmissionSource,
 } from '../../api';
@@ -22,7 +22,6 @@ export const CreateSubmissionModal: React.FC<{ isOpen: boolean; onClose: () => v
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const noteId = useId();
   const [toUnit, setToUnit] = useState('');
   const [activityId, setActivityId] = useState('');
   const [directiveId, setDirectiveId] = useState('');
@@ -87,10 +86,9 @@ export const CreateSubmissionModal: React.FC<{ isOpen: boolean; onClose: () => v
       <SelectField label="Gắn với chỉ đạo (không bắt buộc)" value={directiveId} onChange={setDirectiveId} disabled={!toUnit || directivesLoading || Boolean(directivesError)}
         options={directiveOptions} placeholder="Không gắn" />
       <QueryStatus isLoading={directivesLoading} error={directivesError} onRetry={() => void retryDirectives()} />
-      <div style={{ marginTop: 12 }}>
-        <label htmlFor={noteId}>Ghi chú</label>
-        <TextArea id={noteId} value={note} minimumRows={3} onChange={(e) => setNote(e.target.value)} />
-      </div>
+      <Field label="Ghi chú">
+        <textarea value={note} rows={3} onChange={(e) => setNote(e.target.value)} />
+      </Field>
       <ErrorText message={error} />
     </FormDialog>
   );

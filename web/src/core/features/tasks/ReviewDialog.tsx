@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import Button from '@atlaskit/button/new';
 import { apiErrorMessage, reviewTask, type ReviewDecision } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
 import { useInvalidateTaskCaches } from './useTaskCaches';
 import { AreaField, ErrorText } from './formFields';
+import { TaskFormDialog } from './TaskFormDialog';
 
 export const REVIEW_DECISIONS: { value: ReviewDecision; label: string }[] = [
   { value: 'approve', label: 'Duyệt đạt' },
@@ -74,48 +73,35 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
   };
 
   return (
-    <ModalTransition>
-      {isOpen && (
-        <Modal onClose={onClose} width="small">
-          <ModalHeader>
-            <ModalTitle>{`Nghiệm thu: ${taskTitle}`}</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-              <legend style={{ fontSize: 12, fontWeight: 600 }}>Kết quả</legend>
-              {REVIEW_DECISIONS.map((d) => (
-                <label key={d.value} style={{ display: 'block', padding: '4px 0' }}>
-                  <input
-                    type="radio"
-                    name="review-decision"
-                    value={d.value}
-                    checked={decision === d.value}
-                    onChange={() => {
-                      setDecision(d.value);
-                      setError('');
-                    }}
-                  />{' '}
-                  {d.label}
-                </label>
-              ))}
-            </fieldset>
-            <AreaField label="Ghi chú" required={decision !== 'approve'} value={feedback} onChange={setFeedback} />
-            <ErrorText>{error}</ErrorText>
-          </ModalBody>
-          <ModalFooter>
-            <Button appearance="subtle" onClick={onClose}>
-              Huỷ
-            </Button>
-            <Button
-              appearance={decision === 'approve' ? 'primary' : decision === 'cancel' ? 'danger' : 'warning'}
-              isLoading={mutation.isPending}
-              onClick={submit}
-            >
-              Gửi kết quả
-            </Button>
-          </ModalFooter>
-        </Modal>
-      )}
-    </ModalTransition>
+    <TaskFormDialog
+      isOpen={isOpen}
+      title={`Nghiệm thu: ${taskTitle}`}
+      submitLabel="Gửi kết quả"
+      submitVariant={decision === 'cancel' ? 'danger' : 'primary'}
+      submitting={mutation.isPending}
+      onSubmit={submit}
+      onClose={onClose}
+    >
+      <fieldset className="tk-radios">
+        <legend>Kết quả</legend>
+        {REVIEW_DECISIONS.map((d) => (
+          <label key={d.value} className="tk-radio">
+            <input
+              type="radio"
+              name="review-decision"
+              value={d.value}
+              checked={decision === d.value}
+              onChange={() => {
+                setDecision(d.value);
+                setError('');
+              }}
+            />
+            {d.label}
+          </label>
+        ))}
+      </fieldset>
+      <AreaField label="Ghi chú" required={decision !== 'approve'} value={feedback} onChange={setFeedback} />
+      <ErrorText>{error}</ErrorText>
+    </TaskFormDialog>
   );
 };

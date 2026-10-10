@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.32
+version: 1.33
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -251,5 +251,6 @@ Dựng lại bằng kit mới, giữ nguyên route, chuỗi tiếng Việt, kho�
 | 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
 | 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |
 | 1.30 | 2026-10-10 | Chi tiết công việc sửa tại chỗ (ngăn kéo, `editable[]`, 409 Tải lại); xoá `EditTaskDialog`; Kanban và Giao việc dùng kit mới | DYC |
-| 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
 | 1.31 | 2026-10-10 | Lịch, Tổ, Thành viên dùng kit mới (`peopleKit`, `ppl-`/`team-`/`cal-`/`mem-`); vạch hôm nay Gantt theo ngày thật; xoá `TeamCheckboxes` | DYC |
+| 1.32 | 2026-10-10 | Văn bản, Giao việc, Báo cáo, Lưu trữ dùng kit mới (`dirKit`, `doc-`/`dir-`/`rep-`/`arc-`) | DYC |
+| 1.33 | 2026-10-10 | Trình (Submissions) dùng kit mới (`submissions.css`, `parts.tsx`); chuyển LinkField, ReasonDialog, ConfirmDialog và phần còn lại trong task drawer sang kit mới | DYC |

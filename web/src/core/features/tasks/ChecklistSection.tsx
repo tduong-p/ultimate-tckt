@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import Button from '@atlaskit/button/new';
-import { token } from '@atlaskit/tokens';
+import { Button } from '../../../ui';
 import { addChecklistItem, apiErrorMessage, deleteChecklistItem, setChecklistItemDone, type ChecklistItem } from '../../api';
 import { useToast } from '../../../shared/components/Toast';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useInvalidateTaskCaches } from './useTaskCaches';
 import { TextField, ErrorText } from './formFields';
+import { TaskConfirmDialog } from './TaskFormDialog';
+import './tasks.css';
 
 export interface ChecklistSectionProps {
   taskId: number;
@@ -62,13 +62,15 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ taskId, item
 
   return (
     <section aria-label="Việc con">
-      <h3 style={{ fontSize: 14, margin: '16px 0 8px' }}>
-        Việc con <span style={{ fontWeight: 400 }}>{items.length > 0 ? `${done}/${items.length}` : ''}</span>
+      <h3 className="tk-h3 tk-sec-head">
+        <span>
+          Việc con <span className="tk-count">{items.length > 0 ? `${done}/${items.length}` : ''}</span>
+        </span>
       </h3>
-      {items.length === 0 && <p style={{ color: token('color.text.subtle', '#626F86'), margin: 0 }}>Chưa có việc con.</p>}
+      {items.length === 0 && <p className="tk-muted">Chưa có việc con.</p>}
       {items.map((item) => (
-        <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
-          <label style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div key={item.id} className="tk-check-row">
+          <label className="tk-check-label">
             <input
               type="checkbox"
               checked={Boolean(item.is_done)}
@@ -79,8 +81,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ taskId, item
           </label>
           {canUpdate && (
             <Button
-              spacing="compact"
-              appearance="subtle"
+              size="sm"
               aria-label={`Xoá việc con: ${item.title}`}
               onClick={() => setPendingDelete(item)}
             >
@@ -90,35 +91,33 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ taskId, item
         </div>
       ))}
       {canUpdate && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <TextField
-              label="Thêm việc con"
-              value={title}
-              maxLength={255}
-              onChange={(v) => {
-                setTitle(v);
-                setError('');
-              }}
-            />
-          </div>
-          <Button isLoading={addMutation.isPending} onClick={add}>
+        <div className="tk-add-row">
+          <TextField
+            label="Thêm việc con"
+            value={title}
+            maxLength={255}
+            onChange={(v) => {
+              setTitle(v);
+              setError('');
+            }}
+          />
+          <Button disabled={addMutation.isPending} onClick={add}>
             Thêm
           </Button>
         </div>
       )}
       <ErrorText>{error}</ErrorText>
-      <ConfirmDialog
+      <TaskConfirmDialog
         isOpen={pendingDelete !== null}
         title="Xoá việc con?"
-        appearance="danger"
+        danger
         confirmLabel="Xoá"
-        isLoading={deleteMutation.isPending}
+        loading={deleteMutation.isPending}
         onConfirm={() => pendingDelete && deleteMutation.mutate(pendingDelete.id)}
         onCancel={() => setPendingDelete(null)}
       >
         <p>Bạn sắp xoá "{pendingDelete?.title}". Không hoàn tác được.</p>
-      </ConfirmDialog>
+      </TaskConfirmDialog>
     </section>
   );
 };
