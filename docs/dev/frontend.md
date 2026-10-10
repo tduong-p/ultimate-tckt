@@ -1,7 +1,7 @@
 ---
 doc_id: DEV-FE-001
 title: Frontend
-version: 1.28
+version: 1.29
 status: active
 audience: [dev, ai]
 owner: DYC
@@ -170,15 +170,16 @@ Mẫu cho mọi màn chi tiết sửa nhiều trường qua `PATCH /api/tasks/:i
   `hashchange` chỉ là đường dự phòng cho Back/Forward và gõ URL: lúc đó router đã đổi route nên màn giữ nháp có thể đã unmount, và việc trả hash về thêm/đổi một mục lịch sử (chấp nhận).
   QUY TẮC: giữ phiên sửa ở component cấp route hoặc một cha sống qua đổi route, không ở component con bị remount theo route.
 - Conflict (409): nháp được giữ nhưng màn PHẢI refetch `original`. "Lấy bản mới" = `discard()` + refetch; "Giữ của tôi" = refetch rồi `save()` lại (`base` luôn theo `original` mới nhất).
+  `onSaved` nên trả promise của refetch: nháp chỉ bị xoá sau khi nó xong (không nháy về giá trị cũ); lỗi trong `onSaved` bị bỏ qua, `save()` vẫn trả `{ok:true}`.
+- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error saveDisabled />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy (Escape bỏ qua khi đang gõ trong input/textarea/select/contenteditable), bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
+  Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
+  `saveDisabled` khoá nút Lưu và `Mod+Enter`: màn Hoạt động dùng khi banner xung đột 409 đang hiện, cho tới khi người dùng chọn "Lấy bản mới" hoặc "Giữ của tôi".
 
 Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/src/ui`, CSS `activities.css`, tiền tố `act-`): danh sách `ActivitiesView` gọn kiểu Linear (giữ bộ lọc, query key `['core-activities', ...]`, link `#/activity/:id`); chi tiết `ActivityDetailView` giữ phiên sửa ở cấp route (`useEditSession` + `useEditGuard` + `EditBar`).
 - Trường sửa tại chỗ lấy từ `editable[]` của `GET /api/activities/:id` (chỉ khi `canWriteActivities`, DYC luôn chỉ đọc): `title`, `description`, `deadline`, `start_date`, `priority`, `team_id`, `event_lead_id` (lưu bằng một `PATCH /api/activities/:id/batch`). Tiêu đề/mô tả/hạn chót không được để trống.
-- Lỗi lưu: 403 liệt kê tên trường bị cấm và giữ nháp; 400 hiện lỗi; 409 hiện "đã bị người khác sửa" với "Lấy bản mới" / "Giữ của tôi" (xem mục trên).
-- Trường NGOÀI hợp đồng batch (địa điểm, loại, link đề án, mô hình tổ…) vẫn sửa bằng `EditActivityModal` (Atlaskit, nút "Sửa khác" trên `ActivityActions`) cho tới khi có contract batch.
+- Lỗi lưu: 403 liệt kê tên trường bị cấm và giữ nháp; 400 hiện lỗi; 409 hiện "đã bị người khác sửa" với "Lấy bản mới" / "Giữ của tôi" (xem mục trên). Trường bắt buộc trống: ô được `aria-invalid` và focus vào ô trống đầu tiên; ô tiêu đề có `aria-label` "Tiêu đề hoạt động".
+- Trường NGOÀI hợp đồng batch vẫn sửa bằng `EditActivityModal` ("Sửa thông tin khác", Atlaskit, nút "Sửa khác" trên `ActivityActions`): CHỈ loại, địa điểm, yêu cầu bởi, kết quả, link đề án, công khai/ảnh; admin thêm trạng thái và danh sách Các Tổ tham gia (batch chỉ biểu diễn được `team_id`). Modal KHÔNG còn sửa trường batch (tiêu đề, mô tả, ưu tiên, ngày, Trưởng BTC, Tổ chủ trì) vì PATCH cũ không có base/409.
 - Hộp thoại lý do/xác nhận xoá của `ActivityActions` là `ActivityDialogs.tsx` (kit `Dialog`), không còn dùng `ReasonDialog`/`ConfirmDialog` Atlaskit.
-  `onSaved` nên trả promise của refetch: nháp chỉ bị xoá sau khi nó xong (không nháy về giá trị cũ); lỗi trong `onSaved` bị bỏ qua, `save()` vẫn trả `{ok:true}`.
-- `EditBar` (`ui/`): `<EditBar dirty count={session.changedKeys.length} saving onSave={session.save} onDiscard={session.discard} error />`; chỉ hiện khi dirty; `Mod+Enter` lưu, `Escape` hủy (Escape bỏ qua khi đang gõ trong input/textarea/select/contenteditable), bị bỏ qua khi focus trong `[role=dialog|menu|listbox]` hoặc sự kiện đã `preventDefault`.
-  Màn hiển thị `message` của `save()` thất bại qua prop `error` và tô các `fields`.
 
 ### Việc của tôi và Hộp thư
 
@@ -226,3 +227,4 @@ Màn Hoạt động (`web/src/core/features/activities/`) dùng kit mới (`web/
 | 1.27 | 2026-10-10 | Sửa mô tả: `TaskActionButtons` không còn được dùng; Hộp thư ghi chú giới hạn 20 thông báo; bỏ chữ "Task 8" khỏi tiêu đề mục | DYC |
 | 1.26 | 2026-10-10 | Việc của tôi (`features/mine/`, tab trên URL, `GET /api/tasks`) và Hộp thư (`Inbox`) thay `MyTasksView`/`MyTasksToday`/placeholder | DYC |
 | 1.28 | 2026-10-10 | Màn Hoạt động dùng kit mới: danh sách gọn, chi tiết sửa tại chỗ qua batch, trường ngoài batch giữ `EditActivityModal` | DYC |
+| 1.29 | 2026-10-10 | Sửa lỗi sau review màn Hoạt động: `EditActivityModal` chỉ còn trường ngoài batch, `EditBar saveDisabled` khi xung đột 409, `aria-invalid`/focus ô trống, chuyển khối "Màn Hoạt động" ra sau mục sửa tại chỗ | DYC |

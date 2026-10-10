@@ -281,9 +281,9 @@ describe('ActivityActions', () => {
     it('mở được hộp thoại sửa và thêm người tham gia', async () => {
       show('admin');
       fireEvent.click(screen.getByRole('button', { name: 'Sửa khác' }));
-      expect(await screen.findByText('Sửa hoạt động')).toBeDefined();
+      expect(await screen.findByText('Sửa thông tin khác')).toBeDefined();
       fireEvent.click(screen.getByRole('button', { name: 'Huỷ' }));
-      await waitFor(() => expect(screen.queryByText('Sửa hoạt động')).toBeNull());
+      await waitFor(() => expect(screen.queryByText('Sửa thông tin khác')).toBeNull());
       fireEvent.click(screen.getByRole('button', { name: 'Thêm người tham gia' }));
       expect(await screen.findByLabelText('Chọn người tham gia')).toBeDefined();
     });

@@ -8,7 +8,7 @@ import * as editApi from '../../edit/editApi';
 
 vi.mock('../../api', async () => {
   const actual = await vi.importActual<typeof import('../../api')>('../../api');
-  return { ...actual, fetchActivityDetail: vi.fn(), fetchTeams: vi.fn(), fetchMembers: vi.fn() };
+  return { ...actual, fetchActivityDetail: vi.fn(), fetchTeams: vi.fn(), fetchMembers: vi.fn(), fetchBootstrap: vi.fn(), fetchActivities: vi.fn() };
 });
 vi.mock('../../edit/editApi', async () => {
   const actual = await vi.importActual<typeof import('../../edit/editApi')>('../../edit/editApi');
@@ -23,7 +23,7 @@ const DYC = {
 };
 
 const show = (opts: Parameters<typeof renderInApp>[1] = {}) => renderInApp(<ActivityDetailView />, opts);
-const titleBox = () => screen.findByRole('textbox', { name: 'Tiêu đề' });
+const titleBox = () => screen.findByRole('textbox', { name: 'Tiêu đề hoạt động' });
 const saveBar = () => screen.queryByRole('region', { name: 'Thay đổi chưa lưu' });
 const typeTitle = async (value: string) => {
   const box = await titleBox();
@@ -42,6 +42,12 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
       { id: 7, name: 'Lê Trưởng BTC', email: 'a@x.vn', role: 'member', is_active: 1 },
       { id: 8, name: 'Hoàng Mới', email: 'b@x.vn', role: 'member', is_active: 1 },
     ] as never);
+    vi.mocked(api.fetchBootstrap).mockResolvedValue({
+      stats: { activeActivities: 0, openTasks: 0, overdueTasks: 0, completedMonth: 0 },
+      upcoming: [], tasks: [], activity: [], teams: [],
+      capabilities: { canCreateActivity: true, canCreateAccount: true },
+    });
+    vi.mocked(api.fetchActivities).mockResolvedValue([]);
     vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: true, editable: ALL }));
     vi.mocked(editApi.patchActivityBatch).mockResolvedValue({ changed: ['title'] });
   });
@@ -75,7 +81,7 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
   it('DYC chỉ đọc: không có ô sửa, không có thanh Lưu dù GET báo editable', async () => {
     show(DYC);
     expect(await screen.findByRole('heading', { level: 1, name: 'Ngày hội Kỹ thuật' })).toBeDefined();
-    expect(screen.queryByRole('textbox', { name: 'Tiêu đề' })).toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'Tiêu đề hoạt động' })).toBeNull();
     expect(screen.queryByRole('textbox', { name: 'Mô tả' })).toBeNull();
     expect(screen.queryByLabelText('Tổ điều phối')).toBeNull();
     expect(saveBar()).toBeNull();
@@ -86,7 +92,7 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
     vi.mocked(api.fetchActivityDetail).mockResolvedValue(makeDetail({ canManage: false, editable: [] }));
     show({ role: 'member', userId: 3 });
     expect(await screen.findByRole('heading', { level: 1, name: 'Ngày hội Kỹ thuật' })).toBeDefined();
-    expect(screen.queryByRole('textbox', { name: 'Tiêu đề' })).toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'Tiêu đề hoạt động' })).toBeNull();
     expect(saveBar()).toBeNull();
   });
 
@@ -125,7 +131,7 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
     show({ role: 'admin', userId: 1 });
     await typeTitle('Khác');
     expect(saveBar()).not.toBeNull();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Tiêu đề' }), { target: { value: 'Ngày hội Kỹ thuật' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tiêu đề hoạt động' }), { target: { value: 'Ngày hội Kỹ thuật' } });
     expect(saveBar()).toBeNull();
   });
 
@@ -143,6 +149,28 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     expect(await screen.findByText('Tiêu đề không được để trống.')).toBeDefined();
     expect(editApi.patchActivityBatch).not.toHaveBeenCalled();
+  });
+
+  it('trường trống: aria-invalid và focus vào ô trống đầu tiên', async () => {
+    show({ role: 'admin', userId: 1 });
+    const box = await typeTitle('   ');
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await screen.findByText('Tiêu đề không được để trống.');
+    expect(box.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(box);
+    fireEvent.change(box, { target: { value: 'Có chữ' } });
+    expect(box.getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('hạn chót trống: aria-invalid trên ô ngày và focus vào đó', async () => {
+    show({ role: 'admin', userId: 1 });
+    await titleBox();
+    const deadline = screen.getByLabelText('Hạn chót') as HTMLInputElement;
+    fireEvent.change(deadline, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    await screen.findByText('Hạn chót không được để trống.');
+    expect(deadline.getAttribute('aria-invalid')).toBe('true');
+    expect(document.activeElement).toBe(deadline);
   });
 
   it('403 liệt kê trường bị cấm bằng tên tiếng Việt và giữ nháp', async () => {
@@ -188,6 +216,18 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
       await waitFor(() => expect(vi.mocked(api.fetchActivityDetail).mock.calls.length).toBeGreaterThan(1));
     });
 
+    it('khoá nút Lưu trong lúc banner xung đột hiện, mở lại sau khi chọn', async () => {
+      conflict();
+      show({ role: 'admin', userId: 1 });
+      await typeTitle('Của tôi');
+      vi.mocked(api.fetchActivityDetail).mockResolvedValue(newer());
+      fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+      await screen.findByText(/đã bị người khác sửa/);
+      expect((screen.getByRole('button', { name: 'Lưu' }) as HTMLButtonElement).disabled).toBe(true);
+      fireEvent.click(screen.getByRole('button', { name: 'Giữ của tôi' }));
+      await waitFor(() => expect(editApi.patchActivityBatch).toHaveBeenCalledTimes(2));
+    });
+
     it('"Lấy bản mới" bỏ nháp và hiện dữ liệu mới', async () => {
       conflict();
       show({ role: 'admin', userId: 1 });
@@ -195,7 +235,7 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
       vi.mocked(api.fetchActivityDetail).mockResolvedValue(newer());
       fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
       fireEvent.click(await screen.findByRole('button', { name: 'Lấy bản mới' }));
-      await waitFor(() => expect((screen.getByRole('textbox', { name: 'Tiêu đề' }) as HTMLInputElement).value).toBe('Bản của người khác'));
+      await waitFor(() => expect((screen.getByRole('textbox', { name: 'Tiêu đề hoạt động' }) as HTMLInputElement).value).toBe('Bản của người khác'));
       expect(saveBar()).toBeNull();
       expect(screen.queryByText(/đã bị người khác sửa/)).toBeNull();
     });
@@ -224,6 +264,6 @@ describe('ActivityDetailView — sửa tại chỗ', () => {
     expect(within(dialog).getByRole('button', { name: 'Ở lại' })).toBeDefined();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Ở lại' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect((screen.getByRole('textbox', { name: 'Tiêu đề' }) as HTMLInputElement).value).toBe('Khác');
+    expect((screen.getByRole('textbox', { name: 'Tiêu đề hoạt động' }) as HTMLInputElement).value).toBe('Khác');
   });
 });

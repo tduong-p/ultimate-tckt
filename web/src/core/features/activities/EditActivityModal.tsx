@@ -4,12 +4,11 @@ import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import TextArea from '@atlaskit/textarea';
 import { useQuery } from '@tanstack/react-query';
-import { fetchMembers, fetchTeams, updateActivity, type ActivityDetail, type UpdateActivityPayload } from '../../api';
+import { fetchTeams, updateActivity, type ActivityDetail, type UpdateActivityPayload } from '../../api';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { LinkField } from '../../../shared/components/LinkField';
-import { DateInput, ErrorText, FieldRow, NativeSelect } from './formBits';
+import { ErrorText, FieldRow, NativeSelect } from './formBits';
 import {
-  EDIT_PRIORITY_OPTIONS,
   EDIT_STATUS_OPTIONS,
   EDIT_TYPE_OPTIONS,
   buildUpdatePayload,
@@ -24,7 +23,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   detail: ActivityDetail;
-  /** Vai trò admin khi ghi: được sửa trạng thái, Trưởng BTC, Tổ. */
+  /** Vai trò admin khi ghi: được sửa trạng thái và các Tổ tham gia. */
   isAdmin: boolean;
 }
 
@@ -47,19 +46,12 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
   }, [isOpen]);
 
   const teamsQuery = useQuery({ queryKey: ['core-teams'], queryFn: fetchTeams, enabled: isOpen && isAdmin });
-  const membersQuery = useQuery({ queryKey: ['core-members'], queryFn: fetchMembers, enabled: isOpen && isAdmin });
 
   const activeTeams = teamsQuery.data?.filter((t) => t.is_active !== 0 && t.is_active !== false).map((t) => ({ id: t.id, name: t.name })) ?? [];
   const activeIds = new Set(activeTeams.map((t) => t.id));
   const teamOptions = teamsQuery.data
     ? [...activeTeams, ...detail.activityTeams.filter((t) => !activeIds.has(t.team_id)).map((t) => ({ id: t.team_id, name: `${t.name} (đã lưu trữ)` }))]
     : detail.activityTeams.map((t) => ({ id: t.team_id, name: t.name }));
-  const leadOptions = [{ value: '', label: 'Không có' }].concat(
-    (membersQuery.data ?? []).filter((m) => m.is_active !== 0 && m.is_active !== false).map((m) => ({ value: String(m.id), label: m.name }))
-  );
-  if (form.eventLeadId && !leadOptions.some((o) => o.value === form.eventLeadId)) {
-    leadOptions.push({ value: form.eventLeadId, label: detail.activity.event_lead_name ?? `Người dùng #${form.eventLeadId}` });
-  }
 
   const set = <K extends keyof EditForm>(key: K, value: EditForm[K]) => setForm((f) => ({ ...f, [key]: value }));
   const toggleTeam = (id: number) =>
@@ -77,7 +69,7 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
   );
 
   const submit = () => {
-    const message = validateEditForm(form, isAdmin);
+    const message = validateEditForm(form);
     if (message) {
       setError(message);
       return;
@@ -100,33 +92,12 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
         {isOpen && (
           <Modal onClose={onClose} width="large">
             <ModalHeader>
-              <ModalTitle>Sửa hoạt động</ModalTitle>
+              <ModalTitle>Sửa thông tin khác</ModalTitle>
             </ModalHeader>
             <ModalBody>
-              <FieldRow label="Tiêu đề" htmlFor="edit-activity-title">
-                <Textfield id="edit-activity-title" value={form.title} onChange={(e) => set('title', (e.target as HTMLInputElement).value)} />
-              </FieldRow>
-              <FieldRow label="Mô tả" htmlFor="edit-activity-description">
-                <TextArea id="edit-activity-description" minimumRows={3} value={form.description} onChange={(e) => set('description', (e.target as HTMLTextAreaElement).value)} />
-              </FieldRow>
               <FieldRow label="Loại hoạt động" htmlFor="edit-activity-type">
                 <NativeSelect id="edit-activity-type" value={form.type} options={EDIT_TYPE_OPTIONS} onChange={(v) => set('type', v)} />
               </FieldRow>
-              <FieldRow label="Mức ưu tiên" htmlFor="edit-activity-priority">
-                <NativeSelect id="edit-activity-priority" value={form.priority} options={EDIT_PRIORITY_OPTIONS} onChange={(v) => set('priority', v)} />
-              </FieldRow>
-              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 200px' }}>
-                  <FieldRow label="Ngày bắt đầu" htmlFor="edit-activity-start">
-                    <DateInput id="edit-activity-start" value={form.startDate} onChange={(v) => set('startDate', v)} />
-                  </FieldRow>
-                </div>
-                <div style={{ flex: '1 1 200px' }}>
-                  <FieldRow label="Hạn chót" htmlFor="edit-activity-deadline">
-                    <DateInput id="edit-activity-deadline" value={form.deadline} onChange={(v) => set('deadline', v)} />
-                  </FieldRow>
-                </div>
-              </div>
               <FieldRow label="Địa điểm" htmlFor="edit-activity-location">
                 <Textfield id="edit-activity-location" value={form.location} onChange={(e) => set('location', (e.target as HTMLInputElement).value)} />
               </FieldRow>
@@ -150,17 +121,6 @@ export const EditActivityModal: React.FC<Props> = ({ isOpen, onClose, detail, is
                 <div style={{ marginTop: 16 }}>
                   <FieldRow label="Trạng thái" htmlFor="edit-activity-status">
                     <NativeSelect id="edit-activity-status" value={form.status} options={EDIT_STATUS_OPTIONS} onChange={(v) => set('status', v)} />
-                  </FieldRow>
-                  <FieldRow label="Trưởng Ban Tổ chức" htmlFor="edit-activity-lead">
-                    <NativeSelect id="edit-activity-lead" value={form.eventLeadId} options={leadOptions} onChange={(v) => set('eventLeadId', v)} />
-                  </FieldRow>
-                  <FieldRow label="Tổ chủ trì" htmlFor="edit-activity-lead-team">
-                    <NativeSelect
-                      id="edit-activity-lead-team"
-                      value={form.leadTeamId}
-                      options={[{ value: '', label: 'Chọn Tổ chủ trì' }, ...teamOptions.map((t) => ({ value: String(t.id), label: t.name }))]}
-                      onChange={(v) => set('leadTeamId', v)}
-                    />
                   </FieldRow>
                   <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
                     <legend style={{ fontWeight: 600, marginBottom: 4 }}>Các Tổ tham gia</legend>

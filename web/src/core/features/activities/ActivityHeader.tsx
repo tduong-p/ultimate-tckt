@@ -18,18 +18,24 @@ interface Props {
   teams: ActivityTeamRow[];
   session: Session;
   editable: ReadonlySet<string>;
+  /** Trường vừa bị báo trống: gắn aria-invalid và data-edit-field để màn focus được. */
+  invalid?: readonly string[];
 }
 
 const priorityOf = (p: string): Priority => (p === 'low' || p === 'medium' || p === 'high' || p === 'urgent' ? p : 'none');
 const priorityLabel = (p: string) => EDIT_PRIORITY_OPTIONS.find((o) => o.value === p)?.label ?? p;
 
-export const ActivityTitleBlock: React.FC<Pick<Props, 'activity' | 'session' | 'editable'>> = ({ activity, session, editable }) => (
+const flag = (invalid: readonly string[] | undefined, key: string) => (invalid?.includes(key) ? true : undefined);
+
+export const ActivityTitleBlock: React.FC<Pick<Props, 'activity' | 'session' | 'editable' | 'invalid'>> = ({ activity, session, editable, invalid }) => (
   <header>
     <h1 className="act-title">
       {editable.has('title') ? (
         <input
           className="act-title-input"
-          aria-label="Tiêu đề"
+          aria-label="Tiêu đề hoạt động"
+          data-edit-field="title"
+          aria-invalid={flag(invalid, 'title')}
           value={session.value('title')}
           onChange={(e) => session.set('title', e.target.value)}
         />
@@ -41,6 +47,8 @@ export const ActivityTitleBlock: React.FC<Pick<Props, 'activity' | 'session' | '
       <textarea
         className="act-desc-input"
         aria-label="Mô tả"
+        data-edit-field="description"
+        aria-invalid={flag(invalid, 'description')}
         value={session.value('description')}
         onChange={(e) => session.set('description', e.target.value)}
       />
@@ -79,11 +87,11 @@ const LeadSelect: React.FC<{ session: Session; activity: ActivityItem }> = ({ se
   );
 };
 
-const DateField: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
-  <input className="act-input" type="date" aria-label={label} value={value} onChange={(e) => onChange(e.target.value)} />
+const DateField: React.FC<{ label: string; field: string; value: string; invalid?: boolean; onChange: (v: string) => void }> = ({ label, field, value, invalid, onChange }) => (
+  <input className="act-input" type="date" aria-label={label} data-edit-field={field} aria-invalid={invalid || undefined} value={value} onChange={(e) => onChange(e.target.value)} />
 );
 
-export const ActivityProperties: React.FC<Props> = ({ activity, teams, session, editable }) => {
+export const ActivityProperties: React.FC<Props> = ({ activity, teams, session, editable, invalid }) => {
   const status = getActivityStatusMeta(activity.status);
   const start = formatVnDate(activity.start_date);
   const range = start ? `${start} – ${formatVnDate(activity.deadline)}` : formatVnDate(activity.deadline);
@@ -106,9 +114,9 @@ export const ActivityProperties: React.FC<Props> = ({ activity, teams, session, 
         <Row label="Thời gian">
           {canDates ? (
             <>
-              {editable.has('start_date') ? <DateField label="Ngày bắt đầu" value={session.value('start_date')} onChange={(v) => session.set('start_date', v)} /> : <span>{start || '—'}</span>}
+              {editable.has('start_date') ? <DateField label="Ngày bắt đầu" field="start_date" value={session.value('start_date')} onChange={(v) => session.set('start_date', v)} /> : <span>{start || '—'}</span>}
               <span aria-hidden="true">–</span>
-              {editable.has('deadline') ? <DateField label="Hạn chót" value={session.value('deadline')} onChange={(v) => session.set('deadline', v)} /> : <span>{formatVnDate(activity.deadline)}</span>}
+              {editable.has('deadline') ? <DateField label="Hạn chót" field="deadline" invalid={invalid?.includes('deadline')} value={session.value('deadline')} onChange={(v) => session.set('deadline', v)} /> : <span>{formatVnDate(activity.deadline)}</span>}
             </>
           ) : (
             range

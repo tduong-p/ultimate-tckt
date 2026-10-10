@@ -31,6 +31,7 @@ const NO_FIELDS: string[] = [];
 const EMPTY_DRAFT: ActivityDraftFields = { title: '', description: '', priority: 'medium', start_date: '', deadline: '', team_id: 0, event_lead_id: null };
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** Trường bắt buộc đang trống (đã có trong nháp). */
 type Notice = { kind: 'error'; message: string } | { kind: 'conflict'; fields: string[] };
 
 /** Trang `#activity/:id`. Phiên sửa tại chỗ nằm ở đây (component route-level) để EditGuard giữ được nháp. */
@@ -54,6 +55,8 @@ export const ActivityDetailView: React.FC = () => {
   const editable = useMemo(() => new Set(editableList), [editableList]);
   const original = useMemo(() => (data ? toDraftOriginal(data.activity) : EMPTY_DRAFT), [data]);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [invalid, setInvalid] = useState<string[]>([]);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const session = useEditSession<ActivityDraftFields>({
     original,
@@ -61,6 +64,13 @@ export const ActivityDetailView: React.FC = () => {
     patch: (changes, base) => patchActivityBatch(activityId, { changes, base }),
     onSaved: () => invalidateActivity(qc, activityId),
   });
+  // Gõ lại nội dung thì bỏ cờ trống của trường đó.
+  useEffect(() => {
+    setInvalid((cur) => {
+      const next = cur.filter((k) => !String(session.value(k as keyof ActivityDraftFields) ?? '').trim());
+      return next.length === cur.length ? cur : next;
+    });
+  }, [session]);
   useEditGuard(session.dirty);
 
   // Đổi sang hoạt động khác: bỏ nháp của hoạt động cũ.
@@ -68,6 +78,7 @@ export const ActivityDetailView: React.FC = () => {
   useEffect(() => {
     discard();
     setNotice(null);
+    setInvalid([]);
   }, [activityId, discard]);
 
   /** Tải lại chi tiết và chờ tới khi `original` mới đã được render (base của lần lưu sau phải là bản mới). */
@@ -78,11 +89,14 @@ export const ActivityDetailView: React.FC = () => {
   };
 
   const save = async () => {
-    const blank = REQUIRED_FIELDS.find((k) => session.changedKeys.includes(k) && !String(session.value(k) ?? '').trim());
-    if (blank) {
-      setNotice({ kind: 'error', message: `${ACTIVITY_FIELD_LABELS[blank]} không được để trống.` });
+    const blanks = REQUIRED_FIELDS.filter((k) => session.changedKeys.includes(k) && !String(session.value(k) ?? '').trim());
+    if (blanks.length) {
+      setInvalid(blanks);
+      setNotice({ kind: 'error', message: `${ACTIVITY_FIELD_LABELS[blanks[0]]} không được để trống.` });
+      rootRef.current?.querySelector<HTMLElement>(`[data-edit-field="${blanks[0]}"]`)?.focus();
       return;
     }
+    setInvalid([]);
     setNotice(null);
     const result = await session.save();
     if (result.ok) {
@@ -128,9 +142,9 @@ export const ActivityDetailView: React.FC = () => {
 
   const { activity } = data;
   return (
-    <div className="act">
+    <div className="act" ref={rootRef}>
       <BackLink />
-      <ActivityTitleBlock activity={activity} session={session} editable={editable} />
+      <ActivityTitleBlock activity={activity} session={session} editable={editable} invalid={invalid} />
       <div className="act-bar">
         <ActivityActions detail={data} />
         <ActivityTaskActions
@@ -143,7 +157,7 @@ export const ActivityDetailView: React.FC = () => {
       </div>
       <div className="act-cols">
         <div className="act-main">
-          <ActivityProperties activity={activity} teams={data.activityTeams} session={session} editable={editable} />
+          <ActivityProperties activity={activity} teams={data.activityTeams} session={session} editable={editable} invalid={invalid} />
           <ActivityPlanSection tasks={data.tasks} attachments={data.attachments} activityType={activity.type} canManage={data.canManage} />
           <ActivityUpdatesSection activityId={activity.id} updates={data.updates} taggablePeople={data.taggablePeople} canWrite={canWriteActivities} />
         </div>
@@ -170,7 +184,8 @@ export const ActivityDetailView: React.FC = () => {
         count={session.changedKeys.length}
         saving={session.saving}
         onSave={() => void save()}
-        onDiscard={() => { session.discard(); setNotice(null); }}
+        saveDisabled={notice?.kind === 'conflict'}
+        onDiscard={() => { session.discard(); setNotice(null); setInvalid([]); }}
         error={notice?.kind === 'error' ? notice.message : undefined}
       />
     </div>

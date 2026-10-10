@@ -65,6 +65,16 @@ describe('EditBar', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it('saveDisabled: nút Lưu bị khoá và Mod+Enter không lưu, Hủy vẫn dùng được', async () => {
+    const onSave = vi.fn(); const onDiscard = vi.fn();
+    render(<EditBar dirty {...props} saveDisabled onSave={onSave} onDiscard={onDiscard} />);
+    expect(screen.getByRole('button', { name: 'Lưu' })).toBeDisabled();
+    await userEvent.keyboard('{Control>}{Enter}{/Control}');
+    expect(onSave).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Hủy' }));
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
   it('hiện lỗi với role=alert', () => {
     render(<EditBar dirty {...props} error="Dữ liệu đã đổi" />);
     expect(screen.getByRole('alert')).toHaveTextContent('Dữ liệu đã đổi');
