@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { todayVnKey } from '../../../shared/utils/date';
 import { groupMine, parseTab, type MineTask } from './mineTasks';
 
 const TODAY = '2026-10-10';
@@ -45,5 +46,21 @@ describe('groupMine', () => {
   });
   it('Tất cả: mọi việc của tôi chưa xong/huỷ', () => {
     expect(ids(g.all)).toEqual([1, 2, 3, 4, 5, 8, 9, 10]);
+  });
+});
+
+describe('groupMine ranh giới ngày Việt Nam', () => {
+  it('today = 2026-10-11 khi hệ thống là 18:00Z ngày 10/10', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-10T18:00:00Z'));
+    try {
+      const today = todayVnKey();
+      expect(today).toBe('2026-10-11');
+      const g = groupMine([t(1, { deadline: '2026-10-11' }), t(2, { deadline: '2026-10-10' })], [], today);
+      expect(g.today.map((x) => x.id)).toEqual([1]);
+      expect(g.overdue.map((x) => x.id)).toEqual([2]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

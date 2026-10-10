@@ -174,4 +174,31 @@ describe('MineView', () => {
     );
     expect(await screen.findByText('Lỗi tải danh sách công việc.')).toBeInTheDocument();
   });
+  it('số đếm tab Chờ tôi duyệt ẩn cho tới khi truy vấn duyệt thành công', async () => {
+    let release: (v: MineTask[]) => void = () => {};
+    vi.mocked(mineApi.fetchMyTaskList).mockImplementation((kind) => (kind === 'mine' ? Promise.resolve(MINE) : new Promise<MineTask[]>((r) => { release = r; })));
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}><ToastProvider><MemoryRouter initialEntries={['/my-tasks?tab=all']}><Routes><Route path="/my-tasks" element={<MineView />} /></Routes></MemoryRouter></ToastProvider></QueryClientProvider>
+    );
+    await screen.findByRole('tab', { name: /^Tất cả\s*\d/ });
+    expect(screen.getByRole('tab', { name: /^Chờ tôi duyệt$/ })).toBeInTheDocument();
+    release(REVIEW);
+    await waitFor(() => expect(screen.getByRole('tab', { name: /^Chờ tôi duyệt\s*1$/ })).toBeInTheDocument());
+  });
+
+  it('ranh giới ngày: 18:00Z ngày 10/10 đã là 11/10 theo giờ Việt Nam', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-10T18:00:00Z'));
+    try {
+      setup('/my-tasks?tab=today', {
+        mine: [task(1, 'Hạn 11/10', { deadline: '2026-10-11' }), task(2, 'Hạn 10/10', { deadline: '2026-10-10' })],
+      });
+      expect(await screen.findByRole('button', { name: /Hạn 11\/10/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Hạn 10\/10/ })).toBeNull();
+      expect(tabBtn(/^Quá hạn\s*1$/)).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

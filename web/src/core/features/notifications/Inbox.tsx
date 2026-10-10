@@ -11,6 +11,9 @@ import { NOTIFICATIONS_KEY } from './useNotifications';
 import { useOpenNotification } from './useOpenNotification';
 import './inbox.css';
 
+/** Core trả tối đa chừng này thông báo mới nhất (GET /api/notifications LIMIT 20). */
+const CORE_LIMIT = 20;
+
 const CHIPS: { value: InboxFilter; label: string }[] = [
   { value: 'unread', label: 'Chưa đọc' },
   { value: 'mention', label: 'Nhắc tên' },
@@ -37,6 +40,7 @@ export const Inbox: React.FC = () => {
   const toggle = (f: InboxFilter) => setActive((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
   const items = data ? applyInboxFilters(data.notifications, active) : [];
   const unread = data?.unread_count ?? 0;
+  const capped = (data?.notifications.length ?? 0) >= CORE_LIMIT;
 
   return (
     <div className="inbox">
@@ -60,7 +64,7 @@ export const Inbox: React.FC = () => {
       ) : data.notifications.length === 0 ? (
         <p className="inbox-state">Hộp thư trống.</p>
       ) : items.length === 0 ? (
-        <p className="inbox-state">Không có thông báo nào khớp bộ lọc.</p>
+        <p className="inbox-state">{capped ? `Không có thông báo nào khớp trong ${CORE_LIMIT} thông báo gần nhất.` : 'Không có thông báo nào khớp bộ lọc.'}</p>
       ) : (
         <ul className="inbox-list">
           {items.map((n) => (
@@ -77,6 +81,7 @@ export const Inbox: React.FC = () => {
           ))}
         </ul>
       )}
+      {capped && <p className="inbox-note">Hiển thị {CORE_LIMIT} thông báo gần nhất</p>}
     </div>
   );
 };

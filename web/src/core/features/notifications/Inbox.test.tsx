@@ -145,4 +145,25 @@ describe('Inbox', () => {
     const first = within(rows()[0]);
     expect(first.getByLabelText('Chưa đọc')).toBeInTheDocument();
   });
+  describe('giới hạn 20 thông báo của Core', () => {
+    const many = (count: number): api.NotificationsResponse => ({
+      unread_count: count,
+      notifications: Array.from({ length: count }, (_, i) => n(i + 1, { kind: 'task_assigned' })),
+    });
+
+    it('đủ 20 thì hiện chú thích và lời khi lọc không khớp không khẳng định là không có', async () => {
+      const { user } = setup(many(20));
+      expect(screen.getByText('Hiển thị 20 thông báo gần nhất')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Duyệt' }));
+      expect(screen.getByText('Không có thông báo nào khớp trong 20 thông báo gần nhất.')).toBeInTheDocument();
+      expect(screen.queryByText('Không có thông báo nào khớp bộ lọc.')).toBeNull();
+    });
+
+    it('dưới 20 thì không có chú thích và giữ lời cũ', async () => {
+      const { user } = setup(many(19));
+      expect(screen.queryByText('Hiển thị 20 thông báo gần nhất')).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Duyệt' }));
+      expect(screen.getByText('Không có thông báo nào khớp bộ lọc.')).toBeInTheDocument();
+    });
+  });
 });

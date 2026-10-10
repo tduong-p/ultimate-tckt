@@ -103,7 +103,7 @@ export const MineView: React.FC = () => {
   const today = todayVnKey();
   const groups = useMemo(() => groupMine(mineQuery.data ?? [], reviewQuery.data ?? [], today), [mineQuery.data, reviewQuery.data, today]);
 
-  const tabs = MINE_TABS.map((value) => ({ value, label: TAB_LABEL[value], count: mineQuery.data ? groups[value].length : undefined }));
+  const tabs = MINE_TABS.map((value) => ({ value, label: TAB_LABEL[value], count: value === 'review' ? (reviewQuery.isSuccess ? groups[value].length : undefined) : mineQuery.isSuccess ? groups[value].length : undefined }));
   const list = groups[tab];
   const loading = mineQuery.isLoading || (tab === 'review' && reviewQuery.isLoading);
   const failed = mineQuery.isError || (tab === 'review' && reviewQuery.isError);
